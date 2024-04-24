@@ -5,26 +5,18 @@
 
 #include <opencv2/core.hpp>
 
-namespace tlct::
-inline config {
+namespace tlct::inline config {
 
-class CalibConfig {
+class CalibConfig
+{
 public:
-    CalibConfig() : offset_(0, 0), diameter_(0.0), rotation_(0.0), lens_() {};
+    CalibConfig() : offset_(0, 0), diameter_(0.0), rotation_(0.0), lens_(){};
+    CalibConfig(cv::Point2d offset, double diameter, double rotation, std::vector<cv::Point2d>&& lens)
+        : offset_(offset), diameter_(diameter), rotation_(rotation), lens_(lens){};
 
-    CalibConfig(cv::Point2d offset,
-                double diameter,
-                double rotation,
-                std::vector<cv::Point2d> &&lens) :
-            offset_(offset),
-            diameter_(diameter),
-            rotation_(rotation),
-            lens_(lens) {};
-
-    static CalibConfig fromPath(const std::string &xml_fpath);
+    static CalibConfig fromPath(const std::string& xml_fpath);
 
     double getDiameter() const noexcept;
-
     cv::Point2d getOffset() const noexcept;
 
 private:
@@ -34,8 +26,8 @@ private:
     std::vector<cv::Point2d> lens_;
 };
 
-
-inline CalibConfig CalibConfig::fromPath(const std::string &xml_fpath) {
+inline CalibConfig CalibConfig::fromPath(const std::string& xml_fpath)
+{
     pugi::xml_document doc;
     const auto ret = doc.load_file(xml_fpath.c_str(), pugi::parse_minimal, pugi::encoding_utf8);
     if (!ret) {
@@ -53,8 +45,8 @@ inline CalibConfig CalibConfig::fromPath(const std::string &xml_fpath) {
     std::vector<cv::Point2d> lens;
     constexpr size_t type_num = 3;
     lens.reserve(type_num);
-    for (const auto ltype_node: data_node.children("lens_type")) {
-        const auto lofs = ltype_node.child("offset");  // Len Type Offset
+    for (const auto ltype_node : data_node.children("lens_type")) {
+        const auto lofs = ltype_node.child("offset"); // Len Type Offset
         const double lofs_x = lofs.child("x").text().as_double();
         const double lofs_y = lofs.child("y").text().as_double();
         lens.emplace_back(lofs_x, lofs_y);
@@ -63,12 +55,8 @@ inline CalibConfig CalibConfig::fromPath(const std::string &xml_fpath) {
     return {offset, diameter, rotation, std::move(lens)};
 }
 
-inline double CalibConfig::getDiameter() const noexcept {
-    return diameter_;
-}
+inline double CalibConfig::getDiameter() const noexcept { return diameter_; }
 
-inline cv::Point2d CalibConfig::getOffset() const noexcept {
-    return offset_;
-}
+inline cv::Point2d CalibConfig::getOffset() const noexcept { return offset_; }
 
-}
+} // namespace tlct::inline config
