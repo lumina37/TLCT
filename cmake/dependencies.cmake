@@ -9,6 +9,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(pugixml)
 
+set(TLCT_INCLUDE_DIR
+        ${OpenCV_INCLUDE_DIR}
+        "${pugixml_SOURCE_DIR}/src"
+        "${CMAKE_SOURCE_DIR}/src/include")
+
+set(TLCT_LINK_LIBS
+        ${OpenCV_LIBS}
+        pugixml)
+
 if (BUILD_TESTS)
     FetchContent_Declare(
             googletest

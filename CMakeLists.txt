@@ -9,9 +9,9 @@ set(CMAKE_PROJECT_VERSION ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-option(BUILD_TESTS "Build tests" FALSE)
-#option(BUILD_SHARED_LIBS "Build shared libraries" FALSE)
-#option(BUILD_WITH_MT "Build libraries as MultiThreaded DLL (Windows Only)" FALSE)
+option(BUILD_TESTS "Build tests" OFF)
+#option(BUILD_SHARED_LIBS "Specifies the type of libraries (SHARED or STATIC) to build" OFF)
+#option(BUILD_WITH_MT "Build libraries as MultiThreaded DLL (Windows Only)" OFF)
 
 include(cmake/dependencies.cmake)
 
