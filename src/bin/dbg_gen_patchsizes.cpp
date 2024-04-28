@@ -13,8 +13,9 @@ int main(int argc, char** argv)
     cfg::tspc::CalibConfig config{};
     config._setCenters("centers_cars.xml");
 
-    cv::Mat patchsizes;
-    cvt::_Patch_Size_Cal(src, patchsizes, config);
+    const auto patchsizes = cvt::tspc::generatePatchsizes(src, config);
 
-    cv::imwrite("patchsizes.tiff",patchsizes);
+    cv::imwrite("patchsizes.tiff", patchsizes);
+
+    std::cout << patchsizes << std::endl;
 }

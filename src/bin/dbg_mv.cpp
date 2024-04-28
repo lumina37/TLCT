@@ -15,5 +15,5 @@ int main(int argc, char** argv)
 
     const auto patchsizes = cv::imread("patchsizes.tiff", cv::IMREAD_UNCHANGED);
 
-    cvt::_Lenslet_Rendering_zoom(src, config, patchsizes, "./Cars", 5);
+    cvt::tspc::_Lenslet_Rendering_zoom(src, config, patchsizes, "./Cars", 5);
 }

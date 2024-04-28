@@ -11,12 +11,12 @@
 
 #include "tlct/config/calibration/tspc.hpp"
 
-namespace tlct::cvt {
+namespace tlct::cvt::tspc {
 
 namespace rgs = std::ranges;
 namespace fs = std::filesystem;
 
-void _Patch_Size_Cal(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::CalibConfig& config)
+void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::CalibConfig& config)
 {
     const cv::Size size = config.getCentersSize();
     patchsizes = cv::Mat::zeros(size, CV_32SC1);
@@ -40,23 +40,22 @@ void _Patch_Size_Cal(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::C
                 continue;
 
             const cv::Mat full_patch = gray_src(cv::Range{cor_y - 31, cor_y + 31}, cv::Range{cor_x - 31, cor_x + 31});
-            const cv::Mat patch_1 = full_patch(cv::Range{19, 29}, cv::Range{19, 29});
+            const cv::Mat patch_1 = full_patch(cv::Range{18, 28}, cv::Range{18, 28});
             const auto ssim_calculator = cv::quality::QualitySSIM::create(patch_1);
 
-            constexpr int kstart = 14;
-            constexpr int kend = 33;
+            constexpr int kstart = 15;
+            constexpr int kend = 34;
             auto ssim_values = std::array<double, kend - kstart>{};
             const auto ks = rgs::views::iota(kstart, kend);
             for (const int k : ks) {
                 const cv::Mat full_patch_for_match = gray_src({cor_y1 - 31, cor_y1 + 31}, {cor_x1 - 31, cor_x1 + 31});
-                const cv::Mat patch_2 = full_patch_for_match(cv::Range{19 + k, 29 + k}, cv::Range{19, 29});
+                const cv::Mat patch_2 = full_patch_for_match(cv::Range{18 + k, 28 + k}, cv::Range{18, 28});
                 const double ssim_value = ssim_calculator->compute(patch_2)[0];
                 ssim_values[k - kstart] = ssim_value;
             }
 
             // TODO: Simplify the ugly nests below
             const auto pmax = std::max_element(ssim_values.begin(), ssim_values.end());
-            const double val = *pmax;
             const int ord = (int)std::distance(ssim_values.begin(), pmax);
             if (j == 0) {
                 if (i == 0) {
@@ -75,7 +74,7 @@ void _Patch_Size_Cal(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::C
                         origin_patch = ord + kstart;
                     }
                 } else {
-                    if ((j == js.size() - 1) && (i % 2 == 0)) {
+                    if ((j == js.size() - 1) && (i % 2 == 1)) {
                         const int leftup_psize = patchsizes.at<int>(j - 1, i - 1);
                         const double leftup_ssim = ssim_values[leftup_psize - kstart];
                         const double last_ssim = ssim_values[origin_patch - kstart];
@@ -108,6 +107,13 @@ void _Patch_Size_Cal(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::C
         }
     }
     patchsizes.row(size.height - 2).copyTo(patchsizes.row(size.height - 1));
+}
+
+cv::Mat generatePatchsizes(const cv::Mat& src, const cfg::tspc::CalibConfig& config)
+{
+    cv::Mat patchsizes;
+    generatePatchsizes_(src, patchsizes, config);
+    return patchsizes;
 }
 
 void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc::CalibConfig& config, const cv::Mat& patchsizes,
@@ -209,4 +215,4 @@ void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc::CalibConfig& c
     }
 }
 
-} // namespace tlct::cvt
+} // namespace tlct::cvt::tspc
