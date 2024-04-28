@@ -6,12 +6,11 @@ set(CMAKE_PROJECT_VERSION_MINOR 1)
 set(CMAKE_PROJECT_VERSION_PATCH 0)
 set(CMAKE_PROJECT_VERSION ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}.${CMAKE_PROJECT_VERSION_PATCH})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 option(BUILD_TESTS "Build tests" OFF)
-#option(BUILD_SHARED_LIBS "Specifies the type of libraries (SHARED or STATIC) to build" OFF)
-#option(BUILD_WITH_MT "Build libraries as MultiThreaded DLL (Windows Only)" OFF)
+#option(BUILD_SHARED_LIBS "Specifies the type of libraries (SHARED or STATIC) to build" ON)
 
 include(cmake/dependencies.cmake)
 

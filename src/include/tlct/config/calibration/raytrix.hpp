@@ -15,7 +15,7 @@ public:
     CalibConfig(cv::Point2d offset, double diameter, double rotation)
         : offset_(offset), diameter_(diameter), rotation_(rotation){};
 
-    static CalibConfig fromPath(std::string_view xml_fpath);
+    static CalibConfig fromPath(const std::string_view xml_fpath);
 
     [[nodiscard]] double getDiameter() const noexcept;
     [[nodiscard]] double getRotation() const noexcept;
@@ -29,7 +29,7 @@ private:
     double rotation_;
 };
 
-inline CalibConfig CalibConfig::fromPath(std::string_view xml_fpath)
+inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
 {
     pugi::xml_document doc;
     const auto ret = doc.load_file(xml_fpath.data(), pugi::parse_minimal, pugi::encoding_utf8);

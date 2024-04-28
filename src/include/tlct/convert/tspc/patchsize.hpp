@@ -15,8 +15,8 @@ namespace rgs = std::ranges;
 
 namespace _helper {
 
-inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, cv::Point curr_center, cv::Point neib_center,
-                                         cv::Range match_range)
+inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, const cv::Point curr_center,
+                                         const cv::Point neib_center, const cv::Range match_range)
 {
     constexpr int start_shift = -13;
     constexpr int end_shift = -3;
@@ -40,7 +40,7 @@ inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, cv::Point curr
 }
 
 inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdist, const cv::Mat& psize_indices,
-                               cv::Point index)
+                               const cv::Point index)
 {
     const auto pmax_ssim = std::max_element(ssims_over_mdist.begin(), ssims_over_mdist.end());
     const int max_ssim_idx = (int)std::distance(ssims_over_mdist.begin(), pmax_ssim);
@@ -53,7 +53,7 @@ inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdist, cons
             if (ssims_over_mdist[left_psize_idx] > 0.85) {
                 patchsize_idx = left_psize_idx;
             } else {
-                patchsize_idx = 0; // TODO: Why not `max_ssim_idx`?
+                patchsize_idx = max_ssim_idx; // TODO: Why `0`?
             }
         }
     } else {

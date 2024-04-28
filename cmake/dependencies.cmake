@@ -1,7 +1,10 @@
 include(FetchContent)
 
-find_package(OpenCV)
+find_package(OpenCV COMPONENTS core imgcodecs imgproc quality)
 
+set(PUGIXML_NO_XPATH ON)
+set(PUGIXML_NO_EXCEPTIONS ON)
+set(PUGIXML_NO_STL ON)
 FetchContent_Declare(
         pugixml
         GIT_REPOSITORY https://github.com/zeux/pugixml.git
@@ -25,7 +28,7 @@ if (BUILD_TESTS)
             GIT_TAG v1.14.0
     )
 
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    set(gtest_force_shared_crt ON)
     FetchContent_MakeAvailable(googletest)
 
     enable_testing()
