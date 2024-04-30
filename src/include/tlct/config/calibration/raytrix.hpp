@@ -2,13 +2,14 @@
 
 #include <string>
 
+#include <opencv2/core.hpp>
 #include <pugixml.hpp>
 
-#include <opencv2/core.hpp>
+#include "tlct/common/defines.h"
 
 namespace tlct::cfg::raytrix {
 
-class CalibConfig
+class TLCT_API CalibConfig
 {
 public:
     CalibConfig() : offset_(0, 0), diameter_(0.0), rotation_(0.0){};

@@ -1,0 +1,2 @@
+#cmakedefine TLCT_HEADER_ONLY
+#cmakedefine TLCT_BUILD_SHARED_LIBS

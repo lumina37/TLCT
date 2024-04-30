@@ -4,14 +4,15 @@
 #include <string>
 
 #include <pugixml.hpp>
-
 #include <opencv2/core.hpp>
+
+#include "tlct/common/defines.h"
 
 namespace tlct::cfg::tspc {
 
 namespace rgs = std::ranges;
 
-class CalibConfig
+class TLCT_API CalibConfig
 {
 public:
     CalibConfig() : diameter_(0.0), rotation_(0.0), centers_(){};
@@ -75,9 +76,9 @@ inline int CalibConfig::_setCenters(const std::string_view xml_fpath)
         return v;
     };
 
-    this->centers_.create(rows, cols, CV_32SC2);
+    centers_.create(rows, cols, CV_32SC2);
     for (const int row : rgs::views::iota(0, rows)) {
-        auto prow = this->centers_.ptr<cv::Point>(row);
+        auto prow = centers_.ptr<cv::Point>(row);
 
         for (const int col : rgs::views::iota(0, cols)) {
             const int x = subrg2int(*subrg_iter);

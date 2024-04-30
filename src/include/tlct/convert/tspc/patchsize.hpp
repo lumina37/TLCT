@@ -7,6 +7,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/quality.hpp>
 
+#include "tlct/common/defines.h"
 #include "tlct/config/calibration/tspc.hpp"
 
 namespace tlct::cvt::tspc {
@@ -90,7 +91,7 @@ inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdist, cons
 
 } // namespace _helper
 
-void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::CalibConfig& config)
+TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::CalibConfig& config)
 {
     const cv::Size size = config.getCentersSize();
     cv::Mat psize_indices = cv::Mat::zeros(size, CV_32SC1);
@@ -116,7 +117,7 @@ void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tsp
     patchsizes = psize_indices + match_range.start;
 }
 
-cv::Mat generatePatchsizes(const cv::Mat& src, const cfg::tspc::CalibConfig& config)
+TLCT_API inline cv::Mat generatePatchsizes(const cv::Mat& src, const cfg::tspc::CalibConfig& config)
 {
     cv::Mat patchsizes;
     generatePatchsizes_(src, patchsizes, config);
