@@ -19,6 +19,8 @@ if (BUILD_TESTS)
             GIT_TAG v1.14.0
     )
 
+    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+    set(GTEST_LINKED_AS_SHARED_LIBRARY 1 CACHE BOOL "" FORCE)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 

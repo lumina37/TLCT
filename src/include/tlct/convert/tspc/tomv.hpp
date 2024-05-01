@@ -22,10 +22,10 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
     fs::path saveto_dir{saveto};
     fs::create_directories(saveto_dir);
 
-    constexpr int true_p = 20;
     constexpr int zoom = 3;
     cv::Mat zoomed_psizes = patchsizes * zoom;
-    constexpr int bound = 4;
+    constexpr int true_p = 20 * zoom;
+    constexpr int bound = zoom;
     constexpr int dst_psize = true_p + 2 * bound;
 
     cv::Mat d_src; // convert src from 8UCn to 64FCn
