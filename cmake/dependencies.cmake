@@ -19,7 +19,7 @@ if (BUILD_TESTS)
             GIT_TAG v1.14.0
     )
 
-    set(gtest_force_shared_crt ON)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 
     enable_testing()
