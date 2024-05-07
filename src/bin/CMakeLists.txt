@@ -1,6 +1,6 @@
 function(tlct_add_executable name srcs)
     add_executable(${name} ${srcs})
-    target_link_libraries(${name} PRIVATE ${TLCT_LIB_NAME}})
+    target_link_libraries(${name} PRIVATE tlct)
     copy_dlls_if_needed(${name})
 endfunction()
 

@@ -1,6 +1,6 @@
 function(tlct_add_test name srcs)
     add_executable(${name} ${srcs})
-    target_link_libraries(${name} PRIVATE ${TLCT_LIB_NAME}} GTest::gtest_main)
+    target_link_libraries(${name} PRIVATE tlct GTest::gtest_main)
     copy_dlls_if_needed(${name})
     gtest_discover_tests(${name})
 endfunction()
