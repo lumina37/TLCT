@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-include(cmake/polices.cmake)
+include(cmake/policies.cmake)
 
 project(TLCT VERSION 0.1.0 LANGUAGES CXX)
 

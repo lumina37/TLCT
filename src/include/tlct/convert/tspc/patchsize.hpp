@@ -16,8 +16,8 @@ namespace rgs = std::ranges;
 
 namespace _helper {
 
-inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, const cv::Point curr_center,
-                                         const cv::Point neib_center, const cv::Range match_range)
+static inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, const cv::Point curr_center,
+                                                const cv::Point neib_center, const cv::Range match_range)
 {
     constexpr int start_shift = -13;
     constexpr int end_shift = -3;
@@ -40,8 +40,8 @@ inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, const cv::Poin
     return ssims_over_mdist;
 }
 
-inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdist, const cv::Mat& psize_indices,
-                               const cv::Point index)
+static inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdist, const cv::Mat& psize_indices,
+                                      const cv::Point index)
 {
     const auto pmax_ssim = std::max_element(ssims_over_mdist.begin(), ssims_over_mdist.end());
     const int max_ssim_idx = (int)std::distance(ssims_over_mdist.begin(), pmax_ssim);

@@ -1,14 +1,24 @@
+#pragma once
+
 #include "cmake.h"
 
-#if defined(_MSC_VER) && defined(TLCT_BUILD_SHARED_LIBS)
-#    ifdef _TLCT_BUILD_LIBS
-#        define TLCT_API __declspec(dllexport)
+#ifdef TLCT_BUILD_SHARED_LIBS
+#    ifdef _MSC_VER
+#        ifdef _TLCT_BUILD_LIBS
+#            define TLCT_API __declspec(dllexport)
+#        else
+#            define TLCT_API __declspec(dllimport)
+#        endif
 #    else
-#        define TLCT_API __declspec(dllimport)
+#        ifdef _TLCT_BUILD_LIBS
+#            define TLCT_API __attribute__((visibility("default")))
+#        else
+#            define TLCT_API
+#        endif
 #    endif
 #else
-#    ifdef _TLCT_BUILD_LIBS
-#        define TLCT_API __attribute__((visibility("default")))
+#    ifdef TLCT_HEADER_ONLY
+#        define TLCT_API static
 #    else
 #        define TLCT_API
 #    endif
