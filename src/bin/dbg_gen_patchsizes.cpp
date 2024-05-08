@@ -9,9 +9,8 @@ using namespace tlct;
 
 int main(int argc, char** argv)
 {
-    const auto src = cv::imread("Cars.png");
-    cfg::tspc::CalibConfig config{};
-    config._setCenters("centers_cars.xml");
+    const auto src = cv::imread("Boys.png");
+    const auto config= cfg::tspc::CalibConfig::fromPath("Boys.xml");
 
     const auto patchsizes = cvt::tspc::generatePatchsizes(src, config);
 

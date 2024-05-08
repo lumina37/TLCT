@@ -3,8 +3,8 @@
 #include <ranges>
 #include <string>
 
-#include <pugixml.hpp>
 #include <opencv2/core.hpp>
+#include <pugixml.hpp>
 
 #include "tlct/common/defines.h"
 
@@ -19,9 +19,7 @@ public:
     CalibConfig(double diameter, double rotation, cv::Mat&& centers)
         : diameter_(diameter), rotation_(rotation), centers_(centers){};
 
-    static CalibConfig fromPath(const std::string_view xml_fpath);
-
-    int _setCenters(std::string_view xml_fpath);
+    static CalibConfig fromPath(std::string_view xml_fpath);
 
     [[nodiscard]] double getDiameter() const noexcept;
     [[nodiscard]] double getRotation() const noexcept;
@@ -48,25 +46,11 @@ inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
     const double diameter = data_node.child("diameter").text().as_double();
     const double rotation = data_node.child("rotation").text().as_double();
 
-    return {diameter, rotation, {}};
-}
+    const auto centers_node = data_node.child("centers");
+    const int rows = centers_node.child("rows").text().as_int();
+    const int cols = centers_node.child("cols").text().as_int();
 
-inline int CalibConfig::_setCenters(const std::string_view xml_fpath)
-{
-    // TODO: This incorporating method of the center map is ugly, try a better approach.
-
-    pugi::xml_document doc;
-    const auto ret = doc.load_file(xml_fpath.data(), pugi::parse_minimal, pugi::encoding_utf8);
-    if (!ret) {
-        return -1;
-    }
-
-    const auto data_node = doc.child("TSPCCalibData");
-    const auto centermap_node = data_node.child("centers");
-    int rows = centermap_node.child("rows").text().as_int();
-    int cols = centermap_node.child("cols").text().as_int();
-
-    const std::string coord_str = centermap_node.child("coords").text().as_string();
+    const std::string coord_str = centers_node.child("coords").text().as_string();
     auto subrg_view = coord_str | rgs::views::split(' ');
     auto subrg_iter = subrg_view.begin();
 
@@ -76,9 +60,9 @@ inline int CalibConfig::_setCenters(const std::string_view xml_fpath)
         return v;
     };
 
-    centers_.create(rows, cols, CV_32SC2);
+    cv::Mat centers(rows, cols, CV_32SC2);
     for (const int row : rgs::views::iota(0, rows)) {
-        auto prow = centers_.ptr<cv::Point>(row);
+        auto prow = centers.ptr<cv::Point>(row);
 
         for (const int col : rgs::views::iota(0, cols)) {
             const int x = subrg2int(*subrg_iter);
@@ -89,7 +73,7 @@ inline int CalibConfig::_setCenters(const std::string_view xml_fpath)
         }
     }
 
-    return 0;
+    return {diameter, rotation, std::move(centers)};
 }
 
 inline double CalibConfig::getDiameter() const noexcept { return diameter_; }
