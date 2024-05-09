@@ -15,22 +15,24 @@ namespace rgs = std::ranges;
 class TLCT_API CalibConfig
 {
 public:
-    CalibConfig() : diameter_(0.0), rotation_(0.0), centers_(){};
-    CalibConfig(double diameter, double rotation, cv::Mat&& centers)
-        : diameter_(diameter), rotation_(rotation), centers_(centers){};
+    CalibConfig() : diameter_(0.0), rotation_(0.0), is_2bar_oshift_(false), micenters_(){};
+    CalibConfig(double diameter, double rotation, bool is_out_shift, cv::Mat&& micenters)
+        : diameter_(diameter), rotation_(rotation), is_2bar_oshift_(is_out_shift), micenters_(micenters){};
 
     static CalibConfig fromPath(std::string_view xml_fpath);
 
     [[nodiscard]] double getDiameter() const noexcept;
     [[nodiscard]] double getRotation() const noexcept;
     [[nodiscard]] bool isRotated() const noexcept;
-    [[nodiscard]] cv::Point getCenter(int row, int col) const noexcept;
-    [[nodiscard]] cv::Size getCentersSize() const noexcept;
+    [[nodiscard]] bool isSecondBarOutShift() const noexcept;
+    [[nodiscard]] cv::Point getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] cv::Size getMINums() const noexcept;
 
 private:
     double diameter_;
     double rotation_;
-    cv::Mat centers_;
+    bool is_2bar_oshift_;
+    cv::Mat micenters_;
 };
 
 inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
@@ -60,9 +62,9 @@ inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
         return v;
     };
 
-    cv::Mat centers(rows, cols, CV_32SC2);
+    cv::Mat micenters(rows, cols, CV_32SC2);
     for (const int row : rgs::views::iota(0, rows)) {
-        auto prow = centers.ptr<cv::Point>(row);
+        auto prow = micenters.ptr<cv::Point>(row);
 
         for (const int col : rgs::views::iota(0, cols)) {
             const int x = subrg2int(*subrg_iter);
@@ -73,7 +75,11 @@ inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
         }
     }
 
-    return {diameter, rotation, std::move(centers)};
+    const cv::Point center_0_0 = micenters.at<cv::Point>(0, 0);
+    const cv::Point center_0_1 = micenters.at<cv::Point>(0, 1);
+    const bool is_out_shift = center_0_1.y < center_0_0.y;
+
+    return {diameter, rotation, is_out_shift, std::move(micenters)};
 }
 
 inline double CalibConfig::getDiameter() const noexcept { return diameter_; }
@@ -82,11 +88,13 @@ inline double CalibConfig::getRotation() const noexcept { return rotation_; }
 
 inline bool CalibConfig::isRotated() const noexcept { return rotation_ != 0.0; }
 
-inline cv::Point CalibConfig::getCenter(const int row, const int col) const noexcept
+inline bool CalibConfig::isSecondBarOutShift() const noexcept { return is_2bar_oshift_; }
+
+inline cv::Point CalibConfig::getMICenter(const int row, const int col) const noexcept
 {
-    return this->centers_.at<cv::Point>(row, col);
+    return this->micenters_.at<cv::Point>(row, col);
 }
 
-inline cv::Size CalibConfig::getCentersSize() const noexcept { return centers_.size(); }
+inline cv::Size CalibConfig::getMINums() const noexcept { return micenters_.size(); }
 
 } // namespace tlct::cfg::tspc

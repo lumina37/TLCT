@@ -23,10 +23,12 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
     fs::create_directories(saveto_dir);
 
     constexpr int zoom = 3;
-    cv::Mat zoomed_psizes = patchsizes * zoom;
-    constexpr int true_p = 20 * zoom;
+    constexpr int zoomto_height = 20 * zoom; // the extracted patch will be zoomed to this height
+    constexpr int zoomto_width = (int)((double)zoomto_height * std::numbers::sqrt3 / 2.0 + 0.5);
     constexpr int bound = zoom;
-    constexpr int dst_psize = true_p + 2 * bound;
+    constexpr int zoomto_withbound = zoomto_height + 2 * bound;
+    constexpr int q = zoomto_withbound / 2;
+    constexpr int q1 = zoomto_height / 2;
 
     cv::Mat d_src; // convert src from 8UCn to 64FCn
     src.convertTo(d_src, CV_64FC3);
@@ -37,69 +39,63 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
         rgs::views::iota(-views / 2, views / 2 + 1) | rgs::views::transform([interval](int x) { return x * interval; });
     auto rowviews = colviews;
 
-    const cv::Size size = config.getCentersSize();
+    const cv::Size mi_nums = config.getMINums();
 
     int img_cnt = 0;
     for (const int colview : colviews) {
-
         for (const int rowview : rowviews) {
-            // the width of the rendered images
-            constexpr int p1 = (int)((double)true_p / 2.0 * std::numbers::sqrt3 + 0.5);
-            constexpr int t = dst_psize - p1;
-            constexpr int q = dst_psize / 2;
-            constexpr int q1 = true_p / 2;
+            const int canvas_height = (mi_nums.height - 1) * zoomto_height + 2 * bound + q1;
+            const int canvas_width = mi_nums.width * zoomto_width + zoomto_withbound - zoomto_width;
+            cv::Mat render_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC3);
+            cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC1);
+            const cv::Mat weight_template = cv::Mat::ones({zoomto_withbound, zoomto_withbound}, CV_64FC1);
 
-            cv::Mat new_image =
-                cv::Mat::zeros((size.height - 1) * true_p + 2 * bound + q1, size.width * p1 + t, CV_64FC3);
-            cv::Mat weight_matrix = cv::Mat::zeros(new_image.size(), CV_64FC1);
-            const cv::Mat template_weight = cv::Mat::ones({dst_psize, dst_psize}, CV_64FC1);
-
-            for (const int i : rgs::views::iota(0, size.width - 1)) {
-
-                for (const int j : rgs::views::iota(0, size.height - 1)) {
-                    const cv::Point center = config.getCenter(j, i);
+            for (const int i : rgs::views::iota(0, mi_nums.width - 1)) {
+                for (const int j : rgs::views::iota(0, mi_nums.height - 1)) {
+                    const cv::Point center = config.getMICenter(j, i);
                     if (center.x == 0 or center.y == 0)
                         continue;
 
                     // Extract patch
-                    const int src_psize = zoomed_psizes.at<int>(j, i);
-                    const int stitch_patch = src_psize + 2 * bound;
-                    const int q_raw = (int)std::ceil((double)src_psize / 2 / zoom) + 3;
+                    const int ori_psize = patchsizes.at<int>(j, i);
+                    const int psize = ori_psize * zoom;
+                    const int psize_with_bound = psize + 2 * bound;
+                    // you would need some residual for a bicubic zoom
+                    const int zoom_residual = (ori_psize + 1) / 2 + 3;
 
-                    const cv::Range full_patch_row_range{center.y - q_raw + colview - 1,
-                                                         center.y + q_raw + colview - 1};
-                    const cv::Range full_patch_col_range = {center.x - q_raw + rowview - 1,
-                                                            center.x + q_raw + rowview - 1};
-                    const cv::Mat full_patch = d_src(full_patch_row_range, full_patch_col_range);
+                    const cv::Range patch_with_resi_row_range{center.y - zoom_residual + colview - 1,
+                                                              center.y + zoom_residual + colview - 1};
+                    const cv::Range patch_with_resi_col_range = {center.x - zoom_residual + rowview - 1,
+                                                                 center.x + zoom_residual + rowview - 1};
+                    // patch with some residual area
+                    const cv::Mat patch_with_resi = d_src(patch_with_resi_row_range, patch_with_resi_col_range);
 
-                    cv::Mat zoomed_full_patch;
-                    cv::resize(full_patch, zoomed_full_patch, {}, zoom, zoom, cv::INTER_CUBIC);
+                    cv::Mat zoomed_patch_with_resi;
+                    cv::resize(patch_with_resi, zoomed_patch_with_resi, {}, zoom, zoom, cv::INTER_CUBIC);
 
-                    const cv::Range patch_row_range{3 * zoom, 3 * zoom + stitch_patch};
-                    const cv::Range patch_col_range{3 * zoom, 3 * zoom + stitch_patch};
-                    const cv::Mat patch = zoomed_full_patch(patch_row_range, patch_col_range);
+                    const cv::Range patch_row_range{3 * zoom, 3 * zoom + psize_with_bound};
+                    const cv::Range patch_col_range{3 * zoom, 3 * zoom + psize_with_bound};
+                    const cv::Mat patch = zoomed_patch_with_resi(patch_row_range, patch_col_range);
 
                     cv::Mat resized_patch;
-                    cv::resize(patch, resized_patch, {dst_psize, dst_psize}, 0, 0, cv::INTER_CUBIC);
+                    cv::resize(patch, resized_patch, {zoomto_withbound, zoomto_withbound}, 0, 0, cv::INTER_CUBIC);
                     cv::Mat rotated_patch;
                     cv::rotate(resized_patch, rotated_patch, cv::ROTATE_180);
 
                     // Paste patch
-                    if (i % 2 == 1) {
-                        cv::Rect roi{i * p1, j * true_p, dst_psize, dst_psize};
-                        new_image(roi) += rotated_patch;
-                        weight_matrix(roi) += template_weight;
-                    } else {
-                        cv::Rect roi{i * p1, j * true_p + q1, dst_psize, dst_psize};
-                        new_image(roi) += rotated_patch;
-                        weight_matrix(roi) += template_weight;
-                    }
+                    // if the second bar is not out shift, then we need to shift the 1 col
+                    // else if the second bar is out shift, then we need to shift the 0 col
+                    const int down_shift = (i % 2) ^ (int)config.isSecondBarOutShift();
+                    cv::Rect roi{i * zoomto_width, j * zoomto_height + q1 * down_shift, zoomto_withbound,
+                                 zoomto_withbound};
+                    render_canvas(roi) += rotated_patch;
+                    weight_canvas(roi) += weight_template;
                 }
             }
 
-            const cv::Range crop_roi[]{cv::Range{q, new_image.rows - q}, cv::Range::all()};
-            cv::Mat cropped_new_image = new_image(crop_roi);
-            cv::Mat cropped_weight_matrix = weight_matrix(crop_roi);
+            const cv::Range crop_roi[]{cv::Range{q, render_canvas.rows - q}, cv::Range::all()};
+            cv::Mat cropped_new_image = render_canvas(crop_roi);
+            cv::Mat cropped_weight_matrix = weight_canvas(crop_roi);
             cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
             cv::Mat cropped_weight_matrix_3ch;
             cv::Mat cropped_weight_matrix_channels[]{cropped_weight_matrix, cropped_weight_matrix,

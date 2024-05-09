@@ -93,18 +93,18 @@ static inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdis
 
 TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::CalibConfig& config)
 {
-    const cv::Size size = config.getCentersSize();
+    const cv::Size size = config.getMINums();
     cv::Mat psize_indices = cv::Mat::zeros(size, CV_32SC1);
 
     cv::Mat gray_src;
     cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
 
-    const cv::Range match_range{15, 34};
+    const cv::Range match_range{15, 29};
 
     for (const int row : rgs::views::iota(0, size.height - 1)) {
         for (const int col : rgs::views::iota(0, size.width)) {
-            const cv::Point curr_center = config.getCenter(row, col);
-            const cv::Point neib_center = config.getCenter(row + 1, col);
+            const cv::Point curr_center = config.getMICenter(row, col);
+            const cv::Point neib_center = config.getMICenter(row + 1, col);
             if (neib_center.x == 0 or neib_center.y == 0)
                 continue;
 
