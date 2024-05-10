@@ -25,17 +25,17 @@ public:
     [[nodiscard]] int getImgHeight() const noexcept;
     [[nodiscard]] double getDiameter() const noexcept;
     [[nodiscard]] double getRotation() const noexcept;
-    [[nodiscard]] cv::Point getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] cv::Size getMISize() const noexcept;
     [[nodiscard]] int getMIRows() const noexcept;
     [[nodiscard]] int getMICols() const noexcept;
-    [[nodiscard]] bool isMIBroken(const cv::Point& micenter, BorderCheckList checklist) const noexcept;
+    [[nodiscard]] bool isMIBroken(const cv::Point2d& micenter, BorderCheckList checklist) const noexcept;
     [[nodiscard]] cv::Rect restrictToImgBorder(const cv::Rect& area, BorderCheckList checklist) const noexcept;
     [[nodiscard]] std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges,
                                                              BorderCheckList checklist) const noexcept;
 
 private:
-    const cv::Mat& micenters_;
+    const cv::Mat& micenters_; // CV_64FC2
     cv::Size imgsize_;
     double diameter_;
     double radius_;
@@ -55,9 +55,9 @@ inline double Layout::getDiameter() const noexcept { return diameter_; }
 
 inline double Layout::getRotation() const noexcept { return rotation_; }
 
-inline cv::Point Layout::getMICenter(const int row, const int col) const noexcept
+inline cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
 {
-    return micenters_.at<cv::Point>(row, col);
+    return micenters_.at<cv::Point2d>(row, col);
 }
 
 inline cv::Size Layout::getMISize() const noexcept { return micenters_.size(); }
@@ -66,7 +66,7 @@ inline int Layout::getMIRows() const noexcept { return micenters_.rows; }
 
 inline int Layout::getMICols() const noexcept { return micenters_.cols; }
 
-inline bool Layout::isMIBroken(const cv::Point& micenter,
+inline bool Layout::isMIBroken(const cv::Point2d& micenter,
                                BorderCheckList checklist = {true, true, true, true}) const noexcept
 {
     if (checklist.up && micenter.y < radius_) {

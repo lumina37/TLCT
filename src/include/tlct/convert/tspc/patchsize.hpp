@@ -9,6 +9,7 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
+#include "tlct/helper/static_math.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -16,21 +17,23 @@ namespace rgs = std::ranges;
 
 namespace _helper {
 
-static inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, const cv::Point curr_center,
-                                                const cv::Point neib_center, const cv::Range match_range)
+static inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, const cv::Point2d curr_center,
+                                                const cv::Point2d neib_center, const cv::Range match_range)
 {
-    constexpr int start_shift = -13;
-    constexpr int end_shift = -3;
-    const cv::Range curr_cmp_roi[]{{curr_center.y + start_shift, curr_center.y + end_shift},
-                                   {curr_center.x + start_shift, curr_center.x + end_shift}};
+    constexpr double start_shift = -13.0;
+    constexpr double end_shift = -3.0;
+
+    const cv::Range curr_cmp_roi[]{{iround(curr_center.y + start_shift), iround(curr_center.y + end_shift)},
+                                   {iround(curr_center.x + start_shift), iround(curr_center.x + end_shift)}};
     const cv::Mat curr_cmp = gray_src(curr_cmp_roi);
     const auto pssim_calc = cv::quality::QualitySSIM::create(curr_cmp);
 
     std::vector<double> ssims_over_mdist;
     ssims_over_mdist.reserve(match_range.size());
     for (const int mdist : rgs::views::iota(match_range.start, match_range.end)) {
-        const cv::Range neib_cmp_roi[]{{neib_center.y + start_shift + mdist, neib_center.y + end_shift + mdist},
-                                       {neib_center.x + start_shift, neib_center.x + end_shift}};
+        const cv::Range neib_cmp_roi[]{
+            {iround(neib_center.y + start_shift) + mdist, iround(neib_center.y + end_shift) + mdist},
+            {iround(neib_center.x + start_shift), iround(neib_center.x + end_shift)}};
         const cv::Mat neib_cmp = gray_src(neib_cmp_roi);
         const auto ssims = pssim_calc->compute(neib_cmp);
         const double ssim = ssims[0];
@@ -102,9 +105,9 @@ TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes
 
     for (const int row : rgs::views::iota(0, layout.getMIRows() - 1)) {
         for (const int col : rgs::views::iota(0, layout.getMICols())) {
-            const cv::Point curr_center = layout.getMICenter(row, col);
-            const cv::Point neib_center = layout.getMICenter(row + 1, col);
-            if (neib_center.x == 0 or neib_center.y == 0)
+            const cv::Point2d curr_center = layout.getMICenter(row, col);
+            const cv::Point2d neib_center = layout.getMICenter(row + 1, col);
+            if (neib_center.x == 0.0 or neib_center.y == 0.0)
                 continue;
 
             const auto ssims_over_mdist = _helper::matchWithSSIM(gray_src, curr_center, neib_center, match_range);

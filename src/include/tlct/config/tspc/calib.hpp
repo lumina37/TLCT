@@ -27,7 +27,7 @@ public:
     [[nodiscard]] double getRotation() const noexcept;
 
 private:
-    cv::Mat micenters_;
+    cv::Mat micenters_; // CV_64FC2
     double diameter_;
     double rotation_;
 };
@@ -53,28 +53,24 @@ inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
     auto subrg_view = coord_str | rgs::views::split(' ');
     auto subrg_iter = subrg_view.begin();
 
-    const auto subrg2int = [](const auto& subrg) {
+    auto subrg2int = [](const auto& subrg) {
         const std::string s{subrg.begin(), subrg.end()};
-        const int v = std::stoi(s);
+        const double v = std::stod(s);
         return v;
     };
 
-    cv::Mat micenters(rows, cols, CV_32SC2);
+    cv::Mat micenters(rows, cols, CV_64FC2);
     for (const int row : rgs::views::iota(0, rows)) {
-        auto prow = micenters.ptr<cv::Point>(row);
+        auto prow = micenters.ptr<cv::Point2d>(row);
 
         for (const int col : rgs::views::iota(0, cols)) {
-            const int x = subrg2int(*subrg_iter);
+            const double x = subrg2int(*subrg_iter);
             subrg_iter++;
-            const int y = subrg2int(*subrg_iter);
+            const double y = subrg2int(*subrg_iter);
             subrg_iter++;
             prow[col] = {x, y};
         }
     }
-
-    const cv::Point center_0_0 = micenters.at<cv::Point>(0, 0);
-    const cv::Point center_0_1 = micenters.at<cv::Point>(0, 1);
-    const bool is_out_shift = center_0_1.y < center_0_0.y;
 
     return {std::move(micenters), diameter, rotation};
 }
