@@ -53,7 +53,7 @@ inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
     auto subrg_view = coord_str | rgs::views::split(' ');
     auto subrg_iter = subrg_view.begin();
 
-    auto subrg2int = [](const auto& subrg) {
+    auto subrg2double = [](const auto& subrg) {
         const std::string s{subrg.begin(), subrg.end()};
         const double v = std::stod(s);
         return v;
@@ -64,9 +64,9 @@ inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
         auto prow = micenters.ptr<cv::Point2d>(row);
 
         for (const int col : rgs::views::iota(0, cols)) {
-            const double x = subrg2int(*subrg_iter);
+            const double x = subrg2double(*subrg_iter);
             subrg_iter++;
-            const double y = subrg2int(*subrg_iter);
+            const double y = subrg2double(*subrg_iter);
             subrg_iter++;
             prow[col] = {x, y};
         }

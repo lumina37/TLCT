@@ -26,13 +26,19 @@ public:
     [[nodiscard]] double getDiameter() const noexcept;
     [[nodiscard]] double getRotation() const noexcept;
     [[nodiscard]] cv::Point2d getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] cv::Size getMISize() const noexcept;
     [[nodiscard]] int getMIRows() const noexcept;
     [[nodiscard]] int getMICols() const noexcept;
-    [[nodiscard]] bool isMIBroken(const cv::Point2d& micenter, BorderCheckList checklist) const noexcept;
-    [[nodiscard]] cv::Rect restrictToImgBorder(const cv::Rect& area, BorderCheckList checklist) const noexcept;
-    [[nodiscard]] std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges,
-                                                             BorderCheckList checklist) const noexcept;
+
+    template <BorderCheckList checklist = {true, true, true, true}>
+    [[nodiscard]] bool isMIBroken(const cv::Point2d micenter) const noexcept;
+
+    template <BorderCheckList checklist = {true, true, true, true}>
+    [[nodiscard]] cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
+
+    template <BorderCheckList checklist = {true, true, true, true}>
+    [[nodiscard]] std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
 
 private:
     const cv::Mat& micenters_; // CV_64FC2
@@ -60,14 +66,19 @@ inline cv::Point2d Layout::getMICenter(const int row, const int col) const noexc
     return micenters_.at<cv::Point2d>(row, col);
 }
 
+inline cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept
+{
+    return micenters_.at<cv::Point2d>(index);
+}
+
 inline cv::Size Layout::getMISize() const noexcept { return micenters_.size(); }
 
 inline int Layout::getMIRows() const noexcept { return micenters_.rows; }
 
 inline int Layout::getMICols() const noexcept { return micenters_.cols; }
 
-inline bool Layout::isMIBroken(const cv::Point2d& micenter,
-                               BorderCheckList checklist = {true, true, true, true}) const noexcept
+template <BorderCheckList checklist>
+inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
 {
     if (checklist.up && micenter.y < radius_) {
         return true;
@@ -84,8 +95,8 @@ inline bool Layout::isMIBroken(const cv::Point2d& micenter,
     return false;
 }
 
-inline cv::Rect Layout::restrictToImgBorder(const cv::Rect& area,
-                                            BorderCheckList checklist = {true, true, true, true}) const noexcept
+template <BorderCheckList checklist>
+inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const noexcept
 {
     cv::Rect modarea{area};
 
@@ -105,9 +116,8 @@ inline cv::Rect Layout::restrictToImgBorder(const cv::Rect& area,
     return modarea;
 }
 
-inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::Range>& ranges,
-                                                          BorderCheckList checklist = {true, true, true,
-                                                                                       true}) const noexcept
+template <BorderCheckList checklist>
+inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept
 {
     std::vector<cv::Range> modranges{ranges};
 

@@ -17,9 +17,12 @@ namespace rgs = std::ranges;
 
 namespace _helper {
 
-static inline std::vector<double> matchWithSSIM(const cv::Mat& gray_src, const cv::Point2d curr_center,
-                                                const cv::Point2d neib_center, const cv::Range match_range)
+static inline std::vector<double> matchWithSSIM(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
+                                                const cv::Point index, const cv::Range match_range)
 {
+    const cv::Point2d curr_center = layout.getMICenter(index);
+    const cv::Point2d neib_center = layout.getMICenter(index.y + 1, index.x);
+
     constexpr double start_shift = -13.0;
     constexpr double end_shift = -3.0;
 
@@ -89,7 +92,7 @@ static inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdis
         }
     }
 
-    return patchsize_idx;
+    return max_ssim_idx;
 }
 
 } // namespace _helper
@@ -105,13 +108,13 @@ TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes
 
     for (const int row : rgs::views::iota(0, layout.getMIRows() - 1)) {
         for (const int col : rgs::views::iota(0, layout.getMICols())) {
-            const cv::Point2d curr_center = layout.getMICenter(row, col);
             const cv::Point2d neib_center = layout.getMICenter(row + 1, col);
             if (neib_center.x == 0.0 or neib_center.y == 0.0)
                 continue;
 
-            const auto ssims_over_mdist = _helper::matchWithSSIM(gray_src, curr_center, neib_center, match_range);
-            const int patchsize_idx = _helper::yieldPatchsizeIndex(ssims_over_mdist, psize_indices, {col, row});
+            const cv::Point index{col, row};
+            const auto ssims_over_mdist = _helper::matchWithSSIM(layout, gray_src, index, match_range);
+            const int patchsize_idx = _helper::yieldPatchsizeIndex(ssims_over_mdist, psize_indices, index);
             psize_indices.at<int>(row, col) = patchsize_idx;
         }
     }
