@@ -6,8 +6,9 @@ Language: Cpp
 NamespaceIndentation: None
 AccessModifierOffset: -4
 PointerAlignment: Left
-BreakBeforeBraces: Custom
+AlwaysBreakTemplateDeclarations: Yes
 IndentPPDirectives: AfterHash
+BreakBeforeBraces: Custom
 BraceWrapping:
   AfterClass: true
   AfterControlStatement: Never

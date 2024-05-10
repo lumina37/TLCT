@@ -8,7 +8,7 @@
 #include <opencv2/quality.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/calibration/tspc.hpp"
+#include "tlct/config/tspc.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -91,20 +91,19 @@ static inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdis
 
 } // namespace _helper
 
-TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::CalibConfig& config)
+TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes, const cfg::tspc::Layout& layout)
 {
-    const cv::Size size = config.getMINums();
-    cv::Mat psize_indices = cv::Mat::zeros(size, CV_32SC1);
+    cv::Mat psize_indices = cv::Mat::zeros(layout.getMIRows(), layout.getMICols(), CV_32SC1);
 
     cv::Mat gray_src;
     cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
 
     const cv::Range match_range{15, 29};
 
-    for (const int row : rgs::views::iota(0, size.height - 1)) {
-        for (const int col : rgs::views::iota(0, size.width)) {
-            const cv::Point curr_center = config.getMICenter(row, col);
-            const cv::Point neib_center = config.getMICenter(row + 1, col);
+    for (const int row : rgs::views::iota(0, layout.getMIRows() - 1)) {
+        for (const int col : rgs::views::iota(0, layout.getMICols())) {
+            const cv::Point curr_center = layout.getMICenter(row, col);
+            const cv::Point neib_center = layout.getMICenter(row + 1, col);
             if (neib_center.x == 0 or neib_center.y == 0)
                 continue;
 
@@ -113,14 +112,14 @@ TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes
             psize_indices.at<int>(row, col) = patchsize_idx;
         }
     }
-    psize_indices.row(size.height - 2).copyTo(psize_indices.row(size.height - 1));
+    psize_indices.row(layout.getMIRows() - 2).copyTo(psize_indices.row(layout.getMIRows() - 1));
     patchsizes = psize_indices + match_range.start;
 }
 
-TLCT_API inline cv::Mat generatePatchsizes(const cv::Mat& src, const cfg::tspc::CalibConfig& config)
+TLCT_API inline cv::Mat generatePatchsizes(const cv::Mat& src, const cfg::tspc::Layout& layout)
 {
     cv::Mat patchsizes;
-    generatePatchsizes_(src, patchsizes, config);
+    generatePatchsizes_(src, patchsizes, layout);
     return patchsizes;
 }
 

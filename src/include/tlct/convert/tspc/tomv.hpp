@@ -8,14 +8,14 @@
 #include <opencv2/imgproc.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/calibration/tspc.hpp"
+#include "tlct/config/tspc.hpp"
 
 namespace tlct::cvt::tspc {
 
 namespace rgs = std::ranges;
 namespace fs = std::filesystem;
 
-TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc::CalibConfig& config,
+TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc::Layout& layout,
                                              const cv::Mat& patchsizes, const std::string_view saveto, const int views)
 {
     // TODO: Polish the bullsh*t below
@@ -39,7 +39,11 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
         rgs::views::iota(-views / 2, views / 2 + 1) | rgs::views::transform([interval](int x) { return x * interval; });
     auto rowviews = colviews;
 
-    const cv::Size mi_nums = config.getMINums();
+    const cv::Size mi_nums = {layout.getMICols(), layout.getMIRows()};
+
+    const cv::Point center_0_0 = layout.getMICenter(0, 0);
+    const cv::Point center_0_1 = layout.getMICenter(0, 1);
+    const bool is_out_shift = center_0_1.y < center_0_0.y;
 
     int img_cnt = 0;
     for (const int colview : colviews) {
@@ -52,7 +56,7 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
 
             for (const int i : rgs::views::iota(0, mi_nums.width - 1)) {
                 for (const int j : rgs::views::iota(0, mi_nums.height - 1)) {
-                    const cv::Point center = config.getMICenter(j, i);
+                    const cv::Point center = layout.getMICenter(j, i);
                     if (center.x == 0 or center.y == 0)
                         continue;
 
@@ -85,7 +89,7 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
                     // Paste patch
                     // if the second bar is not out shift, then we need to shift the 1 col
                     // else if the second bar is out shift, then we need to shift the 0 col
-                    const int down_shift = (i % 2) ^ (int)config.isSecondBarOutShift();
+                    const int down_shift = (i % 2) ^ (int)is_out_shift;
                     cv::Rect roi{i * zoomto_width, j * zoomto_height + q1 * down_shift, zoomto_withbound,
                                  zoomto_withbound};
                     render_canvas(roi) += rotated_patch;

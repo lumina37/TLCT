@@ -7,5 +7,6 @@ function(tlct_add_test name srcs)
 endfunction()
 
 tlct_add_test(test_tspc_config "test_tspc_config.cpp")
+tlct_add_test(test_tspc_newconfig "test_tspc_newconfig.cpp")
 tlct_add_test(test_raytrix_config "test_raytrix_config.cpp")
 tlct_add_test(test_tspc_patchsizes "test_tspc_patchsizes.cpp")
