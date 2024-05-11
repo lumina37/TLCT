@@ -27,6 +27,7 @@ public:
     [[nodiscard]] int getImgWidth() const noexcept;
     [[nodiscard]] int getImgHeight() const noexcept;
     [[nodiscard]] double getDiameter() const noexcept;
+    [[nodiscard]] double getRadius() const noexcept;
     [[nodiscard]] double getRotation() const noexcept;
     [[nodiscard]] cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] cv::Point2d getMICenter(cv::Point index) const noexcept;
@@ -70,6 +71,8 @@ inline int Layout::getImgWidth() const noexcept { return imgsize_.width; }
 inline int Layout::getImgHeight() const noexcept { return imgsize_.height; }
 
 inline double Layout::getDiameter() const noexcept { return diameter_; }
+
+inline double Layout::getRadius() const noexcept { return radius_; }
 
 inline double Layout::getRotation() const noexcept { return rotation_; }
 
