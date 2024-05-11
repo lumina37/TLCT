@@ -17,8 +17,8 @@ namespace rgs = std::ranges;
 
 namespace _helper {
 
-static inline std::vector<double> matchWithSSIM(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
-                                                const cv::Point index, const cv::Range match_range)
+static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
+                                    const cv::Mat& psize_indices, const cv::Point index, const cv::Range match_range)
 {
     const cv::Point2d curr_center = layout.getMICenter(index);
     const cv::Point2d neib_center = layout.getMICenter(index.y + 1, index.x);
@@ -26,29 +26,29 @@ static inline std::vector<double> matchWithSSIM(const cfg::tspc::Layout& layout,
     const double start_shift = -13.0 / 70.0 * layout.getDiameter();
     const double end_shift = -2.0 / 70.0 * layout.getDiameter();
 
-    const cv::Range curr_cmp_roi[]{{iround(curr_center.y + start_shift), iround(curr_center.y + end_shift)},
-                                   {iround(curr_center.x + start_shift), iround(curr_center.x + end_shift)}};
-    const cv::Mat curr_cmp = gray_src(curr_cmp_roi);
+    const cv::Range curr_cmp_row_range{iround(curr_center.y + start_shift), iround(curr_center.y + end_shift)};
+    const cv::Range curr_cmp_col_range{iround(curr_center.x + start_shift), iround(curr_center.x + end_shift)};
+    if (curr_cmp_row_range.end > gray_src.rows || curr_cmp_col_range.end > gray_src.cols) {
+        return 0;
+    }
+    const cv::Mat curr_cmp = gray_src({curr_cmp_row_range, curr_cmp_col_range});
     const auto pssim_calc = cv::quality::QualitySSIM::create(curr_cmp);
 
     std::vector<double> ssims_over_mdist;
     ssims_over_mdist.reserve(match_range.size());
     for (const int mdist : rgs::views::iota(match_range.start, match_range.end)) {
-        const cv::Range neib_cmp_roi[]{
-            {iround(neib_center.y + start_shift) + mdist, iround(neib_center.y + end_shift) + mdist},
-            {iround(neib_center.x + start_shift), iround(neib_center.x + end_shift)}};
-        const cv::Mat neib_cmp = gray_src(neib_cmp_roi);
-        const auto ssims = pssim_calc->compute(neib_cmp);
-        const double ssim = ssims[0];
+        const cv::Range neib_cmp_row_range{iround(neib_center.y + start_shift) + mdist,
+                                           iround(neib_center.y + end_shift) + mdist};
+        const cv::Range neib_cmp_col_range{iround(neib_center.x + start_shift), iround(neib_center.x + end_shift)};
+        if (neib_cmp_row_range.end > gray_src.rows || neib_cmp_col_range.end > gray_src.cols) {
+            break;
+        }
+
+        const cv::Mat neib_cmp = gray_src({neib_cmp_row_range, neib_cmp_col_range});
+        const double ssim = pssim_calc->compute(neib_cmp)[0];
         ssims_over_mdist.push_back(ssim);
     }
 
-    return ssims_over_mdist;
-}
-
-static inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdist, const cv::Mat& psize_indices,
-                                      const cv::Point index)
-{
     const auto pmax_ssim = std::max_element(ssims_over_mdist.begin(), ssims_over_mdist.end());
     const int max_ssim_idx = (int)std::distance(ssims_over_mdist.begin(), pmax_ssim);
     int patchsize_idx;
@@ -57,7 +57,8 @@ static inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdis
             patchsize_idx = max_ssim_idx;
         } else {
             const int left_psize_idx = psize_indices.at<int>(index.y, index.x - 1);
-            if (ssims_over_mdist[left_psize_idx] > 0.85) {
+            const double left_ssim = ssims_over_mdist[left_psize_idx];
+            if (left_ssim > 0.85) {
                 patchsize_idx = left_psize_idx;
             } else {
                 patchsize_idx = max_ssim_idx; // TODO: Why `0`?
@@ -114,8 +115,8 @@ TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes
                 continue;
 
             const cv::Point index{col, row};
-            const auto ssims_over_mdist = _helper::matchWithSSIM(layout, gray_src, index, {match_start, match_end});
-            const int patchsize_idx = _helper::yieldPatchsizeIndex(ssims_over_mdist, psize_indices, index);
+            const int patchsize_idx =
+                _helper::estimatePatchsize(layout, gray_src, psize_indices, index, {match_start, match_end});
             psize_indices.at<int>(row, col) = patchsize_idx;
         }
     }
@@ -130,4 +131,4 @@ TLCT_API inline cv::Mat generatePatchsizes(const cv::Mat& src, const cfg::tspc::
     return patchsizes;
 }
 
-} // namespace tlct::cvt::tspc
+} // namespace tlct::cvt::inline tspc
