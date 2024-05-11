@@ -22,7 +22,7 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
     fs::path saveto_dir{saveto};
     fs::create_directories(saveto_dir);
 
-    constexpr int zoom = 3;
+    constexpr int zoom = 4;
     constexpr int zoomto_height = 20 * zoom; // the extracted patch will be zoomed to this height
     constexpr int zoomto_width = iround((double)zoomto_height * std::numbers::sqrt3 / 2.0);
     constexpr int bound = zoom;
@@ -37,8 +37,8 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
         rgs::views::iota(-views / 2, views / 2 + 1) | rgs::views::transform([interval](int x) { return x * interval; });
     auto rowviews = colviews;
 
-    const cv::Point center_0_0 = layout.getMICenter(0, 0);
-    const cv::Point center_0_1 = layout.getMICenter(0, 1);
+    const cv::Point2d center_0_0 = layout.getMICenter(0, 0);
+    const cv::Point2d center_0_1 = layout.getMICenter(0, 1);
     const bool is_out_shift = center_0_1.y < center_0_0.y;
 
     int img_cnt = 0;
@@ -52,30 +52,21 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
 
             for (const int i : rgs::views::iota(0, layout.getMICols() - 1)) {
                 for (const int j : rgs::views::iota(0, layout.getMIRows() - 1)) {
-                    const cv::Point center = layout.getMICenter(j, i);
-                    if (center.x == 0 or center.y == 0)
+                    const cv::Point2d center = layout.getMICenter(j, i);
+                    if (center.x == 0.0 or center.y == 0.0)
                         continue;
 
                     // Extract patch
                     const int ori_psize = patchsizes.at<int>(j, i);
-                    const int psize = ori_psize * zoom;
-                    const int psize_with_bound = psize + 2 * bound;
-                    // you would need some residual for a bicubic zoom
-                    const int zoom_residual = (int)std::ceil((double)ori_psize / 2.0) + 3;
+                    const int psize = ori_psize;
 
-                    const cv::Range patch_with_resi_row_range{center.y - zoom_residual + colview - 1,
-                                                              center.y + zoom_residual + colview - 1};
-                    const cv::Range patch_with_resi_col_range = {center.x - zoom_residual + rowview - 1,
-                                                                 center.x + zoom_residual + rowview - 1};
-                    // patch with some residual area
-                    const cv::Mat patch_with_resi = d_src(patch_with_resi_row_range, patch_with_resi_col_range);
+                    const int half_psize_with_bound = (int)std::ceil((double)psize / 2.0) + bound;
 
-                    cv::Mat zoomed_patch_with_resi;
-                    cv::resize(patch_with_resi, zoomed_patch_with_resi, {}, zoom, zoom, cv::INTER_CUBIC);
-
-                    const cv::Range patch_row_range{3 * zoom, 3 * zoom + psize_with_bound};
-                    const cv::Range patch_col_range{3 * zoom, 3 * zoom + psize_with_bound};
-                    const cv::Mat patch = zoomed_patch_with_resi(patch_row_range, patch_col_range);
+                    const cv::Range patch_row_range{iround(center.y) - half_psize_with_bound + colview,
+                                                    iround(center.y) + half_psize_with_bound + colview + 1};
+                    const cv::Range patch_col_range{iround(center.x) - half_psize_with_bound + rowview,
+                                                    iround(center.x) + half_psize_with_bound + rowview + 1};
+                    const cv::Mat patch = d_src(patch_row_range, patch_col_range);
 
                     cv::Mat resized_patch;
                     cv::resize(patch, resized_patch, {zoomto_withbound, zoomto_withbound}, 0, 0, cv::INTER_CUBIC);
@@ -103,15 +94,13 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
                                                      cropped_weight_matrix};
             cv::merge(cropped_weight_matrix_channels, 3, cropped_weight_matrix_3ch);
             cv::Mat final_image = cropped_new_image / cropped_weight_matrix_3ch;
-            cv::Mat zoomed_final_image;
-            cv::resize(final_image, zoomed_final_image, {}, 1.0 / zoom, 1.0 / zoom, cv::INTER_CUBIC);
 
             std::stringstream filename_s;
             filename_s << img_cnt << ".png";
             img_cnt++;
             fs::path saveto_path = saveto_dir / filename_s.str();
             cv::Mat final_image_u8;
-            zoomed_final_image.convertTo(final_image_u8, CV_8UC3);
+            final_image.convertTo(final_image_u8, CV_8UC3);
             cv::imwrite(saveto_path.string(), final_image_u8);
         }
     }

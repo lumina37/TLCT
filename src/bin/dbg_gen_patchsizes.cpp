@@ -8,10 +8,14 @@ using namespace tlct;
 
 int main(int argc, char** argv)
 {
-    const auto src = cv::imread("Cars.png");
+    cv::Mat src = cv::imread("Cars.png");
+    cv::Mat resized_src;
+    constexpr int factor = 4;
+    cv::resize(src, resized_src, {}, factor, factor);
+    src = resized_src;
 
     const auto config = cfg::tspc::CalibConfig::fromPath("Cars.xml");
-    const auto layout = cfg::tspc::Layout::fromConfigAndImgsize(config, src.size());
+    const auto layout = cfg::tspc::Layout::fromConfigAndImgsize(config, src.size()).upsample(factor);
 
     const auto patchsizes = cvt::tspc::generatePatchsizes(src, layout);
 
