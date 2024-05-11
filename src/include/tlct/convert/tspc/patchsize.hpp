@@ -11,7 +11,7 @@
 #include "tlct/config/tspc.hpp"
 #include "tlct/helper/static_math.hpp"
 
-namespace tlct::cvt::tspc {
+namespace tlct::cvt::inline tspc {
 
 namespace rgs = std::ranges;
 

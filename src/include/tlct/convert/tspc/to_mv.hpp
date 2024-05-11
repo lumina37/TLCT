@@ -10,28 +10,27 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 
-namespace tlct::cvt::tspc {
+namespace tlct::cvt::inline tspc {
 
 namespace rgs = std::ranges;
 namespace fs = std::filesystem;
 
-TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc::Layout& layout,
-                                             const cv::Mat& patchsizes, const std::string_view saveto, const int views)
+TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& layout, const cv::Mat& patchsizes,
+                                  const std::string_view saveto, const int views)
 {
-    // TODO: Polish the bullsh*t below
     fs::path saveto_dir{saveto};
     fs::create_directories(saveto_dir);
 
-    constexpr int zoom = 4;
-    constexpr int zoomto_height = 20 * zoom; // the extracted patch will be zoomed to this height
-    constexpr int zoomto_width = iround((double)zoomto_height * std::numbers::sqrt3 / 2.0);
-    constexpr int bound = zoom;
-    constexpr int zoomto_withbound = zoomto_height + 2 * bound;
+    const int zoom = iround(layout.getDiameter() / 70.0);
+    const int zoomto_height = 20 * zoom; // the extracted patch will be zoomed to this height
+    const int zoomto_width = iround((double)zoomto_height * std::numbers::sqrt3 / 2.0);
+    const int bound = zoom;
+    const int zoomto_withbound = zoomto_height + 2 * bound;
 
     cv::Mat d_src; // convert src from 8UCn to 64FCn
     src.convertTo(d_src, CV_64FC3);
 
-    constexpr int move_range = 6;
+    const int move_range = iround(6.0 / 70.0 * layout.getDiameter());
     const int interval = views > 1 ? move_range * 2 / (views - 1) : 0;
     auto colviews =
         rgs::views::iota(-views / 2, views / 2 + 1) | rgs::views::transform([interval](int x) { return x * interval; });
@@ -57,9 +56,7 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
                         continue;
 
                     // Extract patch
-                    const int ori_psize = patchsizes.at<int>(j, i);
-                    const int psize = ori_psize;
-
+                    const int psize = patchsizes.at<int>(j, i);
                     const int half_psize_with_bound = (int)std::ceil((double)psize / 2.0) + bound;
 
                     const cv::Range patch_row_range{iround(center.y) - half_psize_with_bound + colview,
@@ -76,9 +73,8 @@ TLCT_API inline void _Lenslet_Rendering_zoom(const cv::Mat& src, const cfg::tspc
                     // Paste patch
                     // if the second bar is not out shift, then we need to shift the 1 col
                     // else if the second bar is out shift, then we need to shift the 0 col
-                    const int down_shift = (i % 2) ^ (int)is_out_shift;
-                    cv::Rect roi{i * zoomto_width, j * zoomto_height + zoomto_height / 2 * down_shift, zoomto_withbound,
-                                 zoomto_withbound};
+                    const int down_shift = ((i % 2) ^ (int)is_out_shift) * (zoomto_height / 2);
+                    cv::Rect roi{i * zoomto_width, j * zoomto_height + down_shift, zoomto_withbound, zoomto_withbound};
                     render_canvas(roi) += rotated_patch;
                     weight_canvas(roi) += weight_template;
                 }

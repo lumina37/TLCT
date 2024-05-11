@@ -8,7 +8,7 @@
 
 #include "tlct/common/defines.h"
 
-namespace tlct::cfg::tspc {
+namespace tlct::cfg::inline tspc {
 
 namespace rgs = std::ranges;
 
@@ -79,4 +79,4 @@ inline double CalibConfig::getDiameter() const noexcept { return diameter_; }
 
 inline double CalibConfig::getRotation() const noexcept { return rotation_; }
 
-} // namespace tlct::cfg::tspc
+} // namespace tlct::cfg::inline tspc

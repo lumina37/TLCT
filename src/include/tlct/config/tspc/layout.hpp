@@ -4,7 +4,7 @@
 
 #include "calib.hpp"
 
-namespace tlct::cfg::tspc {
+namespace tlct::cfg::inline tspc {
 
 struct BorderCheckList {
     bool up = false;
@@ -149,4 +149,4 @@ inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::
     return modranges;
 }
 
-} // namespace tlct::cfg::tspc
+} // namespace tlct::cfg::inline tspc

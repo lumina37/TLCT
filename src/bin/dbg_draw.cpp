@@ -11,8 +11,8 @@ namespace rgs = std::ranges;
 int main(int argc, char** argv)
 {
     auto src = cv::imread("Boys.png");
-    const auto config = cfg::tspc::CalibConfig::fromPath("Boys.xml");
-    const auto layout = cfg::tspc::Layout::fromConfigAndImgsize(config, src.size());
+    const auto config = cfg::CalibConfig::fromPath("Boys.xml");
+    const auto layout = cfg::Layout::fromConfigAndImgsize(config, src.size());
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols())) {
