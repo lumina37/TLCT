@@ -9,6 +9,7 @@ using namespace tlct;
 int main(int argc, char** argv)
 {
     const auto src = cv::imread("Cars.png");
+
     const auto config = cfg::tspc::CalibConfig::fromPath("Cars.xml");
     const auto layout = cfg::tspc::Layout::fromConfigAndImgsize(config, src.size());
 

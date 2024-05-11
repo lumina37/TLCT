@@ -23,8 +23,8 @@ static inline std::vector<double> matchWithSSIM(const cfg::tspc::Layout& layout,
     const cv::Point2d curr_center = layout.getMICenter(index);
     const cv::Point2d neib_center = layout.getMICenter(index.y + 1, index.x);
 
-    constexpr double start_shift = -13.0;
-    constexpr double end_shift = -3.0;
+    const double start_shift = -13.0 / 70.0 * layout.getDiameter();
+    const double end_shift = -2.0 / 70.0 * layout.getDiameter();
 
     const cv::Range curr_cmp_roi[]{{iround(curr_center.y + start_shift), iround(curr_center.y + end_shift)},
                                    {iround(curr_center.x + start_shift), iround(curr_center.x + end_shift)}};
@@ -92,7 +92,7 @@ static inline int yieldPatchsizeIndex(const std::vector<double>& ssims_over_mdis
         }
     }
 
-    return max_ssim_idx;
+    return patchsize_idx;
 }
 
 } // namespace _helper
@@ -104,7 +104,8 @@ TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes
     cv::Mat gray_src;
     cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
 
-    const cv::Range match_range{15, 29};
+    const int match_start = iround(15.0 / 70.0 * layout.getDiameter());
+    const int match_end = iround(29.0 / 70.0 * layout.getDiameter());
 
     for (const int row : rgs::views::iota(0, layout.getMIRows() - 1)) {
         for (const int col : rgs::views::iota(0, layout.getMICols())) {
@@ -113,13 +114,13 @@ TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes
                 continue;
 
             const cv::Point index{col, row};
-            const auto ssims_over_mdist = _helper::matchWithSSIM(layout, gray_src, index, match_range);
+            const auto ssims_over_mdist = _helper::matchWithSSIM(layout, gray_src, index, {match_start, match_end});
             const int patchsize_idx = _helper::yieldPatchsizeIndex(ssims_over_mdist, psize_indices, index);
             psize_indices.at<int>(row, col) = patchsize_idx;
         }
     }
     psize_indices.row(layout.getMIRows() - 2).copyTo(psize_indices.row(layout.getMIRows() - 1));
-    patchsizes = psize_indices + match_range.start;
+    patchsizes = psize_indices + match_start;
 }
 
 TLCT_API inline cv::Mat generatePatchsizes(const cv::Mat& src, const cfg::tspc::Layout& layout)

@@ -17,9 +17,12 @@ class TLCT_API Layout
 {
 public:
     Layout(const cv::Mat& micenters, cv::Size imgsize, double diameter, double rotation)
-        : micenters_(micenters), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation){};
+        : micenters_(micenters.clone()), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0),
+          rotation_(rotation){};
 
     static Layout fromConfigAndImgsize(const CalibConfig& config, cv::Size imgsize);
+
+    [[nodiscard]] Layout upsample(int factor) noexcept;
 
     [[nodiscard]] int getImgWidth() const noexcept;
     [[nodiscard]] int getImgHeight() const noexcept;
@@ -41,7 +44,7 @@ public:
     [[nodiscard]] std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
 
 private:
-    const cv::Mat& micenters_; // CV_64FC2
+    cv::Mat micenters_; // CV_64FC2
     cv::Size imgsize_;
     double diameter_;
     double radius_;
@@ -51,6 +54,15 @@ private:
 inline Layout Layout::fromConfigAndImgsize(const CalibConfig& config, cv::Size imgsize)
 {
     return {config.micenters_, imgsize, config.getDiameter(), config.getRotation()};
+}
+
+inline Layout Layout::upsample(int factor) noexcept
+{
+    micenters_ *= factor;
+    imgsize_ *= factor;
+    diameter_ *= factor;
+    radius_ *= factor;
+    return *this;
 }
 
 inline int Layout::getImgWidth() const noexcept { return imgsize_.width; }
