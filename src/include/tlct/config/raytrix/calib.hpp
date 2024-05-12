@@ -9,21 +9,21 @@
 
 namespace tlct::cfg::raytrix {
 
-class TLCT_API CalibConfig
+class CalibConfig
 {
 public:
-    CalibConfig() : offset_(0, 0), diameter_(0.0), rotation_(0.0){};
-    CalibConfig(cv::Point2d offset, double diameter, double rotation)
-        : offset_(offset), diameter_(diameter), rotation_(rotation){};
+    TLCT_API CalibConfig() : offset_(0, 0), diameter_(0.0), rotation_(0.0) {};
+    TLCT_API CalibConfig(cv::Point2d offset, double diameter, double rotation)
+        : offset_(offset), diameter_(diameter), rotation_(rotation) {};
 
-    static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
-    static CalibConfig fromXMLPath(const char* path);
+    TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
+    TLCT_API static CalibConfig fromXMLPath(const char* path);
 
-    [[nodiscard]] double getDiameter() const noexcept;
-    [[nodiscard]] double getRotation() const noexcept;
-    [[nodiscard]] bool isRotated() const noexcept;
-    [[nodiscard]] cv::Point2d getRawOffset() const noexcept;
-    [[nodiscard]] cv::Point2d getOffset() const noexcept;
+    [[nodiscard]] TLCT_API double getDiameter() const noexcept;
+    [[nodiscard]] TLCT_API double getRotation() const noexcept;
+    [[nodiscard]] TLCT_API bool isRotated() const noexcept;
+    [[nodiscard]] TLCT_API cv::Point2d getRawOffset() const noexcept;
+    [[nodiscard]] TLCT_API cv::Point2d getOffset() const noexcept;
 
 private:
     cv::Point2d offset_;

@@ -12,20 +12,20 @@ namespace tlct::cfg::inline tspc {
 
 namespace rgs = std::ranges;
 
-class TLCT_API CalibConfig
+class CalibConfig
 {
 public:
     friend class Layout;
 
-    CalibConfig() : micenters_(), diameter_(0.0), rotation_(0.0){};
-    CalibConfig(cv::Mat&& micenters, double diameter, double rotation)
-        : micenters_(micenters), diameter_(diameter), rotation_(rotation){};
+    TLCT_API CalibConfig() : micenters_(), diameter_(0.0), rotation_(0.0) {};
+    TLCT_API CalibConfig(cv::Mat&& micenters, double diameter, double rotation)
+        : micenters_(micenters), diameter_(diameter), rotation_(rotation) {};
 
-    static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
-    static CalibConfig fromXMLPath(const char* path);
+    TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
+    TLCT_API static CalibConfig fromXMLPath(const char* path);
 
-    [[nodiscard]] double getDiameter() const noexcept;
-    [[nodiscard]] double getRotation() const noexcept;
+    [[nodiscard]] TLCT_API double getDiameter() const noexcept;
+    [[nodiscard]] TLCT_API double getRotation() const noexcept;
 
 private:
     cv::Mat micenters_; // CV_64FC2

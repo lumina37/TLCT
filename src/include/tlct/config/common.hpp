@@ -12,19 +12,19 @@ namespace tlct::cfg {
 
 namespace rgs = std::ranges;
 
-using ConfigMap = std::map<std::string, std::string>;
+typedef std::map<std::string, std::string> ConfigMap;
 
-class TLCT_API CommonParamConfig
+class CommonParamConfig
 {
 public:
-    CommonParamConfig() : cfg_map_(){};
-    explicit CommonParamConfig(const std::map<std::string, std::string>& cfg_map) : cfg_map_(cfg_map){};
+    TLCT_API CommonParamConfig() : cfg_map_() {};
+    TLCT_API explicit CommonParamConfig(const std::map<std::string, std::string>& cfg_map) : cfg_map_(cfg_map){};
 
-    static CommonParamConfig fromPath(const char* path);
+    TLCT_API static CommonParamConfig fromPath(const char* path);
 
-    [[nodiscard]] bool isEmpty() const noexcept;
-    [[nodiscard]] bool isTSPC() const noexcept;
-    [[nodiscard]] const ConfigMap& getConfigMap() const noexcept;
+    [[nodiscard]] TLCT_API bool isEmpty() const noexcept;
+    [[nodiscard]] TLCT_API bool isTSPC() const noexcept;
+    [[nodiscard]] TLCT_API const ConfigMap& getConfigMap() const noexcept;
 
 private:
     ConfigMap cfg_map_;

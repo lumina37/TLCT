@@ -6,43 +6,43 @@
 
 namespace tlct::cfg::inline tspc {
 
-struct BorderCheckList {
+struct TLCT_API BorderCheckList {
     bool up = false;
     bool down = false;
     bool left = false;
     bool right = false;
 };
 
-class TLCT_API Layout
+class Layout
 {
 public:
-    Layout(const cv::Mat& micenters, cv::Size imgsize, double diameter, double rotation)
+    TLCT_API Layout(const cv::Mat& micenters, cv::Size imgsize, double diameter, double rotation)
         : micenters_(micenters.clone()), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0),
           rotation_(rotation){};
 
-    static Layout fromConfigAndImgsize(const CalibConfig& config, cv::Size imgsize);
+    TLCT_API static Layout fromConfigAndImgsize(const CalibConfig& config, cv::Size imgsize);
 
-    [[nodiscard]] Layout upsample(int factor) noexcept;
+    [[nodiscard]] TLCT_API Layout upsample(int factor) noexcept;
 
-    [[nodiscard]] int getImgWidth() const noexcept;
-    [[nodiscard]] int getImgHeight() const noexcept;
-    [[nodiscard]] double getDiameter() const noexcept;
-    [[nodiscard]] double getRadius() const noexcept;
-    [[nodiscard]] double getRotation() const noexcept;
-    [[nodiscard]] cv::Point2d getMICenter(int row, int col) const noexcept;
-    [[nodiscard]] cv::Point2d getMICenter(cv::Point index) const noexcept;
-    [[nodiscard]] cv::Size getMISize() const noexcept;
-    [[nodiscard]] int getMIRows() const noexcept;
-    [[nodiscard]] int getMICols() const noexcept;
-
-    template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] bool isMIBroken(const cv::Point2d micenter) const noexcept;
+    [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
+    [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
+    [[nodiscard]] TLCT_API double getDiameter() const noexcept;
+    [[nodiscard]] TLCT_API double getRadius() const noexcept;
+    [[nodiscard]] TLCT_API double getRotation() const noexcept;
+    [[nodiscard]] TLCT_API cv::Point2d getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API cv::Point2d getMICenter(cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API cv::Size getMISize() const noexcept;
+    [[nodiscard]] TLCT_API int getMIRows() const noexcept;
+    [[nodiscard]] TLCT_API int getMICols() const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
+    [[nodiscard]] TLCT_API bool isMIBroken(const cv::Point2d micenter) const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
+    [[nodiscard]] TLCT_API cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
+
+    template <BorderCheckList checklist = {true, true, true, true}>
+    [[nodiscard]] TLCT_API std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
 
 private:
     cv::Mat micenters_; // CV_64FC2
@@ -93,7 +93,7 @@ inline int Layout::getMIRows() const noexcept { return micenters_.rows; }
 inline int Layout::getMICols() const noexcept { return micenters_.cols; }
 
 template <BorderCheckList checklist>
-inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
+TLCT_API inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
 {
     if (checklist.up && micenter.y < radius_) {
         return true;
@@ -111,7 +111,7 @@ inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
 }
 
 template <BorderCheckList checklist>
-inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const noexcept
+TLCT_API inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const noexcept
 {
     cv::Rect modarea{area};
 
@@ -132,7 +132,7 @@ inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const noexcept
 }
 
 template <BorderCheckList checklist>
-inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept
+TLCT_API inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept
 {
     std::vector<cv::Range> modranges{ranges};
 
