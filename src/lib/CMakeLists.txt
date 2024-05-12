@@ -23,7 +23,7 @@ target_compile_definitions(${TLCT_LIB_NAME} PRIVATE ${TLCT_LIB_COMPILE_DEFS})
 target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_INCLUDE_DIR}
         "${pugixml_SOURCE_DIR}/src"
-        "${CMAKE_SOURCE_DIR}/src/include")
+        "${PROJECT_SOURCE_DIR}/src/include")
 target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
         pugixml)

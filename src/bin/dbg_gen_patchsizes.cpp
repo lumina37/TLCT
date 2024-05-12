@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     cv::resize(src, resized_src, {}, factor, factor);
     src = resized_src;
 
-    const auto config = cfg::CalibConfig::fromPath("Cars.xml");
+    const auto config = cfg::CalibConfig::fromXMLPath("Cars.xml");
     const auto layout = cfg::Layout::fromConfigAndImgsize(config, src.size()).upsample(factor);
 
     const auto patchsizes = cvt::generatePatchsizes(src, layout);

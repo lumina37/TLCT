@@ -1,4 +1,5 @@
 #pragma once
 
-#include "config/tspc.hpp"
+#include "config/common.hpp"
 #include "config/raytrix.hpp"
+#include "config/tspc.hpp"

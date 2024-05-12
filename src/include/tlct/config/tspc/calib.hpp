@@ -21,7 +21,8 @@ public:
     CalibConfig(cv::Mat&& micenters, double diameter, double rotation)
         : micenters_(micenters), diameter_(diameter), rotation_(rotation){};
 
-    static CalibConfig fromPath(std::string_view xml_fpath);
+    static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
+    static CalibConfig fromXMLPath(const char* path);
 
     [[nodiscard]] double getDiameter() const noexcept;
     [[nodiscard]] double getRotation() const noexcept;
@@ -32,14 +33,8 @@ private:
     double rotation_;
 };
 
-inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
+inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
-    pugi::xml_document doc;
-    // TODO: Error if the string view `xml_fpath` is not ending with `\0`, try a safer approach.
-    const auto ret = doc.load_file(xml_fpath.data(), pugi::parse_minimal, pugi::encoding_utf8);
-    if (!ret) {
-        return {};
-    }
 
     const auto data_node = doc.child("RayCalibData");
     const double diameter = data_node.child("diameter").text().as_double();
@@ -73,6 +68,16 @@ inline CalibConfig CalibConfig::fromPath(const std::string_view xml_fpath)
     }
 
     return {std::move(micenters), diameter, rotation};
+}
+
+inline CalibConfig CalibConfig::fromXMLPath(const char* path)
+{
+    pugi::xml_document doc;
+    const auto ret = doc.load_file(path, pugi::parse_minimal, pugi::encoding_utf8);
+    if (!ret) {
+        return {};
+    }
+    return CalibConfig::fromXMLDoc(doc);
 }
 
 inline double CalibConfig::getDiameter() const noexcept { return diameter_; }

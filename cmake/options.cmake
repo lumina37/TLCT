@@ -11,5 +11,5 @@ if (MSVC)
     set(MSVC_RUNTIME_TYPE MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
 endif ()
 
-set(TLCT_CONFIGURE_DIR "${CMAKE_SOURCE_DIR}/src/include/tlct/common")
+set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
 configure_file("${TLCT_CONFIGURE_DIR}/cmake.h.in" "${TLCT_CONFIGURE_DIR}/cmake.h")

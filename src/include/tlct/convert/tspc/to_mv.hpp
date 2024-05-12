@@ -95,11 +95,12 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
             filename_s << img_cnt << ".png";
             img_cnt++;
             fs::path saveto_path = saveto_dir / filename_s.str();
-            cv::Mat final_image_u8;
-            final_image.convertTo(final_image_u8, CV_8UC3);
+            cv::Mat resized_final_image, final_image_u8;
+            cv::resize(final_image, resized_final_image, {}, 1. / zoom, 1. / zoom, cv::INTER_CUBIC);
+            resized_final_image.convertTo(final_image_u8, CV_8UC3);
             cv::imwrite(saveto_path.string(), final_image_u8);
         }
     }
 }
 
-} // namespace tlct::cvt::tspc
+} // namespace tlct::cvt::inline tspc
