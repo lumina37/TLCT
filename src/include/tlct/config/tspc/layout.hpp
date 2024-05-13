@@ -16,11 +16,18 @@ struct TLCT_API BorderCheckList {
 class Layout
 {
 public:
-    TLCT_API Layout(const cv::Mat& micenters, cv::Size imgsize, double diameter, double rotation)
-        : micenters_(micenters.clone()), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0),
-          rotation_(rotation){};
+    TLCT_API Layout() noexcept : micenters_(), imgsize_(), diameter_(0.0), radius_(0.0), rotation_(0.0) {};
+    TLCT_API Layout(const Layout& layout)
+        : micenters_(layout.micenters_.clone()), imgsize_(layout.imgsize_), diameter_(layout.diameter_),
+          radius_(layout.radius_), rotation_(layout.rotation_) {};
+    TLCT_API Layout(Layout&& layout) noexcept
+        : micenters_(std::move(layout.micenters_)), imgsize_(layout.imgsize_), diameter_(layout.diameter_),
+          radius_(layout.radius_), rotation_(layout.rotation_) {};
+    TLCT_API Layout(cv::Mat&& micenters, cv::Size imgsize, double diameter, double rotation)
+        : micenters_(micenters), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0),
+          rotation_(rotation) {};
 
-    TLCT_API static Layout fromConfigAndImgsize(const CalibConfig& config, cv::Size imgsize);
+    TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize);
 
     [[nodiscard]] TLCT_API Layout upsample(int factor) noexcept;
 
@@ -42,7 +49,8 @@ public:
     [[nodiscard]] TLCT_API cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] TLCT_API std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
+    [[nodiscard]] TLCT_API std::vector<cv::Range>
+    restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
 
 private:
     cv::Mat micenters_; // CV_64FC2
@@ -52,9 +60,9 @@ private:
     double rotation_;
 };
 
-inline Layout Layout::fromConfigAndImgsize(const CalibConfig& config, cv::Size imgsize)
+inline Layout Layout::fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize)
 {
-    return {config.micenters_, imgsize, config.getDiameter(), config.getRotation()};
+    return {config.micenters_.clone(), imgsize, config.getDiameter(), config.getRotation()};
 }
 
 inline Layout Layout::upsample(int factor) noexcept

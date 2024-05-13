@@ -18,6 +18,8 @@ class CommonParamConfig
 {
 public:
     TLCT_API CommonParamConfig() : cfg_map_() {};
+    TLCT_API CommonParamConfig(const CommonParamConfig& common_cfg) : cfg_map_(common_cfg.cfg_map_) {};
+    TLCT_API CommonParamConfig(CommonParamConfig&& common_cfg) : cfg_map_(std::move(common_cfg.cfg_map_)) {};
     TLCT_API explicit CommonParamConfig(const std::map<std::string, std::string>& cfg_map) : cfg_map_(cfg_map){};
 
     TLCT_API static CommonParamConfig fromPath(const char* path);
