@@ -25,6 +25,7 @@ public:
 
     TLCT_API static ParamConfig fromCommonCfg(const CommonParamConfig& common_cfg);
 
+    [[nodiscard]] TLCT_API const CalibConfig& getCalibCfg() const noexcept;
     [[nodiscard]] TLCT_API int getViews() const noexcept;
     [[nodiscard]] TLCT_API cv::Range getRange() const noexcept;
     [[nodiscard]] TLCT_API const std::string& getSrcPattern() const noexcept;
@@ -51,6 +52,8 @@ inline ParamConfig ParamConfig::fromCommonCfg(const CommonParamConfig& common_cf
     const std::string& dst_pattern = cfg_map.at("Output_Path");
     return {std::move(calib_cfg), views, {start, end}, src_pattern, dst_pattern};
 }
+
+inline const CalibConfig& ParamConfig::getCalibCfg() const noexcept { return calib_cfg_; }
 
 inline int ParamConfig::getViews() const noexcept { return views_; }
 
