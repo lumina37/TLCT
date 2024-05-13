@@ -23,8 +23,8 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const cv::Point2d curr_center = layout.getMICenter(index);
     const cv::Point2d neib_center = layout.getMICenter(index.y + 1, index.x);
 
-    const double start_shift = -13.0 / 70.0 * layout.getDiameter();
-    const double end_shift = -2.0 / 70.0 * layout.getDiameter();
+    const int start_shift = -13 * layout.getUpsample();
+    const int end_shift = -2 * layout.getUpsample();
 
     const cv::Range curr_cmp_row_range{iround(curr_center.y + start_shift), iround(curr_center.y + end_shift)};
     const cv::Range curr_cmp_col_range{iround(curr_center.x + start_shift), iround(curr_center.x + end_shift)};
@@ -105,8 +105,8 @@ TLCT_API inline void generatePatchsizes_(const cv::Mat& src, cv::Mat& patchsizes
     cv::Mat gray_src;
     cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
 
-    const int match_start = iround(15.0 / 70.0 * layout.getDiameter());
-    const int match_end = iround(29.0 / 70.0 * layout.getDiameter());
+    const int match_start = 15 * layout.getUpsample();
+    const int match_end = 29 * layout.getUpsample();
 
     for (const int row : rgs::views::iota(0, layout.getMIRows() - 1)) {
         for (const int col : rgs::views::iota(0, layout.getMICols())) {

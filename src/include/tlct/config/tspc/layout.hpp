@@ -16,16 +16,17 @@ struct TLCT_API BorderCheckList {
 class Layout
 {
 public:
-    TLCT_API Layout() noexcept : micenters_(), imgsize_(), diameter_(0.0), radius_(0.0), rotation_(0.0) {};
+    TLCT_API Layout() noexcept
+        : micenters_(), imgsize_(), diameter_(0.0), radius_(0.0), rotation_(0.0), upsample_(1) {};
     TLCT_API Layout(const Layout& layout)
         : micenters_(layout.micenters_.clone()), imgsize_(layout.imgsize_), diameter_(layout.diameter_),
-          radius_(layout.radius_), rotation_(layout.rotation_) {};
+          radius_(layout.radius_), rotation_(layout.rotation_), upsample_(layout.upsample_) {};
     TLCT_API Layout(Layout&& layout) noexcept
         : micenters_(std::move(layout.micenters_)), imgsize_(layout.imgsize_), diameter_(layout.diameter_),
-          radius_(layout.radius_), rotation_(layout.rotation_) {};
-    TLCT_API Layout(cv::Mat&& micenters, cv::Size imgsize, double diameter, double rotation)
-        : micenters_(micenters), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0),
-          rotation_(rotation) {};
+          radius_(layout.radius_), rotation_(layout.rotation_), upsample_(layout.upsample_) {};
+    TLCT_API Layout(cv::Mat&& micenters, cv::Size imgsize, double diameter, double rotation, int upsample)
+        : micenters_(micenters), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation),
+          upsample_(upsample) {};
 
     TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize);
 
@@ -36,6 +37,7 @@ public:
     [[nodiscard]] TLCT_API double getDiameter() const noexcept;
     [[nodiscard]] TLCT_API double getRadius() const noexcept;
     [[nodiscard]] TLCT_API double getRotation() const noexcept;
+    [[nodiscard]] TLCT_API int getUpsample() const noexcept;
     [[nodiscard]] TLCT_API cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API cv::Size getMISize() const noexcept;
@@ -58,11 +60,12 @@ private:
     double diameter_;
     double radius_;
     double rotation_;
+    int upsample_;
 };
 
 inline Layout Layout::fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize)
 {
-    return {config.micenters_.clone(), imgsize, config.getDiameter(), config.getRotation()};
+    return {config.micenters_.clone(), imgsize, config.getDiameter(), config.getRotation(), 1};
 }
 
 inline Layout Layout::upsample(int factor) noexcept
@@ -71,6 +74,7 @@ inline Layout Layout::upsample(int factor) noexcept
     imgsize_ *= factor;
     diameter_ *= factor;
     radius_ *= factor;
+    upsample_ = factor;
     return *this;
 }
 
@@ -83,6 +87,8 @@ inline double Layout::getDiameter() const noexcept { return diameter_; }
 inline double Layout::getRadius() const noexcept { return radius_; }
 
 inline double Layout::getRotation() const noexcept { return rotation_; }
+
+inline int Layout::getUpsample() const noexcept { return upsample_; }
 
 inline cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
 {

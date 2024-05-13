@@ -21,7 +21,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
     fs::path saveto_dir{saveto};
     fs::create_directories(saveto_dir);
 
-    const int zoom = iround(layout.getDiameter() / 70.0);
+    const int zoom = layout.getUpsample();
     const int zoomto_height = 20 * zoom; // the extracted patch will be zoomed to this height
     const int zoomto_width = iround((double)zoomto_height * std::numbers::sqrt3 / 2.0);
     const int bound = zoom;
@@ -30,7 +30,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
     cv::Mat d_src; // convert src from 8UCn to 64FCn
     src.convertTo(d_src, CV_64FC3);
 
-    const int move_range = iround(6.0 / 70.0 * layout.getDiameter());
+    const int move_range = 6 * layout.getUpsample();
     const int interval = views > 1 ? move_range * 2 / (views - 1) : 0;
     auto colviews =
         rgs::views::iota(-views / 2, views / 2 + 1) | rgs::views::transform([interval](int x) { return x * interval; });
