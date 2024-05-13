@@ -19,6 +19,7 @@ set_target_properties(${TLCT_LIB_NAME} PROPERTIES
         SOVERSION ${TLCT_VERSION}
         DEBUG_POSTFIX "-${TLCT_VERSION}d"
         RELEASE_POSTFIX "-${TLCT_VERSION}")
+target_compile_features(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} cxx_std_20)
 target_compile_definitions(${TLCT_LIB_NAME} PRIVATE ${TLCT_LIB_COMPILE_DEFS})
 target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_INCLUDE_DIR}

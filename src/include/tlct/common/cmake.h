@@ -5,5 +5,5 @@
 
 /* #undef TLCT_VERSION_MAJOR */
 #define TLCT_VERSION_MINOR 2
-#define TLCT_VERSION_PATCH 1
-#define TLCT_VERSION "0.2.1"
+#define TLCT_VERSION_PATCH 2
+#define TLCT_VERSION "0.2.2"
