@@ -18,6 +18,8 @@ class ParamConfig
 {
 public:
     TLCT_API ParamConfig() : calib_cfg_(), views_(0), range_(), src_pattern_(), dst_pattern_() {};
+    TLCT_API ParamConfig(const ParamConfig& cfg) = default;
+    TLCT_API ParamConfig(ParamConfig&& cfg) = default;
     TLCT_API ParamConfig(CalibConfig&& calib_cfg, int views, cv::Range range, std::string src_pattern,
                          std::string dst_pattern)
         : calib_cfg_(calib_cfg), views_(views), range_(range), src_pattern_(std::move(src_pattern)),
