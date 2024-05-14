@@ -40,7 +40,7 @@ private:
 inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
 
-    const auto data_node = doc.child("RayCalibData");
+    const auto data_node = doc.child("TSPCCalibData");
     const double diameter = data_node.child("diameter").text().as_double();
     const double rotation = data_node.child("rotation").text().as_double();
 
