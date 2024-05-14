@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 {
     auto src = cv::imread("Cars.png");
     const auto config = cfg::CalibConfig::fromXMLPath("Cars.xml");
-    const auto layout = cfg::Layout::fromConfigAndImgsize(config, src.size());
+    const auto layout = cfg::Layout::fromCfgAndImgsize(config, src.size());
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols())) {

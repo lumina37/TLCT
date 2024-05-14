@@ -45,13 +45,13 @@ public:
     [[nodiscard]] TLCT_API int getMICols() const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] TLCT_API bool isMIBroken(const cv::Point2d micenter) const noexcept;
+    [[nodiscard]] bool isMIBroken(const cv::Point2d micenter) const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] TLCT_API cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
+    [[nodiscard]] cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] TLCT_API std::vector<cv::Range>
+    [[nodiscard]] std::vector<cv::Range>
     restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
 
 private:
@@ -107,7 +107,7 @@ inline int Layout::getMIRows() const noexcept { return micenters_.rows; }
 inline int Layout::getMICols() const noexcept { return micenters_.cols; }
 
 template <BorderCheckList checklist>
-TLCT_API inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
+inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
 {
     if (checklist.up && micenter.y < radius_) {
         return true;
@@ -125,7 +125,7 @@ TLCT_API inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexce
 }
 
 template <BorderCheckList checklist>
-TLCT_API inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const noexcept
+inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const noexcept
 {
     cv::Rect modarea{area};
 
@@ -146,7 +146,7 @@ TLCT_API inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const 
 }
 
 template <BorderCheckList checklist>
-TLCT_API inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept
+inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept
 {
     std::vector<cv::Range> modranges{ranges};
 
