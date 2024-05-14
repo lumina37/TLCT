@@ -31,7 +31,8 @@ public:
 
     [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize);
 
-    [[nodiscard]] TLCT_API Layout upsample(int factor) noexcept;
+    [[nodiscard]] TLCT_API Layout& upsample(int factor) noexcept;
+    [[nodiscard]] TLCT_API Layout& transpose() noexcept;
 
     [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
@@ -63,13 +64,30 @@ inline Layout Layout::fromCfgAndImgsize(const CalibConfig& config, cv::Size imgs
     return {config.micenters_.clone(), imgsize, config.getDiameter(), config.getRotation(), 1};
 }
 
-inline Layout Layout::upsample(int factor) noexcept
+inline Layout& Layout::upsample(int factor) noexcept
 {
     micenters_ *= factor;
     imgsize_ *= factor;
     diameter_ *= factor;
     radius_ *= factor;
     upsample_ = factor;
+    return *this;
+}
+
+inline Layout& Layout::transpose() noexcept
+{
+    cv::Mat t_micenters;
+    cv::transpose(micenters_, t_micenters);
+    for (int row = 0; row < t_micenters.rows; row++) {
+        auto prow = t_micenters.ptr<cv::Point2d>(row);
+        for (int col = 0; col < t_micenters.cols; col++) {
+            cv::Point2d c = prow[col];
+            std::swap(c.x, c.y);
+        }
+    }
+
+    std::swap(imgsize_.height, imgsize_.width);
+
     return *this;
 }
 
@@ -167,12 +185,12 @@ TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
 {
     cv::Mat dst;
 
-    //    const double rotation = layout.getRotation();
-    //    if (rotation != 0.0) {
-    //        cv::Mat transposed_src;
-    //        cv::transpose(src, transposed_src);
-    //        dst = std::move(transposed_src);
-    //    }
+    const double rotation = layout.getRotation();
+    if (rotation != 0.0) {
+        cv::Mat transposed_src;
+        cv::transpose(src, transposed_src);
+        dst = std::move(transposed_src);
+    }
 
     const int upsample = layout.getUpsample();
     if (upsample) {
