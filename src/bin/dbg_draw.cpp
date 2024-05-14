@@ -10,7 +10,7 @@ namespace rgs = std::ranges;
 
 int main(int argc, char** argv)
 {
-    auto src = cv::imread("Matryoshka.png");
+    auto src = cv::imread("Cars.png");
     const auto config = cfg::CalibConfig::fromXMLPath("Cars.xml");
     const auto layout = cfg::Layout::fromCfgAndImgsize(config, src.size());
 

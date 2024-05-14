@@ -16,8 +16,8 @@ public:
     TLCT_API CalibConfig(cv::Point2d offset, double diameter, double rotation)
         : offset_(offset), diameter_(diameter), rotation_(rotation) {};
 
-    TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
-    TLCT_API static CalibConfig fromXMLPath(const char* path);
+    [[nodiscard]] TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
+    [[nodiscard]] TLCT_API static CalibConfig fromXMLPath(const char* path);
 
     [[nodiscard]] TLCT_API double getDiameter() const noexcept;
     [[nodiscard]] TLCT_API double getRotation() const noexcept;

@@ -23,7 +23,7 @@ public:
         : calib_cfg_(calib_cfg), views_(views), range_(range), src_pattern_(std::move(src_pattern)),
           dst_pattern_(std::move(dst_pattern)) {};
 
-    TLCT_API static ParamConfig fromCommonCfg(const CommonParamConfig& common_cfg);
+    [[nodiscard]] TLCT_API static ParamConfig fromCommonCfg(const CommonParamConfig& common_cfg);
 
     [[nodiscard]] TLCT_API const CalibConfig& getCalibCfg() const noexcept;
     [[nodiscard]] TLCT_API int getViews() const noexcept;

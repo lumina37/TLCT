@@ -28,7 +28,7 @@ public:
         : micenters_(micenters), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation),
           upsample_(upsample) {};
 
-    TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize);
+    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize);
 
     [[nodiscard]] TLCT_API Layout upsample(int factor) noexcept;
 
@@ -51,8 +51,7 @@ public:
     [[nodiscard]] cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] std::vector<cv::Range>
-    restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
+    [[nodiscard]] std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
 
 private:
     cv::Mat micenters_; // CV_64FC2
