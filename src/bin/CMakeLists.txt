@@ -5,6 +5,6 @@ function(tlct_add_executable name srcs)
     copy_dlls_if_needed(${name})
 endfunction()
 
-tlct_add_executable(dbg_gen_patchsizes "dbg_gen_patchsizes.cpp")
+tlct_add_executable(dbg_patchsizes "dbg_patchsizes.cpp")
 tlct_add_executable(dbg_mv "dbg_mv.cpp")
 tlct_add_executable(dbg_draw "dbg_draw.cpp")

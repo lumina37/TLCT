@@ -4,6 +4,8 @@
 #include <opencv2/imgproc.hpp>
 
 #include "calib.hpp"
+#include "tlct/common/defines.h"
+#include "tlct/helper/misc.hpp"
 
 namespace tlct::cfg::inline tspc {
 
@@ -76,18 +78,8 @@ inline Layout& Layout::upsample(int factor) noexcept
 
 inline Layout& Layout::transpose() noexcept
 {
-    cv::Mat t_micenters;
-    cv::transpose(micenters_, t_micenters);
-    for (int row = 0; row < t_micenters.rows; row++) {
-        auto prow = t_micenters.ptr<cv::Point2d>(row);
-        for (int col = 0; col < t_micenters.cols; col++) {
-            cv::Point2d c = prow[col];
-            std::swap(c.x, c.y);
-        }
-    }
-
+    micenters_ = transposeCenters<double>(micenters_);
     std::swap(imgsize_.height, imgsize_.width);
-
     return *this;
 }
 
@@ -193,9 +185,9 @@ TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
     }
 
     const int upsample = layout.getUpsample();
-    if (upsample) {
+    if (upsample != 1) {
         cv::Mat upsampled_src;
-        cv::resize(src, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
+        cv::resize(dst, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
         dst = std::move(upsampled_src);
     }
 

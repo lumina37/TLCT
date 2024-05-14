@@ -32,9 +32,7 @@ public:
     [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept;
     [[nodiscard]] TLCT_API cv::Range getRange() const noexcept;
     [[nodiscard]] TLCT_API const std::string& getSrcPattern() const noexcept;
-    [[nodiscard]] TLCT_API fs::path getSrcPath(int i) const noexcept;
     [[nodiscard]] TLCT_API const std::string& getDstPattern() const noexcept;
-    [[nodiscard]] TLCT_API fs::path getDstPath(int i) const noexcept;
 
 private:
     CalibConfig calib_cfg_;
