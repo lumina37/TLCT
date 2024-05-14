@@ -5,6 +5,7 @@ find_package(OpenCV COMPONENTS core imgcodecs imgproc quality)
 set(PUGIXML_NO_XPATH ON CACHE BOOL "" FORCE)
 set(PUGIXML_NO_EXCEPTIONS ON CACHE BOOL "" FORCE)
 set(PUGIXML_NO_STL ON CACHE BOOL "" FORCE)
+set(PUGIXML_USE_POSTFIX ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         pugixml
         GIT_REPOSITORY https://github.com/zeux/pugixml.git
