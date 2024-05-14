@@ -69,19 +69,19 @@ inline cv::Range ParamConfig::getRange() const noexcept { return range_; }
 
 inline const std::string& ParamConfig::getSrcPattern() const noexcept { return src_pattern_; }
 
-inline fs::path ParamConfig::getSrcPath(int i) const noexcept
+inline const std::string& ParamConfig::getDstPattern() const noexcept { return dst_pattern_; }
+
+inline fs::path fmtSrcPath(const ParamConfig& config, int i) noexcept
 {
     char buffer[256];
-    sprintf(buffer, src_pattern_.c_str(), i);
+    sprintf(buffer, config.getSrcPattern().c_str(), i);
     return {buffer};
 }
 
-inline const std::string& ParamConfig::getDstPattern() const noexcept { return dst_pattern_; }
-
-inline fs::path ParamConfig::getDstPath(int i) const noexcept
+inline fs::path fmtDstPath(const ParamConfig& config, int i) noexcept
 {
     char buffer[256];
-    sprintf(buffer, dst_pattern_.c_str(), i);
+    sprintf(buffer, config.getDstPattern().c_str(), i);
     return {buffer};
 }
 

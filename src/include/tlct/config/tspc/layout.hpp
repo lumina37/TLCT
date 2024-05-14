@@ -1,6 +1,7 @@
 #pragma once
 
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "calib.hpp"
 
@@ -34,6 +35,7 @@ public:
 
     [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
+    [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept;
     [[nodiscard]] TLCT_API double getDiameter() const noexcept;
     [[nodiscard]] TLCT_API double getRadius() const noexcept;
     [[nodiscard]] TLCT_API double getRotation() const noexcept;
@@ -46,12 +48,6 @@ public:
 
     template <BorderCheckList checklist = {true, true, true, true}>
     [[nodiscard]] bool isMIBroken(const cv::Point2d micenter) const noexcept;
-
-    template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] cv::Rect restrictToImgBorder(const cv::Rect area) const noexcept;
-
-    template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] std::vector<cv::Range> restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept;
 
 private:
     cv::Mat micenters_; // CV_64FC2
@@ -80,6 +76,8 @@ inline Layout Layout::upsample(int factor) noexcept
 inline int Layout::getImgWidth() const noexcept { return imgsize_.width; }
 
 inline int Layout::getImgHeight() const noexcept { return imgsize_.height; }
+
+inline cv::Size Layout::getImgSize() const noexcept { return imgsize_; }
 
 inline double Layout::getDiameter() const noexcept { return diameter_; }
 
@@ -124,45 +122,66 @@ inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
 }
 
 template <BorderCheckList checklist>
-inline cv::Rect Layout::restrictToImgBorder(const cv::Rect area) const noexcept
+inline cv::Rect restrictToImgBorder(const Layout& layout, const cv::Rect area) noexcept
 {
     cv::Rect modarea{area};
 
     if (checklist.up && area.y < 0) {
         modarea.y = 0;
     }
-    if (checklist.down && area.y + area.height > imgsize_.height) {
-        modarea.height = imgsize_.height - modarea.y;
+    if (checklist.down && area.y + area.height > layout.getImgHeight()) {
+        modarea.height = layout.getImgHeight() - modarea.y;
     }
     if (checklist.left && area.x < 0) {
         modarea.x = 0;
     }
-    if (checklist.right && area.x + area.width > imgsize_.width) {
-        modarea.width = imgsize_.width - modarea.x;
+    if (checklist.right && area.x + area.width > layout.getImgWidth()) {
+        modarea.width = layout.getImgWidth() - modarea.x;
     }
 
     return modarea;
 }
 
 template <BorderCheckList checklist>
-inline std::vector<cv::Range> Layout::restrictToImgBorder(const std::vector<cv::Range>& ranges) const noexcept
+inline std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const std::vector<cv::Range>& ranges) noexcept
 {
     std::vector<cv::Range> modranges{ranges};
 
     if (checklist.up && ranges[0].start < 0) {
         modranges[0].start = 0;
     }
-    if (checklist.down && ranges[0].end > imgsize_.height) {
-        modranges[0].end = imgsize_.height;
+    if (checklist.down && ranges[0].end > layout.getImgHeight()) {
+        modranges[0].end = layout.getImgHeight();
     }
     if (checklist.left && ranges[1].start < 0) {
         modranges[1].start = 0;
     }
-    if (checklist.right && ranges[1].end > imgsize_.width) {
-        modranges[1].end = imgsize_.width;
+    if (checklist.right && ranges[1].end > layout.getImgWidth()) {
+        modranges[1].end = layout.getImgWidth();
     }
 
     return modranges;
+}
+
+TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
+{
+    cv::Mat dst;
+
+    //    const double rotation = layout.getRotation();
+    //    if (rotation != 0.0) {
+    //        cv::Mat transposed_src;
+    //        cv::transpose(src, transposed_src);
+    //        dst = std::move(transposed_src);
+    //    }
+
+    const int upsample = layout.getUpsample();
+    if (upsample) {
+        cv::Mat upsampled_src;
+        cv::resize(src, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
+        dst = std::move(upsampled_src);
+    }
+
+    return std::move(dst);
 }
 
 } // namespace tlct::cfg::inline tspc
