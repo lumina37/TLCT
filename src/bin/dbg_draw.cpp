@@ -10,7 +10,7 @@ namespace rgs = std::ranges;
 
 int main(int argc, char** argv)
 {
-    auto src = cv::imread("Cars.png");
+    auto src = cv::imread("Matryoshka.png");
     const auto config = cfg::CalibConfig::fromXMLPath("Cars.xml");
     const auto layout = cfg::Layout::fromCfgAndImgsize(config, src.size());
 
@@ -20,8 +20,11 @@ int main(int argc, char** argv)
             cv::circle(src, center, iround(layout.getRadius()), {0, 0, 255}, 1, cv::LINE_AA);
         }
     }
+    for (const int col : rgs::views::iota(0, layout.getMICols())) {
+        const auto center = layout.getMICenter(0, col);
+        cv::circle(src, center, iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
+    }
     const auto center = layout.getMICenter(0, 1);
-    cv::circle(src, center, iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
 
     cv::imwrite("dbg_center.png", src);
 }
