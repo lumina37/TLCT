@@ -21,20 +21,20 @@ class Layout
 public:
     TLCT_API Layout() noexcept
         : micenters_(), imgsize_(), diameter_(0.0), radius_(0.0), rotation_(0.0), upsample_(1) {};
+    TLCT_API Layout& operator=(const Layout& layout);
     TLCT_API Layout(const Layout& layout)
         : micenters_(layout.micenters_.clone()), imgsize_(layout.imgsize_), diameter_(layout.diameter_),
           radius_(layout.radius_), rotation_(layout.rotation_), upsample_(layout.upsample_) {};
-    TLCT_API Layout(Layout&& layout) noexcept
-        : micenters_(std::move(layout.micenters_)), imgsize_(layout.imgsize_), diameter_(layout.diameter_),
-          radius_(layout.radius_), rotation_(layout.rotation_), upsample_(layout.upsample_) {};
+    TLCT_API Layout& operator=(Layout&& layout) noexcept = default;
+    TLCT_API Layout(Layout&& layout) noexcept = default;
     TLCT_API Layout(cv::Mat&& micenters, cv::Size imgsize, double diameter, double rotation, int upsample)
         : micenters_(micenters), imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation),
           upsample_(upsample) {};
 
-    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize);
+    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize);
 
     [[nodiscard]] TLCT_API Layout& upsample(int factor) noexcept;
-    [[nodiscard]] TLCT_API Layout& transpose() noexcept;
+    [[nodiscard]] TLCT_API Layout& transpose();
 
     [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
@@ -55,15 +55,32 @@ public:
 private:
     cv::Mat micenters_; // CV_64FC2
     cv::Size imgsize_;
-    double diameter_;
-    double radius_;
-    double rotation_;
-    int upsample_;
+    double diameter_{};
+    double radius_{};
+    double rotation_{};
+    int upsample_{};
 };
 
-inline Layout Layout::fromCfgAndImgsize(const CalibConfig& config, cv::Size imgsize)
+inline Layout& Layout::operator=(const Layout& layout)
 {
-    return {config.micenters_.clone(), imgsize, config.getDiameter(), config.getRotation(), 1};
+    if (this != &layout) {
+        micenters_ = layout.micenters_.clone();
+        imgsize_ = layout.imgsize_;
+        diameter_ = layout.diameter_;
+        radius_ = layout.radius_;
+        rotation_ = layout.rotation_;
+        upsample_ = layout.upsample_;
+    }
+    return *this;
+}
+
+inline Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
+{
+    Layout layout{cfg.micenters_.clone(), imgsize, cfg.getDiameter(), cfg.getRotation(), 1};
+    if (cfg.getRotation() != 0.0) {
+        layout = layout.transpose();
+    }
+    return layout;
 }
 
 inline Layout& Layout::upsample(int factor) noexcept
@@ -76,7 +93,7 @@ inline Layout& Layout::upsample(int factor) noexcept
     return *this;
 }
 
-inline Layout& Layout::transpose() noexcept
+inline Layout& Layout::transpose()
 {
     micenters_ = _hp::transposeCenters<double>(micenters_);
     std::swap(imgsize_.height, imgsize_.width);

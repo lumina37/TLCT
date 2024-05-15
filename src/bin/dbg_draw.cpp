@@ -8,11 +8,11 @@
 using namespace tlct;
 namespace rgs = std::ranges;
 
-int main(int argc, char** argv)
+int main()
 {
     const cv::Mat src = cv::imread("Cars.png");
     const auto config = cfg::CalibConfig::fromXMLPath("Cars.xml");
-    const auto layout = cfg::Layout::fromCfgAndImgsize(config, src.size()).transpose();
+    const auto layout = cfg::Layout::fromCfgAndImgsize(config, src.size());
     const cv::Mat resized_img = cfg::procImg(layout, src);
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {

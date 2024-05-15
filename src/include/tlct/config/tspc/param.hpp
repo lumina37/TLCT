@@ -18,14 +18,16 @@ class ParamConfig
 {
 public:
     TLCT_API ParamConfig() : calib_cfg_(), views_(0), imgsize_(), range_(), src_pattern_(), dst_pattern_() {};
-    TLCT_API ParamConfig(const ParamConfig& config) = default;
-    TLCT_API ParamConfig(ParamConfig&& config) = default;
+    TLCT_API ParamConfig& operator=(const ParamConfig& cfg) = default;
+    TLCT_API ParamConfig(const ParamConfig& cfg) = default;
+    TLCT_API ParamConfig& operator=(ParamConfig&& cfg) noexcept = default;
+    TLCT_API ParamConfig(ParamConfig&& cfg) noexcept = default;
     TLCT_API ParamConfig(CalibConfig&& calib_cfg, int views, cv::Size imgsize, cv::Range range, std::string src_pattern,
                          std::string dst_pattern)
         : calib_cfg_(calib_cfg), views_(views), imgsize_(imgsize), range_(range), src_pattern_(std::move(src_pattern)),
           dst_pattern_(std::move(dst_pattern)) {};
 
-    [[nodiscard]] TLCT_API static ParamConfig fromCommonCfg(const CommonParamConfig& config);
+    [[nodiscard]] TLCT_API static ParamConfig fromCommonCfg(const CommonParamConfig& cfg);
 
     [[nodiscard]] TLCT_API const CalibConfig& getCalibCfg() const noexcept;
     [[nodiscard]] TLCT_API int getViews() const noexcept;
@@ -43,9 +45,9 @@ private:
     std::string dst_pattern_;
 };
 
-inline ParamConfig ParamConfig::fromCommonCfg(const CommonParamConfig& config)
+inline ParamConfig ParamConfig::fromCommonCfg(const CommonParamConfig& cfg)
 {
-    const auto& cfg_map = config.getConfigMap();
+    const auto& cfg_map = cfg.getConfigMap();
     auto calib_cfg = CalibConfig::fromXMLPath(cfg_map.at("Calibration_xml").c_str());
     const int views = std::stoi(cfg_map.at("viewNum"));
     const int width = std::stoi(cfg_map.at("width"));
@@ -69,17 +71,17 @@ inline const std::string& ParamConfig::getSrcPattern() const noexcept { return s
 
 inline const std::string& ParamConfig::getDstPattern() const noexcept { return dst_pattern_; }
 
-inline fs::path fmtSrcPath(const ParamConfig& config, int i) noexcept
+TLCT_API inline fs::path fmtSrcPath(const ParamConfig& cfg, int i) noexcept
 {
     char buffer[256];
-    sprintf(buffer, config.getSrcPattern().c_str(), i);
+    sprintf(buffer, cfg.getSrcPattern().c_str(), i);
     return {buffer};
 }
 
-inline fs::path fmtDstPath(const ParamConfig& config, int i) noexcept
+TLCT_API inline fs::path fmtDstPath(const ParamConfig& cfg, int i) noexcept
 {
     char buffer[256];
-    sprintf(buffer, config.getDstPattern().c_str(), i);
+    sprintf(buffer, cfg.getDstPattern().c_str(), i);
     return {buffer};
 }
 

@@ -18,10 +18,11 @@ public:
     friend class Layout;
 
     TLCT_API CalibConfig() noexcept : micenters_(), diameter_(0.0), rotation_(0.0) {};
+    TLCT_API CalibConfig& operator=(const CalibConfig& cfg);
     TLCT_API CalibConfig(const CalibConfig& cfg)
         : micenters_(cfg.micenters_.clone()), diameter_(cfg.diameter_), rotation_(cfg.rotation_) {};
-    TLCT_API CalibConfig(CalibConfig&& cfg) noexcept
-        : micenters_(std::move(cfg.micenters_)), diameter_(cfg.diameter_), rotation_(cfg.rotation_) {};
+    TLCT_API CalibConfig& operator=(CalibConfig&& cfg) noexcept = default;
+    TLCT_API CalibConfig(CalibConfig&& cfg) noexcept = default;
     TLCT_API CalibConfig(cv::Mat&& micenters, double diameter, double rotation) noexcept
         : micenters_(micenters), diameter_(diameter), rotation_(rotation) {};
 
@@ -36,6 +37,16 @@ private:
     double diameter_;
     double rotation_;
 };
+
+inline CalibConfig& CalibConfig::operator=(const CalibConfig& cfg)
+{
+    if (this != &cfg) {
+        micenters_ = cfg.micenters_.clone();
+        diameter_ = cfg.diameter_;
+        rotation_ = cfg.rotation_;
+    }
+    return *this;
+}
 
 inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
