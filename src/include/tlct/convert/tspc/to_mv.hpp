@@ -38,7 +38,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
 
     const cv::Point2d center_0_0 = layout.getMICenter(0, 0);
     const cv::Point2d center_1_0 = layout.getMICenter(1, 0);
-    const bool is_out_shift = center_1_0.x < center_0_0.y;
+    const bool is_out_shift = center_1_0.x < center_0_0.x;
 
     int img_cnt = 0;
     for (const int colview : colviews) {
