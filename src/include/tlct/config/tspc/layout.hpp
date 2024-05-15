@@ -5,7 +5,7 @@
 
 #include "calib.hpp"
 #include "tlct/common/defines.h"
-#include "tlct/helper/misc.hpp"
+#include "tlct/helper/transpose.hpp"
 
 namespace tlct::cfg::inline tspc {
 
@@ -78,7 +78,7 @@ inline Layout& Layout::upsample(int factor) noexcept
 
 inline Layout& Layout::transpose() noexcept
 {
-    micenters_ = transposeCenters<double>(micenters_);
+    micenters_ = _hp::transposeCenters<double>(micenters_);
     std::swap(imgsize_.height, imgsize_.width);
     return *this;
 }

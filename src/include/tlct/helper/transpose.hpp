@@ -4,7 +4,7 @@
 
 #include "tlct/common/defines.h"
 
-namespace tlct {
+namespace tlct::_hp {
 
 template <typename T>
 inline void transposeCenters_(const cv::Mat& src, cv::Mat& dst)
@@ -28,4 +28,4 @@ inline cv::Mat transposeCenters(const cv::Mat& src)
     return dst;
 }
 
-} // namespace tlct
+} // namespace tlct::_hp

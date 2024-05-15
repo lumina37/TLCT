@@ -18,12 +18,12 @@ int main(int argc, char** argv)
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols())) {
             const auto center = layout.getMICenter(row, col);
-            cv::circle(resized_img, center, iround(layout.getRadius()), {0, 0, 255}, 1, cv::LINE_AA);
+            cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {0, 0, 255}, 1, cv::LINE_AA);
         }
     }
     for (const int col : rgs::views::iota(0, layout.getMICols())) {
         const auto center = layout.getMICenter(0, col);
-        cv::circle(resized_img, center, iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
+        cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
     }
 
     cv::imwrite("dbg_center.png", resized_img);

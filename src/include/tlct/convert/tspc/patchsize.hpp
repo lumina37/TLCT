@@ -15,7 +15,7 @@ namespace tlct::cvt::inline tspc {
 
 namespace rgs = std::ranges;
 
-namespace _helper {
+namespace _hp {
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
                                     const cv::Mat& psize_indices, const cv::Point index, const cv::Range match_range)
@@ -26,8 +26,10 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const int start_shift = -13 * layout.getUpsample();
     const int end_shift = -2 * layout.getUpsample();
 
-    const cv::Range curr_cmp_row_range{iround(curr_center.y + start_shift), iround(curr_center.y + end_shift)};
-    const cv::Range curr_cmp_col_range{iround(curr_center.x + start_shift), iround(curr_center.x + end_shift)};
+    const cv::Range curr_cmp_row_range{tlct::_hp::iround(curr_center.y + start_shift),
+                                       tlct::_hp::iround(curr_center.y + end_shift)};
+    const cv::Range curr_cmp_col_range{tlct::_hp::iround(curr_center.x + start_shift),
+                                       tlct::_hp::iround(curr_center.x + end_shift)};
     if (curr_cmp_row_range.end > gray_src.rows || curr_cmp_col_range.end > gray_src.cols) {
         return 0;
     }
@@ -37,9 +39,10 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     std::vector<double> ssims_over_mdist;
     ssims_over_mdist.reserve(match_range.size());
     for (const int mdist : rgs::views::iota(match_range.start, match_range.end)) {
-        const cv::Range neib_cmp_row_range{iround(neib_center.y + start_shift), iround(neib_center.y + end_shift)};
-        const cv::Range neib_cmp_col_range{iround(neib_center.x + start_shift) + mdist,
-                                           iround(neib_center.x + end_shift) + mdist};
+        const cv::Range neib_cmp_row_range{tlct::_hp::iround(neib_center.y + start_shift),
+                                           tlct::_hp::iround(neib_center.y + end_shift)};
+        const cv::Range neib_cmp_col_range{tlct::_hp::iround(neib_center.x + start_shift) + mdist,
+                                           tlct::_hp::iround(neib_center.x + end_shift) + mdist};
         if (neib_cmp_row_range.end > gray_src.rows || neib_cmp_col_range.end > gray_src.cols) {
             break;
         }
@@ -96,7 +99,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     return patchsize_idx;
 }
 
-} // namespace _helper
+} // namespace _hp
 
 TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const cv::Mat& src, cv::Mat& patchsizes)
 {
@@ -116,7 +119,7 @@ TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const 
 
             const cv::Point index{col, row};
             const int patchsize_idx =
-                _helper::estimatePatchsize(layout, gray_src, psize_indices, index, {match_start, match_end});
+                _hp::estimatePatchsize(layout, gray_src, psize_indices, index, {match_start, match_end});
             psize_indices.at<int>(row, col) = patchsize_idx;
         }
     }
