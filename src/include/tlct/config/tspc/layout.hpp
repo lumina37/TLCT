@@ -173,10 +173,8 @@ inline std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const st
     return modranges;
 }
 
-TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
+TLCT_API inline void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
 {
-    cv::Mat dst;
-
     const double rotation = layout.getRotation();
     if (rotation != 0.0) {
         cv::Mat transposed_src;
@@ -190,8 +188,13 @@ TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
         cv::resize(dst, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
         dst = std::move(upsampled_src);
     }
+}
 
-    return std::move(dst);
+TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
+{
+    cv::Mat dst;
+    procImg_(layout, src, dst);
+    return dst;
 }
 
 } // namespace tlct::cfg::inline tspc
