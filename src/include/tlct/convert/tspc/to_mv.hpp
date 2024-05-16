@@ -40,7 +40,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
     const cv::Point2d center_1_0 = layout.getMICenter(1, 0);
     const bool is_out_shift = center_1_0.x < center_0_0.x;
 
-    int img_cnt = 0;
+    int img_cnt = 1;
     for (const int colview : colviews) {
         for (const int rowview : rowviews) {
             const int canvas_width = (layout.getMICols() - 1) * zoomto_width + 2 * bound + zoomto_width / 2;
@@ -92,7 +92,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
             cv::Mat final_image = cropped_new_image / cropped_weight_matrix_3ch;
 
             std::stringstream filename_s;
-            filename_s << img_cnt << ".png";
+            filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
             img_cnt++;
             fs::path saveto_path = saveto_dir / filename_s.str();
             cv::Mat resized_final_image, final_image_u8;
