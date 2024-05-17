@@ -12,7 +12,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(pugixml)
 
-if (BUILD_TESTS)
+if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             googletest
             GIT_REPOSITORY https://github.com/google/googletest.git
@@ -26,4 +26,11 @@ if (BUILD_TESTS)
 
     enable_testing()
     include(GoogleTest)
+
+    FetchContent_Declare(
+            tlct-test-data
+            GIT_REPOSITORY https://github.com/SIGS-TZ/TLCT-test-data.git
+            GIT_TAG master
+    )
+    FetchContent_MakeAvailable(tlct-test-data)
 endif ()

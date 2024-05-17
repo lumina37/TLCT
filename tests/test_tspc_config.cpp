@@ -1,27 +1,61 @@
+#include <filesystem>
+
 #include <gtest/gtest.h>
 
-#include "tlct/config/calibration/tspc.hpp"
+#include "tlct/common/cmake.h"
+#include "tlct/config/tspc.hpp"
 
 using namespace tlct;
+namespace fs = std::filesystem;
 
-TEST(TSPCConfig, calibration)
+class TSPCConfig : public ::testing::Test
 {
-    cfg::tspc::CalibConfig config{}; // TODO: Add tests for diameter, rotation etc.
-    config._setCenters("centers_cars.xml");
+protected:
+    static void SetUpTestCase()
+    {
+        const fs::path testdata_dir{TLCT_TESTDATA_DIR};
+        const fs::path param_cfg_path = testdata_dir / "config/TSPC/param.cfg";
+        const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib-coords.xml";
 
-    const auto center_r0c0 = config.getMICenter(0, 0);
-//    const cv::Point expect_center_r0c0{44, 42};
-//    EXPECT_EQ(center_r0c0, expect_center_r0c0);
-//
-//    const auto center_r0c1 = config.getMICenter(0, 1);
-//    const cv::Point expect_center_r0c1{105, 77};
-//    EXPECT_EQ(center_r0c1, expect_center_r0c1);
-//
-//    const auto center_r1c0 = config.getMICenter(1, 0);
-//    const cv::Point expect_center_r1c0{44, 112};
-//    EXPECT_EQ(center_r1c0, expect_center_r1c0);
+        auto common_cfg = cfg::CommonParamConfig::fromPath(param_cfg_path.string().c_str());
+        auto param_cfg = cfg::tspc::ParamConfig::fromCommonCfg(common_cfg);
+        auto calib_cfg = cfg::tspc::CalibConfig::fromXMLPath(calib_cfg_path.string().c_str());
+        auto layout = cfg::tspc::Layout::fromCfgAndImgsize(calib_cfg, param_cfg.getImgSize());
 
-    const auto size = config.getMINums();
-    const cv::Size expect_size{67, 43};
-    EXPECT_EQ(size, expect_size);
+        common_cfg_ = std::make_unique<decltype(common_cfg)>(std::move(common_cfg));
+        param_cfg_ = std::make_unique<decltype(param_cfg)>(std::move(param_cfg));
+        calib_cfg_ = std::make_unique<decltype(calib_cfg)>(std::move(calib_cfg));
+        layout_ = std::make_unique<decltype(layout)>(std::move(layout));
+    }
+
+    static std::unique_ptr<cfg::CommonParamConfig> common_cfg_;
+    static std::unique_ptr<cfg::ParamConfig> param_cfg_;
+    static std::unique_ptr<cfg::CalibConfig> calib_cfg_;
+    static std::unique_ptr<cfg::Layout> layout_;
+};
+
+std::unique_ptr<cfg::CommonParamConfig> TSPCConfig::common_cfg_ = nullptr;
+std::unique_ptr<cfg::ParamConfig> TSPCConfig::param_cfg_ = nullptr;
+std::unique_ptr<cfg::CalibConfig> TSPCConfig::calib_cfg_ = nullptr;
+std::unique_ptr<cfg::Layout> TSPCConfig::layout_ = nullptr;
+
+TEST_F(TSPCConfig, Param)
+{
+    const auto& param_cfg = *param_cfg_;
+
+    EXPECT_EQ(param_cfg.getViews(), 5);
+    EXPECT_EQ(param_cfg.getImgSize(), cv::Size(4080, 3068));
+    EXPECT_EQ(param_cfg.getRange(), cv::Range(0, 1));
+    const auto fmt_src = cfg::fmtSrcPath(param_cfg, 25);
+    EXPECT_STREQ(fmt_src.string().c_str(), "./Cars/src/frame025.png");
+    const auto fmt_dst = cfg::fmtDstPath(param_cfg, 25);
+    EXPECT_STREQ(fmt_dst.string().c_str(), "./Cars/dst/frame025");
+}
+
+TEST_F(TSPCConfig, Layout)
+{
+    const auto& layout = *layout_;
+
+    EXPECT_FLOAT_EQ(layout.getDiameter(), 70.0);
+    EXPECT_FLOAT_EQ(layout.getRotation(), 1.57079632679);
 }

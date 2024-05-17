@@ -76,7 +76,7 @@ inline Layout& Layout::operator=(const Layout& layout)
 
 inline Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
 {
-    Layout layout{cfg.micenters_.clone(), imgsize, cfg.getDiameter(), cfg.getRotation(), 1};
+    Layout layout{cfg.micenters_.clone(), imgsize, cfg.diameter_, cfg.rotation_, 1};
     if (cfg.getRotation() != 0.0) {
         layout = layout.transpose();
     }
