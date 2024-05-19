@@ -7,7 +7,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/helper/transpose.hpp"
 
-namespace tlct::cfg::inline tspc {
+namespace tlct::cfg::tspc::v1 {
 
 struct TLCT_API BorderCheckList {
     bool up = false;
@@ -20,7 +20,7 @@ class Layout
 {
 public:
     TLCT_API Layout() noexcept
-        : micenters_(), imgsize_(), diameter_(0.0), radius_(0.0), rotation_(0.0), upsample_(1) {};
+        : micenters_(), imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1) {};
     TLCT_API Layout& operator=(const Layout& layout);
     TLCT_API Layout(const Layout& layout)
         : micenters_(layout.micenters_.clone()), imgsize_(layout.imgsize_), diameter_(layout.diameter_),

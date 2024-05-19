@@ -12,7 +12,7 @@ namespace tlct::cfg::raytrix {
 class CalibConfig
 {
 public:
-    TLCT_API CalibConfig() : offset_(0, 0), diameter_(0.0), rotation_(0.0) {};
+    TLCT_API CalibConfig() : offset_(0, 0), diameter_(), rotation_() {};
     TLCT_API CalibConfig(cv::Point2d offset, double diameter, double rotation)
         : offset_(offset), diameter_(diameter), rotation_(rotation) {};
 

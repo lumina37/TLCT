@@ -6,5 +6,6 @@ function(tlct_add_test name srcs)
     gtest_discover_tests(${name})
 endfunction()
 
-tlct_add_test(test_common_config "test_common_config.cpp")
-tlct_add_test(test_tspc_config "test_tspc_config.cpp")
+tlct_add_test(test_common_cfg "test_common_cfg.cpp")
+tlct_add_test(test_tspc_cfg_v1 "test_tspc_cfg_v1.cpp")
+tlct_add_test(test_tspc_cfg_v2 "test_tspc_cfg_v2.cpp")

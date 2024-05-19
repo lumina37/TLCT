@@ -8,7 +8,7 @@
 
 #include "tlct/common/defines.h"
 
-namespace tlct::cfg::inline tspc {
+namespace tlct::cfg::tspc::v1 {
 
 namespace rgs = std::ranges;
 
@@ -17,7 +17,7 @@ class CalibConfig
 public:
     friend class Layout;
 
-    TLCT_API CalibConfig() noexcept : micenters_(), diameter_(0.0), rotation_(0.0) {};
+    TLCT_API CalibConfig() noexcept : micenters_(), diameter_(), rotation_() {};
     TLCT_API CalibConfig& operator=(const CalibConfig& cfg);
     TLCT_API CalibConfig(const CalibConfig& cfg)
         : micenters_(cfg.micenters_.clone()), diameter_(cfg.diameter_), rotation_(cfg.rotation_) {};
@@ -99,4 +99,4 @@ inline double CalibConfig::getDiameter() const noexcept { return diameter_; }
 
 inline double CalibConfig::getRotation() const noexcept { return rotation_; }
 
-} // namespace tlct::cfg::inline tspc
+} // namespace tlct::cfg::tspc::v1

@@ -5,13 +5,13 @@
 
 #include "tlct.hpp"
 
-using namespace tlct::cfg::tspc::v1;
+using namespace tlct::cfg::tspc::v2;
 namespace rgs = std::ranges;
 
 int main()
 {
     const cv::Mat src = cv::imread("Boys.png");
-    const auto config = CalibConfig::fromXMLPath("Boys.xml");
+    const auto config = CalibConfig::fromXMLPath("v2Boys.xml");
     const auto layout = Layout::fromCfgAndImgsize(config, src.size());
     const cv::Mat resized_img = procImg(layout, src);
 
@@ -26,5 +26,5 @@ int main()
         cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
     }
 
-    cv::imwrite("dbg_center.png", resized_img);
+    cv::imwrite("dbg_centerexp.png", resized_img);
 }

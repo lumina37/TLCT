@@ -10,7 +10,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/common.hpp"
 
-namespace tlct::cfg::inline tspc {
+namespace tlct::cfg::tspc::inline v2 {
 
 namespace fs = std::filesystem;
 
@@ -85,4 +85,4 @@ TLCT_API inline fs::path fmtDstPath(const ParamConfig& cfg, int i) noexcept
     return {buffer};
 }
 
-} // namespace tlct::cfg::inline tspc
+} // namespace tlct::cfg::tspc::inline v2
