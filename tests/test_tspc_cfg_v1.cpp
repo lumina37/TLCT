@@ -8,14 +8,14 @@
 using namespace tlct::cfg::tspc::v1;
 namespace fs = std::filesystem;
 
-class TSPCConfig : public ::testing::Test
+class TestTSPCCfg_v1 : public ::testing::Test
 {
 protected:
     static void SetUpTestCase()
     {
         const fs::path testdata_dir{TLCT_TESTDATA_DIR};
         const fs::path param_cfg_path = testdata_dir / "config/TSPC/param.cfg";
-        const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib-coords.xml";
+        const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib-v1.xml";
 
         auto common_cfg = tlct::cfg::CommonParamConfig::fromPath(param_cfg_path.string().c_str());
         auto param_cfg = ParamConfig::fromCommonCfg(common_cfg);
@@ -34,12 +34,12 @@ protected:
     static std::unique_ptr<Layout> layout_;
 };
 
-std::unique_ptr<tlct::cfg::CommonParamConfig> TSPCConfig::common_cfg_ = nullptr;
-std::unique_ptr<ParamConfig> TSPCConfig::param_cfg_ = nullptr;
-std::unique_ptr<CalibConfig> TSPCConfig::calib_cfg_ = nullptr;
-std::unique_ptr<Layout> TSPCConfig::layout_ = nullptr;
+std::unique_ptr<tlct::cfg::CommonParamConfig> TestTSPCCfg_v1::common_cfg_ = nullptr;
+std::unique_ptr<ParamConfig> TestTSPCCfg_v1::param_cfg_ = nullptr;
+std::unique_ptr<CalibConfig> TestTSPCCfg_v1::calib_cfg_ = nullptr;
+std::unique_ptr<Layout> TestTSPCCfg_v1::layout_ = nullptr;
 
-TEST_F(TSPCConfig, Param)
+TEST_F(TestTSPCCfg_v1, Param)
 {
     const auto& param_cfg = *param_cfg_;
 
@@ -52,7 +52,7 @@ TEST_F(TSPCConfig, Param)
     EXPECT_STREQ(fmt_dst.string().c_str(), "./Cars/dst/frame025");
 }
 
-TEST_F(TSPCConfig, Layout)
+TEST_F(TestTSPCCfg_v1, Layout)
 {
     const auto& layout = *layout_;
 
@@ -64,17 +64,21 @@ TEST_F(TSPCConfig, Layout)
     EXPECT_FLOAT_EQ(layout.getRadius(), 35.);
     EXPECT_FLOAT_EQ(layout.getRotation(), 1.57079632679);
 
-    const auto center0_0_0 = layout.getMICenter(0, 0);
-    EXPECT_NEAR(center0_0_0.x, 38., 0.5);
-    EXPECT_NEAR(center0_0_0.y, 37., 0.5);
-    const auto center0_1_0 = layout.getMICenter(1, 0);
-    EXPECT_NEAR(center0_1_0.x, 73., 0.5);
-    EXPECT_NEAR(center0_1_0.y, 98., 0.5);
-    const auto center0_0_1 = layout.getMICenter(0, 1);
-    EXPECT_NEAR(center0_0_1.x, 108., 0.5);
-    EXPECT_NEAR(center0_0_1.y, 37., 0.5);
+    const auto center_0_0 = layout.getMICenter(0, 0);
+    EXPECT_NEAR(center_0_0.x, 38., 0.5);
+    EXPECT_NEAR(center_0_0.y, 37., 0.5);
+    const auto center_1_0 = layout.getMICenter(1, 0);
+    EXPECT_NEAR(center_1_0.x, 73., 0.5);
+    EXPECT_NEAR(center_1_0.y, 98., 0.5);
+    const auto center_0_1 = layout.getMICenter(0, 1);
+    EXPECT_NEAR(center_0_1.x, 108., 0.5);
+    EXPECT_NEAR(center_0_1.y, 37., 0.5);
 
-    EXPECT_EQ(layout.getMICenter({0, 0}), center0_0_0);
-    EXPECT_EQ(layout.getMICenter({1, 0}), center0_0_1);
-    EXPECT_EQ(layout.getMICenter({0, 1}), center0_1_0);
+    EXPECT_EQ(layout.getMICenter({0, 0}), center_0_0);
+    EXPECT_EQ(layout.getMICenter({1, 0}), center_0_1);
+    EXPECT_EQ(layout.getMICenter({0, 1}), center_1_0);
+
+    EXPECT_EQ(layout.getMISize(), cv::Size(43, 66));
+    EXPECT_EQ(layout.getMIRows(), 66);
+    EXPECT_EQ(layout.getMICols(), 43);
 }
