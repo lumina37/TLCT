@@ -15,5 +15,5 @@ int main()
 
     const auto patchsizes = cv::imread("patchsizes.tiff", cv::IMREAD_UNCHANGED);
 
-    cvt::tspc::to_multiview(resized_src, layout, patchsizes, "./CarsExp", 1);
+    cvt::tspc::to_multiview(resized_src, layout, patchsizes, "./CarsExp", 5);
 }

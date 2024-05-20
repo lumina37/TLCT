@@ -15,6 +15,31 @@ namespace tlct::cvt::inline tspc {
 namespace rgs = std::ranges;
 namespace fs = std::filesystem;
 
+namespace _hp {
+
+static inline cv::Mat rectWithFadeoutBorder(const cv::Size central_size, const int border_width)
+{
+    const cv::Size rect_size{central_size.height + 2 * border_width, central_size.width + 2 * border_width};
+    cv::Mat rect = cv::Mat::ones(rect_size, CV_64FC1);
+
+    cv::Point lefttop{0, 0};
+    cv::Point rightbot{rect.cols - 1, rect.rows - 1};
+    const cv::Point vertex_step{1, 1};
+
+    const double max_color = 1.0;
+    const double color_step = max_color / (border_width + 1);
+    double color = color_step;
+    for (int i = 0; i < border_width; i++) {
+        cv::rectangle(rect, lefttop, rightbot, color, 1);
+        color += color_step;
+        lefttop += vertex_step;
+        rightbot -= vertex_step;
+    }
+    return rect;
+}
+
+} // namespace _hp
+
 TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& layout, const cv::Mat& patchsizes,
                                   const std::string_view saveto, const int views)
 {
@@ -24,11 +49,13 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
     const int zoom = layout.getUpsample();
     const int zoomto_width = 20 * zoom; // the extracted patch will be zoomed to this height
     const int zoomto_height = tlct::_hp::iround((double)zoomto_width * std::numbers::sqrt3 / 2.0);
-    const int bound = zoom;
+    const int bound = 4 * zoom;
     const int zoomto_withbound = zoomto_width + 2 * bound;
 
     cv::Mat d_src; // convert src from 8UCn to 64FCn
     src.convertTo(d_src, CV_64FC3);
+
+    const cv::Mat pweight_template = _hp::rectWithFadeoutBorder({zoomto_width, zoomto_width}, bound);
 
     const int move_range = 6 * layout.getUpsample();
     const int interval = views > 1 ? move_range * 2 / (views - 1) : 0;
@@ -43,7 +70,6 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
             const int canvas_height = layout.getMIRows() * zoomto_height + zoomto_withbound - zoomto_height;
             cv::Mat render_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC3);
             cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC1);
-            const cv::Mat weight_template = cv::Mat::ones({zoomto_withbound, zoomto_withbound}, CV_64FC1);
 
             for (const int i : rgs::views::iota(0, layout.getMIRows())) {
                 for (const int j : rgs::views::iota(0, layout.getMICols() - 1)) {
@@ -71,21 +97,34 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
                     // else if the second bar is out shift, then we need to shift the 0 col
                     const int right_shift = ((i % 2) ^ (int)layout.isOutShift()) * (zoomto_width / 2);
                     cv::Rect roi{j * zoomto_width + right_shift, i * zoomto_height, zoomto_withbound, zoomto_withbound};
-                    render_canvas(roi) += rotated_patch;
-                    weight_canvas(roi) += weight_template;
+
+                    cv::Mat rotated_patch_channels[3];
+                    cv::split(rotated_patch, rotated_patch_channels);
+                    for (cv::Mat& rotated_patch_channel : rotated_patch_channels) {
+                        cv::multiply(rotated_patch_channel, pweight_template, rotated_patch_channel);
+                    }
+                    cv::Mat weighted_patch;
+                    cv::merge(rotated_patch_channels, 3, weighted_patch);
+
+                    render_canvas(roi) += weighted_patch;
+                    weight_canvas(roi) += pweight_template;
                 }
             }
 
             const cv::Range crop_roi[]{cv::Range::all(),
                                        cv::Range{zoomto_withbound / 2, render_canvas.cols - zoomto_withbound / 2}};
             cv::Mat cropped_new_image = render_canvas(crop_roi);
+
             cv::Mat cropped_weight_matrix = weight_canvas(crop_roi);
             cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
-            cv::Mat cropped_weight_matrix_3ch;
-            cv::Mat cropped_weight_matrix_channels[]{cropped_weight_matrix, cropped_weight_matrix,
-                                                     cropped_weight_matrix};
-            cv::merge(cropped_weight_matrix_channels, 3, cropped_weight_matrix_3ch);
-            cv::Mat final_image = cropped_new_image / cropped_weight_matrix_3ch;
+
+            cv::Mat cropped_new_image_channels[3];
+            cv::split(cropped_new_image, cropped_new_image_channels);
+            for (cv::Mat& cropped_new_image_channel : cropped_new_image_channels) {
+                cropped_new_image_channel /= cropped_weight_matrix;
+            }
+            cv::Mat final_image;
+            cv::merge(cropped_new_image_channels, 3, final_image);
 
             std::stringstream filename_s;
             filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
