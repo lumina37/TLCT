@@ -5,7 +5,7 @@
 #include "tlct/common/cmake.h"
 #include "tlct/config/tspc.hpp"
 
-using namespace tlct::cfg::tspc::v1;
+namespace tcfg = tlct::cfg::tspc::v1;
 namespace fs = std::filesystem;
 
 class TestTSPCCfg_v1 : public ::testing::Test
@@ -18,9 +18,9 @@ protected:
         const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib-v1.xml";
 
         auto common_cfg = tlct::cfg::CommonParamConfig::fromPath(param_cfg_path.string().c_str());
-        auto param_cfg = ParamConfig::fromCommonCfg(common_cfg);
-        auto calib_cfg = CalibConfig::fromXMLPath(calib_cfg_path.string().c_str());
-        auto layout = Layout::fromCfgAndImgsize(calib_cfg, param_cfg.getImgSize());
+        auto param_cfg = tcfg::ParamConfig::fromCommonCfg(common_cfg);
+        auto calib_cfg = tcfg::CalibConfig::fromXMLPath(calib_cfg_path.string().c_str());
+        auto layout = tcfg::Layout::fromCfgAndImgsize(calib_cfg, param_cfg.getImgSize());
 
         common_cfg_ = std::make_unique<decltype(common_cfg)>(std::move(common_cfg));
         param_cfg_ = std::make_unique<decltype(param_cfg)>(std::move(param_cfg));
@@ -29,15 +29,15 @@ protected:
     }
 
     static std::unique_ptr<tlct::cfg::CommonParamConfig> common_cfg_;
-    static std::unique_ptr<ParamConfig> param_cfg_;
-    static std::unique_ptr<CalibConfig> calib_cfg_;
-    static std::unique_ptr<Layout> layout_;
+    static std::unique_ptr<tcfg::ParamConfig> param_cfg_;
+    static std::unique_ptr<tcfg::CalibConfig> calib_cfg_;
+    static std::unique_ptr<tcfg::Layout> layout_;
 };
 
 std::unique_ptr<tlct::cfg::CommonParamConfig> TestTSPCCfg_v1::common_cfg_ = nullptr;
-std::unique_ptr<ParamConfig> TestTSPCCfg_v1::param_cfg_ = nullptr;
-std::unique_ptr<CalibConfig> TestTSPCCfg_v1::calib_cfg_ = nullptr;
-std::unique_ptr<Layout> TestTSPCCfg_v1::layout_ = nullptr;
+std::unique_ptr<tcfg::ParamConfig> TestTSPCCfg_v1::param_cfg_ = nullptr;
+std::unique_ptr<tcfg::CalibConfig> TestTSPCCfg_v1::calib_cfg_ = nullptr;
+std::unique_ptr<tcfg::Layout> TestTSPCCfg_v1::layout_ = nullptr;
 
 TEST_F(TestTSPCCfg_v1, Param)
 {
