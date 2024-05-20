@@ -23,9 +23,9 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const cv::Point2d curr_center = layout.getMICenter(index);
     const cv::Point2d neib_center = layout.getMICenter(index.y, index.x + 1);
 
-    const int row_shift = 12 * layout.getUpsample();
-    const int col_start_shift = -14 * layout.getUpsample();
-    const int col_end_shift = -4 * layout.getUpsample();
+    const int row_shift = (int)(12.0 / 70.0 * layout.getDiameter() * layout.getUpsample());
+    const int col_start_shift = (int)(-14.0 / 70.0 * layout.getDiameter() * layout.getUpsample());
+    const int col_end_shift = (int)(-4.0 / 70.0 * layout.getDiameter() * layout.getUpsample());
 
     const cv::Range curr_cmp_row_range{tlct::_hp::iround(curr_center.y - row_shift),
                                        tlct::_hp::iround(curr_center.y + row_shift)};
@@ -110,8 +110,8 @@ TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const 
     cv::Mat gray_src;
     cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
 
-    const int match_start = 15 * layout.getUpsample();
-    const int match_end = 29 * layout.getUpsample();
+    const int match_start = (int)(15.0 / 70.0 * layout.getDiameter() * layout.getUpsample());
+    const int match_end = (int)(-29.0 / 70.0 * layout.getDiameter() * layout.getUpsample());
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols() - 1)) {
