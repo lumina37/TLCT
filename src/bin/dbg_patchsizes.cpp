@@ -8,7 +8,7 @@ using namespace tlct;
 
 int main()
 {
-    const cv::Mat src = cv::imread("Tri-viewpoint.bmp");
+    const cv::Mat src = cv::imread("Cars.png");
     constexpr int factor = 4;
 
     const auto config = cfg::tspc::CalibConfig::fromXMLPath("v2Cars.xml");

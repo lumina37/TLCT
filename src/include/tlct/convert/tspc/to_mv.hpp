@@ -36,10 +36,6 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
         rgs::views::iota(-views / 2, views / 2 + 1) | rgs::views::transform([interval](int x) { return x * interval; });
     auto rowviews = colviews;
 
-    const cv::Point2d center_0_0 = layout.getMICenter(0, 0);
-    const cv::Point2d center_1_0 = layout.getMICenter(1, 0);
-    const bool is_out_shift = center_1_0.x < center_0_0.x;
-
     int img_cnt = 1;
     for (const int colview : colviews) {
         for (const int rowview : rowviews) {
@@ -60,9 +56,9 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
                     const int half_psize_with_bound = (int)std::ceil((double)psize / 2.0) + bound;
 
                     const cv::Range patch_row_range{tlct::_hp::iround(center.y) - half_psize_with_bound + rowview,
-                                                    tlct::_hp::iround(center.y) + half_psize_with_bound + rowview + 1};
+                                                    tlct::_hp::iround(center.y) + half_psize_with_bound + rowview};
                     const cv::Range patch_col_range{tlct::_hp::iround(center.x) - half_psize_with_bound + colview,
-                                                    tlct::_hp::iround(center.x) + half_psize_with_bound + colview + 1};
+                                                    tlct::_hp::iround(center.x) + half_psize_with_bound + colview};
                     const cv::Mat patch = d_src(patch_row_range, patch_col_range);
 
                     cv::Mat resized_patch;
@@ -73,7 +69,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
                     // Paste patch
                     // if the second bar is not out shift, then we need to shift the 1 col
                     // else if the second bar is out shift, then we need to shift the 0 col
-                    const int right_shift = ((i % 2) ^ (int)is_out_shift) * (zoomto_width / 2);
+                    const int right_shift = ((i % 2) ^ (int)layout.isOutShift()) * (zoomto_width / 2);
                     cv::Rect roi{j * zoomto_width + right_shift, i * zoomto_height, zoomto_withbound, zoomto_withbound};
                     render_canvas(roi) += rotated_patch;
                     weight_canvas(roi) += weight_template;

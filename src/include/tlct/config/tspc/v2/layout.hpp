@@ -22,7 +22,7 @@ class Layout
 {
 public:
     TLCT_API Layout() noexcept
-        : left_top_(), right_top_(), left_bottom_(), is_rshift_(), x_unit_shift_(), y_unit_shift_(), misize_(),
+        : left_top_(), right_top_(), left_bottom_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), misize_(),
           imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1) {};
     TLCT_API Layout& operator=(const Layout& layout) noexcept = default;
     TLCT_API Layout(const Layout& layout) noexcept = default;
@@ -45,9 +45,10 @@ public:
     [[nodiscard]] TLCT_API int getUpsample() const noexcept;
     [[nodiscard]] TLCT_API cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API cv::Point2d getMICenter(cv::Point index) const noexcept;
-    [[nodiscard]] TLCT_API cv::Size getMISize() const noexcept;
     [[nodiscard]] TLCT_API int getMIRows() const noexcept;
     [[nodiscard]] TLCT_API int getMICols() const noexcept;
+    [[nodiscard]] TLCT_API cv::Size getMISize() const noexcept;
+    [[nodiscard]] TLCT_API bool isOutShift() const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
     [[nodiscard]] bool isMIBroken(const cv::Point2d micenter) const noexcept;
@@ -56,7 +57,7 @@ private:
     cv::Point2d left_top_;
     cv::Point2d right_top_;
     cv::Point2d left_bottom_;
-    bool is_rshift_;
+    bool is_out_shift_;
     cv::Point2d x_unit_shift_;
     cv::Point2d y_unit_shift_;
     cv::Size misize_;
@@ -84,9 +85,9 @@ inline Layout::Layout(const cv::Point2d left_top, const cv::Point2d right_top, c
     x_unit_shift_ = x_shift / (mi_cols - 1);
 
     if (left_top_.x < x_unit_shift_.x) {
-        is_rshift_ = true;
+        is_out_shift_ = false;
     } else {
-        is_rshift_ = false;
+        is_out_shift_ = true;
     }
 
     cv::Point2d y_shift = left_bottom_ - left_top_;
@@ -94,10 +95,10 @@ inline Layout::Layout(const cv::Point2d left_top, const cv::Point2d right_top, c
     if (mi_rows % 2 == 0) {
         // `left_bottom` is in the `odd` row while `left_top` is in the `even` row
         // so we need to fix the `y_shift`
-        if (is_rshift_) {
-            y_shift -= x_unit_shift_ / 2.0;
-        } else {
+        if (is_out_shift_) {
             y_shift += x_unit_shift_ / 2.0;
+        } else {
+            y_shift -= x_unit_shift_ / 2.0;
         }
     }
     y_unit_shift_ = y_shift / (mi_rows - 1);
@@ -156,10 +157,10 @@ inline cv::Point2d Layout::getMICenter(const int row, const int col) const noexc
 {
     cv::Point2d center = left_top_ + y_unit_shift_ * row + x_unit_shift_ * col;
     if (row % 2 == 1) {
-        if (is_rshift_) {
-            center += x_unit_shift_ / 2.0;
-        } else {
+        if (is_out_shift_) {
             center -= x_unit_shift_ / 2.0;
+        } else {
+            center += x_unit_shift_ / 2.0;
         }
     }
     return center;
@@ -167,11 +168,13 @@ inline cv::Point2d Layout::getMICenter(const int row, const int col) const noexc
 
 inline cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-inline cv::Size Layout::getMISize() const noexcept { return misize_; }
-
 inline int Layout::getMIRows() const noexcept { return misize_.height; }
 
 inline int Layout::getMICols() const noexcept { return misize_.width; }
+
+inline cv::Size Layout::getMISize() const noexcept { return misize_; }
+
+inline bool Layout::isOutShift() const noexcept { return is_out_shift_; }
 
 template <BorderCheckList checklist>
 inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
@@ -257,4 +260,4 @@ TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
     return dst;
 }
 
-} // namespace tlct::cfg::_experiment
+} // namespace tlct::cfg::tspc::inline v2

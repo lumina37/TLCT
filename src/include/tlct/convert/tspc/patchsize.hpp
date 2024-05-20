@@ -23,13 +23,14 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const cv::Point2d curr_center = layout.getMICenter(index);
     const cv::Point2d neib_center = layout.getMICenter(index.y, index.x + 1);
 
-    const int start_shift = -13 * layout.getUpsample();
-    const int end_shift = -2 * layout.getUpsample();
+    const int row_shift = 12 * layout.getUpsample();
+    const int col_start_shift = -14 * layout.getUpsample();
+    const int col_end_shift = -4 * layout.getUpsample();
 
-    const cv::Range curr_cmp_row_range{tlct::_hp::iround(curr_center.y + start_shift),
-                                       tlct::_hp::iround(curr_center.y + end_shift)};
-    const cv::Range curr_cmp_col_range{tlct::_hp::iround(curr_center.x + start_shift),
-                                       tlct::_hp::iround(curr_center.x + end_shift)};
+    const cv::Range curr_cmp_row_range{tlct::_hp::iround(curr_center.y - row_shift),
+                                       tlct::_hp::iround(curr_center.y + row_shift)};
+    const cv::Range curr_cmp_col_range{tlct::_hp::iround(curr_center.x + col_start_shift),
+                                       tlct::_hp::iround(curr_center.x + col_end_shift)};
     if (curr_cmp_row_range.end > gray_src.rows || curr_cmp_col_range.end > gray_src.cols) {
         return 0;
     }
@@ -39,10 +40,10 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     std::vector<double> ssims_over_mdist;
     ssims_over_mdist.reserve(match_range.size());
     for (const int mdist : rgs::views::iota(match_range.start, match_range.end)) {
-        const cv::Range neib_cmp_row_range{tlct::_hp::iround(neib_center.y + start_shift),
-                                           tlct::_hp::iround(neib_center.y + end_shift)};
-        const cv::Range neib_cmp_col_range{tlct::_hp::iround(neib_center.x + start_shift) + mdist,
-                                           tlct::_hp::iround(neib_center.x + end_shift) + mdist};
+        const cv::Range neib_cmp_row_range{tlct::_hp::iround(neib_center.y - row_shift),
+                                           tlct::_hp::iround(neib_center.y + row_shift)};
+        const cv::Range neib_cmp_col_range{tlct::_hp::iround(neib_center.x + col_start_shift) + mdist,
+                                           tlct::_hp::iround(neib_center.x + col_end_shift) + mdist};
         if (neib_cmp_row_range.end > gray_src.rows || neib_cmp_col_range.end > gray_src.cols) {
             break;
         }
@@ -54,49 +55,50 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
 
     const auto pmax_ssim = std::max_element(ssims_over_mdist.begin(), ssims_over_mdist.end());
     const int max_ssim_idx = (int)std::distance(ssims_over_mdist.begin(), pmax_ssim);
-    int patchsize_idx;
-    if (index.x == 0) {
-        if (index.y == 0) {
-            patchsize_idx = max_ssim_idx;
-        } else {
-            const int up_psize_idx = psize_indices.at<int>(index.y - 1, index.x);
-            const double up_ssim = ssims_over_mdist[up_psize_idx];
-            if (up_ssim > 0.85) {
-                patchsize_idx = up_psize_idx;
-            } else {
-                patchsize_idx = max_ssim_idx; // TODO: Why `0`?
-            }
-        }
-    } else {
+
+    std::vector<int> ref_psize_indices;
+    if (index.x != 0) {
         const int left_psize_idx = psize_indices.at<int>(index.y, index.x - 1);
-        const double left_ssim = ssims_over_mdist[left_psize_idx];
-        if (index.y == 0) {
-            if (left_ssim > 0.85) {
-                patchsize_idx = left_psize_idx;
-            } else {
-                patchsize_idx = max_ssim_idx;
+        ref_psize_indices.push_back(left_psize_idx);
+    }
+    if (index.y != 0) {
+        if (layout.isOutShift()) {
+            const int upright_psize_idx = psize_indices.at<int>(index.y - 1, index.x);
+            ref_psize_indices.push_back(upright_psize_idx);
+            if (index.x != 0) {
+                const int upleft_psize_idx = psize_indices.at<int>(index.y - 1, index.x - 1);
+                ref_psize_indices.push_back(upleft_psize_idx);
             }
         } else {
-            int ref_psize_idx;
-            if ((index.x == psize_indices.cols - 2) && (index.y % 2 == 1)) {
-                ref_psize_idx = psize_indices.at<int>(index.y - 1, index.x - 1);
-            } else {
-                ref_psize_idx = psize_indices.at<int>(index.y - 1, index.x);
-            }
-            const double ref_ssim = ssims_over_mdist[ref_psize_idx];
-            if (left_ssim > 0.85 || ref_ssim > 0.85) {
-                if (left_ssim < ref_ssim) {
-                    patchsize_idx = ref_psize_idx;
-                } else {
-                    patchsize_idx = left_psize_idx;
-                }
-            } else {
-                patchsize_idx = max_ssim_idx;
+            const int upleft_psize_idx = psize_indices.at<int>(index.y - 1, index.x);
+            ref_psize_indices.push_back(upleft_psize_idx);
+            if (index.x != (layout.getMICols() - 1)) {
+                const int upright_psize_idx = psize_indices.at<int>(index.y - 1, index.x + 1);
+                ref_psize_indices.push_back(upright_psize_idx);
             }
         }
     }
 
-    return patchsize_idx;
+    if (ref_psize_indices.empty()) {
+        return max_ssim_idx;
+    }
+
+    double max_ref_ssim = 0.0;
+    int max_ref_psize_idx = 0;
+    for (const int ref_psize_idx : ref_psize_indices) {
+        const double ref_ssim = ssims_over_mdist[ref_psize_idx];
+        if (ref_ssim > max_ref_ssim) {
+            max_ref_ssim = ref_ssim;
+            max_ref_psize_idx = ref_psize_idx;
+        }
+    }
+
+    constexpr double ssim_threshold = 0.875;
+    if (max_ref_ssim > ssim_threshold) {
+        return max_ref_psize_idx;
+    } else {
+        return max_ssim_idx;
+    }
 }
 
 } // namespace _hp

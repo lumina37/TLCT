@@ -19,8 +19,7 @@ struct TLCT_API BorderCheckList {
 class Layout
 {
 public:
-    TLCT_API Layout() noexcept
-        : micenters_(), imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1) {};
+    TLCT_API Layout() noexcept : micenters_(), imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1) {};
     TLCT_API Layout& operator=(const Layout& layout);
     TLCT_API Layout(const Layout& layout)
         : micenters_(layout.micenters_.clone()), imgsize_(layout.imgsize_), diameter_(layout.diameter_),
@@ -45,9 +44,10 @@ public:
     [[nodiscard]] TLCT_API int getUpsample() const noexcept;
     [[nodiscard]] TLCT_API cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API cv::Point2d getMICenter(cv::Point index) const noexcept;
-    [[nodiscard]] TLCT_API cv::Size getMISize() const noexcept;
     [[nodiscard]] TLCT_API int getMIRows() const noexcept;
     [[nodiscard]] TLCT_API int getMICols() const noexcept;
+    [[nodiscard]] TLCT_API cv::Size getMISize() const noexcept;
+    [[nodiscard]] TLCT_API bool isOutShift() const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
     [[nodiscard]] bool isMIBroken(const cv::Point2d micenter) const noexcept;
@@ -124,11 +124,18 @@ inline cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept
     return micenters_.at<cv::Point2d>(index);
 }
 
-inline cv::Size Layout::getMISize() const noexcept { return micenters_.size(); }
-
 inline int Layout::getMIRows() const noexcept { return micenters_.rows; }
 
 inline int Layout::getMICols() const noexcept { return micenters_.cols; }
+
+inline cv::Size Layout::getMISize() const noexcept { return micenters_.size(); }
+
+inline bool Layout::isOutShift() const noexcept
+{
+    const cv::Point2d center_0_0 = getMICenter(0, 0);
+    const cv::Point2d center_1_0 = getMICenter(1, 0);
+    return center_1_0.x < center_0_0.x;
+}
 
 template <BorderCheckList checklist>
 inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
@@ -214,4 +221,4 @@ TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
     return dst;
 }
 
-} // namespace tlct::cfg::inline tspc
+} // namespace tlct::cfg::tspc::v1
