@@ -17,10 +17,9 @@ namespace fs = std::filesystem;
 
 namespace _hp {
 
-static inline cv::Mat rectWithFadeoutBorder(const cv::Size central_size, const int border_width)
+static inline cv::Mat rectWithFadeoutBorder(const cv::Size size, const int border_width)
 {
-    const cv::Size rect_size{central_size.height + 2 * border_width, central_size.width + 2 * border_width};
-    cv::Mat rect = cv::Mat::ones(rect_size, CV_64FC1);
+    cv::Mat rect = cv::Mat::ones(size, CV_64FC1);
 
     cv::Point lefttop{0, 0};
     cv::Point rightbot{rect.cols - 1, rect.rows - 1};
@@ -55,7 +54,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
     cv::Mat d_src; // convert src from 8UCn to 64FCn
     src.convertTo(d_src, CV_64FC3);
 
-    const cv::Mat pweight_template = _hp::rectWithFadeoutBorder({zoomto_width, zoomto_width}, bound);
+    const cv::Mat pweight_template = _hp::rectWithFadeoutBorder({zoomto_withbound, zoomto_withbound}, bound);
 
     const int move_range = 6 * layout.getUpsample();
     const int interval = views > 1 ? move_range * 2 / (views - 1) : 0;
