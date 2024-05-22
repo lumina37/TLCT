@@ -111,7 +111,7 @@ TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const 
     cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
 
     const int match_start = (int)(15.0 / 70.0 * layout.getDiameter());
-    const int match_end = (int)(-29.0 / 70.0 * layout.getDiameter());
+    const int match_end = (int)(29.0 / 70.0 * layout.getDiameter());
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols() - 1)) {
