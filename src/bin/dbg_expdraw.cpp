@@ -10,8 +10,8 @@ namespace rgs = std::ranges;
 
 int main()
 {
-    const cv::Mat src = cv::imread("Cars.png");
-    const auto config = CalibConfig::fromXMLPath("v2Cars.xml");
+    const cv::Mat src = cv::imread("Matryoshka.png");
+    const auto config = CalibConfig::fromXMLPath("v2Mat.xml");
     const auto layout = Layout::fromCfgAndImgsize(config, src.size());
     const cv::Mat resized_img = procImg(layout, src);
 
