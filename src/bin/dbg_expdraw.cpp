@@ -10,8 +10,8 @@ namespace rgs = std::ranges;
 
 int main()
 {
-    const cv::Mat src = cv::imread("Matryoshka.png");
-    const auto config = CalibConfig::fromXMLPath("v2Mat.xml");
+    const cv::Mat src = cv::imread("Tri-viewpoint.png");
+    const auto config = CalibConfig::fromXMLPath("v2Tri.xml");
     const auto layout = Layout::fromCfgAndImgsize(config, src.size());
     const cv::Mat resized_img = procImg(layout, src);
 
@@ -26,5 +26,7 @@ int main()
         cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
     }
 
-    cv::imwrite("dbg_centerexp.png", resized_img);
+    cv::Mat transposed_src;
+    cv::transpose(resized_img, transposed_src);
+    cv::imwrite("dbg_centerexp.png", transposed_src);
 }

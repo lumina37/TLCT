@@ -65,20 +65,19 @@ TEST_F(TestTSPCCfg_v2, Layout)
     EXPECT_FLOAT_EQ(layout.getRotation(), 1.57079632679);
 
     const auto center_0_0 = layout.getMICenter(0, 0);
-    EXPECT_NEAR(center_0_0.x, 38., 0.5);
-    EXPECT_NEAR(center_0_0.y, 37., 0.5);
+    EXPECT_NEAR(center_0_0.x, 37.5, 0.5);
+    EXPECT_NEAR(center_0_0.y, 38.25, 0.5);
     const auto center_1_0 = layout.getMICenter(1, 0);
     EXPECT_NEAR(center_1_0.x, 73., 0.5);
-    EXPECT_NEAR(center_1_0.y, 98., 0.5);
+    EXPECT_NEAR(center_1_0.y, 99., 0.5);
     const auto center_0_1 = layout.getMICenter(0, 1);
     EXPECT_NEAR(center_0_1.x, 108., 0.5);
-    EXPECT_NEAR(center_0_1.y, 37., 0.5);
+    EXPECT_NEAR(center_0_1.y, 38., 0.5);
 
     EXPECT_EQ(layout.getMICenter({0, 0}), center_0_0);
     EXPECT_EQ(layout.getMICenter({1, 0}), center_0_1);
     EXPECT_EQ(layout.getMICenter({0, 1}), center_1_0);
 
-    EXPECT_EQ(layout.getMISize(), cv::Size(43, 66));
     EXPECT_EQ(layout.getMIRows(), 66);
     EXPECT_EQ(layout.getMICols(), 43);
 }
