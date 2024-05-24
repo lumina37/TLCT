@@ -67,6 +67,8 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
         for (const int rowview : rowviews) {
             const int canvas_width = (layout.getMICols() - 1) * zoomto_width + 2 * bound + zoomto_width / 2;
             const int canvas_height = layout.getMIRows() * zoomto_height + zoomto_withbound - zoomto_height;
+            const int final_width = tlct::_hp::align_to_2((int)std::round((double)canvas_width / zoom));
+            const int final_height = tlct::_hp::align_to_2((int)std::round((double)canvas_height / zoom));
             cv::Mat render_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC3);
             cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC1);
 
@@ -131,7 +133,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
             fs::path saveto_path = saveto_dir / filename_s.str();
             cv::Mat resized_final_image, final_image_u8;
             final_image.convertTo(final_image_u8, CV_8UC3);
-            cv::resize(final_image_u8, resized_final_image, {}, 1. / zoom, 1. / zoom, cv::INTER_CUBIC);
+            cv::resize(final_image_u8, resized_final_image, {final_width, final_height}, 0.0, 0.0, cv::INTER_CUBIC);
             cv::Mat true_final_image;
             if (layout.getRotation() != 0.0) {
                 cv::transpose(resized_final_image, true_final_image);
