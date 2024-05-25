@@ -16,7 +16,7 @@ class CalibConfig
 {
 public:
     friend class Layout;
-    
+
     TLCT_API CalibConfig() : diameter_(), rotation_(), offset_() {};
     TLCT_API CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens)
         : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens) {};
@@ -24,16 +24,10 @@ public:
     [[nodiscard]] TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
     [[nodiscard]] TLCT_API static CalibConfig fromXMLPath(const char* path);
 
-    [[nodiscard]] TLCT_API double getDiameter() const noexcept;
-    [[nodiscard]] TLCT_API double getRotation() const noexcept;
-    [[nodiscard]] TLCT_API bool isRotated() const noexcept;
-    [[nodiscard]] TLCT_API cv::Point2d getRawOffset() const noexcept;
-    [[nodiscard]] TLCT_API cv::Point2d getOffset() const noexcept;
-
 private:
     double diameter_;
     double rotation_;
-    cv::Point2d offset_;
+    cv::Point2d offset_; // be very careful that (x,-y) is the corresponding coord repr in OpenCV
     LenOffsets lofs_;
 };
 
@@ -68,15 +62,5 @@ inline CalibConfig CalibConfig::fromXMLPath(const char* path)
     }
     return CalibConfig::fromXMLDoc(doc);
 }
-
-inline double CalibConfig::getDiameter() const noexcept { return diameter_; }
-
-inline double CalibConfig::getRotation() const noexcept { return rotation_; }
-
-inline bool CalibConfig::isRotated() const noexcept { return rotation_ != 0.0; }
-
-inline cv::Point2d CalibConfig::getRawOffset() const noexcept { return offset_; }
-
-inline cv::Point2d CalibConfig::getOffset() const noexcept { return {offset_.x, -offset_.y}; }
 
 } // namespace tlct::cfg::raytrix
