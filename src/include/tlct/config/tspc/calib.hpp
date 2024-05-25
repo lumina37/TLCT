@@ -6,6 +6,7 @@
 #include <pugixml.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/config/concepts.hpp"
 
 namespace tlct::cfg::tspc {
 
@@ -39,6 +40,8 @@ private:
     double diameter_;
     double rotation_;
 };
+
+static_assert(CCalibConfig<CalibConfig>);
 
 inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {

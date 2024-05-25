@@ -6,6 +6,7 @@
 #include <pugixml.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/config/concepts.hpp"
 
 namespace tlct::cfg::raytrix {
 
@@ -17,8 +18,12 @@ class CalibConfig
 public:
     friend class Layout;
 
-    TLCT_API CalibConfig() : diameter_(), rotation_(), offset_() {};
-    TLCT_API CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens)
+    TLCT_API CalibConfig() noexcept : diameter_(), rotation_(), offset_() {};
+    TLCT_API CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
+    TLCT_API CalibConfig(const CalibConfig& cfg) noexcept = default;
+    TLCT_API CalibConfig& operator=(CalibConfig&& cfg) noexcept = default;
+    TLCT_API CalibConfig(CalibConfig&& cfg) noexcept = default;
+    TLCT_API CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens) noexcept
         : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens) {};
 
     [[nodiscard]] TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
@@ -30,6 +35,8 @@ private:
     cv::Point2d offset_; // be very careful that (x,-y) is the corresponding coord repr in OpenCV
     LenOffsets lofs_;
 };
+
+static_assert(CCalibConfig<CalibConfig>);
 
 inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {

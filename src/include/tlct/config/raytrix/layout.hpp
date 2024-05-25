@@ -7,6 +7,7 @@
 
 #include "calib.hpp"
 #include "tlct/common/defines.h"
+#include "tlct/config/concepts.hpp"
 #include "tlct/helper/static_math.hpp"
 
 namespace tlct::cfg::raytrix {
@@ -14,6 +15,8 @@ namespace tlct::cfg::raytrix {
 class Layout
 {
 public:
+    using TCalibConfig = CalibConfig;
+
     TLCT_API Layout() noexcept
         : left_top_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), mirows_(), micols_(), imgsize_(), diameter_(),
           radius_(), rotation_(), upsample_(1) {};
@@ -21,12 +24,12 @@ public:
     TLCT_API Layout(const Layout& layout) noexcept = default;
     TLCT_API Layout& operator=(Layout&& layout) noexcept = default;
     TLCT_API Layout(Layout&& layout) noexcept = default;
-    TLCT_API Layout(cv::Point2d point, cv::Size imgsize, double diameter, double rotation);
+    TLCT_API Layout(cv::Point2d point, cv::Size imgsize, double diameter, double rotation) noexcept;
 
-    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize);
+    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
 
     TLCT_API Layout& upsample(int factor) noexcept;
-    TLCT_API Layout& transpose();
+    TLCT_API Layout& transpose() noexcept;
 
     [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
@@ -58,7 +61,9 @@ private:
     int upsample_;
 };
 
-inline Layout::Layout(cv::Point2d point, const cv::Size imgsize, double diameter, double rotation)
+static_assert(CLayout<Layout>);
+
+inline Layout::Layout(cv::Point2d point, const cv::Size imgsize, double diameter, double rotation) noexcept
     : imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation), upsample_(1)
 {
     if (rotation_ != 0.0) {
@@ -114,7 +119,7 @@ inline Layout& Layout::upsample(int factor) noexcept
     return *this;
 }
 
-inline Layout& Layout::transpose()
+inline Layout& Layout::transpose() noexcept
 {
     std::swap(left_top_.x, left_top_.y);
     std::swap(x_unit_shift_, y_unit_shift_);

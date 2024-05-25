@@ -17,13 +17,13 @@ namespace fs = std::filesystem;
 class ParamConfig
 {
 public:
-    TLCT_API ParamConfig() : calib_cfg_(), views_(0), imgsize_(), range_(), src_pattern_(), dst_pattern_() {};
-    TLCT_API ParamConfig& operator=(const ParamConfig& cfg) = default;
-    TLCT_API ParamConfig(const ParamConfig& cfg) = default;
+    TLCT_API ParamConfig() noexcept : calib_cfg_(), views_(0), imgsize_(), range_(), src_pattern_(), dst_pattern_() {};
+    TLCT_API ParamConfig& operator=(const ParamConfig& cfg) noexcept = default;
+    TLCT_API ParamConfig(const ParamConfig& cfg) noexcept = default;
     TLCT_API ParamConfig& operator=(ParamConfig&& cfg) noexcept = default;
     TLCT_API ParamConfig(ParamConfig&& cfg) noexcept = default;
     TLCT_API ParamConfig(CalibConfig&& calib_cfg, int views, cv::Size imgsize, cv::Range range, std::string src_pattern,
-                         std::string dst_pattern)
+                         std::string dst_pattern) noexcept
         : calib_cfg_(calib_cfg), views_(views), imgsize_(imgsize), range_(range), src_pattern_(std::move(src_pattern)),
           dst_pattern_(std::move(dst_pattern)) {};
 

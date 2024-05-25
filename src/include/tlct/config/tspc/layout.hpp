@@ -7,6 +7,7 @@
 
 #include "calib.hpp"
 #include "tlct/common/defines.h"
+#include "tlct/config/concepts.hpp"
 #include "tlct/helper/static_math.hpp"
 
 namespace tlct::cfg::tspc {
@@ -21,6 +22,8 @@ struct TLCT_API BorderCheckList {
 class Layout
 {
 public:
+    using TCalibConfig = CalibConfig;
+
     TLCT_API Layout() noexcept
         : left_top_(), right_top_(), left_bottom_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), mirows_(),
           micols_(), imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1) {};
@@ -29,12 +32,12 @@ public:
     TLCT_API Layout& operator=(Layout&& layout) noexcept = default;
     TLCT_API Layout(Layout&& layout) noexcept = default;
     TLCT_API Layout(cv::Point2d left_top, cv::Point2d right_top, cv::Point2d left_bottom, cv::Size imgsize, int mirows,
-                    int micols, double diameter, double rotation);
+                    int micols, double diameter, double rotation) noexcept;
 
-    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize);
+    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
 
     TLCT_API Layout& upsample(int factor) noexcept;
-    TLCT_API Layout& transpose();
+    TLCT_API Layout& transpose() noexcept;
 
     [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
@@ -71,8 +74,10 @@ private:
     int upsample_;
 };
 
+static_assert(CLayout<Layout>);
+
 inline Layout::Layout(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom,
-                      cv::Size imgsize, int mirows, int micols, double diameter, double rotation)
+                      cv::Size imgsize, int mirows, int micols, double diameter, double rotation) noexcept
     : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), imgsize_(imgsize), mirows_(mirows, mirows),
       micols_(micols, micols), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation), upsample_(1)
 {
@@ -129,7 +134,7 @@ inline Layout& Layout::upsample(int factor) noexcept
     return *this;
 }
 
-inline Layout& Layout::transpose()
+inline Layout& Layout::transpose() noexcept
 {
     std::swap(left_top_.x, left_top_.y);
     std::swap(right_top_.x, right_top_.y);
