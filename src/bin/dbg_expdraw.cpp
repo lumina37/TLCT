@@ -5,13 +5,13 @@
 
 #include "tlct.hpp"
 
-using namespace tlct::cfg::tspc::v2;
+using namespace tlct::cfg::tspc;
 namespace rgs = std::ranges;
 
 int main()
 {
-    const cv::Mat src = cv::imread("Tri-viewpoint.png");
-    const auto config = CalibConfig::fromXMLPath("v2Tri.xml");
+    const cv::Mat src = cv::imread("Boys.png");
+    const auto config = CalibConfig::fromXMLPath("v2Boys.xml");
     const auto layout = Layout::fromCfgAndImgsize(config, src.size());
     const cv::Mat resized_img = procImg(layout, src);
 

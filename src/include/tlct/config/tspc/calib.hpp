@@ -7,7 +7,7 @@
 
 #include "tlct/common/defines.h"
 
-namespace tlct::cfg::tspc::inline v2 {
+namespace tlct::cfg::tspc {
 
 class Layout;
 
@@ -80,4 +80,4 @@ inline CalibConfig CalibConfig::fromXMLPath(const char* path)
     return CalibConfig::fromXMLDoc(doc);
 }
 
-} // namespace tlct::cfg::tspc::inline v2
+} // namespace tlct::cfg::tspc
