@@ -40,10 +40,9 @@ static inline cv::Mat rectWithFadeoutBorder(const cv::Size size, const int borde
 } // namespace _hp
 
 TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& layout, const cv::Mat& patchsizes,
-                                  const std::string_view saveto, const int views)
+                                  const fs::path& saveto, const int views)
 {
-    fs::path saveto_dir{saveto};
-    fs::create_directories(saveto_dir);
+    fs::create_directories(saveto);
 
     const int zoom = layout.getUpsample();
     const int zoomto_width = 20 * zoom; // the extracted patch will be zoomed to this height
@@ -130,7 +129,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
             std::stringstream filename_s;
             filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
             img_cnt++;
-            fs::path saveto_path = saveto_dir / filename_s.str();
+            const fs::path saveto_path = saveto / filename_s.str();
             cv::Mat resized_final_image, final_image_u8;
             final_image.convertTo(final_image_u8, CV_8UC3);
             cv::resize(final_image_u8, resized_final_image, {final_width, final_height}, 0.0, 0.0, cv::INTER_CUBIC);
