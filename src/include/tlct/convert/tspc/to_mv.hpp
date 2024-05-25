@@ -72,7 +72,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
             cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC1);
 
             for (const int i : rgs::views::iota(0, layout.getMIRows())) {
-                for (const int j : rgs::views::iota(0, layout.getMICols(i) - 1)) {
+                for (const int j : rgs::views::iota(0, layout.getMIMinCols() - 1)) {
                     const cv::Point2d center = layout.getMICenter(i, j);
                     if (center.x == 0.0 or center.y == 0.0)
                         continue;
