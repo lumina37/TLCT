@@ -65,7 +65,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
     int img_cnt = 1;
     for (const int colview : colviews) {
         for (const int rowview : rowviews) {
-            const int canvas_width = (layout.getMICols() - 1) * zoomto_width + 2 * bound + zoomto_width / 2;
+            const int canvas_width = (layout.getMIMinCols() - 1) * zoomto_width + 2 * bound + zoomto_width / 2;
             const int canvas_height = layout.getMIRows() * zoomto_height + zoomto_withbound - zoomto_height;
             const int final_width = tlct::_hp::align_to_2((int)std::round((double)canvas_width / zoom));
             const int final_height = tlct::_hp::align_to_2((int)std::round((double)canvas_height / zoom));
@@ -73,7 +73,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
             cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC1);
 
             for (const int i : rgs::views::iota(0, layout.getMIRows())) {
-                for (const int j : rgs::views::iota(0, layout.getMICols() - 1)) {
+                for (const int j : rgs::views::iota(0, layout.getMICols(i) - 1)) {
                     const cv::Point2d center = layout.getMICenter(i, j);
                     if (center.x == 0.0 or center.y == 0.0)
                         continue;

@@ -72,7 +72,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
         } else {
             const int upleft_psize_idx = psize_indices.at<int>(index.y - 1, index.x);
             ref_psize_indices.push_back(upleft_psize_idx);
-            if (index.x != (layout.getMICols() - 1)) {
+            if (index.x != (layout.getMICols(index.y - 1) - 1)) {
                 const int upright_psize_idx = psize_indices.at<int>(index.y - 1, index.x + 1);
                 ref_psize_indices.push_back(upright_psize_idx);
             }
@@ -105,7 +105,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
 
 TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const cv::Mat& src, cv::Mat& patchsizes)
 {
-    cv::Mat psize_indices = cv::Mat::zeros(layout.getMIRows(), layout.getMICols(), CV_32SC1);
+    cv::Mat psize_indices = cv::Mat::zeros(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1);
 
     cv::Mat gray_src;
     cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
@@ -114,7 +114,7 @@ TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const 
     const int match_end = (int)(29.0 / 70.0 * layout.getDiameter());
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int col : rgs::views::iota(0, layout.getMICols() - 1)) {
+        for (const int col : rgs::views::iota(0, layout.getMICols(row) - 1)) {
             const cv::Point2d neib_center = layout.getMICenter(row, col + 1);
             if (neib_center.x == 0.0 or neib_center.y == 0.0)
                 continue;
@@ -125,7 +125,7 @@ TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const 
             psize_indices.at<int>(row, col) = patchsize_idx;
         }
     }
-    psize_indices.col(layout.getMICols() - 2).copyTo(psize_indices.col(layout.getMICols() - 1));
+    psize_indices.col(layout.getMIMinCols() - 2).copyTo(psize_indices.col(layout.getMIMinCols() - 1));
     patchsizes = psize_indices + match_start;
 }
 
