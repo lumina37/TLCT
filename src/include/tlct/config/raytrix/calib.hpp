@@ -9,12 +9,17 @@
 
 namespace tlct::cfg::raytrix {
 
+constexpr int LEN_TYPE_NUM = 3;
+using LenOffsets = cv::Vec<cv::Point2d, LEN_TYPE_NUM>;
+
 class CalibConfig
 {
 public:
-    TLCT_API CalibConfig() : offset_(0, 0), diameter_(), rotation_() {};
-    TLCT_API CalibConfig(cv::Point2d offset, double diameter, double rotation)
-        : offset_(offset), diameter_(diameter), rotation_(rotation) {};
+    friend class Layout;
+    
+    TLCT_API CalibConfig() : diameter_(), rotation_(), offset_() {};
+    TLCT_API CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens)
+        : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens) {};
 
     [[nodiscard]] TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
     [[nodiscard]] TLCT_API static CalibConfig fromXMLPath(const char* path);
@@ -26,9 +31,10 @@ public:
     [[nodiscard]] TLCT_API cv::Point2d getOffset() const noexcept;
 
 private:
-    cv::Point2d offset_;
     double diameter_;
     double rotation_;
+    cv::Point2d offset_;
+    LenOffsets lofs_;
 };
 
 inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
@@ -41,17 +47,16 @@ inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     const double diameter = data_node.child("diameter").text().as_double();
     const double rotation = data_node.child("rotation").text().as_double();
 
-    std::vector<cv::Point2d> lens;
-    constexpr size_t type_num = 3;
-    lens.reserve(type_num);
+    LenOffsets lofs;
     for (const auto ltype_node : data_node.children("lens_type")) {
-        const auto lofs = ltype_node.child("offset"); // Len Type Offset
-        const double lofs_x = lofs.child("x").text().as_double();
-        const double lofs_y = lofs.child("y").text().as_double();
-        lens.emplace_back(lofs_x, lofs_y);
+        const auto loffset = ltype_node.child("offset"); // Len Type Offset
+        const int lid = ltype_node.attribute("id").as_int();
+        const double loffset_x = loffset.child("x").text().as_double();
+        const double loffset_y = loffset.child("y").text().as_double();
+        lofs[lid] = {loffset_x, loffset_y};
     }
 
-    return {offset, diameter, rotation};
+    return {diameter, rotation, offset, lofs};
 }
 
 inline CalibConfig CalibConfig::fromXMLPath(const char* path)

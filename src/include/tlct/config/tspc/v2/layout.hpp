@@ -28,8 +28,8 @@ public:
     TLCT_API Layout(const Layout& layout) noexcept = default;
     TLCT_API Layout& operator=(Layout&& layout) noexcept = default;
     TLCT_API Layout(Layout&& layout) noexcept = default;
-    TLCT_API Layout(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom,
-                    cv::Size imgsize, int mirows, int micols, double diameter, double rotation);
+    TLCT_API Layout(cv::Point2d left_top, cv::Point2d right_top, cv::Point2d left_bottom, cv::Size imgsize, int mirows,
+                    int micols, double diameter, double rotation);
 
     [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize);
 
@@ -50,7 +50,7 @@ public:
     [[nodiscard]] TLCT_API bool isOutShift() const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] bool isMIBroken(const cv::Point2d micenter) const noexcept;
+    [[nodiscard]] bool isMIBroken(cv::Point2d micenter) const noexcept;
 
 private:
     cv::Point2d left_top_;

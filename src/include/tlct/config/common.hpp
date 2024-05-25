@@ -12,7 +12,7 @@ namespace tlct::cfg {
 
 namespace rgs = std::ranges;
 
-typedef std::map<std::string, std::string> ConfigMap;
+using ConfigMap = std::map<std::string, std::string>;
 
 class CommonParamConfig
 {
