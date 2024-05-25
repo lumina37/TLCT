@@ -79,5 +79,5 @@ TEST_F(TestTSPCCfg_v2, Layout)
     EXPECT_EQ(layout.getMICenter({0, 1}), center_1_0);
 
     EXPECT_EQ(layout.getMIRows(), 66);
-    EXPECT_EQ(layout.getMICols(), 43);
+    EXPECT_EQ(layout.getMIMinCols(), 43);
 }

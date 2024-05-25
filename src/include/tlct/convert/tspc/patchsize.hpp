@@ -37,24 +37,30 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const cv::Mat curr_cmp = gray_src({curr_cmp_row_range, curr_cmp_col_range});
     const auto pssim_calc = cv::quality::QualitySSIM::create(curr_cmp);
 
-    std::vector<double> ssims_over_mdist;
-    ssims_over_mdist.reserve(match_range.size());
-    for (const int mdist : rgs::views::iota(match_range.start, match_range.end)) {
+    constexpr double default_ssim = -1.0;
+    std::vector<double> ssims_over_mdist(match_range.size(), default_ssim);
+
+    auto calc_ssim_with_mdist = [&](const int mdist) mutable {
+        const int mdist_idx = mdist - match_range.start;
+
+        if (ssims_over_mdist[mdist_idx] != default_ssim) {
+            return ssims_over_mdist[mdist_idx];
+        }
+
         const cv::Range neib_cmp_row_range{tlct::_hp::iround(neib_center.y - row_shift),
                                            tlct::_hp::iround(neib_center.y + row_shift)};
         const cv::Range neib_cmp_col_range{tlct::_hp::iround(neib_center.x + col_start_shift) + mdist,
                                            tlct::_hp::iround(neib_center.x + col_end_shift) + mdist};
         if (neib_cmp_row_range.end > gray_src.rows || neib_cmp_col_range.end > gray_src.cols) {
-            break;
+            return default_ssim;
         }
 
         const cv::Mat neib_cmp = gray_src({neib_cmp_row_range, neib_cmp_col_range});
         const double ssim = pssim_calc->compute(neib_cmp)[0];
-        ssims_over_mdist.push_back(ssim);
-    }
 
-    const auto pmax_ssim = std::max_element(ssims_over_mdist.begin(), ssims_over_mdist.end());
-    const int max_ssim_idx = (int)std::distance(ssims_over_mdist.begin(), pmax_ssim);
+        ssims_over_mdist[mdist_idx] = ssim;
+        return ssim;
+    };
 
     std::vector<int> ref_psize_indices;
     if (index.x != 0) {
@@ -79,14 +85,10 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
         }
     }
 
-    if (ref_psize_indices.empty()) {
-        return max_ssim_idx;
-    }
-
     double max_ref_ssim = 0.0;
     int max_ref_psize_idx = 0;
     for (const int ref_psize_idx : ref_psize_indices) {
-        const double ref_ssim = ssims_over_mdist[ref_psize_idx];
+        const double ref_ssim = calc_ssim_with_mdist(ref_psize_idx + match_range.start);
         if (ref_ssim > max_ref_ssim) {
             max_ref_ssim = ref_ssim;
             max_ref_psize_idx = ref_psize_idx;
@@ -96,9 +98,14 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     constexpr double ssim_threshold = 0.875;
     if (max_ref_ssim > ssim_threshold) {
         return max_ref_psize_idx;
-    } else {
-        return max_ssim_idx;
     }
+
+    for (const int mdist : rgs::views::iota(match_range.start, match_range.end)) {
+        calc_ssim_with_mdist(mdist);
+    }
+    const auto pmax_ssim = std::max_element(ssims_over_mdist.begin(), ssims_over_mdist.end());
+    const int max_ssim_idx = (int)std::distance(ssims_over_mdist.begin(), pmax_ssim);
+    return max_ssim_idx;
 }
 
 } // namespace _hp
