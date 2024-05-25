@@ -50,6 +50,7 @@ public:
     [[nodiscard]] TLCT_API int getMIMaxCols() const noexcept;
     [[nodiscard]] TLCT_API int getMIMinCols() const noexcept;
     [[nodiscard]] TLCT_API bool isOutShift() const noexcept;
+    [[nodiscard]] TLCT_API int isOutShiftSgn() const noexcept;
 
     template <BorderCheckList checklist = {true, true, true, true}>
     [[nodiscard]] bool isMIBroken(cv::Point2d micenter) const noexcept;
@@ -180,6 +181,8 @@ inline int Layout::getMIMaxCols() const noexcept { return std::max(micols_[0], m
 inline int Layout::getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); }
 
 inline bool Layout::isOutShift() const noexcept { return is_out_shift_; }
+
+inline int Layout::isOutShiftSgn() const noexcept { return (int)(isOutShift()) * 2 - 1; }
 
 template <BorderCheckList checklist>
 inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
