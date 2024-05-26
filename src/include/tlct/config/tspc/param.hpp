@@ -17,6 +17,7 @@ namespace fs = std::filesystem;
 class ParamConfig
 {
 public:
+    // Constructor
     TLCT_API ParamConfig() noexcept : calib_cfg_(), views_(0), imgsize_(), range_(), src_pattern_(), dst_pattern_() {};
     TLCT_API ParamConfig& operator=(const ParamConfig& cfg) noexcept = default;
     TLCT_API ParamConfig(const ParamConfig& cfg) noexcept = default;
@@ -27,14 +28,20 @@ public:
         : calib_cfg_(calib_cfg), views_(views), imgsize_(imgsize), range_(range), src_pattern_(std::move(src_pattern)),
           dst_pattern_(std::move(dst_pattern)) {};
 
+    // Initialize from
     [[nodiscard]] TLCT_API static ParamConfig fromCommonCfg(const CommonParamConfig& cfg);
 
+    // CONST methods
     [[nodiscard]] TLCT_API const CalibConfig& getCalibCfg() const noexcept;
     [[nodiscard]] TLCT_API int getViews() const noexcept;
     [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept;
     [[nodiscard]] TLCT_API cv::Range getRange() const noexcept;
     [[nodiscard]] TLCT_API const std::string& getSrcPattern() const noexcept;
     [[nodiscard]] TLCT_API const std::string& getDstPattern() const noexcept;
+
+    // Utils
+    [[nodiscard]] TLCT_API static fs::path fmtSrcPath(const ParamConfig& cfg, int i) noexcept;
+    [[nodiscard]] TLCT_API static fs::path fmtDstPath(const ParamConfig& cfg, int i) noexcept;
 
 private:
     CalibConfig calib_cfg_;
@@ -71,14 +78,14 @@ inline const std::string& ParamConfig::getSrcPattern() const noexcept { return s
 
 inline const std::string& ParamConfig::getDstPattern() const noexcept { return dst_pattern_; }
 
-TLCT_API inline fs::path fmtSrcPath(const ParamConfig& cfg, int i) noexcept
+TLCT_API inline fs::path ParamConfig::fmtSrcPath(const ParamConfig& cfg, int i) noexcept
 {
     char buffer[256];
     sprintf(buffer, cfg.getSrcPattern().c_str(), i);
     return {buffer};
 }
 
-TLCT_API inline fs::path fmtDstPath(const ParamConfig& cfg, int i) noexcept
+TLCT_API inline fs::path ParamConfig::fmtDstPath(const ParamConfig& cfg, int i) noexcept
 {
     char buffer[256];
     sprintf(buffer, cfg.getDstPattern().c_str(), i);

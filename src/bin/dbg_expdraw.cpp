@@ -5,15 +5,15 @@
 
 #include "tlct.hpp"
 
-using namespace tlct::cfg::tspc;
+namespace tcfg = tlct::cfg::tspc;
 namespace rgs = std::ranges;
 
 int main()
 {
     const cv::Mat src = cv::imread("Boys.png");
-    const auto config = CalibConfig::fromXMLPath("v2Boys.xml");
-    const auto layout = Layout::fromCfgAndImgsize(config, src.size());
-    const cv::Mat resized_img = procImg(layout, src);
+    const auto config = tcfg::CalibConfig::fromXMLPath("v2Boys.xml");
+    const auto layout = tcfg::Layout::fromCfgAndImgsize(config, src.size());
+    const cv::Mat resized_img = tcfg::Layout::procImg(layout, src);
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {

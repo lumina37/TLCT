@@ -11,7 +11,7 @@ int main()
 
     const auto config = cfg::tspc::CalibConfig::fromXMLPath("v2Boys.xml");
     const auto layout = cfg::tspc::Layout::fromCfgAndImgsize(config, src.size()).upsample(factor);
-    const cv::Mat resized_src = cfg::tspc::procImg(layout, src);
+    const cv::Mat resized_src = cfg::tspc::Layout::procImg(layout, src);
 
     const auto patchsizes = cv::imread("patchsizes.tiff", cv::IMREAD_UNCHANGED);
 

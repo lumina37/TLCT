@@ -22,8 +22,10 @@ struct TLCT_API BorderCheckList {
 class Layout
 {
 public:
+    // Typename alias
     using TCalibConfig = CalibConfig;
 
+    // Constructor
     TLCT_API Layout() noexcept
         : left_top_(), right_top_(), left_bottom_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), mirows_(),
           micols_(), imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1) {};
@@ -34,11 +36,14 @@ public:
     TLCT_API Layout(cv::Point2d left_top, cv::Point2d right_top, cv::Point2d left_bottom, cv::Size imgsize, int mirows,
                     int micols, double diameter, double rotation) noexcept;
 
+    // Initialize from
     [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
 
+    // Non-const methods
     TLCT_API Layout& upsample(int factor) noexcept;
     TLCT_API Layout& transpose() noexcept;
 
+    // CONST methods
     [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
     [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept;
@@ -54,6 +59,10 @@ public:
     [[nodiscard]] TLCT_API int getMIMinCols() const noexcept;
     [[nodiscard]] TLCT_API bool isOutShift() const noexcept;
     [[nodiscard]] TLCT_API int isOutShiftSgn() const noexcept;
+
+    // Utils
+    TLCT_API static void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst);
+    [[nodiscard]] TLCT_API static cv::Mat procImg(const Layout& layout, const cv::Mat& src);
 
     template <BorderCheckList checklist = {true, true, true, true}>
     [[nodiscard]] bool isMIBroken(cv::Point2d micenter) const noexcept;
@@ -249,7 +258,7 @@ inline std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const st
     return modranges;
 }
 
-TLCT_API inline void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
+TLCT_API inline void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
 {
     const double rotation = layout.getRotation();
     if (rotation != 0.0) {
@@ -266,7 +275,7 @@ TLCT_API inline void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat&
     }
 }
 
-TLCT_API inline cv::Mat procImg(const Layout& layout, const cv::Mat& src)
+TLCT_API inline cv::Mat Layout::procImg(const Layout& layout, const cv::Mat& src)
 {
     cv::Mat dst;
     procImg_(layout, src, dst);

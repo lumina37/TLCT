@@ -17,6 +17,7 @@ class CalibConfig
 public:
     friend class Layout;
 
+    // Constructor
     TLCT_API CalibConfig() noexcept
         : left_top_(), right_top_(), left_bottom_(), rows_(), cols_(), diameter_(), rotation_() {};
     TLCT_API CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
@@ -28,6 +29,7 @@ public:
         : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), rows_(rows), cols_(cols),
           diameter_(diameter), rotation_(rotation) {};
 
+    // Initialize from
     [[nodiscard]] TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
     [[nodiscard]] TLCT_API static CalibConfig fromXMLPath(const char* path);
 
@@ -45,7 +47,6 @@ static_assert(concepts::CCalibConfig<CalibConfig>);
 
 inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
-
     const auto data_node = doc.child("TSPCCalibData");
     const double diameter = data_node.child("diameter").text().as_double();
     const double rotation = data_node.child("rotation").text().as_double();

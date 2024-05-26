@@ -9,30 +9,34 @@ namespace tlct::cfg::concepts {
 
 template <typename Self>
 concept CCalibConfig = std::copyable<Self> && requires {
-    // Constructors
+    // Constructor
     { Self() } -> std::same_as<Self>;
-} && requires(const pugi::xml_document& doc) {
-    // Init from `pugi::xml_document`
-    { Self::fromXMLDoc(doc) } -> std::same_as<Self>;
-} && requires(const char* path) {
-    // Init from c-string
-    { Self::fromXMLPath(path) } -> std::same_as<Self>;
+} && requires {
+    // Init from
+    requires requires(const pugi::xml_document& doc) {
+        { Self::fromXMLDoc(doc) } -> std::same_as<Self>;
+    };
+    requires requires(const char* path) {
+        { Self::fromXMLPath(path) } -> std::same_as<Self>;
+    };
 };
 
 template <typename Self>
 concept CLayout = std::copyable<Self> && requires {
-    // Constructors
+    // Constructor
     { Self() } -> std::same_as<Self>;
 } && requires(const Self::TCalibConfig& cfg, cv::Size imgsize) {
-    // Init from `Self::TCalibConfig`
+    // Init from
     CCalibConfig<typename Self::TCalibConfig>;
     { Self::fromCfgAndImgsize(cfg, imgsize) } -> std::same_as<Self>;
-} && requires(Self self, int factor) {
-    // Non-const member functions
-    { self.upsample(factor) } noexcept -> std::same_as<Self&>;
+} && requires(Self self) {
+    // Non-const methods
+    requires requires(int factor) {
+        { self.upsample(factor) } noexcept -> std::same_as<Self&>;
+    };
     { self.transpose() } -> std::same_as<Self&>;
 } && requires(const Self self) {
-    // Const member functions
+    // CONST methods
     { self.getImgWidth() } noexcept -> std::integral;
     { self.getImgHeight() } noexcept -> std::integral;
     { self.getImgSize() } noexcept -> std::convertible_to<cv::Size>;
@@ -53,6 +57,12 @@ concept CLayout = std::copyable<Self> && requires {
     { self.getMIMinCols() } noexcept -> std::integral;
     { self.isOutShift() } noexcept -> std::convertible_to<bool>;
     { self.isOutShiftSgn() } noexcept -> std::integral;
+} && requires {
+    // Utils
+    requires requires(const Self& self, const cv::Mat& src, cv::Mat& dst) { Self::procImg_(self, src, dst); };
+    requires requires(const Self& self, const cv::Mat& src) {
+        { Self::procImg(self, src) } -> std::same_as<cv::Mat>;
+    };
 };
 
-} // namespace tlct::cfg
+} // namespace tlct::cfg::concepts

@@ -18,6 +18,7 @@ class CalibConfig
 public:
     friend class Layout;
 
+    // Constructor
     TLCT_API CalibConfig() noexcept : diameter_(), rotation_(), offset_() {};
     TLCT_API CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
     TLCT_API CalibConfig(const CalibConfig& cfg) noexcept = default;
@@ -26,13 +27,14 @@ public:
     TLCT_API CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens) noexcept
         : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens) {};
 
+    // Initialize from
     [[nodiscard]] TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
     [[nodiscard]] TLCT_API static CalibConfig fromXMLPath(const char* path);
 
 private:
     double diameter_;
     double rotation_;
-    cv::Point2d offset_; // be very careful that (x,-y) is the corresponding coord repr in OpenCV
+    cv::Point2d offset_; // be careful: (x,-y) is the corresponding coord repr in OpenCV
     LenOffsets lofs_;
 };
 
