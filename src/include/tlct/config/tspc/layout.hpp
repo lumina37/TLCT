@@ -260,6 +260,8 @@ inline std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const st
 
 TLCT_API inline void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
 {
+    dst = src;
+
     const double rotation = layout.getRotation();
     if (rotation != 0.0) {
         cv::Mat transposed_src;

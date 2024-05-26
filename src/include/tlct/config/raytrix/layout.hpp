@@ -176,6 +176,8 @@ inline int Layout::isOutShiftSgn() const noexcept { return (int)(isOutShift()) *
 
 TLCT_API inline void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
 {
+    dst = src;
+
     const double rotation = layout.getRotation();
     if (rotation != 0.0) {
         cv::Mat transposed_src;
