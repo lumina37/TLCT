@@ -5,6 +5,8 @@
 #include <opencv2/core.hpp>
 #include <pugixml.hpp>
 
+namespace tlct::cfg::concepts {
+
 template <typename Self>
 concept CCalibConfig = std::copyable<Self> && requires {
     // Constructors
@@ -52,3 +54,5 @@ concept CLayout = std::copyable<Self> && requires {
     { self.isOutShift() } noexcept -> std::convertible_to<bool>;
     { self.isOutShiftSgn() } noexcept -> std::integral;
 };
+
+} // namespace tlct::cfg

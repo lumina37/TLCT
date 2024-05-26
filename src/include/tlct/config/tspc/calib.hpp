@@ -41,7 +41,7 @@ private:
     double rotation_;
 };
 
-static_assert(CCalibConfig<CalibConfig>);
+static_assert(concepts::CCalibConfig<CalibConfig>);
 
 inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {

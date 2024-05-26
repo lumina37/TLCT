@@ -61,7 +61,7 @@ private:
     int upsample_;
 };
 
-static_assert(CLayout<Layout>);
+static_assert(concepts::CLayout<Layout>);
 
 inline Layout::Layout(cv::Point2d point, const cv::Size imgsize, double diameter, double rotation) noexcept
     : imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation), upsample_(1)
