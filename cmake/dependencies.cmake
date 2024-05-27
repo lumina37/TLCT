@@ -31,7 +31,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/SIGS-TZ/TLCT-test-data.git
-            GIT_TAG 947410b1e5e762dc312b30631c01df0eb13b9761
+            GIT_TAG 2a6d21b69713380303fe02b6ccedff07c2f170ca
     )
     FetchContent_MakeAvailable(tlct-test-data)
 endif ()

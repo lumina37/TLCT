@@ -27,7 +27,7 @@ public:
     [[nodiscard]] TLCT_API static CommonParamConfig fromPath(const char* path);
 
     [[nodiscard]] TLCT_API bool isEmpty() const noexcept;
-    [[nodiscard]] TLCT_API bool isTSPC() const noexcept;
+    [[nodiscard]] TLCT_API int getCameraType() const noexcept;
     [[nodiscard]] TLCT_API const ConfigMap& getConfigMap() const noexcept;
 
 private:
@@ -56,15 +56,15 @@ inline CommonParamConfig CommonParamConfig::fromPath(const char* path)
 
 inline bool CommonParamConfig::isEmpty() const noexcept { return cfg_map_.empty(); }
 
-inline bool CommonParamConfig::isTSPC() const noexcept
+inline int CommonParamConfig::getCameraType() const noexcept
 {
-    const auto it = cfg_map_.find("isTSPC");
+    const auto it = cfg_map_.find("camType");
     if (it == cfg_map_.end()) {
-        return false;
+        return 0;
     }
     const std::string& val = it->second;
     const int ival = std::stoi(val);
-    return ival != 0;
+    return ival;
 }
 
 inline const ConfigMap& CommonParamConfig::getConfigMap() const noexcept { return cfg_map_; }
