@@ -1,19 +1,29 @@
+#include <filesystem>
+
 #include <opencv2/imgcodecs.hpp>
 
-#include "tlct/convert/tspc.hpp"
+#include "tlct.hpp"
 
-using namespace tlct;
+namespace tcfg = tlct::cfg;
+namespace fs = std::filesystem;
 
-int main()
+int main(int argc, char* argv[])
 {
-    cv::Mat src = cv::imread("Boys.png");
-    constexpr int factor = 4;
+    const auto common_cfg = tlct::cfg::CommonParamConfig::fromPath(argv[1]);
+    const auto param_cfg = tcfg::tspc::ParamConfig::fromCommonCfg(common_cfg);
 
-    const auto config = cfg::tspc::CalibConfig::fromXMLPath("v2Boys.xml");
-    const auto layout = cfg::tspc::Layout::fromCfgAndImgsize(config, src.size()).upsample(factor);
-    const cv::Mat resized_src = cfg::tspc::Layout::procImg(layout, src);
+    constexpr int upsample = 2;
+    const auto layout =
+        tcfg::tspc::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize()).upsample(upsample);
 
-    const auto patchsizes = cv::imread("patchsizes.tiff", cv::IMREAD_UNCHANGED);
+    const fs::path srcpath{param_cfg.getSrcPattern()};
 
-    cvt::tspc::to_multiview(resized_src, layout, patchsizes, "./Boys", 5);
+    const cv::Mat& src = cv::imread(srcpath.string());
+    const cv::Mat resized_src = tcfg::tspc::Layout::procImg(layout, src);
+
+    const fs::path dstdir{param_cfg.getDstPattern()};
+    const auto patchsize_path = dstdir / "patchsizes.tiff";
+    const cv::Mat& patchsizes = cv::imread(patchsize_path.string(), cv::IMREAD_UNCHANGED);
+
+    tlct::cvt::to_multiview(resized_src, layout, patchsizes, dstdir, param_cfg.getViews());
 }
