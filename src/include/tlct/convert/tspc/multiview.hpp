@@ -45,6 +45,7 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
 {
     fs::create_directories(saveto);
 
+    constexpr int channels = 3;
     const int upsample = layout.getUpsample();
     const int patch_resize_width = 20 * upsample; // the extracted patch will be zoomed to this height
     const int patch_resize_height = (int)std::round((double)patch_resize_width * std::numbers::sqrt3 / 2.0);
@@ -95,7 +96,6 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
                     cv::resize(rotated_patch, resized_patch, {p_resize_width_withbound, p_resize_width_withbound}, 0, 0,
                                cv::INTER_CUBIC);
 
-                    constexpr int channels = 3;
                     cv::Mat resized_patch_channels[channels];
                     cv::split(resized_patch, resized_patch_channels);
                     for (cv::Mat& resized_patch_channel : resized_patch_channels) {
@@ -117,33 +117,35 @@ TLCT_API inline void to_multiview(const cv::Mat& src, const cfg::tspc::Layout& l
 
             const cv::Range crop_roi[]{cv::Range::all(), cv::Range{p_resize_width_withbound / 2,
                                                                    render_canvas.cols - p_resize_width_withbound / 2}};
-            const cv::Mat cropped_new_image = render_canvas(crop_roi);
+            const cv::Mat cropped_rendered_image = render_canvas(crop_roi);
 
             cv::Mat cropped_weight_matrix = weight_canvas(crop_roi);
             cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
 
-            cv::Mat cropped_new_image_channels[3];
-            cv::split(cropped_new_image, cropped_new_image_channels);
-            for (cv::Mat& cropped_new_image_channel : cropped_new_image_channels) {
+            cv::Mat cropped_rendered_image_channels[channels];
+            cv::split(cropped_rendered_image, cropped_rendered_image_channels);
+            for (cv::Mat& cropped_new_image_channel : cropped_rendered_image_channels) {
                 cropped_new_image_channel /= cropped_weight_matrix;
             }
+            cv::Mat normed_image;
+            cv::merge(cropped_rendered_image_channels, channels, normed_image);
+
+            cv::Mat resized_normed_image_u8, normed_image_u8;
+            normed_image.convertTo(normed_image_u8, CV_8UC3);
+            cv::resize(normed_image_u8, resized_normed_image_u8, {final_width, final_height}, 0.0, 0.0,
+                       cv::INTER_CUBIC);
             cv::Mat final_image;
-            cv::merge(cropped_new_image_channels, 3, final_image);
+            if (layout.getRotation() != 0.0) {
+                cv::transpose(resized_normed_image_u8, final_image);
+            } else {
+                final_image = std::move(resized_normed_image_u8);
+            }
 
             std::stringstream filename_s;
             filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
             img_cnt++;
             const fs::path saveto_path = saveto / filename_s.str();
-            cv::Mat resized_final_image, final_image_u8;
-            final_image.convertTo(final_image_u8, CV_8UC3);
-            cv::resize(final_image_u8, resized_final_image, {final_width, final_height}, 0.0, 0.0, cv::INTER_CUBIC);
-            cv::Mat true_final_image;
-            if (layout.getRotation() != 0.0) {
-                cv::transpose(resized_final_image, true_final_image);
-            } else {
-                true_final_image = std::move(resized_final_image);
-            }
-            cv::imwrite(saveto_path.string(), true_final_image);
+            cv::imwrite(saveto_path.string(), final_image);
         }
     }
 }
