@@ -36,7 +36,7 @@ concept CLayout = std::copyable<Self> && requires {
     };
     { self.transpose() } -> std::same_as<Self&>;
 } && requires(const Self self) {
-    // CONST methods
+    // Const methods
     { self.getImgWidth() } noexcept -> std::integral;
     { self.getImgHeight() } noexcept -> std::integral;
     { self.getImgSize() } noexcept -> std::convertible_to<cv::Size>;

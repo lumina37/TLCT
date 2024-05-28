@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <map>
-#include <ranges>
 #include <sstream>
 #include <string>
 
@@ -10,31 +9,29 @@
 
 namespace tlct::cfg {
 
-namespace rgs = std::ranges;
-
 using ConfigMap = std::map<std::string, std::string>;
 
 class CommonParamConfig
 {
 public:
-    TLCT_API CommonParamConfig() : cfg_map_() {};
-    TLCT_API CommonParamConfig& operator=(const CommonParamConfig& common_cfg) = default;
-    TLCT_API CommonParamConfig(const CommonParamConfig& common_cfg) = default;
-    TLCT_API CommonParamConfig& operator=(CommonParamConfig&& common_cfg) noexcept = default;
-    TLCT_API CommonParamConfig(CommonParamConfig&& common_cfg) noexcept = default;
-    TLCT_API explicit CommonParamConfig(ConfigMap cfg_map) : cfg_map_(std::move(cfg_map)){};
+    TLCT_API inline CommonParamConfig() : cfg_map_(){};
+    TLCT_API inline CommonParamConfig& operator=(const CommonParamConfig& common_cfg) = default;
+    TLCT_API inline CommonParamConfig(const CommonParamConfig& common_cfg) = default;
+    TLCT_API inline CommonParamConfig& operator=(CommonParamConfig&& common_cfg) noexcept = default;
+    TLCT_API inline CommonParamConfig(CommonParamConfig&& common_cfg) noexcept = default;
+    TLCT_API explicit inline CommonParamConfig(ConfigMap cfg_map) : cfg_map_(std::move(cfg_map)){};
 
     [[nodiscard]] TLCT_API static inline CommonParamConfig fromPath(const char* path);
 
-    [[nodiscard]] TLCT_API bool isEmpty() const noexcept;
-    [[nodiscard]] TLCT_API int getCameraType() const noexcept;
-    [[nodiscard]] TLCT_API const ConfigMap& getConfigMap() const noexcept;
+    [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
+    [[nodiscard]] TLCT_API inline int getCameraType() const noexcept;
+    [[nodiscard]] TLCT_API inline const ConfigMap& getConfigMap() const noexcept;
 
 private:
     ConfigMap cfg_map_;
 };
 
-inline CommonParamConfig CommonParamConfig::fromPath(const char* path)
+CommonParamConfig CommonParamConfig::fromPath(const char* path)
 {
     std::ifstream fs(path);
     if (!fs) {
@@ -54,9 +51,9 @@ inline CommonParamConfig CommonParamConfig::fromPath(const char* path)
     return CommonParamConfig(cfg_map);
 }
 
-inline bool CommonParamConfig::isEmpty() const noexcept { return cfg_map_.empty(); }
+bool CommonParamConfig::isEmpty() const noexcept { return cfg_map_.empty(); }
 
-inline int CommonParamConfig::getCameraType() const noexcept
+int CommonParamConfig::getCameraType() const noexcept
 {
     const auto it = cfg_map_.find("camType");
     if (it == cfg_map_.end()) {
@@ -67,6 +64,6 @@ inline int CommonParamConfig::getCameraType() const noexcept
     return ival;
 }
 
-inline const ConfigMap& CommonParamConfig::getConfigMap() const noexcept { return cfg_map_; }
+const ConfigMap& CommonParamConfig::getConfigMap() const noexcept { return cfg_map_; }
 
 } // namespace tlct::cfg

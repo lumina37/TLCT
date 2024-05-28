@@ -17,13 +17,18 @@ int main(int argc, char* argv[])
         tcfg::tspc::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize()).upsample(upsample);
 
     const fs::path srcpath{param_cfg.getSrcPattern()};
+    cv::Mat src = cv::imread(srcpath.string());
 
-    const cv::Mat& src = cv::imread(srcpath.string());
-    const cv::Mat resized_src = tcfg::tspc::Layout::procImg(layout, src);
+    auto state = tlct::cvt::State::fromLayoutAndViews(layout, param_cfg.getViews());
+    state.feed(std::move(src));
 
+    int img_cnt = 1;
     const fs::path dstdir{param_cfg.getDstPattern()};
-    const auto patchsize_path = dstdir / "patchsizes.tiff";
-    const cv::Mat& patchsizes = cv::imread(patchsize_path.string(), cv::IMREAD_UNCHANGED);
-
-    tlct::cvt::to_multiview(resized_src, layout, patchsizes, dstdir, param_cfg.getViews());
+    for (const auto& mv : state) {
+        std::stringstream filename_s;
+        filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
+        img_cnt++;
+        const fs::path saveto_path = dstdir / filename_s.str();
+        cv::imwrite(saveto_path.string(), mv);
+    }
 }

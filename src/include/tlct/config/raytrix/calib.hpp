@@ -19,13 +19,13 @@ public:
     friend class Layout;
 
     // Constructor
-    TLCT_API CalibConfig() noexcept : diameter_(), rotation_(), offset_() {};
-    TLCT_API CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
-    TLCT_API CalibConfig(const CalibConfig& cfg) noexcept = default;
-    TLCT_API CalibConfig& operator=(CalibConfig&& cfg) noexcept = default;
-    TLCT_API CalibConfig(CalibConfig&& cfg) noexcept = default;
-    TLCT_API CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens) noexcept
-        : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens) {};
+    TLCT_API inline CalibConfig() noexcept : diameter_(), rotation_(), offset_(){};
+    TLCT_API inline CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
+    TLCT_API inline CalibConfig(const CalibConfig& cfg) noexcept = default;
+    TLCT_API inline CalibConfig& operator=(CalibConfig&& cfg) noexcept = default;
+    TLCT_API inline CalibConfig(CalibConfig&& cfg) noexcept = default;
+    TLCT_API inline CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens) noexcept
+        : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLDoc(const pugi::xml_document& doc);
@@ -40,7 +40,7 @@ private:
 
 static_assert(concepts::CCalibConfig<CalibConfig>);
 
-inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
+CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("RayCalibData");
     const auto offset_node = data_node.child("offset");
@@ -62,7 +62,7 @@ inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     return {diameter, rotation, offset, lofs};
 }
 
-inline CalibConfig CalibConfig::fromXMLPath(const char* path)
+CalibConfig CalibConfig::fromXMLPath(const char* path)
 {
     pugi::xml_document doc;
     const auto ret = doc.load_file(path, pugi::parse_minimal, pugi::encoding_utf8);

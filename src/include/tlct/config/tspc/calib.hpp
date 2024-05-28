@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include <opencv2/core.hpp>
 #include <pugixml.hpp>
 
@@ -16,16 +14,16 @@ public:
     friend class Layout;
 
     // Constructor
-    TLCT_API CalibConfig() noexcept
-        : left_top_(), right_top_(), left_bottom_(), rows_(), cols_(), diameter_(), rotation_() {};
-    TLCT_API CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
-    TLCT_API CalibConfig(const CalibConfig& cfg) noexcept = default;
-    TLCT_API CalibConfig& operator=(CalibConfig&& cfg) noexcept = default;
-    TLCT_API CalibConfig(CalibConfig&& cfg) noexcept = default;
-    TLCT_API CalibConfig(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom,
-                         int rows, int cols, double diameter, double rotation) noexcept
+    TLCT_API inline CalibConfig() noexcept
+        : left_top_(), right_top_(), left_bottom_(), rows_(), cols_(), diameter_(), rotation_(){};
+    TLCT_API inline CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
+    TLCT_API inline CalibConfig(const CalibConfig& cfg) noexcept = default;
+    TLCT_API inline CalibConfig& operator=(CalibConfig&& cfg) noexcept = default;
+    TLCT_API inline CalibConfig(CalibConfig&& cfg) noexcept = default;
+    TLCT_API inline CalibConfig(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom,
+                                int rows, int cols, double diameter, double rotation) noexcept
         : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), rows_(rows), cols_(cols),
-          diameter_(diameter), rotation_(rotation) {};
+          diameter_(diameter), rotation_(rotation){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLDoc(const pugi::xml_document& doc);
@@ -43,7 +41,7 @@ private:
 
 static_assert(concepts::CCalibConfig<CalibConfig>);
 
-inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
+CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("TSPCCalibData");
     const double diameter = data_node.child("diameter").text().as_double();
@@ -72,7 +70,7 @@ inline CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     return {left_top, right_top, left_bottom, rows, cols, diameter, rotation};
 }
 
-inline CalibConfig CalibConfig::fromXMLPath(const char* path)
+CalibConfig CalibConfig::fromXMLPath(const char* path)
 {
     pugi::xml_document doc;
     const auto ret = doc.load_file(path, pugi::parse_minimal, pugi::encoding_utf8);

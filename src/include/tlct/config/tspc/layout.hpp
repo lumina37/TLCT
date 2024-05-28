@@ -26,46 +26,47 @@ public:
     using TCalibConfig = CalibConfig;
 
     // Constructor
-    TLCT_API Layout() noexcept
+    TLCT_API inline Layout() noexcept
         : left_top_(), right_top_(), left_bottom_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), mirows_(),
-          micols_(), imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1) {};
-    TLCT_API Layout& operator=(const Layout& layout) noexcept = default;
-    TLCT_API Layout(const Layout& layout) noexcept = default;
-    TLCT_API Layout& operator=(Layout&& layout) noexcept = default;
-    TLCT_API Layout(Layout&& layout) noexcept = default;
-    TLCT_API Layout(cv::Point2d left_top, cv::Point2d right_top, cv::Point2d left_bottom, cv::Size imgsize, int mirows,
-                    int micols, double diameter, double rotation) noexcept;
+          micols_(), imgsize_(), diameter_(), radius_(), rotation_(), upsample_(1){};
+    TLCT_API inline Layout& operator=(const Layout& layout) noexcept = default;
+    TLCT_API inline Layout(const Layout& layout) noexcept = default;
+    TLCT_API inline Layout& operator=(Layout&& layout) noexcept = default;
+    TLCT_API inline Layout(Layout&& layout) noexcept = default;
+    TLCT_API inline Layout(cv::Point2d left_top, cv::Point2d right_top, cv::Point2d left_bottom, cv::Size imgsize,
+                           int mirows, int micols, double diameter, double rotation) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
 
     // Non-const methods
-    TLCT_API Layout& upsample(int factor) noexcept;
-    TLCT_API Layout& transpose() noexcept;
+    TLCT_API inline Layout& upsample(int factor) noexcept;
+    TLCT_API inline Layout& transpose() noexcept;
 
-    // CONST methods
-    [[nodiscard]] TLCT_API int getImgWidth() const noexcept;
-    [[nodiscard]] TLCT_API int getImgHeight() const noexcept;
-    [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept;
-    [[nodiscard]] TLCT_API double getDiameter() const noexcept;
-    [[nodiscard]] TLCT_API double getRadius() const noexcept;
-    [[nodiscard]] TLCT_API double getRotation() const noexcept;
-    [[nodiscard]] TLCT_API int getUpsample() const noexcept;
-    [[nodiscard]] TLCT_API cv::Point2d getMICenter(int row, int col) const noexcept;
-    [[nodiscard]] TLCT_API cv::Point2d getMICenter(cv::Point index) const noexcept;
-    [[nodiscard]] TLCT_API int getMIRows() const noexcept;
-    [[nodiscard]] TLCT_API int getMICols(int row) const noexcept;
-    [[nodiscard]] TLCT_API int getMIMaxCols() const noexcept;
-    [[nodiscard]] TLCT_API int getMIMinCols() const noexcept;
-    [[nodiscard]] TLCT_API bool isOutShift() const noexcept;
-    [[nodiscard]] TLCT_API int isOutShiftSgn() const noexcept;
+    // Const methods
+    [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
+    [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
+    [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
+    [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
+    [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
+    [[nodiscard]] TLCT_API inline double getRotation() const noexcept { return rotation_; };
+    [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_[0]; };
+    [[nodiscard]] TLCT_API inline int getMICols(int row) const noexcept { return micols_[row % micols_.channels]; };
+    [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
+    [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
+    [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
+    [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return (int)(isOutShift()) * 2 - 1; };
+    ;
 
     // Utils
-    TLCT_API static void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst);
+    TLCT_API static inline void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst);
     [[nodiscard]] TLCT_API static inline cv::Mat procImg(const Layout& layout, const cv::Mat& src);
 
     template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] bool isMIBroken(cv::Point2d micenter) const noexcept;
+    [[nodiscard]] inline bool isMIBroken(cv::Point2d micenter) const noexcept;
 
 private:
     cv::Point2d left_top_;
@@ -85,8 +86,8 @@ private:
 
 static_assert(concepts::CLayout<Layout>);
 
-inline Layout::Layout(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom,
-                      cv::Size imgsize, int mirows, int micols, double diameter, double rotation) noexcept
+Layout::Layout(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom, cv::Size imgsize,
+               int mirows, int micols, double diameter, double rotation) noexcept
     : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), imgsize_(imgsize), mirows_(mirows, mirows),
       micols_(micols, micols), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation), upsample_(1)
 {
@@ -123,13 +124,13 @@ inline Layout::Layout(const cv::Point2d left_top, const cv::Point2d right_top, c
     y_unit_shift_ = y_shift / (mirows_[0] - 1);
 }
 
-inline Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
+Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
 {
     return {cfg.left_top_, cfg.right_top_, cfg.left_bottom_, imgsize,
             cfg.rows_,     cfg.cols_,      cfg.diameter_,    cfg.rotation_};
 }
 
-inline Layout& Layout::upsample(int factor) noexcept
+Layout& Layout::upsample(int factor) noexcept
 {
     left_top_ *= factor;
     right_top_ *= factor;
@@ -143,7 +144,7 @@ inline Layout& Layout::upsample(int factor) noexcept
     return *this;
 }
 
-inline Layout& Layout::transpose() noexcept
+Layout& Layout::transpose() noexcept
 {
     std::swap(left_top_.x, left_top_.y);
     std::swap(right_top_.x, right_top_.y);
@@ -157,21 +158,7 @@ inline Layout& Layout::transpose() noexcept
     return *this;
 }
 
-inline int Layout::getImgWidth() const noexcept { return imgsize_.width; }
-
-inline int Layout::getImgHeight() const noexcept { return imgsize_.height; }
-
-inline cv::Size Layout::getImgSize() const noexcept { return imgsize_; }
-
-inline double Layout::getDiameter() const noexcept { return diameter_; }
-
-inline double Layout::getRadius() const noexcept { return radius_; }
-
-inline double Layout::getRotation() const noexcept { return rotation_; }
-
-inline int Layout::getUpsample() const noexcept { return upsample_; }
-
-inline cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
+cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
 {
     cv::Point2d center = left_top_ + y_unit_shift_ * row + x_unit_shift_ * col;
     if (row % 2 == 1) {
@@ -184,22 +171,10 @@ inline cv::Point2d Layout::getMICenter(const int row, const int col) const noexc
     return center;
 }
 
-inline cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
-
-inline int Layout::getMIRows() const noexcept { return mirows_[0]; }
-
-inline int Layout::getMICols(int row) const noexcept { return micols_[row % micols_.channels]; }
-
-inline int Layout::getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); }
-
-inline int Layout::getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); }
-
-inline bool Layout::isOutShift() const noexcept { return is_out_shift_; }
-
-inline int Layout::isOutShiftSgn() const noexcept { return (int)(isOutShift()) * 2 - 1; }
+cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
 template <BorderCheckList checklist>
-inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
+bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
 {
     if (checklist.up && micenter.y < radius_) {
         return true;
@@ -217,7 +192,7 @@ inline bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
 }
 
 template <BorderCheckList checklist>
-inline cv::Rect restrictToImgBorder(const Layout& layout, const cv::Rect area) noexcept
+cv::Rect restrictToImgBorder(const Layout& layout, const cv::Rect area) noexcept
 {
     cv::Rect modarea{area};
 
@@ -238,7 +213,7 @@ inline cv::Rect restrictToImgBorder(const Layout& layout, const cv::Rect area) n
 }
 
 template <BorderCheckList checklist>
-inline std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const std::vector<cv::Range>& ranges) noexcept
+std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const std::vector<cv::Range>& ranges) noexcept
 {
     std::vector<cv::Range> modranges{ranges};
 
@@ -258,7 +233,7 @@ inline std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const st
     return modranges;
 }
 
-TLCT_API inline void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
+void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
 {
     dst = src;
 
@@ -277,7 +252,7 @@ TLCT_API inline void Layout::procImg_(const Layout& layout, const cv::Mat& src, 
     }
 }
 
-TLCT_API inline cv::Mat Layout::procImg(const Layout& layout, const cv::Mat& src)
+cv::Mat Layout::procImg(const Layout& layout, const cv::Mat& src)
 {
     cv::Mat dst;
     procImg_(layout, src, dst);
