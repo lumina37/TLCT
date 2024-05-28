@@ -46,9 +46,9 @@ TEST_F(TestTSPCCfg, Param)
     EXPECT_EQ(param_cfg.getViews(), 5);
     EXPECT_EQ(param_cfg.getImgSize(), cv::Size(4080, 3068));
     EXPECT_EQ(param_cfg.getRange(), cv::Range(0, 1));
-    const auto fmt_src = fmtSrcPath(param_cfg, 25);
+    const auto fmt_src = tcfg::ParamConfig::fmtSrcPath(param_cfg, 25);
     EXPECT_STREQ(fmt_src.string().c_str(), "./Cars/src/frame025.png");
-    const auto fmt_dst = fmtDstPath(param_cfg, 25);
+    const auto fmt_dst = tcfg::ParamConfig::fmtDstPath(param_cfg, 25);
     EXPECT_STREQ(fmt_dst.string().c_str(), "./Cars/dst/frame025");
 }
 
