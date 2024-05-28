@@ -24,7 +24,7 @@ public:
     TLCT_API CommonParamConfig(CommonParamConfig&& common_cfg) noexcept = default;
     TLCT_API explicit CommonParamConfig(ConfigMap cfg_map) : cfg_map_(std::move(cfg_map)){};
 
-    [[nodiscard]] TLCT_API static CommonParamConfig fromPath(const char* path);
+    [[nodiscard]] TLCT_API static inline CommonParamConfig fromPath(const char* path);
 
     [[nodiscard]] TLCT_API bool isEmpty() const noexcept;
     [[nodiscard]] TLCT_API int getCameraType() const noexcept;

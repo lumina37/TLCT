@@ -29,7 +29,7 @@ public:
           dst_pattern_(std::move(dst_pattern)) {};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static ParamConfig fromCommonCfg(const CommonParamConfig& cfg);
+    [[nodiscard]] TLCT_API static inline ParamConfig fromCommonCfg(const CommonParamConfig& cfg);
 
     // CONST methods
     [[nodiscard]] TLCT_API const CalibConfig& getCalibCfg() const noexcept;
@@ -40,8 +40,8 @@ public:
     [[nodiscard]] TLCT_API const std::string& getDstPattern() const noexcept;
 
     // Utils
-    [[nodiscard]] TLCT_API static fs::path fmtSrcPath(const ParamConfig& cfg, int i) noexcept;
-    [[nodiscard]] TLCT_API static fs::path fmtDstPath(const ParamConfig& cfg, int i) noexcept;
+    [[nodiscard]] TLCT_API static inline fs::path fmtSrcPath(const ParamConfig& cfg, int i) noexcept;
+    [[nodiscard]] TLCT_API static inline fs::path fmtDstPath(const ParamConfig& cfg, int i) noexcept;
 
 private:
     CalibConfig calib_cfg_;

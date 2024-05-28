@@ -37,7 +37,7 @@ public:
                     int micols, double diameter, double rotation) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
+    [[nodiscard]] TLCT_API static inline Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
 
     // Non-const methods
     TLCT_API Layout& upsample(int factor) noexcept;
@@ -62,7 +62,7 @@ public:
 
     // Utils
     TLCT_API static void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst);
-    [[nodiscard]] TLCT_API static cv::Mat procImg(const Layout& layout, const cv::Mat& src);
+    [[nodiscard]] TLCT_API static inline cv::Mat procImg(const Layout& layout, const cv::Mat& src);
 
     template <BorderCheckList checklist = {true, true, true, true}>
     [[nodiscard]] bool isMIBroken(cv::Point2d micenter) const noexcept;

@@ -10,8 +10,6 @@
 
 namespace tlct::cfg::tspc {
 
-class Layout;
-
 class CalibConfig
 {
 public:
@@ -30,8 +28,8 @@ public:
           diameter_(diameter), rotation_(rotation) {};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static CalibConfig fromXMLDoc(const pugi::xml_document& doc);
-    [[nodiscard]] TLCT_API static CalibConfig fromXMLPath(const char* path);
+    [[nodiscard]] TLCT_API static inline CalibConfig fromXMLDoc(const pugi::xml_document& doc);
+    [[nodiscard]] TLCT_API static inline CalibConfig fromXMLPath(const char* path);
 
 private:
     cv::Point2d left_top_;
