@@ -5,7 +5,7 @@
 
 #include "tlct.hpp"
 
-namespace tcfg = tlct::cfg::raytrix;
+namespace tcfg = tlct::cfg::tspc;
 namespace rgs = std::ranges;
 
 int main()
