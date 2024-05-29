@@ -24,7 +24,7 @@ public:
 
     // Constructor
     TLCT_API inline ParamConfig() noexcept
-        : calib_cfg_(), views_(0), imgsize_(), range_(), src_pattern_(), dst_pattern_(){};
+        : calib_cfg_(), views_(), imgsize_(), range_(), src_pattern_(), dst_pattern_(){};
     TLCT_API inline ParamConfig& operator=(const ParamConfig& cfg) noexcept = default;
     TLCT_API inline ParamConfig(const ParamConfig& cfg) noexcept = default;
     TLCT_API inline ParamConfig& operator=(ParamConfig&& cfg) noexcept = default;

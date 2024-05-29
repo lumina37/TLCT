@@ -2,7 +2,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-namespace tlct::cvt::inline tspc::_hp {
+namespace tlct::cvt::tspc::_hp {
 
 static inline cv::Mat rectWithFadeoutBorder(const cv::Size size, const int border_width)
 {
@@ -24,4 +24,4 @@ static inline cv::Mat rectWithFadeoutBorder(const cv::Size size, const int borde
     return std::move(rect);
 }
 
-} // namespace tlct::cvt::inline tspc::_hp
+} // namespace tlct::cvt::tspc::_hp

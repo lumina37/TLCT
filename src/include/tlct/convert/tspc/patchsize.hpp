@@ -13,7 +13,7 @@
 #include "tlct/config/tspc.hpp"
 #include "tlct/helper/static_math.hpp"
 
-namespace tlct::cvt::inline tspc {
+namespace tlct::cvt::tspc {
 
 namespace rgs = std::ranges;
 
@@ -195,4 +195,4 @@ cv::Mat estimatePatchsizes(const State& state)
     return std::move(patchsizes);
 }
 
-} // namespace tlct::cvt::inline tspc
+} // namespace tlct::cvt::tspc

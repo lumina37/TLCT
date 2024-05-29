@@ -9,7 +9,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 
-namespace tlct::cvt::inline tspc {
+namespace tlct::cvt::tspc {
 
 namespace tcfg = tlct::cfg;
 namespace rgs = std::ranges;
@@ -146,4 +146,4 @@ State::iterator State::iterator::fromStateAndView(const State& state, int views,
     return {state, views, view_row, view_col};
 }
 
-} // namespace tlct::cvt::inline tspc
+} // namespace tlct::cvt::tspc

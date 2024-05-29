@@ -8,7 +8,7 @@
 #include "state.hpp"
 #include "tlct/config/tspc.hpp"
 
-namespace tlct::cvt::inline tspc {
+namespace tlct::cvt::tspc {
 
 namespace rgs = std::ranges;
 
@@ -96,4 +96,4 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     return std::move(view_image);
 }
 
-} // namespace tlct::cvt::inline tspc
+} // namespace tlct::cvt::tspc
