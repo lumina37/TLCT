@@ -7,7 +7,7 @@
 
 #include "calib.hpp"
 #include "tlct/common/defines.h"
-#include "tlct/config/concepts.hpp"
+#include "tlct/config/concepts/layout.hpp"
 #include "tlct/helper/static_math.hpp"
 
 namespace tlct::cfg::raytrix {
