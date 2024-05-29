@@ -20,6 +20,7 @@ template <typename TCalibConfig_>
 class ParamConfig
 {
 public:
+    // Typename alias
     using TCalibConfig = TCalibConfig_;
 
     // Constructor
@@ -60,7 +61,7 @@ private:
 
 template <typename TCalibConfig>
     requires concepts::CCalibConfig<TCalibConfig>
-inline ParamConfig<TCalibConfig> ParamConfig<TCalibConfig>::fromCommonCfg(const CommonParamConfig& cfg)
+ParamConfig<TCalibConfig> ParamConfig<TCalibConfig>::fromCommonCfg(const CommonParamConfig& cfg)
 {
     const auto& cfg_map = cfg.getConfigMap();
     auto calib_cfg = TCalibConfig::fromXMLPath(cfg_map.at("Calibration_xml").c_str());

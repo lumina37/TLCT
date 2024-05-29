@@ -14,6 +14,7 @@ using ConfigMap = std::map<std::string, std::string>;
 class CommonParamConfig
 {
 public:
+    // Constructor
     TLCT_API inline CommonParamConfig() : cfg_map_(){};
     TLCT_API inline CommonParamConfig& operator=(const CommonParamConfig& common_cfg) = default;
     TLCT_API inline CommonParamConfig(const CommonParamConfig& common_cfg) = default;
@@ -21,8 +22,10 @@ public:
     TLCT_API inline CommonParamConfig(CommonParamConfig&& common_cfg) noexcept = default;
     TLCT_API explicit inline CommonParamConfig(ConfigMap cfg_map) : cfg_map_(std::move(cfg_map)){};
 
+    // Initialize from
     [[nodiscard]] TLCT_API static inline CommonParamConfig fromPath(const char* path);
 
+    // Const methods
     [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
     [[nodiscard]] TLCT_API inline int getCameraType() const noexcept;
     [[nodiscard]] TLCT_API inline const ConfigMap& getConfigMap() const noexcept;

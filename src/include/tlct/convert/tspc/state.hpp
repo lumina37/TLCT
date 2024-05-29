@@ -18,6 +18,7 @@ namespace rgs = std::ranges;
 class State
 {
 public:
+    // Typename alias
     using TLayout = tcfg::tspc::Layout;
 
     // Constructor
@@ -36,9 +37,11 @@ public:
     class iterator
     {
     public:
+        // Typename alias
         using value_type = cv::Mat;
         using iterator_category = std::forward_iterator_tag;
 
+        // Constructor
         TLCT_API inline iterator(const State& state, int views, int view_row, int view_col)
             : state_(state), views_(views), view_row_(view_row), view_col_(view_col){};
 
