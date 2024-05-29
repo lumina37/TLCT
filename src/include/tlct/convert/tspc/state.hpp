@@ -6,7 +6,6 @@
 #include <opencv2/core.hpp>
 
 #include "helper.hpp"
-#include "patchsize.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 
@@ -45,10 +44,7 @@ public:
                                                                        int view_col);
 
         // Const methods
-        [[nodiscard]] TLCT_API inline value_type operator*() const
-        {
-            return render_view(state_, view_row_, view_col_);
-        };
+        [[nodiscard]] TLCT_API inline value_type operator*() const { return renderView(state_, view_row_, view_col_); };
         [[nodiscard]] TLCT_API inline bool operator==(const iterator& rhs) const noexcept
         {
             return view_col_ == rhs.view_col_ && view_row_ == rhs.view_row_;
@@ -82,7 +78,8 @@ public:
         return iterator::fromStateAndView(*this, views_, views_, 0);
     }
 
-    TLCT_API friend inline cv::Mat render_view(const State& state, int view_row, int view_col);
+    TLCT_API friend inline cv::Mat estimatePatchsizes(const State& state);
+    TLCT_API friend inline cv::Mat renderView(const State& state, int view_row, int view_col);
 
 private:
     const tcfg::tspc::Layout& layout_;
@@ -90,6 +87,7 @@ private:
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
     cv::Mat src_;
+    cv::Mat gray_src_;
     cv::Mat src_64f_;
     int patch_resize_width_; // the extracted patch will be zoomed to this height
     int patch_resize_height_;
@@ -133,10 +131,11 @@ State State::fromLayoutAndViews(const tcfg::tspc::Layout& layout, int views) { r
 void State::feed(cv::Mat&& newsrc)
 {
     tcfg::tspc::Layout::procImg_(layout_, newsrc, src_);
+    cv::cvtColor(src_, gray_src_, cv::COLOR_BGR2GRAY);
     src_.convertTo(src_64f_, CV_64FC3);
 
     prev_patchsizes_ = std::move(patchsizes_);
-    estimatePatchsizes_(layout_, src_, patchsizes_);
+    patchsizes_ = estimatePatchsizes(*this);
     if (prev_patchsizes_.empty()) {
         prev_patchsizes_ = patchsizes_;
     }

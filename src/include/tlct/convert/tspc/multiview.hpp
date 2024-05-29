@@ -12,7 +12,7 @@ namespace tlct::cvt::inline tspc {
 
 namespace rgs = std::ranges;
 
-cv::Mat render_view(const State& state, int view_row, int view_col)
+cv::Mat renderView(const State& state, int view_row, int view_col)
 {
     constexpr int channels = 3;
 
@@ -22,8 +22,6 @@ cv::Mat render_view(const State& state, int view_row, int view_col)
 
     const int canvas_height = state.canvas_height_;
     const int canvas_width = state.canvas_width_;
-    const int final_width = tlct::_hp::align_to_2((int)std::round((double)canvas_width / layout.getUpsample()));
-    const int final_height = tlct::_hp::align_to_2((int)std::round((double)canvas_height / layout.getUpsample()));
     cv::Mat render_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC3);
     cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC1);
 
@@ -71,11 +69,8 @@ cv::Mat render_view(const State& state, int view_row, int view_col)
         }
     }
 
-    const cv::Range canvas_crop_roi[]{
-        cv::Range::all(), cv::Range{p_resize_width_withbound / 2, canvas_width - p_resize_width_withbound / 2}};
-    const cv::Mat cropped_rendered_image = render_canvas(canvas_crop_roi);
-
-    cv::Mat cropped_weight_matrix = weight_canvas(canvas_crop_roi);
+    const cv::Mat cropped_rendered_image = render_canvas(state.canvas_crop_roi_);
+    cv::Mat cropped_weight_matrix = weight_canvas(state.canvas_crop_roi_);
     cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
 
     cv::Mat cropped_rendered_image_channels[channels];
@@ -88,7 +83,9 @@ cv::Mat render_view(const State& state, int view_row, int view_col)
 
     cv::Mat resized_normed_image_u8, normed_image_u8;
     normed_image.convertTo(normed_image_u8, CV_8UC3);
-    cv::resize(normed_image_u8, resized_normed_image_u8, {final_width, final_height}, 0.0, 0.0, cv::INTER_CUBIC);
+    cv::resize(normed_image_u8, resized_normed_image_u8, {state.final_width_, state.final_height_}, 0.0, 0.0,
+               cv::INTER_CUBIC);
+
     cv::Mat view_image;
     if (layout.getRotation() != 0.0) {
         cv::transpose(resized_normed_image_u8, view_image);

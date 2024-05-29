@@ -1,12 +1,14 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <ranges>
 #include <vector>
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/quality.hpp>
 
+#include "state.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/helper/static_math.hpp"
@@ -18,7 +20,8 @@ namespace rgs = std::ranges;
 namespace _hp {
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
-                                    const cv::Mat& psize_indices, const cv::Point index, const cv::Range match_range)
+                                    const cv::Mat& psize_indices, const cv::Mat& prev_psize_indices,
+                                    const cv::Point index, const cv::Range match_range)
 {
     const cv::Point2d curr_center = layout.getMICenter(index);
     const cv::Point2d neib_center = layout.getMICenter(index.y, index.x + 1);
@@ -27,12 +30,14 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const int col_start_shift = (int)(-14.0 / 70.0 * layout.getDiameter());
     const int col_end_shift = (int)(-4.0 / 70.0 * layout.getDiameter());
 
-    const cv::Range curr_cmp_row_range{tlct::_hp::iround(curr_center.y - row_shift),
-                                       tlct::_hp::iround(curr_center.y + row_shift)};
-    const cv::Range curr_cmp_col_range{tlct::_hp::iround(curr_center.x + col_start_shift),
-                                       tlct::_hp::iround(curr_center.x + col_end_shift)};
+    const int prev_psize_idx = prev_psize_indices.at<int>(index.y, index.x);
+
+    const cv::Range curr_cmp_row_range{(int)std::round(curr_center.y - row_shift),
+                                       (int)std::round(curr_center.y + row_shift)};
+    const cv::Range curr_cmp_col_range{(int)std::round(curr_center.x + col_start_shift),
+                                       (int)std::round(curr_center.x + col_end_shift)};
     if (curr_cmp_row_range.end > gray_src.rows || curr_cmp_col_range.end > gray_src.cols) {
-        return 0;
+        return prev_psize_idx;
     }
     const cv::Mat curr_cmp = gray_src({curr_cmp_row_range, curr_cmp_col_range});
     const auto pssim_calc = cv::quality::QualitySSIM::create(curr_cmp);
@@ -47,10 +52,10 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
             return ssims_over_mdist[mdist_idx];
         }
 
-        const cv::Range neib_cmp_row_range{tlct::_hp::iround(neib_center.y - row_shift),
-                                           tlct::_hp::iround(neib_center.y + row_shift)};
-        const cv::Range neib_cmp_col_range{tlct::_hp::iround(neib_center.x + col_start_shift) + mdist,
-                                           tlct::_hp::iround(neib_center.x + col_end_shift) + mdist};
+        const cv::Range neib_cmp_row_range{(int)std::round(neib_center.y - row_shift),
+                                           (int)std::round(neib_center.y + row_shift)};
+        const cv::Range neib_cmp_col_range{(int)std::round(neib_center.x + col_start_shift) + mdist,
+                                           (int)std::round(neib_center.x + col_end_shift) + mdist};
         if (neib_cmp_row_range.end > gray_src.rows || neib_cmp_col_range.end > gray_src.cols) {
             return default_ssim;
         }
@@ -62,25 +67,61 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
         return ssim;
     };
 
+    constexpr double ssim_threshold = 0.875;
+    if (calc_ssim_with_mdist(prev_psize_idx + match_range.start) > ssim_threshold) {
+        return prev_psize_idx;
+    }
+
     std::vector<int> ref_psize_indices;
+    ref_psize_indices.reserve(9);
+    std::vector<int> prev_ref_psize_indices;
+    prev_ref_psize_indices.reserve(9);
+
     if (index.x != 0) {
         const int left_psize_idx = psize_indices.at<int>(index.y, index.x - 1);
         ref_psize_indices.push_back(left_psize_idx);
+        const int prev_left_psize_idx = prev_psize_indices.at<int>(index.y, index.x - 1);
+        prev_ref_psize_indices.push_back(prev_left_psize_idx);
     }
     if (index.y != 0) {
         if (layout.isOutShift()) {
             const int upright_psize_idx = psize_indices.at<int>(index.y - 1, index.x);
             ref_psize_indices.push_back(upright_psize_idx);
+            const int prev_upright_psize_idx = prev_psize_indices.at<int>(index.y - 1, index.x);
+            prev_ref_psize_indices.push_back(prev_upright_psize_idx);
             if (index.x != 0) {
                 const int upleft_psize_idx = psize_indices.at<int>(index.y - 1, index.x - 1);
                 ref_psize_indices.push_back(upleft_psize_idx);
+                const int prev_upleft_psize_idx = prev_psize_indices.at<int>(index.y - 1, index.x - 1);
+                prev_ref_psize_indices.push_back(prev_upleft_psize_idx);
             }
         } else {
             const int upleft_psize_idx = psize_indices.at<int>(index.y - 1, index.x);
             ref_psize_indices.push_back(upleft_psize_idx);
+            const int prev_upleft_psize_idx = prev_psize_indices.at<int>(index.y - 1, index.x);
+            prev_ref_psize_indices.push_back(prev_upleft_psize_idx);
             if (index.x != (layout.getMICols(index.y - 1) - 1)) {
                 const int upright_psize_idx = psize_indices.at<int>(index.y - 1, index.x + 1);
                 ref_psize_indices.push_back(upright_psize_idx);
+                const int prev_upright_psize_idx = prev_psize_indices.at<int>(index.y - 1, index.x + 1);
+                prev_ref_psize_indices.push_back(prev_upright_psize_idx);
+            }
+        }
+    }
+    if (index.y != layout.getMIRows() - 1) {
+        if (layout.isOutShift()) {
+            const int prev_downright_psize_idx = prev_psize_indices.at<int>(index.y + 1, index.x);
+            prev_ref_psize_indices.push_back(prev_downright_psize_idx);
+            if (index.x != 0) {
+                const int prev_downleft_psize_idx = prev_psize_indices.at<int>(index.y + 1, index.x - 1);
+                prev_ref_psize_indices.push_back(prev_downleft_psize_idx);
+            }
+        } else {
+            const int prev_downleft_psize_idx = prev_psize_indices.at<int>(index.y + 1, index.x);
+            prev_ref_psize_indices.push_back(prev_downleft_psize_idx);
+            if (index.x != (layout.getMICols(index.y + 1) - 1)) {
+                const int prev_downright_psize_idx = prev_psize_indices.at<int>(index.y + 1, index.x + 1);
+                prev_ref_psize_indices.push_back(prev_downright_psize_idx);
             }
         }
     }
@@ -94,10 +135,21 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
             max_ref_psize_idx = ref_psize_idx;
         }
     }
-
-    constexpr double ssim_threshold = 0.875;
     if (max_ref_ssim > ssim_threshold) {
         return max_ref_psize_idx;
+    }
+
+    double max_prev_ref_ssim = 0.0;
+    int max_prev_ref_psize_idx = 0;
+    for (const int prev_ref_psize_idx : prev_ref_psize_indices) {
+        const double prev_ref_ssim = calc_ssim_with_mdist(prev_ref_psize_idx + match_range.start);
+        if (prev_ref_ssim > max_prev_ref_ssim) {
+            max_prev_ref_ssim = prev_ref_ssim;
+            max_prev_ref_psize_idx = prev_ref_psize_idx;
+        }
+    }
+    if (max_prev_ref_ssim > ssim_threshold) {
+        return max_prev_ref_psize_idx;
     }
 
     for (const int mdist : rgs::views::iota(match_range.start, match_range.end)) {
@@ -110,15 +162,20 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
 
 } // namespace _hp
 
-TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const cv::Mat& src, cv::Mat& patchsizes)
+cv::Mat estimatePatchsizes(const State& state)
 {
-    cv::Mat psize_indices = cv::Mat::zeros(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1);
-
-    cv::Mat gray_src;
-    cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
+    const auto& layout = state.layout_;
 
     const int match_start = (int)(15.0 / 70.0 * layout.getDiameter());
     const int match_end = (int)(29.0 / 70.0 * layout.getDiameter());
+
+    cv::Mat psize_indices = cv::Mat::zeros(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1);
+    cv::Mat prev_psize_indices;
+    if (!state.prev_patchsizes_.empty()) {
+        prev_psize_indices = state.prev_patchsizes_ - match_start;
+    } else {
+        prev_psize_indices = psize_indices.clone();
+    }
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row) - 1)) {
@@ -127,20 +184,15 @@ TLCT_API inline void estimatePatchsizes_(const cfg::tspc::Layout& layout, const 
                 continue;
 
             const cv::Point index{col, row};
-            const int patchsize_idx =
-                _hp::estimatePatchsize(layout, gray_src, psize_indices, index, {match_start, match_end});
+            const int patchsize_idx = _hp::estimatePatchsize(layout, state.gray_src_, psize_indices, prev_psize_indices,
+                                                             index, {match_start, match_end});
             psize_indices.at<int>(row, col) = patchsize_idx;
         }
     }
     psize_indices.col(layout.getMIMinCols() - 2).copyTo(psize_indices.col(layout.getMIMinCols() - 1));
-    patchsizes = psize_indices + match_start;
-}
 
-TLCT_API inline cv::Mat estimatePatchsizes(const cfg::tspc::Layout& layout, const cv::Mat& src)
-{
-    cv::Mat patchsizes;
-    estimatePatchsizes_(layout, src, patchsizes);
-    return patchsizes;
+    cv::Mat patchsizes = psize_indices + match_start;
+    return std::move(patchsizes);
 }
 
 } // namespace tlct::cvt::inline tspc
