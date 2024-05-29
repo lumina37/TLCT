@@ -6,6 +6,7 @@
 #include "tlct.hpp"
 
 namespace tcfg = tlct::cfg::tspc;
+namespace tcvt = tlct::cvt::tspc;
 namespace fs = std::filesystem;
 
 using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
@@ -18,7 +19,7 @@ int main(int argc, char* argv[])
     constexpr int upsample = 2;
     const auto layout =
         tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize()).upsample(upsample);
-    auto state = tlct::cvt::State::fromLayoutAndViews(layout, param_cfg.getViews());
+    auto state = tcvt::State::fromLayoutAndViews(layout, param_cfg.getViews());
     const cv::Range range = param_cfg.getRange();
 
     const auto initpath = ParamConfig::fmtSrcPath(param_cfg, range.start);

@@ -8,6 +8,7 @@
 #include "helper.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
+#include "tlct/convert/concepts/state.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -17,14 +18,16 @@ namespace rgs = std::ranges;
 class State
 {
 public:
+    using TLayout = tcfg::tspc::Layout;
+
     // Constructor
     State() = delete;
     TLCT_API inline State(const State& cfg) noexcept = default;
     TLCT_API inline State(State&& cfg) noexcept = default;
-    TLCT_API inline State(const tcfg::tspc::Layout& layout, int views);
+    TLCT_API inline State(const TLayout& layout, int views);
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline State fromLayoutAndViews(const tcfg::tspc::Layout& layout, int views);
+    [[nodiscard]] TLCT_API static inline State fromLayoutAndViews(const TLayout& layout, int views);
 
     // Non-const methods
     TLCT_API inline void feed(cv::Mat&& newsrc);
@@ -41,7 +44,7 @@ public:
 
         // Initialize from
         [[nodiscard]] TLCT_API static inline iterator fromStateAndView(const State& state, int views, int view_row,
-                                                                       int view_col);
+                                                                       int view_col) noexcept;
 
         // Const methods
         [[nodiscard]] TLCT_API inline value_type operator*() const { return renderView(state_, view_row_, view_col_); };
@@ -69,11 +72,8 @@ public:
     };
     friend class iterator;
 
-    [[nodiscard]] TLCT_API inline iterator begin() const noexcept
-    {
-        return iterator::fromStateAndView(*this, views_, 0, 0);
-    }
-    [[nodiscard]] TLCT_API inline iterator end() const noexcept
+    [[nodiscard]] TLCT_API iterator begin() const noexcept { return iterator::fromStateAndView(*this, views_, 0, 0); }
+    [[nodiscard]] TLCT_API iterator end() const noexcept
     {
         return iterator::fromStateAndView(*this, views_, views_, 0);
     }
@@ -82,7 +82,7 @@ public:
     TLCT_API friend inline cv::Mat renderView(const State& state, int view_row, int view_col);
 
 private:
-    const tcfg::tspc::Layout& layout_;
+    const TLayout& layout_;
     int views_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
@@ -103,7 +103,9 @@ private:
     cv::Range canvas_crop_roi_[2];
 };
 
-State::State(const tcfg::tspc::Layout& layout, int views)
+static_assert(concepts::CState<State>);
+
+State::State(const TLayout& layout, int views)
     : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_(), src_64f_()
 {
     const int upsample = layout.getUpsample();
@@ -126,11 +128,11 @@ State::State(const tcfg::tspc::Layout& layout, int views)
     canvas_crop_roi_[1] = cv::Range{p_resize_width_withbound_ / 2, canvas_width_ - p_resize_width_withbound_ / 2};
 }
 
-State State::fromLayoutAndViews(const tcfg::tspc::Layout& layout, int views) { return {layout, views}; }
+State State::fromLayoutAndViews(const TLayout& layout, int views) { return {layout, views}; }
 
 void State::feed(cv::Mat&& newsrc)
 {
-    tcfg::tspc::Layout::procImg_(layout_, newsrc, src_);
+    TLayout::procImg_(layout_, newsrc, src_);
     cv::cvtColor(src_, gray_src_, cv::COLOR_BGR2GRAY);
     src_.convertTo(src_64f_, CV_64FC3);
 
@@ -141,7 +143,7 @@ void State::feed(cv::Mat&& newsrc)
     }
 }
 
-State::iterator State::iterator::fromStateAndView(const State& state, int views, int view_row, int view_col)
+State::iterator State::iterator::fromStateAndView(const State& state, int views, int view_row, int view_col) noexcept
 {
     return {state, views, view_row, view_col};
 }
