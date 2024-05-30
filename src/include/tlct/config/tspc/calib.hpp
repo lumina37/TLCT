@@ -27,7 +27,7 @@ public:
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLDoc(const pugi::xml_document& doc);
-    [[nodiscard]] TLCT_API static inline CalibConfig fromXMLPath(const char* path);
+    [[nodiscard]] TLCT_API static inline CalibConfig fromXMLPath(const std::string_view& path);
 
 private:
     cv::Point2d left_top_;
@@ -70,10 +70,10 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     return {left_top, right_top, left_bottom, rows, cols, diameter, rotation};
 }
 
-CalibConfig CalibConfig::fromXMLPath(const char* path)
+CalibConfig CalibConfig::fromXMLPath(const std::string_view& path)
 {
     pugi::xml_document doc;
-    const auto ret = doc.load_file(path, pugi::parse_minimal, pugi::encoding_utf8);
+    const auto ret = doc.load_file(path.data(), pugi::parse_minimal, pugi::encoding_utf8);
     if (!ret) {
         return {};
     }

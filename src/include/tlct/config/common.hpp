@@ -23,7 +23,7 @@ public:
     TLCT_API explicit inline CommonParamConfig(ConfigMap cfg_map) : cfg_map_(std::move(cfg_map)){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline CommonParamConfig fromPath(const char* path);
+    [[nodiscard]] TLCT_API static inline CommonParamConfig fromPath(const std::string_view& path);
 
     // Const methods
     [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
@@ -34,9 +34,9 @@ private:
     ConfigMap cfg_map_;
 };
 
-CommonParamConfig CommonParamConfig::fromPath(const char* path)
+CommonParamConfig CommonParamConfig::fromPath(const std::string_view& path)
 {
-    std::ifstream fs(path);
+    std::ifstream fs(path.data());
     if (!fs) {
         return {};
     }
