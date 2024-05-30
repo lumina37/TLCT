@@ -12,7 +12,7 @@ TEST(CommonParamConfig, TSPC)
 {
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     const fs::path cfg_path = testdata_dir / "config/TSPC/param.cfg";
-    const auto config = cfg::CommonParamConfig::fromPath(cfg_path.string().c_str());
+    const auto config = cfg::CommonParamConfig::fromPath(cfg_path.string());
 
     EXPECT_FALSE(config.isEmpty());
     EXPECT_EQ(config.getCameraType(), 1);
