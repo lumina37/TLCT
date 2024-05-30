@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
@@ -38,6 +39,7 @@ CommonParamConfig CommonParamConfig::fromPath(const std::string_view& path)
 {
     std::ifstream fs(path.data());
     if (!fs) {
+        std::cerr << "Failed to load `" << typeid(CommonParamConfig).name() << "` from `" << path << "`!" << std::endl;
         return {};
     }
 

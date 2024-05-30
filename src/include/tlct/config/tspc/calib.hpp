@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <opencv2/core.hpp>
 #include <pugixml.hpp>
 
@@ -75,6 +77,7 @@ CalibConfig CalibConfig::fromXMLPath(const std::string_view& path)
     pugi::xml_document doc;
     const auto ret = doc.load_file(path.data(), pugi::parse_minimal, pugi::encoding_utf8);
     if (!ret) {
+        std::cerr << "Failed to load `" << typeid(CalibConfig).name() << "` from `" << path << "`!" << std::endl;
         return {};
     }
     return CalibConfig::fromXMLDoc(doc);
