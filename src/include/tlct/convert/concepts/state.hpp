@@ -21,7 +21,7 @@ concept CState = requires {
     };
 } && requires {
     // Non-const methods
-    requires requires(Self self, cv::Mat&& newsrc) { self.feed(std::move(newsrc)); };
+    requires requires(Self self, const cv::Mat& newsrc) { self.feed(newsrc); };
 } && requires {
     // Iterator
     rgs::forward_range<Self>;

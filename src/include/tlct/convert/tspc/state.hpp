@@ -31,7 +31,7 @@ public:
     [[nodiscard]] TLCT_API static inline State fromLayoutAndViews(const TLayout& layout, int views);
 
     // Non-const methods
-    TLCT_API inline void feed(cv::Mat&& newsrc);
+    TLCT_API inline void feed(const cv::Mat& newsrc);
 
     // Iterator
     class iterator
@@ -89,7 +89,6 @@ private:
     int views_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
-    cv::Mat src_;
     cv::Mat gray_src_;
     cv::Mat src_64f_;
     int patch_resize_width_; // the extracted patch will be zoomed to this height
@@ -109,7 +108,7 @@ private:
 static_assert(concepts::CState<State>);
 
 State::State(const TLayout& layout, int views)
-    : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_(), src_64f_()
+    : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_64f_()
 {
     const int upsample = layout.getUpsample();
     patch_resize_width_ = 20 * upsample;
@@ -133,11 +132,12 @@ State::State(const TLayout& layout, int views)
 
 State State::fromLayoutAndViews(const TLayout& layout, int views) { return {layout, views}; }
 
-void State::feed(cv::Mat&& newsrc)
+void State::feed(const cv::Mat& newsrc)
 {
-    TLayout::procImg_(layout_, newsrc, src_);
-    cv::cvtColor(src_, gray_src_, cv::COLOR_BGR2GRAY);
-    src_.convertTo(src_64f_, CV_64FC3);
+    cv::Mat proced_src;
+    TLayout::procImg_(layout_, newsrc, proced_src);
+    cv::cvtColor(proced_src, gray_src_, cv::COLOR_BGR2GRAY);
+    proced_src.convertTo(src_64f_, CV_64FC3);
 
     prev_patchsizes_ = std::move(patchsizes_);
     patchsizes_ = estimatePatchsizes(*this);
