@@ -12,13 +12,6 @@
 
 namespace tlct::cfg::tspc {
 
-struct TLCT_API BorderCheckList {
-    bool up = false;
-    bool down = false;
-    bool left = false;
-    bool right = false;
-};
-
 class Layout
 {
 public:
@@ -64,9 +57,6 @@ public:
     // Utils
     TLCT_API static inline void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst);
     [[nodiscard]] TLCT_API static inline cv::Mat procImg(const Layout& layout, const cv::Mat& src);
-
-    template <BorderCheckList checklist = {true, true, true, true}>
-    [[nodiscard]] inline bool isMIBroken(cv::Point2d micenter) const noexcept;
 
 private:
     cv::Point2d left_top_;
@@ -172,66 +162,6 @@ cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
 }
 
 cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
-
-template <BorderCheckList checklist>
-bool Layout::isMIBroken(const cv::Point2d micenter) const noexcept
-{
-    if (checklist.up && micenter.y < radius_) {
-        return true;
-    }
-    if (checklist.down && micenter.y > imgsize_.height - radius_) {
-        return true;
-    }
-    if (checklist.left && micenter.x < radius_) {
-        return true;
-    }
-    if (checklist.right && micenter.x > imgsize_.width - radius_) {
-        return true;
-    }
-    return false;
-}
-
-template <BorderCheckList checklist>
-cv::Rect restrictToImgBorder(const Layout& layout, const cv::Rect area) noexcept
-{
-    cv::Rect modarea{area};
-
-    if (checklist.up && area.y < 0) {
-        modarea.y = 0;
-    }
-    if (checklist.down && area.y + area.height > layout.getImgHeight()) {
-        modarea.height = layout.getImgHeight() - modarea.y;
-    }
-    if (checklist.left && area.x < 0) {
-        modarea.x = 0;
-    }
-    if (checklist.right && area.x + area.width > layout.getImgWidth()) {
-        modarea.width = layout.getImgWidth() - modarea.x;
-    }
-
-    return modarea;
-}
-
-template <BorderCheckList checklist>
-std::vector<cv::Range> restrictToImgBorder(const Layout& layout, const std::vector<cv::Range>& ranges) noexcept
-{
-    std::vector<cv::Range> modranges{ranges};
-
-    if (checklist.up && ranges[0].start < 0) {
-        modranges[0].start = 0;
-    }
-    if (checklist.down && ranges[0].end > layout.getImgHeight()) {
-        modranges[0].end = layout.getImgHeight();
-    }
-    if (checklist.left && ranges[1].start < 0) {
-        modranges[1].start = 0;
-    }
-    if (checklist.right && ranges[1].end > layout.getImgWidth()) {
-        modranges[1].end = layout.getImgWidth();
-    }
-
-    return modranges;
-}
 
 void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
 {
