@@ -90,7 +90,7 @@ private:
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
     cv::Mat gray_src_;
-    cv::Mat src_64f_;
+    cv::Mat src_32f_;
     int patch_resize_width_; // the extracted patch will be zoomed to this height
     int patch_resize_height_;
     int bound_;
@@ -108,7 +108,7 @@ private:
 static_assert(concepts::CState<State>);
 
 State::State(const TLayout& layout, int views)
-    : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_64f_()
+    : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_32f_()
 {
     const int upsample = layout.getUpsample();
     // This indirectly controls the final output size. DO NOT make it too large.
@@ -144,7 +144,7 @@ void State::feed(const cv::Mat& newsrc)
     cv::Mat proced_src;
     TLayout::procImg_(layout_, newsrc, proced_src);
     cv::cvtColor(proced_src, gray_src_, cv::COLOR_BGR2GRAY);
-    proced_src.convertTo(src_64f_, CV_64FC3);
+    proced_src.convertTo(src_32f_, CV_32FC3);
 
     prev_patchsizes_ = std::move(patchsizes_);
     patchsizes_ = estimatePatchsizes(*this);

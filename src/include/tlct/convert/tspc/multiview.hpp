@@ -22,8 +22,8 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
 
     const int canvas_height = state.canvas_height_;
     const int canvas_width = state.canvas_width_;
-    cv::Mat render_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC3);
-    cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_64FC1);
+    cv::Mat render_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_32FC3);
+    cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_32FC1);
 
     const int p_resize_width_withbound = state.p_resize_width_withbound_;
     cv::Mat rotated_patch, resized_patch;
@@ -41,7 +41,7 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             const int patch_lefttop_x = (int)std::round(center.x - (double)psize / 2.0 - bound + view_shift_x);
             const int patch_lefttop_y = (int)std::round(center.y - (double)psize / 2.0 - bound + view_shift_y);
             const cv::Mat patch =
-                state.src_64f_({patch_lefttop_x, patch_lefttop_y, psize_with_bound, psize_with_bound});
+                state.src_32f_({patch_lefttop_x, patch_lefttop_y, psize_with_bound, psize_with_bound});
 
             // Paste patch
             cv::rotate(patch, rotated_patch, cv::ROTATE_180);

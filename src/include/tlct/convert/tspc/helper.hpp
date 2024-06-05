@@ -6,7 +6,7 @@ namespace tlct::cvt::tspc::_hp {
 
 static inline cv::Mat rectWithFadeoutBorder(const cv::Size size, const int border_width)
 {
-    cv::Mat rect = cv::Mat::ones(size, CV_64FC1);
+    cv::Mat rect = cv::Mat::ones(size, CV_32FC1);
 
     cv::Point lefttop{0, 0};
     cv::Point rightbot{rect.cols - 1, rect.rows - 1};
