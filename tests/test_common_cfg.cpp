@@ -15,5 +15,5 @@ TEST(CommonParamConfig, TSPC)
     const auto config = cfg::CommonParamConfig::fromPath(cfg_path.string());
 
     EXPECT_FALSE(config.isEmpty());
-    EXPECT_EQ(config.getCameraType(), 1);
+    EXPECT_EQ(config.getPipelineType(), cfg::PipelineType::TLCT);
 }

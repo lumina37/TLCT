@@ -10,6 +10,8 @@
 
 namespace tlct::cfg {
 
+enum class PipelineType { RLC, TLCT };
+
 using ConfigMap = std::map<std::string, std::string>;
 
 class CommonParamConfig
@@ -28,7 +30,7 @@ public:
 
     // Const methods
     [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
-    [[nodiscard]] TLCT_API inline int getCameraType() const noexcept;
+    [[nodiscard]] TLCT_API inline PipelineType getPipelineType() const noexcept;
     [[nodiscard]] TLCT_API inline const ConfigMap& getConfigMap() const noexcept;
 
 private:
@@ -46,6 +48,9 @@ CommonParamConfig CommonParamConfig::fromPath(const std::string_view& path)
     std::map<std::string, std::string> cfg_map;
     std::string row;
     while (std::getline(fs, row)) {
+        if (row.empty() || row.starts_with('=')) {
+            break;
+        }
         std::istringstream srow(row);
         std::string key, value;
         srow >> key;
@@ -58,15 +63,15 @@ CommonParamConfig CommonParamConfig::fromPath(const std::string_view& path)
 
 bool CommonParamConfig::isEmpty() const noexcept { return cfg_map_.empty(); }
 
-int CommonParamConfig::getCameraType() const noexcept
+PipelineType CommonParamConfig::getPipelineType() const noexcept
 {
-    const auto it = cfg_map_.find("camType");
+    const auto it = cfg_map_.find("pipeline");
     if (it == cfg_map_.end()) {
-        return 0;
+        return PipelineType::RLC;
     }
     const std::string& val = it->second;
     const int ival = std::stoi(val);
-    return ival;
+    return (PipelineType)ival;
 }
 
 const ConfigMap& CommonParamConfig::getConfigMap() const noexcept { return cfg_map_; }
