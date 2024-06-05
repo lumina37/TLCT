@@ -26,16 +26,20 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const cv::Point2d curr_center = layout.getMICenter(index);
     const cv::Point2d neib_center = layout.getMICenter(index.y, index.x + 1);
 
-    const int row_shift = (int)(12.0 / 70.0 * layout.getDiameter());
-    const int col_start_shift = (int)(-14.0 / 70.0 * layout.getDiameter());
-    const int col_end_shift = (int)(-4.0 / 70.0 * layout.getDiameter());
+    // Controls the area size for SSIM comparison. Selected by Guotai J.
+    constexpr double cmp_row_range_shift_factor = 0.17;
+    constexpr double cmp_col_range_start_factor = -0.2;
+    constexpr double cmp_col_range_end_factor = -0.057;
+    const int cmp_row_range_shift = (int)(cmp_row_range_shift_factor * layout.getDiameter());
+    const int cmp_col_range_start = (int)(cmp_col_range_start_factor * layout.getDiameter());
+    const int cmp_col_range_end = (int)(cmp_col_range_end_factor * layout.getDiameter());
 
     const int prev_psize_idx = prev_psize_indices.at<int>(index.y, index.x);
 
-    const cv::Range curr_cmp_row_range{(int)std::round(curr_center.y - row_shift),
-                                       (int)std::round(curr_center.y + row_shift)};
-    const cv::Range curr_cmp_col_range{(int)std::round(curr_center.x + col_start_shift),
-                                       (int)std::round(curr_center.x + col_end_shift)};
+    const cv::Range curr_cmp_row_range{(int)std::round(curr_center.y - cmp_row_range_shift),
+                                       (int)std::round(curr_center.y + cmp_row_range_shift)};
+    const cv::Range curr_cmp_col_range{(int)std::round(curr_center.x + cmp_col_range_start),
+                                       (int)std::round(curr_center.x + cmp_col_range_end)};
     if (curr_cmp_row_range.end > gray_src.rows || curr_cmp_col_range.end > gray_src.cols) {
         return prev_psize_idx;
     }
@@ -52,10 +56,10 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
             return ssims_over_mdist[mdist_idx];
         }
 
-        const cv::Range neib_cmp_row_range{(int)std::round(neib_center.y - row_shift),
-                                           (int)std::round(neib_center.y + row_shift)};
-        const cv::Range neib_cmp_col_range{(int)std::round(neib_center.x + col_start_shift) + mdist,
-                                           (int)std::round(neib_center.x + col_end_shift) + mdist};
+        const cv::Range neib_cmp_row_range{(int)std::round(neib_center.y - cmp_row_range_shift),
+                                           (int)std::round(neib_center.y + cmp_row_range_shift)};
+        const cv::Range neib_cmp_col_range{(int)std::round(neib_center.x + cmp_col_range_start) + mdist,
+                                           (int)std::round(neib_center.x + cmp_col_range_end) + mdist};
         if (neib_cmp_row_range.end > gray_src.rows || neib_cmp_col_range.end > gray_src.cols) {
             return default_ssim;
         }
@@ -67,6 +71,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
         return ssim;
     };
 
+    // Artifacts if the threshold is too small. Glitches if the threshold is too large.
     constexpr double ssim_threshold = 0.875;
     if (calc_ssim_with_mdist(prev_psize_idx + match_range.start) > ssim_threshold) {
         return prev_psize_idx;
@@ -166,8 +171,11 @@ cv::Mat estimatePatchsizes(const State& state)
 {
     const auto& layout = state.layout_;
 
-    const int match_start = (int)(15.0 / 70.0 * layout.getDiameter());
-    const int match_end = (int)(29.0 / 70.0 * layout.getDiameter());
+    // Indirectly controls the depth range.
+    constexpr double match_start_factor = 0.214; // set this smaller to adapt images with large DoF.
+    constexpr double match_end_factor = 0.414;   // set this larger to adapt images with small DoF.
+    const int match_start = (int)(match_start_factor * layout.getDiameter());
+    const int match_end = (int)(match_end_factor * layout.getDiameter());
 
     cv::Mat psize_indices = cv::Mat::zeros(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1);
     cv::Mat prev_psize_indices;

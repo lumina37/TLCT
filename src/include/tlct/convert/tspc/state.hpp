@@ -111,14 +111,21 @@ State::State(const TLayout& layout, int views)
     : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_64f_()
 {
     const int upsample = layout.getUpsample();
-    patch_resize_width_ = (int)std::round(20.0 / 70.0 * layout.getDiameter());
+    // This indirectly controls the final output size. DO NOT make it too large.
+    constexpr double patch_resize_width_factor = 0.285;
+    patch_resize_width_ = (int)std::round(patch_resize_width_factor * layout.getDiameter());
     patch_resize_height_ = (int)std::round((double)patch_resize_width_ * std::numbers::sqrt3 / 2.0);
-    bound_ = (int)std::round(4.0 / 70.0 * layout.getDiameter());
+    // Block effect if the bound is too small. Blurring if the bound is too large.
+    constexpr double patch_bound_factor = 0.06;
+    bound_ = (int)std::round(patch_bound_factor * layout.getDiameter());
 
     p_resize_width_withbound_ = patch_resize_width_ + 2 * bound_;
     patch_fadeout_weight_ = _hp::rectWithFadeoutBorder({p_resize_width_withbound_, p_resize_width_withbound_}, bound_);
 
-    move_range_ = (int)std::round(12.0 / 70.0 * layout.getDiameter());
+    // Controls the view shift.
+    // The distance between the patches from the left and middle viewpoint is `move_range_` pix.
+    constexpr double move_range_factor = 0.085;
+    move_range_ = (int)std::round(move_range_factor * layout.getDiameter() * 2.0);
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
     canvas_width_ = (layout.getMIMinCols() - 1) * patch_resize_width_ + 2 * bound_ + patch_resize_width_ / 2;
