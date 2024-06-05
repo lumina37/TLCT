@@ -111,9 +111,9 @@ State::State(const TLayout& layout, int views)
     : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_64f_()
 {
     const int upsample = layout.getUpsample();
-    patch_resize_width_ = 20 * upsample;
+    patch_resize_width_ = (int)std::round(20.0 / 70.0 * layout.getDiameter());
     patch_resize_height_ = (int)std::round((double)patch_resize_width_ * std::numbers::sqrt3 / 2.0);
-    bound_ = 4 * upsample;
+    bound_ = (int)std::round(4.0 / 70.0 * layout.getDiameter());
 
     p_resize_width_withbound_ = patch_resize_width_ + 2 * bound_;
     patch_fadeout_weight_ = _hp::rectWithFadeoutBorder({p_resize_width_withbound_, p_resize_width_withbound_}, bound_);
