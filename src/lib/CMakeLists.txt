@@ -9,7 +9,11 @@ else ()
         set(TLCT_LIB_TYPE "STATIC")
     endif ()
     set(TLCT_LIB_DEP_SCOPE "PUBLIC")
+
     set(TLCT_LIB_SRCS "lib.cpp")
+    if (PUGIXML_HEADER_ONLY)
+        list(APPEND TLCT_LIB_SRCS "${pugixml_SOURCE_DIR}/src/pugixml.cpp")
+    endif ()
 endif ()
 
 set(TLCT_LIB_NAME tlct)
@@ -27,4 +31,4 @@ target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         "${PROJECT_SOURCE_DIR}/src/include")
 target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
-        pugixml)
+        $<$<NOT:$<BOOL:${PUGIXML_HEADER_ONLY}>>:pugixml>)
