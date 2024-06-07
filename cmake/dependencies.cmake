@@ -2,22 +2,30 @@ include(FetchContent)
 
 find_package(OpenCV COMPONENTS core imgcodecs imgproc quality)
 
-cmake_dependent_option(TLCT_PUGIXML_GITREPO "Specifies the git repo of pugixml"
-        "" "TLCT_LOCAL_DEPS" "https://github.com/zeux/pugixml.git")
-set(PUGIXML_NO_XPATH ON CACHE BOOL "" FORCE)
-set(PUGIXML_NO_EXCEPTIONS ON CACHE BOOL "" FORCE)
-set(PUGIXML_NO_STL ON CACHE BOOL "" FORCE)
-FetchContent_Declare(
-        pugixml
-        GIT_REPOSITORY ${TLCT_PUGIXML_GITREPO}
-        GIT_TAG v1.14
-)
+set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml.git" CACHE STRING
+        "Specifies the path of pugixml (git repo or local dir)" FORCE)
+set(PUGIXML_NO_XPATH ON CACHE INTERNAL "" FORCE)
+set(PUGIXML_NO_EXCEPTIONS ON CACHE INTERNAL "" FORCE)
+set(PUGIXML_NO_STL ON CACHE INTERNAL "" FORCE)
+
+if (TLCT_PUGIXML_PATH MATCHES "\.git$")
+    FetchContent_Declare(
+            pugixml
+            GIT_REPOSITORY ${TLCT_PUGIXML_PATH}
+            GIT_TAG v1.14
+    )
+else ()
+    FetchContent_Declare(
+            pugixml
+            URL ${TLCT_PUGIXML_PATH}
+    )
+endif ()
 FetchContent_MakeAvailable(pugixml)
 
 if (TLCT_BUILD_TESTS)
-    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-    set(GTEST_LINKED_AS_SHARED_LIBRARY 1 CACHE BOOL "" FORCE)
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    set(BUILD_GMOCK OFF CACHE INTERNAL "" FORCE)
+    set(GTEST_LINKED_AS_SHARED_LIBRARY 1 CACHE INTERNAL "" FORCE)
+    set(gtest_force_shared_crt ON CACHE INTERNAL "" FORCE)
     FetchContent_Declare(
             googletest
             GIT_REPOSITORY https://github.com/google/googletest.git
