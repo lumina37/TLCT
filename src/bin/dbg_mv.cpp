@@ -22,12 +22,6 @@ int main(int argc, char* argv[])
     auto state = tcvt::State::fromLayoutAndViews(layout, param_cfg.getViews());
 
     const cv::Range range = param_cfg.getRange();
-    if (range.size() > 1) {
-        // For a better patch size estimation
-        const auto initpath = ParamConfig::fmtSrcPath(param_cfg, range.start);
-        state.feed(cv::imread(initpath.string()));
-    }
-
     for (int i = range.start; i <= range.end; i++) {
         const auto srcpath = ParamConfig::fmtSrcPath(param_cfg, i);
         state.feed(cv::imread(srcpath.string()));
