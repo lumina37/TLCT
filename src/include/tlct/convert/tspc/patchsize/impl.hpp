@@ -9,7 +9,7 @@
 #include <opencv2/quality.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/tspc.hpp"
+#include "tlct/config/tspc/layout.hpp"
 #include "tlct/convert/tspc/state.hpp"
 #include "tlct/helper/static_math.hpp"
 

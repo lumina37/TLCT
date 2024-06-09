@@ -1,5 +1,6 @@
 #pragma once
 
-#include "patchsize/algorithm.hpp"
-#include "patchsize/helper.hpp"
+#include "patchsize/impl.hpp"
+#include "patchsize/surround.hpp"
 #include "patchsize/topk.hpp"
+#include "patchsize/feature.hpp"
