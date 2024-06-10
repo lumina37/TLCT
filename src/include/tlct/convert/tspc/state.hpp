@@ -5,15 +5,15 @@
 
 #include <opencv2/core.hpp>
 
-#include "patchsize/feature.hpp"
+#include "patchsize/features.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/concepts/state.hpp"
 
 namespace tlct::cvt::tspc {
 
-namespace tcfg = tlct::cfg;
 namespace rgs = std::ranges;
+namespace tcfg = tlct::cfg;
 
 class State
 {

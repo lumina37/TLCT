@@ -5,8 +5,8 @@
 #include "tlct/common/cmake.h"
 #include "tlct/config/tspc.hpp"
 
-namespace tcfg = tlct::cfg::tspc;
 namespace fs = std::filesystem;
+namespace tcfg = tlct::cfg::tspc;
 
 using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
 

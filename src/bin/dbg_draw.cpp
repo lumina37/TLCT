@@ -5,13 +5,13 @@
 
 #include "tlct.hpp"
 
-namespace tcfg = tlct::cfg::tspc;
 namespace rgs = std::ranges;
+namespace tcfg = tlct::cfg::tspc;
 
 int main()
 {
-    const cv::Mat src = cv::imread("NagoyaFujita.png");
-    const auto config = tcfg::CalibConfig::fromXMLPath("NagoyaFujita.xml");
+    const cv::Mat src = cv::imread("Cars.png");
+    const auto config = tcfg::CalibConfig::fromXMLPath("Cars.xml");
     const auto layout = tcfg::Layout::fromCfgAndImgsize(config, src.size());
     const cv::Mat resized_img = tcfg::Layout::procImg(layout, src);
 

@@ -40,7 +40,7 @@ public:
     using iterator = TData::iterator;
     using const_iterator = TData::const_iterator;
 
-    TLCT_API inline void push(const TPixel pixel)
+    TLCT_API inline void push(const TPixel pixel) noexcept
     {
         if (size_ < dsize) {
             // Direct insert if `data_` is not full yet.
@@ -61,37 +61,19 @@ public:
         }
     }
 
-    [[nodiscard]] TLCT_API inline int size() const { return size_; }
-    [[nodiscard]] TLCT_API inline bool empty() const { return size() == 0; }
+    [[nodiscard]] TLCT_API inline int size() const noexcept { return size_; }
+    [[nodiscard]] TLCT_API inline bool empty() const noexcept { return size() == 0; }
 
-    [[nodiscard]] TLCT_API inline iterator begin() { return data_.begin(); }
-    [[nodiscard]] TLCT_API inline iterator end() { return data_.end(); }
-    [[nodiscard]] TLCT_API inline const_iterator begin() const { return data_.begin(); }
-    [[nodiscard]] TLCT_API inline const_iterator end() const { return data_.end(); }
+    [[nodiscard]] TLCT_API inline iterator begin() noexcept { return data_.begin(); }
+    [[nodiscard]] TLCT_API inline iterator end() noexcept { return data_.end(); }
+    [[nodiscard]] TLCT_API inline const_iterator begin() const noexcept { return data_.begin(); }
+    [[nodiscard]] TLCT_API inline const_iterator end() const noexcept { return data_.end(); }
 
 private:
     TData data_;
     int size_;
 };
 
-using PixHeap = PixHeap_<Pixel::TValue, 2>;
-
-TLCT_API inline PixHeap statTopKFeaturePoints(const cv::Mat src, const float accept_threshold = 64.0)
-{
-    assert(src.type() == CV_32F);
-
-    PixHeap heap{};
-    for (const int irow : rgs::views::iota(0, src.rows)) {
-        const auto prow = src.ptr<float>(irow);
-        for (const int icol : rgs::views::iota(0, src.cols)) {
-            const float response = prow[icol];
-            if (response > accept_threshold) {
-                heap.push({{icol, irow}, response});
-            }
-        }
-    }
-
-    return heap;
-}
+using PixHeap = PixHeap_<Pixel::TValue, 1>;
 
 } // namespace tlct::cvt::tspc

@@ -1,6 +1,6 @@
 #pragma once
 
+#include "patchsize/features.hpp"
 #include "patchsize/impl.hpp"
-#include "patchsize/surround.hpp"
-#include "patchsize/topk.hpp"
-#include "patchsize/feature.hpp"
+#include "patchsize/neighbors.hpp"
+#include "patchsize/pixel_heap.hpp"

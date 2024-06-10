@@ -5,8 +5,8 @@
 #include "tlct/common/cmake.h"
 #include "tlct/config/common.hpp"
 
-using namespace tlct;
 namespace fs = std::filesystem;
+using namespace tlct;
 
 TEST(CommonParamConfig, TSPC)
 {

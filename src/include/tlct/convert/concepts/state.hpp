@@ -9,8 +9,8 @@
 
 namespace tlct::cvt::concepts {
 
-namespace tcfg = tlct::cfg;
 namespace rgs = std::ranges;
+namespace tcfg = tlct::cfg;
 
 template <typename Self>
 concept CState = requires {

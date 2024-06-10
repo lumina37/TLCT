@@ -4,6 +4,8 @@
 
 #include <opencv2/core.hpp>
 
+namespace tlct::cvt::_hp {
+
 static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2d& center, const double width) noexcept
 {
     const int startx = (int)(center.x - width / 2.0);
@@ -36,3 +38,5 @@ static inline cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Po
     cv::Mat roi = src(rect);
     return std::move(roi);
 }
+
+} // namespace tlct::cvt::_hp

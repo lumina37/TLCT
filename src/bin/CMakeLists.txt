@@ -7,3 +7,4 @@ endfunction()
 
 tlct_add_executable(dbg_mv "dbg_mv.cpp")
 tlct_add_executable(dbg_draw "dbg_draw.cpp")
+tlct_add_executable(dbg_psize "dbg_psize.cpp")
