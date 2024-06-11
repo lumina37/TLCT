@@ -18,10 +18,10 @@ public:
     // Constructor
     TLCT_API inline CalibConfig() noexcept
         : left_top_(), right_top_(), left_bottom_(), rows_(), cols_(), diameter_(), rotation_(){};
-    TLCT_API inline CalibConfig& operator=(const CalibConfig& cfg) noexcept = default;
-    TLCT_API inline CalibConfig(const CalibConfig& cfg) noexcept = default;
-    TLCT_API inline CalibConfig& operator=(CalibConfig&& cfg) noexcept = default;
-    TLCT_API inline CalibConfig(CalibConfig&& cfg) noexcept = default;
+    TLCT_API inline CalibConfig& operator=(const CalibConfig& rhs) noexcept = default;
+    TLCT_API inline CalibConfig(const CalibConfig& rhs) noexcept = default;
+    TLCT_API inline CalibConfig& operator=(CalibConfig&& rhs) noexcept = default;
+    TLCT_API inline CalibConfig(CalibConfig&& rhs) noexcept = default;
     TLCT_API inline CalibConfig(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom,
                                 int rows, int cols, double diameter, double rotation) noexcept
         : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), rows_(rows), cols_(cols),

@@ -1,21 +1,19 @@
 #pragma once
 
 #include <algorithm>
-#include <cmath>
 #include <numbers>
 #include <numeric>
 #include <ranges>
 #include <set>
 #include <vector>
 
-#include <opencv2/imgproc.hpp>
+#include <opencv2/core.hpp>
 
 #include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/tspc/state.hpp"
-#include "tlct/helper/static_math.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -78,7 +76,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x -= (double)psize;
         if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
-            const cv::Point2d cmp_center = layout.getMICenter(neighbors.left) + cmp_shift;
+            const cv::Point2d cmp_center = layout.getMICenter(neighbors.getLeft()) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
             sad_num++;
@@ -88,7 +86,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x += (double)psize;
         if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
-            const cv::Point2d cmp_center = layout.getMICenter(neighbors.right) + cmp_shift;
+            const cv::Point2d cmp_center = layout.getMICenter(neighbors.getRight()) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
             sad_num++;
@@ -99,7 +97,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cmp_shift.x -= (double)psize * x_unit_shift;
         cmp_shift.y -= (double)psize * y_unit_shift;
         if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
-            const cv::Point2d cmp_center = layout.getMICenter(neighbors.upleft) + cmp_shift;
+            const cv::Point2d cmp_center = layout.getMICenter(neighbors.getUpLeft()) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
             sad_num++;
@@ -110,7 +108,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cmp_shift.x += (double)psize * x_unit_shift;
         cmp_shift.y -= (double)psize * y_unit_shift;
         if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
-            const cv::Point2d cmp_center = layout.getMICenter(neighbors.upright) + cmp_shift;
+            const cv::Point2d cmp_center = layout.getMICenter(neighbors.getUpRight()) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
             sad_num++;
@@ -121,18 +119,18 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cmp_shift.x -= (double)psize * x_unit_shift;
         cmp_shift.y += (double)psize * y_unit_shift;
         if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
-            const cv::Point2d cmp_center = layout.getMICenter(neighbors.downleft) + cmp_shift;
+            const cv::Point2d cmp_center = layout.getMICenter(neighbors.getDownLeft()) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
             sad_num++;
         }
     }
     if (neighbors.hasDownRight()) {
-        cv::Point2d cmp_shift = layout.getMICenter(neighbors.downright);
+        cv::Point2d cmp_shift = layout.getMICenter(neighbors.getDownRight());
         cmp_shift.x += (double)psize * x_unit_shift;
         cmp_shift.y += (double)psize * y_unit_shift;
         if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
-            const cv::Point2d cmp_center = layout.getMICenter(neighbors.downright) + cmp_shift;
+            const cv::Point2d cmp_center = layout.getMICenter(neighbors.getDownRight()) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
             sad_num++;
@@ -150,29 +148,29 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeibMII
     std::set<int> ref_psizes_set;
 
     if (neighbors.hasLeft()) {
-        const int psize = psizes.at<int>(neighbors.left);
+        const int psize = psizes.at<int>(neighbors.getLeft());
         ref_psizes_set.insert(psize);
     }
     if (neighbors.hasUpLeft()) {
-        const int psize = psizes.at<int>(neighbors.upleft);
+        const int psize = psizes.at<int>(neighbors.getUpLeft());
         ref_psizes_set.insert(psize);
     }
     if (neighbors.hasUpRight()) {
-        const int psize = psizes.at<int>(neighbors.upright);
+        const int psize = psizes.at<int>(neighbors.getUpRight());
         ref_psizes_set.insert(psize);
     }
 
     if constexpr (!left_and_up_only) {
         if (neighbors.hasRight()) {
-            const int psize = psizes.at<int>(neighbors.right);
+            const int psize = psizes.at<int>(neighbors.getRight());
             ref_psizes_set.insert(psize);
         }
         if (neighbors.hasDownLeft()) {
-            const int psize = psizes.at<int>(neighbors.downleft);
+            const int psize = psizes.at<int>(neighbors.getDownLeft());
             ref_psizes_set.insert(psize);
         }
         if (neighbors.hasDownRight()) {
-            const int psize = psizes.at<int>(neighbors.downright);
+            const int psize = psizes.at<int>(neighbors.getDownRight());
             ref_psizes_set.insert(psize);
         }
     }
@@ -197,7 +195,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     int sad_num = 0;
 
     if (neighbors.hasLeft()) {
-        const cv::Point2d cmp_center = layout.getMICenter(neighbors.left);
+        const cv::Point2d cmp_center = layout.getMICenter(neighbors.getLeft());
         cv::Point2d cmp_shift = curr_shift;
         const cv::Point2d cmp_shift_step{-1.0, 0.0};
 
@@ -222,7 +220,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     }
 
     if (neighbors.hasRight()) {
-        const cv::Point2d cmp_center = layout.getMICenter(neighbors.right);
+        const cv::Point2d cmp_center = layout.getMICenter(neighbors.getRight());
         cv::Point2d cmp_shift = curr_shift;
         const cv::Point2d cmp_shift_step{1.0, 0.0};
 
@@ -247,7 +245,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     }
 
     if (neighbors.hasUpLeft()) {
-        const cv::Point2d cmp_center = layout.getMICenter(neighbors.upleft);
+        const cv::Point2d cmp_center = layout.getMICenter(neighbors.getUpLeft());
         cv::Point2d cmp_shift = curr_shift;
         const cv::Point2d cmp_shift_step{-lean_xstep, -lean_ystep};
 
@@ -272,7 +270,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     }
 
     if (neighbors.hasUpRight()) {
-        const cv::Point2d cmp_center = layout.getMICenter(neighbors.upright);
+        const cv::Point2d cmp_center = layout.getMICenter(neighbors.getUpRight());
         cv::Point2d cmp_shift = curr_shift;
         const cv::Point2d cmp_shift_step{lean_xstep, -lean_ystep};
 
@@ -297,7 +295,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     }
 
     if (neighbors.hasDownLeft()) {
-        const cv::Point2d cmp_center = layout.getMICenter(neighbors.downleft);
+        const cv::Point2d cmp_center = layout.getMICenter(neighbors.getDownLeft());
         cv::Point2d cmp_shift = curr_shift;
         const cv::Point2d cmp_shift_step{-lean_xstep, lean_ystep};
 
@@ -322,7 +320,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     }
 
     if (neighbors.hasDownRight()) {
-        const cv::Point2d cmp_center = layout.getMICenter(neighbors.downright);
+        const cv::Point2d cmp_center = layout.getMICenter(neighbors.getDownRight());
         cv::Point2d cmp_shift = curr_shift;
         const cv::Point2d cmp_shift_step{lean_xstep, lean_ystep};
 

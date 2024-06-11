@@ -8,7 +8,9 @@
 #include "patchsize/features.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
+#include "tlct/convert/common/pixel_heap.hpp"
 #include "tlct/convert/concepts/state.hpp"
+#include "tlct/convert/tspc/patchsize/features.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -91,7 +93,7 @@ private:
     cv::Mat patchsizes_;
     cv::Mat gray_src_;
     cv::Mat src_32f_;
-    PixHeaps features_;
+    _hp::PixHeaps features_;
     int patch_resize_width_; // the extracted patch will be zoomed to this height
     int patch_resize_height_;
     int bound_;

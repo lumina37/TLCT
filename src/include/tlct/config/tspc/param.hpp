@@ -26,10 +26,10 @@ public:
     // Constructor
     TLCT_API inline ParamConfig() noexcept
         : calib_cfg_(), views_(), imgsize_(), range_(), src_pattern_(), dst_pattern_(){};
-    TLCT_API inline ParamConfig& operator=(const ParamConfig& cfg) noexcept = default;
-    TLCT_API inline ParamConfig(const ParamConfig& cfg) noexcept = default;
-    TLCT_API inline ParamConfig& operator=(ParamConfig&& cfg) noexcept = default;
-    TLCT_API inline ParamConfig(ParamConfig&& cfg) noexcept = default;
+    TLCT_API inline ParamConfig& operator=(const ParamConfig& rhs) noexcept = default;
+    TLCT_API inline ParamConfig(const ParamConfig& rhs) noexcept = default;
+    TLCT_API inline ParamConfig& operator=(ParamConfig&& rhs) noexcept = default;
+    TLCT_API inline ParamConfig(ParamConfig&& rhs) noexcept = default;
     TLCT_API inline ParamConfig(TCalibConfig calib_cfg, int views, cv::Size imgsize, cv::Range range,
                                 std::string src_pattern, std::string dst_pattern) noexcept
         : calib_cfg_(calib_cfg), views_(views), imgsize_(imgsize), range_(range), src_pattern_(std::move(src_pattern)),

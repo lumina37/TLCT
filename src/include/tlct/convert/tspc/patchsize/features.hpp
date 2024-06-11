@@ -6,20 +6,18 @@
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 
-#include "pixel_heap.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
+#include "tlct/convert/common/pixel_heap.hpp"
 #include "tlct/convert/helper.hpp"
 
-namespace tlct::cvt::tspc {
-
-using PixHeaps = std::vector<std::vector<PixHeap>>;
-
-namespace _hp {
+namespace tlct::cvt::tspc::_hp {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::tspc;
 using namespace tlct::cvt::_hp;
+
+using PixHeaps = std::vector<std::vector<PixHeap>>;
 
 TLCT_API inline PixHeap calcFeaturesInOneMI(const cv::Mat& src, const int border_width,
                                             const float accept_threshold = 64.0) noexcept
@@ -67,6 +65,4 @@ static inline PixHeaps calcFeatures(const tcfg::Layout& layout, const cv::Mat& g
     return std::move(features);
 }
 
-} // namespace _hp
-
-} // namespace tlct::cvt::tspc
+} // namespace tlct::cvt::tspc::_hp

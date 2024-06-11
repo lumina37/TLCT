@@ -22,10 +22,10 @@ public:
     TLCT_API inline Layout() noexcept
         : left_top_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), mirows_(), micols_(), imgsize_(), diameter_(),
           radius_(), rotation_(), upsample_(1){};
-    TLCT_API inline Layout& operator=(const Layout& layout) noexcept = default;
-    TLCT_API inline Layout(const Layout& layout) noexcept = default;
-    TLCT_API inline Layout& operator=(Layout&& layout) noexcept = default;
-    TLCT_API inline Layout(Layout&& layout) noexcept = default;
+    TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
+    TLCT_API inline Layout(const Layout& rhs) noexcept = default;
+    TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
+    TLCT_API inline Layout(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout(cv::Point2d point, cv::Size imgsize, double diameter, double rotation) noexcept;
 
     // Initialize from

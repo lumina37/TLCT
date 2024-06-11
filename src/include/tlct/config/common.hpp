@@ -19,10 +19,10 @@ class CommonParamConfig
 public:
     // Constructor
     TLCT_API inline CommonParamConfig() : cfg_map_(){};
-    TLCT_API inline CommonParamConfig& operator=(const CommonParamConfig& common_cfg) = default;
-    TLCT_API inline CommonParamConfig(const CommonParamConfig& common_cfg) = default;
-    TLCT_API inline CommonParamConfig& operator=(CommonParamConfig&& common_cfg) noexcept = default;
-    TLCT_API inline CommonParamConfig(CommonParamConfig&& common_cfg) noexcept = default;
+    TLCT_API inline CommonParamConfig& operator=(const CommonParamConfig& rhs) = default;
+    TLCT_API inline CommonParamConfig(const CommonParamConfig& rhs) = default;
+    TLCT_API inline CommonParamConfig& operator=(CommonParamConfig&& rhs) noexcept = default;
+    TLCT_API inline CommonParamConfig(CommonParamConfig&& rhs) noexcept = default;
     TLCT_API explicit inline CommonParamConfig(ConfigMap cfg_map) : cfg_map_(std::move(cfg_map)){};
 
     // Initialize from

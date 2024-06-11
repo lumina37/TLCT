@@ -6,7 +6,7 @@
 
 #include "tlct/common/defines.h"
 
-namespace tlct::cvt::tspc {
+namespace tlct::cvt {
 
 namespace rgs = std::ranges;
 
@@ -35,11 +35,17 @@ template <typename TValue, int dsize>
 class PixHeap_
 {
 public:
+    // Typename alias
     using TPixel = Pixel_<TValue>;
     using TData = std::array<TPixel, dsize>;
     using iterator = TData::iterator;
     using const_iterator = TData::const_iterator;
 
+    // Const methods
+    [[nodiscard]] TLCT_API inline int size() const noexcept { return size_; }
+    [[nodiscard]] TLCT_API inline bool empty() const noexcept { return size() == 0; }
+
+    // Non-const methods
     TLCT_API inline void push(const TPixel pixel) noexcept
     {
         if (size_ < dsize) {
@@ -61,9 +67,7 @@ public:
         }
     }
 
-    [[nodiscard]] TLCT_API inline int size() const noexcept { return size_; }
-    [[nodiscard]] TLCT_API inline bool empty() const noexcept { return size() == 0; }
-
+    // Iterator Proxy
     [[nodiscard]] TLCT_API inline iterator begin() noexcept { return data_.begin(); }
     [[nodiscard]] TLCT_API inline iterator end() noexcept { return data_.end(); }
     [[nodiscard]] TLCT_API inline const_iterator begin() const noexcept { return data_.begin(); }
@@ -76,4 +80,4 @@ private:
 
 using PixHeap = PixHeap_<Pixel::TValue, 1>;
 
-} // namespace tlct::cvt::tspc
+} // namespace tlct::cvt
