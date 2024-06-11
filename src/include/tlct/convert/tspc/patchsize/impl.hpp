@@ -42,19 +42,20 @@ static inline double calcSADWithTwoPoints(const cv::Mat& gray_src, const cv::Poi
     return calcSAD(lhs_roi, rhs_roi);
 }
 
-static inline bool isSafeShift(const cv::Point2d shift, const double radius, const double upsampled_ksize) noexcept
+static inline bool isSafeShift(const cv::Point2d shift, const double half_inscribed_sqr_size,
+                               const double upsampled_ksize) noexcept
 {
     const double half_ksize = upsampled_ksize / 2.0;
-    if (shift.x < -radius + half_ksize) {
+    if (shift.x < -half_inscribed_sqr_size + half_ksize) {
         return false;
     }
-    if (shift.y < -radius + half_ksize) {
+    if (shift.y < -half_inscribed_sqr_size + half_ksize) {
         return false;
     }
-    if (shift.x > radius - half_ksize) {
+    if (shift.x > half_inscribed_sqr_size - half_ksize) {
         return false;
     }
-    if (shift.y > radius - half_ksize) {
+    if (shift.y > half_inscribed_sqr_size - half_ksize) {
         return false;
     }
     return true;
@@ -67,6 +68,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
 {
     constexpr double x_unit_shift = 0.5;
     constexpr double y_unit_shift = std::numbers::sqrt3 / 2.0;
+    const double half_inscribed_sqr_size = layout.getRadius() / std::numbers::sqrt2;
     const cv::Point2d anchor = curr_center + curr_shift;
 
     std::array<double, NeibMIIndices::NEIB_NUM> sads{};
@@ -75,7 +77,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
     if (neighbors.hasLeft()) {
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x -= (double)psize;
-        if (isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+        if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
             const cv::Point2d cmp_center = layout.getMICenter(neighbors.left) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
@@ -85,7 +87,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
     if (neighbors.hasRight()) {
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x += (double)psize;
-        if (isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+        if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
             const cv::Point2d cmp_center = layout.getMICenter(neighbors.right) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
@@ -96,7 +98,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x -= (double)psize * x_unit_shift;
         cmp_shift.y -= (double)psize * y_unit_shift;
-        if (isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+        if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
             const cv::Point2d cmp_center = layout.getMICenter(neighbors.upleft) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
@@ -107,7 +109,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x += (double)psize * x_unit_shift;
         cmp_shift.y -= (double)psize * y_unit_shift;
-        if (isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+        if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
             const cv::Point2d cmp_center = layout.getMICenter(neighbors.upright) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
@@ -118,7 +120,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x -= (double)psize * x_unit_shift;
         cmp_shift.y += (double)psize * y_unit_shift;
-        if (isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+        if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
             const cv::Point2d cmp_center = layout.getMICenter(neighbors.downleft) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
@@ -129,7 +131,7 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
         cv::Point2d cmp_shift = layout.getMICenter(neighbors.downright);
         cmp_shift.x += (double)psize * x_unit_shift;
         cmp_shift.y += (double)psize * y_unit_shift;
-        if (isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+        if (isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
             const cv::Point2d cmp_center = layout.getMICenter(neighbors.downright) + cmp_shift;
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center, upsampled_ksize);
             sads[sad_num] = sad;
@@ -186,11 +188,12 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
 {
     constexpr double lean_xstep = 0.5;
     constexpr double lean_ystep = std::numbers::sqrt3 / 2.0;
-    const int max_valid_psize = (int)(layout.getRadius() / std::numbers::sqrt2);
+    const double half_inscribed_sqr_size = layout.getRadius() / std::numbers::sqrt2;
+    const int max_valid_psize = (int)half_inscribed_sqr_size;
     const cv::Point2d anchor = curr_center + curr_shift;
 
-    std::array<double, NeibMIIndices::NEIB_NUM> sads{};
-    std::fill(sads.begin(), sads.end(), INVALID_PSIZE);
+    std::array<int, NeibMIIndices::NEIB_NUM> psizes{};
+    std::fill(psizes.begin(), psizes.end(), INVALID_PSIZE);
     int sad_num = 0;
 
     if (neighbors.hasLeft()) {
@@ -202,7 +205,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         double min_sad = std::numeric_limits<double>::max();
         for (const int psize : rgs::views::iota(1, max_valid_psize)) {
             cmp_shift += cmp_shift_step;
-            if (!isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+            if (!isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
                 break;
             }
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center + cmp_shift, upsampled_ksize);
@@ -213,7 +216,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         }
 
         if (min_sad_psize != INVALID_PSIZE) {
-            sads[sad_num] = min_sad_psize;
+            psizes[sad_num] = min_sad_psize;
             sad_num++;
         }
     }
@@ -227,7 +230,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         double min_sad = std::numeric_limits<double>::max();
         for (const int psize : rgs::views::iota(1, max_valid_psize)) {
             cmp_shift += cmp_shift_step;
-            if (!isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+            if (!isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
                 break;
             }
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center + cmp_shift, upsampled_ksize);
@@ -238,7 +241,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         }
 
         if (min_sad_psize != INVALID_PSIZE) {
-            sads[sad_num] = min_sad_psize;
+            psizes[sad_num] = min_sad_psize;
             sad_num++;
         }
     }
@@ -252,7 +255,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         double min_sad = std::numeric_limits<double>::max();
         for (const int psize : rgs::views::iota(1, max_valid_psize)) {
             cmp_shift += cmp_shift_step;
-            if (!isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+            if (!isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
                 break;
             }
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center + cmp_shift, upsampled_ksize);
@@ -263,7 +266,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         }
 
         if (min_sad_psize != INVALID_PSIZE) {
-            sads[sad_num] = min_sad_psize;
+            psizes[sad_num] = min_sad_psize;
             sad_num++;
         }
     }
@@ -277,7 +280,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         double min_sad = std::numeric_limits<double>::max();
         for (const int psize : rgs::views::iota(1, max_valid_psize)) {
             cmp_shift += cmp_shift_step;
-            if (!isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+            if (!isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
                 break;
             }
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center + cmp_shift, upsampled_ksize);
@@ -288,7 +291,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         }
 
         if (min_sad_psize != INVALID_PSIZE) {
-            sads[sad_num] = min_sad_psize;
+            psizes[sad_num] = min_sad_psize;
             sad_num++;
         }
     }
@@ -302,7 +305,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         double min_sad = std::numeric_limits<double>::max();
         for (const int psize : rgs::views::iota(1, max_valid_psize)) {
             cmp_shift += cmp_shift_step;
-            if (!isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+            if (!isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
                 break;
             }
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center + cmp_shift, upsampled_ksize);
@@ -313,7 +316,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         }
 
         if (min_sad_psize != INVALID_PSIZE) {
-            sads[sad_num] = min_sad_psize;
+            psizes[sad_num] = min_sad_psize;
             sad_num++;
         }
     }
@@ -327,7 +330,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         double min_sad = std::numeric_limits<double>::max();
         for (const int psize : rgs::views::iota(1, max_valid_psize)) {
             cmp_shift += cmp_shift_step;
-            if (!isSafeShift(cmp_shift, layout.getRadius(), upsampled_ksize)) {
+            if (!isSafeShift(cmp_shift, half_inscribed_sqr_size, upsampled_ksize)) {
                 break;
             }
             const double sad = calcSADWithTwoPoints(gray_src, anchor, cmp_center + cmp_shift, upsampled_ksize);
@@ -338,28 +341,30 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
         }
 
         if (min_sad_psize != INVALID_PSIZE) {
-            sads[sad_num] = min_sad_psize;
+            psizes[sad_num] = min_sad_psize;
             sad_num++;
         }
     }
 
-    std::sort(sads.begin(), sads.begin() + sad_num);
-    const double mid_sad = sads[sad_num / 2];
-    return mid_sad;
+    std::sort(psizes.begin(), psizes.begin() + sad_num);
+    const int mid_psize = psizes[sad_num / 2];
+    return mid_psize;
 }
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
                                     const cv::Mat& prev_psizes, const PixHeaps& features, const cv::Point index)
 {
-    constexpr int ksize = 13;
+    constexpr int ksize = 7;
     const int upsampled_ksize = ksize * layout.getUpsample();
-    constexpr double ref_sad_threshold = 7.5;
+    constexpr double ref_sad_threshold = 15.0;
 
     const cv::Point2d curr_center = layout.getMICenter(index);
     const auto neighbors = _hp::getNeibMIIndices(layout, index);
 
     const Pixel feature_point = *features[index.y][index.x].begin();
-    const cv::Point2d curr_shift = (cv::Point2d)feature_point.pt - cv::Point2d(layout.getRadius(), layout.getRadius());
+    const double half_inscribed_sqr_size = layout.getRadius() / std::numbers::sqrt2;
+    const cv::Point2d curr_shift =
+        (cv::Point2d)feature_point.pt - cv::Point2d(half_inscribed_sqr_size, half_inscribed_sqr_size);
 
     const int prev_psize = prev_psizes.at<int>(index);
     const double prev_sad =
@@ -399,7 +404,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     }
 
     const int psize =
-        estimatePatchsizeOverFullMatch(layout, gray_src, curr_center, curr_shift, neighbors, upsampled_ksize, 7.5);
+        estimatePatchsizeOverFullMatch(layout, gray_src, curr_center, curr_shift, neighbors, upsampled_ksize, 30.0);
 
     if (psize == INVALID_PSIZE) {
         return prev_psize;
@@ -414,7 +419,7 @@ cv::Mat estimatePatchsizes(const State& state)
 {
     const auto& layout = state.layout_;
 
-    cv::Mat psizes = cv::Mat::ones(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1) * 13;
+    cv::Mat psizes = cv::Mat::ones(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1);
     cv::Mat prev_psizes;
     if (!state.prev_patchsizes_.empty()) {
         prev_psizes = state.prev_patchsizes_;
