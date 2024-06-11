@@ -2,15 +2,15 @@
 
 namespace tlct::cvt {
 
-enum Direction {
-    LEFT = 1 << 0,
-    RIGHT = 1 << 1,
-    UPLEFT = 1 << 2,
-    UPRIGHT = 1 << 3,
-    DOWNLEFT = 1 << 4,
-    DOWNRIGHT = 1 << 5,
-};
+constexpr int DIRECTION_NUM = 6;
 
-constexpr int NEIGHBOR_NUM = 6;
+enum class Direction {
+    LEFT,
+    RIGHT,
+    UPLEFT,
+    UPRIGHT,
+    DOWNLEFT,
+    DOWNRIGHT,
+};
 
 } // namespace tlct::cvt

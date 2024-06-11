@@ -10,20 +10,55 @@
 
 namespace tlct::cvt {
 
-class MatchPoints
+template <double amp>
+class MatchSteps_
+{
+public:
+    static constexpr double AMP = amp;
+    static constexpr double X_UNIT_STEP = 0.5 * AMP;
+    static constexpr double Y_UNIT_STEP = std::numbers::sqrt3 / 2.0 * AMP;
+
+    [[nodiscard]] static inline cv::Point2d getLeft() noexcept { return {-AMP, 0.0}; };
+    [[nodiscard]] static inline cv::Point2d getRight() noexcept { return {AMP, 0.0}; };
+    [[nodiscard]] static inline cv::Point2d getUpLeft() noexcept { return {-X_UNIT_STEP, -Y_UNIT_STEP}; };
+    [[nodiscard]] static inline cv::Point2d getUpRight() noexcept { return {X_UNIT_STEP, -Y_UNIT_STEP}; };
+    [[nodiscard]] static inline cv::Point2d getDownLeft() noexcept { return {-X_UNIT_STEP, Y_UNIT_STEP}; };
+    [[nodiscard]] static inline cv::Point2d getDownRight() noexcept { return {X_UNIT_STEP, Y_UNIT_STEP}; };
+
+    template <Direction direction>
+    [[nodiscard]] static inline cv::Point2d getMatchStep() noexcept
+    {
+        if constexpr (direction == Direction::LEFT)
+            return getLeft();
+        if constexpr (direction == Direction::RIGHT)
+            return getRight();
+        if constexpr (direction == Direction::UPLEFT)
+            return getUpLeft();
+        if constexpr (direction == Direction::UPRIGHT)
+            return getUpRight();
+        if constexpr (direction == Direction::DOWNLEFT)
+            return getDownLeft();
+        if constexpr (direction == Direction::DOWNRIGHT)
+            return getDownRight();
+    };
+};
+
+using MatchSteps = MatchSteps_<1.0>;
+
+class MatchShifts
 {
 public:
     // Constructor
-    TLCT_API inline MatchPoints& operator=(const MatchPoints& rhs) noexcept = default;
-    TLCT_API inline MatchPoints(const MatchPoints& rhs) noexcept = default;
-    TLCT_API inline MatchPoints& operator=(MatchPoints&& rhs) noexcept = default;
-    TLCT_API inline MatchPoints(MatchPoints&& rhs) noexcept = default;
-    TLCT_API inline MatchPoints(cv::Point2d left, cv::Point2d right, cv::Point2d upleft, cv::Point2d upright,
+    TLCT_API inline MatchShifts& operator=(const MatchShifts& rhs) noexcept = default;
+    TLCT_API inline MatchShifts(const MatchShifts& rhs) noexcept = default;
+    TLCT_API inline MatchShifts& operator=(MatchShifts&& rhs) noexcept = default;
+    TLCT_API inline MatchShifts(MatchShifts&& rhs) noexcept = default;
+    TLCT_API inline MatchShifts(cv::Point2d left, cv::Point2d right, cv::Point2d upleft, cv::Point2d upright,
                                 cv::Point2d downleft, cv::Point2d downright) noexcept
         : left_(left), right_(right), upleft_(upleft), upright_(upright), downleft_(downleft), downright_(downright){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline MatchPoints fromDiameter(const double diameter,
+    [[nodiscard]] TLCT_API static inline MatchShifts fromDiameter(const double diameter,
                                                                   const double shift_factor = 0.5) noexcept;
 
     // Const methods
@@ -35,19 +70,19 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getDownRight() const noexcept { return downright_; };
 
     template <Direction direction>
-    [[nodiscard]] TLCT_API inline cv::Point2d getMatchPoint() const noexcept
+    [[nodiscard]] TLCT_API inline cv::Point2d getMatchShift() const noexcept
     {
-        if constexpr (direction & Direction::LEFT)
+        if constexpr (direction == Direction::LEFT)
             return getLeft();
-        if constexpr (direction & Direction::RIGHT)
+        if constexpr (direction == Direction::RIGHT)
             return getRight();
-        if constexpr (direction & Direction::UPLEFT)
+        if constexpr (direction == Direction::UPLEFT)
             return getUpLeft();
-        if constexpr (direction & Direction::UPRIGHT)
+        if constexpr (direction == Direction::UPRIGHT)
             return getUpRight();
-        if constexpr (direction & Direction::DOWNLEFT)
+        if constexpr (direction == Direction::DOWNLEFT)
             return getDownLeft();
-        if constexpr (direction & Direction::DOWNRIGHT)
+        if constexpr (direction == Direction::DOWNRIGHT)
             return getDownRight();
     };
 
@@ -60,7 +95,7 @@ private:
     cv::Point2d downright_;
 };
 
-MatchPoints MatchPoints::fromDiameter(const double diameter, const double shift_factor) noexcept
+MatchShifts MatchShifts::fromDiameter(const double diameter, const double shift_factor) noexcept
 {
     const double radius = diameter / 2.0;
     const double radial_shift = radius * shift_factor;
@@ -76,13 +111,5 @@ MatchPoints MatchPoints::fromDiameter(const double diameter, const double shift_
 
     return {left, right, upleft, upright, downleft, downright};
 }
-
-template <double amp>
-class MatchSteps_
-{
-public:
-    static constexpr double X_UNIT_STEP = 0.5 * amp;
-    static constexpr double Y_UNIT_STEP = std::numbers::sqrt3 / 2.0 * amp;
-};
 
 } // namespace tlct::cvt

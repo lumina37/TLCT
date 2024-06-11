@@ -44,34 +44,34 @@ public:
     template <Direction direction>
     [[nodiscard]] TLCT_API inline cv::Point2d getNeighbor() const noexcept
     {
-        if constexpr (direction & Direction::LEFT)
+        if constexpr (direction == Direction::LEFT)
             return getLeft();
-        if constexpr (direction & Direction::RIGHT)
+        if constexpr (direction == Direction::RIGHT)
             return getRight();
-        if constexpr (direction & Direction::UPLEFT)
+        if constexpr (direction == Direction::UPLEFT)
             return getUpLeft();
-        if constexpr (direction & Direction::UPRIGHT)
+        if constexpr (direction == Direction::UPRIGHT)
             return getUpRight();
-        if constexpr (direction & Direction::DOWNLEFT)
+        if constexpr (direction == Direction::DOWNLEFT)
             return getDownLeft();
-        if constexpr (direction & Direction::DOWNRIGHT)
+        if constexpr (direction == Direction::DOWNRIGHT)
             return getDownRight();
     };
 
     template <Direction direction>
     [[nodiscard]] TLCT_API inline bool hasNeighbor() const noexcept
     {
-        if constexpr (direction & Direction::LEFT)
+        if constexpr (direction == Direction::LEFT)
             return hasLeft();
-        if constexpr (direction & Direction::RIGHT)
+        if constexpr (direction == Direction::RIGHT)
             return hasRight();
-        if constexpr (direction & Direction::UPLEFT)
+        if constexpr (direction == Direction::UPLEFT)
             return hasUpLeft();
-        if constexpr (direction & Direction::UPRIGHT)
+        if constexpr (direction == Direction::UPRIGHT)
             return hasUpRight();
-        if constexpr (direction & Direction::DOWNLEFT)
+        if constexpr (direction == Direction::DOWNLEFT)
             return hasDownLeft();
-        if constexpr (direction & Direction::DOWNRIGHT)
+        if constexpr (direction == Direction::DOWNRIGHT)
             return hasDownRight();
     };
 
