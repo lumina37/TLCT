@@ -59,7 +59,7 @@ public:
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline MatchShifts fromDiameter(const double diameter,
-                                                                  const double shift_factor = 0.5) noexcept;
+                                                                  const double shift_factor = 0.35) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Point2d getLeft() const noexcept { return left_; };

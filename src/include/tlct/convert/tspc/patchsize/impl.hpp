@@ -236,7 +236,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
         return min_prev_ref_psize;
     }
 
-    const int psize = estimatePatchsizeOverFullMatch(layout, gray_src, curr_center, neighbors, ksize, -0.875);
+    const int psize = estimatePatchsizeOverFullMatch(layout, gray_src, curr_center, neighbors, ksize, -0.75);
 
     if (psize == INVALID_PSIZE) {
         return prev_psize;
