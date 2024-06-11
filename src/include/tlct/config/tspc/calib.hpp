@@ -54,17 +54,17 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     const int rows = centers_node.child("rows").text().as_int();
     const int cols = centers_node.child("cols").text().as_int();
 
-    const auto left_top_node = centers_node.child("upleft");
+    const auto left_top_node = centers_node.child("ltop");
     const double left_top_x = left_top_node.child("x").text().as_double();
     const double left_top_y = left_top_node.child("y").text().as_double();
     const cv::Point2d left_top{left_top_x, left_top_y};
 
-    const auto right_top_node = centers_node.child("upright");
+    const auto right_top_node = centers_node.child("rtop");
     const double right_top_x = right_top_node.child("x").text().as_double();
     const double right_top_y = right_top_node.child("y").text().as_double();
     const cv::Point2d right_top{right_top_x, right_top_y};
 
-    const auto left_bottom_node = centers_node.child("downleft");
+    const auto left_bottom_node = centers_node.child("lbot");
     const double left_bottom_x = left_bottom_node.child("x").text().as_double();
     const double left_bottom_y = left_bottom_node.child("y").text().as_double();
     const cv::Point2d left_bottom{left_bottom_x, left_bottom_y};
