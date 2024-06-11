@@ -2,13 +2,13 @@
 
 namespace tlct::cvt {
 
-enum class Direction {
+enum Direction {
     LEFT = 1 << 0,
     RIGHT = 1 << 1,
-    LEFT_UP = 1 << 2,
-    RIGHT_UP = 1 << 3,
-    LEFT_DOWN = 1 << 4,
-    RIGHT_DOWN = 1 << 5,
+    UPLEFT = 1 << 2,
+    UPRIGHT = 1 << 3,
+    DOWNLEFT = 1 << 4,
+    DOWNRIGHT = 1 << 5,
 };
 
 constexpr int NEIGHBOR_NUM = 6;

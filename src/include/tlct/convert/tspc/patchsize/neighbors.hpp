@@ -13,7 +13,6 @@ class NeibMIIndices
 {
 public:
     TLCT_API static constexpr int DEFAULT_INDEX = -1;
-    TLCT_API static constexpr int NEIB_NUM = 6;
 
     // Constructor
     TLCT_API inline NeibMIIndices& operator=(const NeibMIIndices& rhs) noexcept = default;
@@ -41,6 +40,40 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point getUpRight() const noexcept { return upright_; };
     [[nodiscard]] TLCT_API inline cv::Point getDownLeft() const noexcept { return downleft_; };
     [[nodiscard]] TLCT_API inline cv::Point getDownRight() const noexcept { return downright_; };
+
+    template <Direction direction>
+    [[nodiscard]] TLCT_API inline cv::Point2d getNeighbor() const noexcept
+    {
+        if constexpr (direction & Direction::LEFT)
+            return getLeft();
+        if constexpr (direction & Direction::RIGHT)
+            return getRight();
+        if constexpr (direction & Direction::UPLEFT)
+            return getUpLeft();
+        if constexpr (direction & Direction::UPRIGHT)
+            return getUpRight();
+        if constexpr (direction & Direction::DOWNLEFT)
+            return getDownLeft();
+        if constexpr (direction & Direction::DOWNRIGHT)
+            return getDownRight();
+    };
+
+    template <Direction direction>
+    [[nodiscard]] TLCT_API inline bool hasNeighbor() const noexcept
+    {
+        if constexpr (direction & Direction::LEFT)
+            return hasLeft();
+        if constexpr (direction & Direction::RIGHT)
+            return hasRight();
+        if constexpr (direction & Direction::UPLEFT)
+            return hasUpLeft();
+        if constexpr (direction & Direction::UPRIGHT)
+            return hasUpRight();
+        if constexpr (direction & Direction::DOWNLEFT)
+            return hasDownLeft();
+        if constexpr (direction & Direction::DOWNRIGHT)
+            return hasDownRight();
+    };
 
 private:
     cv::Point left_;

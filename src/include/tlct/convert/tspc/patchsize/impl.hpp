@@ -12,6 +12,7 @@
 #include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
+#include "tlct/convert/common/direction.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/tspc/state.hpp"
 
@@ -69,9 +70,10 @@ static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv:
     const double half_inscribed_sqr_size = layout.getRadius() / std::numbers::sqrt2;
     const cv::Point2d anchor = curr_center + curr_shift;
 
-    std::array<double, NeibMIIndices::NEIB_NUM> sads{};
+    std::array<double, NEIGHBOR_NUM> sads{};
     std::fill(sads.begin(), sads.end(), INVALID_PSIZE);
     int sad_num = 0;
+
     if (neighbors.hasLeft()) {
         cv::Point2d cmp_shift = curr_shift;
         cmp_shift.x -= (double)psize;
@@ -190,7 +192,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     const int max_valid_psize = (int)half_inscribed_sqr_size;
     const cv::Point2d anchor = curr_center + curr_shift;
 
-    std::array<int, NeibMIIndices::NEIB_NUM> psizes{};
+    std::array<int, NEIGHBOR_NUM> psizes{};
     std::fill(psizes.begin(), psizes.end(), INVALID_PSIZE);
     int sad_num = 0;
 

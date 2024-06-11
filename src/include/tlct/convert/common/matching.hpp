@@ -4,6 +4,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "direction.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
 
@@ -33,6 +34,23 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getDownLeft() const noexcept { return downleft_; };
     [[nodiscard]] TLCT_API inline cv::Point2d getDownRight() const noexcept { return downright_; };
 
+    template <Direction direction>
+    [[nodiscard]] TLCT_API inline cv::Point2d getMatchPoint() const noexcept
+    {
+        if constexpr (direction & Direction::LEFT)
+            return getLeft();
+        if constexpr (direction & Direction::RIGHT)
+            return getRight();
+        if constexpr (direction & Direction::UPLEFT)
+            return getUpLeft();
+        if constexpr (direction & Direction::UPRIGHT)
+            return getUpRight();
+        if constexpr (direction & Direction::DOWNLEFT)
+            return getDownLeft();
+        if constexpr (direction & Direction::DOWNRIGHT)
+            return getDownRight();
+    };
+
 private:
     cv::Point2d left_;
     cv::Point2d right_;
@@ -58,5 +76,13 @@ MatchPoints MatchPoints::fromDiameter(const double diameter, const double shift_
 
     return {left, right, upleft, upright, downleft, downright};
 }
+
+template <double amp>
+class MatchSteps_
+{
+public:
+    static constexpr double X_UNIT_STEP = 0.5 * amp;
+    static constexpr double Y_UNIT_STEP = std::numbers::sqrt3 / 2.0 * amp;
+};
 
 } // namespace tlct::cvt
