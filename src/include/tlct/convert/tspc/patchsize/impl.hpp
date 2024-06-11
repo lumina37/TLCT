@@ -194,7 +194,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
 }
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
-                                    const cv::Mat& prev_psizes, const PixHeaps& features, const cv::Point index)
+                                    const cv::Mat& prev_psizes, const cv::Point index)
 {
     const int ksize = (int)(9.0 / 70.0 * layout.getDiameter());
     constexpr double ref_metric_threshold = -0.875;
@@ -266,8 +266,7 @@ cv::Mat estimatePatchsizes(const State& state)
                 continue;
 
             const cv::Point index{col, row};
-            const int psize =
-                _hp::estimatePatchsize(layout, state.gray_src_, psizes, prev_psizes, state.features_, index);
+            const int psize = _hp::estimatePatchsize(layout, state.gray_src_, psizes, prev_psizes, index);
             psizes.at<int>(index) = psize;
         }
     }

@@ -5,12 +5,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "patchsize/features.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
-#include "tlct/convert/common/pixel_heap.hpp"
 #include "tlct/convert/concepts/state.hpp"
-#include "tlct/convert/tspc/patchsize/features.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -93,7 +90,6 @@ private:
     cv::Mat patchsizes_;
     cv::Mat gray_src_;
     cv::Mat src_32f_;
-    _hp::PixHeaps features_;
     int patch_resize_width_; // the extracted patch will be zoomed to this height
     int patch_resize_height_;
     int bound_;
@@ -148,7 +144,6 @@ void State::feed(const cv::Mat& newsrc)
     TLayout::procImg_(layout_, newsrc, proced_src);
     cv::cvtColor(proced_src, gray_src_, cv::COLOR_BGR2GRAY);
     proced_src.convertTo(src_32f_, CV_32FC3);
-    features_ = _hp::calcFeatures(layout_, gray_src_);
 
     prev_patchsizes_ = std::move(patchsizes_);
     patchsizes_ = estimatePatchsizes(*this);
