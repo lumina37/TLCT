@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <numbers>
 
 #include <opencv2/core.hpp>
@@ -58,8 +59,8 @@ public:
         : left_(left), right_(right), upleft_(upleft), upright_(upright), downleft_(downleft), downright_(downright){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline MatchShifts fromDiameter(const double diameter,
-                                                                  const double shift_factor = 0.35) noexcept;
+    [[nodiscard]] TLCT_API static inline MatchShifts fromDiamAndKsize(const double diameter, const double ksize,
+                                                                      const double safe_radius_factor = 0.825) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Point2d getLeft() const noexcept { return left_; };
@@ -95,10 +96,14 @@ private:
     cv::Point2d downright_;
 };
 
-MatchShifts MatchShifts::fromDiameter(const double diameter, const double shift_factor) noexcept
+MatchShifts MatchShifts::fromDiamAndKsize(const double diameter, const double ksize,
+                                          const double safe_radius_factor) noexcept
 {
     const double radius = diameter / 2.0;
-    const double radial_shift = radius * shift_factor;
+    const double safe_radius = radius * safe_radius_factor;
+    const double half_ksize = ksize / 2.0;
+
+    const double radial_shift = std::sqrt(safe_radius * safe_radius - half_ksize * half_ksize) - half_ksize;
     const double x_shift = radial_shift / 2.0;
     const double y_shift = x_shift * std::numbers::sqrt3;
 
