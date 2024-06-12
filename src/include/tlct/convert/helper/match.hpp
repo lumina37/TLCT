@@ -8,7 +8,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
 
-namespace tlct::cvt {
+namespace tlct::cvt::_hp {
 
 template <double amp>
 class MatchSteps_
@@ -18,15 +18,15 @@ public:
     static constexpr double X_UNIT_STEP = 0.5 * AMP;
     static constexpr double Y_UNIT_STEP = std::numbers::sqrt3 / 2.0 * AMP;
 
-    [[nodiscard]] static inline cv::Point2d getLeft() noexcept { return {-AMP, 0.0}; };
-    [[nodiscard]] static inline cv::Point2d getRight() noexcept { return {AMP, 0.0}; };
-    [[nodiscard]] static inline cv::Point2d getUpLeft() noexcept { return {-X_UNIT_STEP, -Y_UNIT_STEP}; };
-    [[nodiscard]] static inline cv::Point2d getUpRight() noexcept { return {X_UNIT_STEP, -Y_UNIT_STEP}; };
-    [[nodiscard]] static inline cv::Point2d getDownLeft() noexcept { return {-X_UNIT_STEP, Y_UNIT_STEP}; };
-    [[nodiscard]] static inline cv::Point2d getDownRight() noexcept { return {X_UNIT_STEP, Y_UNIT_STEP}; };
+    [[nodiscard]] TLCT_API static inline cv::Point2d getLeft() noexcept { return {-AMP, 0.0}; };
+    [[nodiscard]] TLCT_API static inline cv::Point2d getRight() noexcept { return {AMP, 0.0}; };
+    [[nodiscard]] TLCT_API static inline cv::Point2d getUpLeft() noexcept { return {-X_UNIT_STEP, -Y_UNIT_STEP}; };
+    [[nodiscard]] TLCT_API static inline cv::Point2d getUpRight() noexcept { return {X_UNIT_STEP, -Y_UNIT_STEP}; };
+    [[nodiscard]] TLCT_API static inline cv::Point2d getDownLeft() noexcept { return {-X_UNIT_STEP, Y_UNIT_STEP}; };
+    [[nodiscard]] TLCT_API static inline cv::Point2d getDownRight() noexcept { return {X_UNIT_STEP, Y_UNIT_STEP}; };
 
     template <Direction direction>
-    [[nodiscard]] static inline cv::Point2d getMatchStep() noexcept
+    [[nodiscard]] TLCT_API static inline cv::Point2d getMatchStep() noexcept
     {
         if constexpr (direction == Direction::LEFT)
             return getLeft();
@@ -112,4 +112,4 @@ MatchShifts MatchShifts::fromDiameter(const double diameter, const double shift_
     return {left, right, upleft, upright, downleft, downright};
 }
 
-} // namespace tlct::cvt
+} // namespace tlct::cvt::_hp

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tlct::cvt {
+namespace tlct::cvt::_hp {
 
 constexpr int DIRECTION_NUM = 6;
 

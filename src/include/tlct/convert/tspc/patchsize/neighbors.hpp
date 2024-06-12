@@ -8,11 +8,12 @@
 namespace tlct::cvt::tspc::_hp {
 
 namespace tcfg = tlct::cfg::tspc;
+using namespace tlct::cvt::_hp;
 
 class NeibMIIndices
 {
 public:
-    TLCT_API static constexpr int DEFAULT_INDEX = -1;
+    static constexpr int DEFAULT_INDEX = -1;
 
     // Constructor
     TLCT_API inline NeibMIIndices& operator=(const NeibMIIndices& rhs) noexcept = default;

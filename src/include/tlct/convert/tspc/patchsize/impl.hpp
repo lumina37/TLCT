@@ -13,8 +13,8 @@
 #include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
-#include "tlct/convert/common/direction.hpp"
-#include "tlct/convert/helper.hpp"
+#include "tlct/convert/helper/direction.hpp"
+#include "tlct/convert/helper/roi.hpp"
 #include "tlct/convert/tspc/state.hpp"
 
 namespace tlct::cvt::tspc {
@@ -61,9 +61,9 @@ static inline bool isSafeShift(const cv::Point2d shift, const double half_inscri
     return true;
 }
 
-static inline double calcSADWithPsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
-                                      const cv::Point2d curr_center, const NeibMIIndices& neighbors, const int psize,
-                                      const double ksize) noexcept
+static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
+                                         const cv::Point2d curr_center, const NeibMIIndices& neighbors, const int psize,
+                                         const double ksize) noexcept
 {
     const double half_inscribed_sqr_size = layout.getRadius() / std::numbers::sqrt2;
     const auto match_shifts = MatchShifts::fromDiameter(layout.getDiameter());
@@ -203,7 +203,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     const auto neighbors = NeibMIIndices::fromLayoutAndIndex(layout, index);
 
     const int prev_psize = prev_psizes.at<int>(index);
-    const double prev_metric = calcSADWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
+    const double prev_metric = calcMetricWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
     if (prev_metric < ref_metric_threshold) {
         return prev_psize;
     }
@@ -212,7 +212,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     double min_ref_metric = std::numeric_limits<double>::max();
     int min_ref_psize = 0;
     for (const int ref_psize : ref_psizes) {
-        const double ref_metric = calcSADWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
+        const double ref_metric = calcMetricWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
         if (ref_metric < min_ref_metric) {
             min_ref_metric = ref_metric;
             min_ref_psize = ref_psize;
@@ -226,7 +226,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     double min_prev_ref_metric = std::numeric_limits<double>::max();
     int min_prev_ref_psize = 0;
     for (const int prev_ref_psize : prev_ref_psizes) {
-        const double prev_ref_metric = calcSADWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
+        const double prev_ref_metric = calcMetricWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
         if (prev_ref_metric < min_prev_ref_metric) {
             min_prev_ref_metric = prev_ref_metric;
             min_prev_ref_psize = prev_ref_psize;
