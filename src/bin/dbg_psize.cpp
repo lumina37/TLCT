@@ -13,15 +13,16 @@ int main(int argc, char* argv[])
 {
     using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
 
-    const auto common_cfg = tlct::cfg::CommonParamConfig::fromPath(argv[1]);
-    const auto param_cfg = ParamConfig::fromCommonCfg(common_cfg);
+    const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
+    const auto param_cfg = ParamConfig::fromConfigMap(cfg_map);
+    const auto common_cfg = param_cfg.getCommonCfg();
 
     constexpr int upsample = 1;
     const auto layout =
         tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize()).upsample(upsample);
-    auto state = tcvt::State::fromLayoutAndViews(layout, param_cfg.getViews());
+    auto state = tcvt::State::fromLayoutAndViews(layout, common_cfg.getViews());
 
-    const auto srcpath = ParamConfig::fmtSrcPath(param_cfg, 1);
+    const auto srcpath = tlct::cfg::CommonParamConfig::fmtSrcPath(common_cfg, 1);
 
     const cv::Mat& src = cv::imread(srcpath.string());
     state.feed(src);

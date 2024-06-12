@@ -8,7 +8,7 @@
 namespace fs = std::filesystem;
 namespace tcfg = tlct::cfg::tspc;
 
-using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
+using CommonParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
 
 class TestTSPCCfg : public ::testing::Test
 {
@@ -19,7 +19,7 @@ protected:
         const fs::path param_cfg_path = testdata_dir / "config/TSPC/param.cfg";
         const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib-v2.xml";
 
-        auto common_cfg = tlct::cfg::CommonParamConfig::fromPath(param_cfg_path.string());
+        auto common_cfg = tlct::cfg::ConfigMap::fromPath(param_cfg_path.string());
         auto param_cfg = ParamConfig::fromCommonCfg(common_cfg);
         auto calib_cfg = tcfg::CalibConfig::fromXMLPath(calib_cfg_path.string());
         auto layout = tcfg::Layout::fromCfgAndImgsize(calib_cfg, param_cfg.getImgSize());
@@ -30,13 +30,13 @@ protected:
         layout_ = std::make_unique<decltype(layout)>(layout);
     }
 
-    static std::unique_ptr<tlct::cfg::CommonParamConfig> common_cfg_;
+    static std::unique_ptr<tlct::cfg::ConfigMap> common_cfg_;
     static std::unique_ptr<ParamConfig> param_cfg_;
     static std::unique_ptr<tcfg::CalibConfig> calib_cfg_;
     static std::unique_ptr<tcfg::Layout> layout_;
 };
 
-std::unique_ptr<tlct::cfg::CommonParamConfig> TestTSPCCfg::common_cfg_ = nullptr;
+std::unique_ptr<tlct::cfg::ConfigMap> TestTSPCCfg::common_cfg_ = nullptr;
 std::unique_ptr<ParamConfig> TestTSPCCfg::param_cfg_ = nullptr;
 std::unique_ptr<tcfg::CalibConfig> TestTSPCCfg::calib_cfg_ = nullptr;
 std::unique_ptr<tcfg::Layout> TestTSPCCfg::layout_ = nullptr;
