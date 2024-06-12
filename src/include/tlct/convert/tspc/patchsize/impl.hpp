@@ -176,7 +176,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
                                     const cv::Mat& prev_psizes, const cv::Point index)
 {
-    const int ksize = (int)(22.0 / 70.0 * layout.getDiameter());
+    const int ksize = (int)(24.0 / 70.0 * layout.getDiameter());
     constexpr double ref_metric_threshold = -0.875;
 
     const cv::Point2d curr_center = layout.getMICenter(index);
@@ -228,7 +228,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
 
 } // namespace _hp
 
-cv::Mat estimatePatchsizes(const State& state)
+TLCT_API inline cv::Mat estimatePatchsizes(const State& state)
 {
     const auto& layout = state.layout_;
 
@@ -241,7 +241,7 @@ cv::Mat estimatePatchsizes(const State& state)
     }
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
+        for (const int col : rgs::views::iota(0, layout.getMICols(row) - 1)) {
             const cv::Point2d neib_center = layout.getMICenter(row, col + 1);
             if (neib_center.x == 0.0 or neib_center.y == 0.0)
                 continue;
@@ -251,7 +251,7 @@ cv::Mat estimatePatchsizes(const State& state)
             psizes.at<int>(index) = psize;
         }
     }
-    // psizes.col(layout.getMIMinCols() - 2).copyTo(psizes.col(layout.getMIMinCols() - 1));
+    psizes.col(layout.getMIMinCols() - 2).copyTo(psizes.col(layout.getMIMinCols() - 1));
 
     return std::move(psizes);
 }
