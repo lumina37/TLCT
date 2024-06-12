@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <numbers>
 #include <numeric>
 #include <ranges>
 #include <set>

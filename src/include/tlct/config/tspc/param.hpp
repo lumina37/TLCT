@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cstdio>
 #include <filesystem>
-#include <string>
 
 #include <opencv2/core.hpp>
 
@@ -30,7 +28,7 @@ public:
     TLCT_API inline ParamConfig& operator=(ParamConfig&& rhs) noexcept = default;
     TLCT_API inline ParamConfig(ParamConfig&& rhs) noexcept = default;
     TLCT_API inline ParamConfig(TCalibConfig calib_cfg, CommonParamConfig common_cfg, cv::Size imgsize) noexcept
-        : calib_cfg_(calib_cfg), common_cfg_(common_cfg), imgsize_(imgsize){};
+        : calib_cfg_(calib_cfg), common_cfg_(std::move(common_cfg)), imgsize_(imgsize){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline ParamConfig fromConfigMap(const ConfigMap& cfg_map);

@@ -7,7 +7,6 @@
 
 #include "direction.hpp"
 #include "tlct/common/defines.h"
-#include "tlct/config/tspc/layout.hpp"
 
 namespace tlct::cvt::_hp {
 
