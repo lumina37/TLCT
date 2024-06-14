@@ -1,12 +1,12 @@
 include(FetchContent)
 
-find_package(OpenCV COMPONENTS core imgcodecs imgproc quality)
+find_package(OpenCV QUIET COMPONENTS core imgcodecs imgproc quality)
 
 set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml.git" CACHE STRING
-        "Specifies the path of pugixml (git repo or local dir)" FORCE)
-set(PUGIXML_NO_XPATH ON CACHE INTERNAL "" FORCE)
-set(PUGIXML_NO_EXCEPTIONS ON CACHE INTERNAL "" FORCE)
-set(PUGIXML_NO_STL ON CACHE INTERNAL "" FORCE)
+        "Specifies the path of pugixml (git repo or local dir)")
+set(PUGIXML_NO_XPATH ON CACHE BOOL "")
+set(PUGIXML_NO_EXCEPTIONS ON CACHE BOOL "")
+set(PUGIXML_NO_STL ON CACHE BOOL "")
 
 if (TLCT_PUGIXML_PATH MATCHES "\.git$")
     FetchContent_Declare(
@@ -23,8 +23,8 @@ endif ()
 FetchContent_MakeAvailable(pugixml)
 
 if (TLCT_BUILD_TESTS)
-    set(BUILD_GMOCK OFF CACHE INTERNAL "" FORCE)
-    set(GTEST_LINKED_AS_SHARED_LIBRARY 1 CACHE INTERNAL "" FORCE)
+    set(BUILD_GMOCK OFF CACHE BOOL "")
+    set(GTEST_LINKED_AS_SHARED_LIBRARY 1 CACHE BOOL "")
     set(gtest_force_shared_crt ON CACHE INTERNAL "" FORCE)
     FetchContent_Declare(
             googletest

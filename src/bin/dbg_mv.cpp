@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
     const auto layout =
         tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize()).upsample(upsample);
     auto state = tcvt::State::fromLayoutAndViews(layout, common_cfg.getViews());
+    state.setInspector(tlct::cvt::_hp::Inspector::fromCommonCfgAndLayout(common_cfg, layout));
 
     const cv::Range range = common_cfg.getRange();
     for (int i = range.start; i <= range.end; i++) {
@@ -30,6 +31,7 @@ int main(int argc, char* argv[])
         int img_cnt = 1;
         const auto dstdir = tlct::cfg::CommonParamConfig::fmtDstPath(common_cfg, i);
         fs::create_directories(dstdir);
+
         for (const auto& mv : state) {
             std::stringstream filename_s;
             filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";

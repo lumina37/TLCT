@@ -8,6 +8,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/concepts/state.hpp"
+#include "tlct/convert/helper/inspect.hpp"
 #include "tlct/convert/helper/roi.hpp"
 
 namespace tlct::cvt::tspc {
@@ -31,6 +32,7 @@ public:
     [[nodiscard]] TLCT_API static inline State fromLayoutAndViews(const TLayout& layout, int views);
 
     // Non-const methods
+    inline void setInspector(_hp::Inspector&& inspector) noexcept { inspector_ = inspector; };
     TLCT_API inline void feed(const cv::Mat& newsrc);
 
     // Iterator
@@ -103,12 +105,13 @@ private:
     int final_width_;
     int final_height_;
     cv::Range canvas_crop_roi_[2];
+    _hp::Inspector inspector_;
 };
 
 static_assert(concepts::CState<State>);
 
 State::State(const TLayout& layout, int views)
-    : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_32f_()
+    : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_32f_(), inspector_()
 {
     const int upsample = layout.getUpsample();
     // This indirectly controls the final output size. DO NOT make it too large.
