@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 {
     const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
     const auto param_cfg = ParamConfig::fromConfigMap(cfg_map);
-    const auto common_cfg = param_cfg.getCommonCfg();
+    const auto& common_cfg = param_cfg.getCommonCfg();
 
     constexpr int upsample = 2;
     const auto layout =

@@ -122,7 +122,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
                                                  const double ksize, const double metric_threshold) noexcept
 {
     const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
-    const double safe_radius = layout.getRadius() * 0.825;
+    const double safe_radius = layout.getRadius() * 0.9;
     const double half_ksize = ksize / 2.0;
     const int max_shift =
         (int)(match_shifts.getRight().x + std::sqrt(safe_radius * safe_radius - half_ksize * half_ksize) - half_ksize);

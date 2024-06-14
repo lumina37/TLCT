@@ -8,6 +8,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/concepts/state.hpp"
+#include "tlct/convert/helper/roi.hpp"
 
 namespace tlct::cvt::tspc {
 
