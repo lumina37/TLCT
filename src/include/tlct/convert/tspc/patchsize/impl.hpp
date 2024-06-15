@@ -43,14 +43,14 @@ static inline double calcMetricWithTwoPoints(const cv::Mat& gray_src, const cv::
 }
 
 static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
-                                         const cv::Point2d curr_center, const NeibMIIndices& neighbors, const int psize,
+                                         const cv::Point index, const NeibMIIndices& neighbors, const int psize,
                                          const double ksize) noexcept
 {
+    const cv::Point2d curr_center = layout.getMICenter(index);
+
     const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
 
-    std::array<double, DIRECTION_NUM> metrics{};
-    std::fill(metrics.begin(), metrics.end(), INVALID_PSIZE);
-    int metric_num = 0;
+    double max_metric = std::numeric_limits<double>::min();
 
     auto calcWithNeib = [&]<Direction direction>() mutable {
         if (neighbors.hasNeighbor<direction>()) {
@@ -63,8 +63,9 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
             const cv::Point2d cmp_center = neib_center + cmp_shift;
 
             const double metric = calcMetricWithTwoPoints(gray_src, anchor, cmp_center, ksize);
-            metrics[metric_num] = metric;
-            metric_num++;
+            if (metric > max_metric) {
+                max_metric = metric;
+            }
         }
     };
 
@@ -75,9 +76,7 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
     calcWithNeib.template operator()<Direction::DOWNLEFT>();
     calcWithNeib.template operator()<Direction::DOWNRIGHT>();
 
-    std::sort(metrics.begin(), metrics.begin() + metric_num);
-    const double mid_metric = metrics[metric_num / 2];
-    return mid_metric;
+    return max_metric;
 }
 
 template <bool left_and_up_only = true>
@@ -118,9 +117,16 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeibMII
 }
 
 static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
-                                                 const cv::Point2d curr_center, const NeibMIIndices& neighbors,
-                                                 const double ksize, const double metric_threshold) noexcept
+                                                 const cv::Point index, const NeibMIIndices& neighbors,
+                                                 const double ksize, const double metric_threshold,
+                                                 const Inspector& inspector) noexcept
 {
+    const cv::Point2d curr_center = layout.getMICenter(index);
+
+    if (Inspector::ENABLED) {
+        Inspector::saveMI(inspector, getRoiImageByCenter(gray_src, curr_center, layout.getDiameter()), index);
+    }
+
     const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
     const double safe_radius = layout.getRadius() * 0.9;
     const double half_ksize = ksize / 2.0;
@@ -137,6 +143,10 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
             const cv::Point2d anchor = curr_center + anchor_shift;
             const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
 
+            if (Inspector::ENABLED) {
+                Inspector::saveAnchor(inspector, getRoiImageByCenter(gray_src, anchor, ksize), index, direction);
+            }
+
             const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighbor<direction>());
             cv::Point2d cmp_shift = anchor_shift;
 
@@ -145,6 +155,12 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
             for (const int psize : rgs::views::iota(1, max_shift)) {
                 cmp_shift += match_step;
                 const double metric = calcMetricWithTwoPoints(gray_src, anchor, neib_center + cmp_shift, ksize);
+
+                if (Inspector::ENABLED) {
+                    Inspector::saveCmpPattern(inspector, getRoiImageByCenter(gray_src, neib_center + cmp_shift, ksize),
+                                              index, direction, psize, metric);
+                }
+
                 if (metric < metric_threshold && metric < min_metric) {
                     min_metric = metric;
                     min_metric_psize = psize;
@@ -165,7 +181,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     calcWithNeib.template operator()<Direction::DOWNLEFT>();
     calcWithNeib.template operator()<Direction::DOWNRIGHT>();
 
-    //    std::sort(psizes.begin(), psizes.begin() + metric_num);
+    //    std::sort(psizes.begin(), psizes.begin() + metric_num, std::greater<>());
     //    const int mid_psize = psizes[metric_num / 2];
     //    return mid_psize;
     const int max_psize = *std::max_element(psizes.begin(), psizes.begin() + metric_num);
@@ -173,16 +189,15 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
 }
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
-                                    const cv::Mat& prev_psizes, const cv::Point index)
+                                    const cv::Mat& prev_psizes, const cv::Point index, const Inspector& inspector)
 {
-    const int ksize = (int)(24.0 / 70.0 * layout.getDiameter());
+    const int ksize = (int)(25.0 / 70.0 * layout.getDiameter());
     constexpr double ref_metric_threshold = -0.875;
 
-    const cv::Point2d curr_center = layout.getMICenter(index);
     const auto neighbors = NeibMIIndices::fromLayoutAndIndex(layout, index);
 
     const int prev_psize = prev_psizes.at<int>(index);
-    const double prev_metric = calcMetricWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
+    const double prev_metric = calcMetricWithPsize(layout, gray_src, index, neighbors, prev_psize, ksize);
     if (prev_metric < ref_metric_threshold) {
         return prev_psize;
     }
@@ -191,7 +206,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     double min_ref_metric = std::numeric_limits<double>::max();
     int min_ref_psize = 0;
     for (const int ref_psize : ref_psizes) {
-        const double ref_metric = calcMetricWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
+        const double ref_metric = calcMetricWithPsize(layout, gray_src, index, neighbors, prev_psize, ksize);
         if (ref_metric < min_ref_metric) {
             min_ref_metric = ref_metric;
             min_ref_psize = ref_psize;
@@ -205,7 +220,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     double min_prev_ref_metric = std::numeric_limits<double>::max();
     int min_prev_ref_psize = 0;
     for (const int prev_ref_psize : prev_ref_psizes) {
-        const double prev_ref_metric = calcMetricWithPsize(layout, gray_src, curr_center, neighbors, prev_psize, ksize);
+        const double prev_ref_metric = calcMetricWithPsize(layout, gray_src, index, neighbors, prev_psize, ksize);
         if (prev_ref_metric < min_prev_ref_metric) {
             min_prev_ref_metric = prev_ref_metric;
             min_prev_ref_psize = prev_ref_psize;
@@ -216,7 +231,8 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
     }
 
     constexpr double metric_threshold = -0.875;
-    const int psize = estimatePatchsizeOverFullMatch(layout, gray_src, curr_center, neighbors, ksize, metric_threshold);
+    const int psize =
+        estimatePatchsizeOverFullMatch(layout, gray_src, index, neighbors, ksize, metric_threshold, inspector);
 
     if (psize == INVALID_PSIZE) {
         return prev_psize;
@@ -241,12 +257,9 @@ TLCT_API inline cv::Mat estimatePatchsizes(const State& state)
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row) - 1)) {
-            const cv::Point2d neib_center = layout.getMICenter(row, col + 1);
-            if (neib_center.x == 0.0 or neib_center.y == 0.0)
-                continue;
-
             const cv::Point index{col, row};
-            const int psize = _hp::estimatePatchsize(layout, state.gray_src_, psizes, prev_psizes, index);
+            const int psize =
+                _hp::estimatePatchsize(layout, state.gray_src_, psizes, prev_psizes, index, state.inspector_);
             psizes.at<int>(index) = psize;
         }
     }

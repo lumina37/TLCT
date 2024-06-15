@@ -102,7 +102,7 @@ NeibMIIndices NeibMIIndices::fromLayoutAndIndex(const tcfg::Layout& layout, cons
     }
 
     if (index.y > 0) {
-        if (layout.isOutShift()) {
+        if (layout.isOutShift() ^ (index.y % 2 == 0)) {
             upright = {index.x, index.y - 1};
             if (index.x > 0) {
                 upleft = {index.x - 1, index.y - 1};
@@ -116,7 +116,7 @@ NeibMIIndices NeibMIIndices::fromLayoutAndIndex(const tcfg::Layout& layout, cons
     }
 
     if (index.y < (layout.getMIRows() - 1)) {
-        if (layout.isOutShift()) {
+        if (layout.isOutShift() ^ (index.y % 2 == 0)) {
             downright = {index.x, index.y + 1};
             if (index.x > 0) {
                 downleft = {index.x - 1, index.y + 1};

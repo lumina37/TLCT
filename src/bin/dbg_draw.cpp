@@ -7,11 +7,12 @@
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::tspc;
+namespace tcvt = tlct::cvt::tspc;
 
 int main()
 {
-    const cv::Mat src = cv::imread("Cars.png");
-    const auto config = tcfg::CalibConfig::fromXMLPath("Cars.xml");
+    const cv::Mat src = cv::imread("Boys/src/Image000.bmp");
+    const auto config = tcfg::CalibConfig::fromXMLPath("Boys/calib.xml");
     const auto layout = tcfg::Layout::fromCfgAndImgsize(config, src.size());
     const cv::Mat resized_img = tcfg::Layout::procImg(layout, src);
 
@@ -26,7 +27,25 @@ int main()
         cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
     }
 
-    cv::Mat transposed_src;
-    cv::transpose(resized_img, transposed_src);
-    cv::imwrite("dbg_center.png", transposed_src);
+    auto neighbors = tcvt::_hp::NeibMIIndices::fromLayoutAndIndex(layout, {1, 1});
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeft()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 1, 0}, 2, cv::LINE_AA);
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRight()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 2, 0}, 2, cv::LINE_AA);
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeft()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 3, 0}, 2, cv::LINE_AA);
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRight()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 4, 0}, 2, cv::LINE_AA);
+
+    neighbors = tcvt::_hp::NeibMIIndices::fromLayoutAndIndex(layout, {1, 4});
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeft()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 1, 0}, 2, cv::LINE_AA);
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRight()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 2, 0}, 2, cv::LINE_AA);
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeft()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 3, 0}, 2, cv::LINE_AA);
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRight()), tlct::_hp::iround(layout.getRadius()),
+               {0, 63 * 4, 0}, 2, cv::LINE_AA);
+
+    cv::imwrite("dbg_center.png", resized_img);
 }
