@@ -58,8 +58,8 @@ public:
                                   const Direction direction);
     static inline void saveCmpPattern(const Inspector& inspector, const cv::Mat& img, const cv::Point index,
                                       const Direction direction, const int psize, const double metric);
-    inline void appendMetricReport(const cv::Point index, const std::array<int, DIRECTION_NUM> psizes,
-                                   const int psize_num);
+    inline void appendMetricReport(const cv::Point index, const std::vector<double>& psizes,
+                                   const std::vector<double>& weights);
 
 private:
     fs::path dst_dir_;
@@ -70,6 +70,7 @@ Inspector Inspector::fromCommonCfgAndLayout(const tcfg::CommonParamConfig& commo
 {
     const fs::path dst_pattern{common_cfg.getDstPattern()};
     const fs::path dst_dir = dst_pattern.parent_path() / "inspect";
+    fs::create_directories(dst_dir);
     std::ofstream fstream{dst_dir / "report.csv"};
 
     return {dst_dir, std::move(fstream)};
@@ -121,20 +122,27 @@ void Inspector::saveCmpPattern(const Inspector& inspector, const cv::Mat& img, c
     cv::imwrite(save_path.string(), img);
 }
 
-void Inspector::appendMetricReport(const cv::Point index, const std::array<int, DIRECTION_NUM> psizes,
-                                   const int psize_num)
+void Inspector::appendMetricReport(const cv::Point index, const std::vector<double>& psizes,
+                                   const std::vector<double>& weights)
 {
-    const int sum = std::accumulate(psizes.begin(), psizes.begin() + psize_num, 0);
-    const double mean = (double)sum / psize_num;
-    double var = 0;
-    for (auto it = psizes.begin(); it < (psizes.begin() + psize_num); it++) {
-        var += (*it - mean) * (*it - mean);
+    double total_psize = 0.0;
+    double total_weight = std::numeric_limits<double>::epsilon();
+    for (int i = 0; i < psizes.size(); i++) {
+        total_psize += psizes[i] * weights[i];
+        total_weight += weights[i];
     }
-    var /= psize_num;
+    const double mean = total_psize / total_weight;
+
+    double var = 0;
+    for (int i = 0; i < psizes.size(); i++) {
+        const double psize = psizes[i];
+        var += (psize - mean) * (psize - mean) * weights[i];
+    }
+    var /= total_weight;
     var = std::sqrt(var);
     fstream_ << index.y << ',' << index.x << ',' << var;
-    for (auto it = psizes.begin(); it < (psizes.begin() + psize_num); it++) {
-        fstream_ << ',' << *it;
+    for (int i = 0; i < psizes.size(); i++) {
+        fstream_ << ',' << psizes[i] << ',' << weights[i];
     }
     fstream_ << '\n';
 }

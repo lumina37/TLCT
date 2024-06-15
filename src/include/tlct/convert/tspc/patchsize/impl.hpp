@@ -16,6 +16,7 @@
 #include "tlct/convert/helper/direction.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/convert/tspc/state.hpp"
+#include "wrapper.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -26,58 +27,6 @@ namespace _hp {
 using namespace tlct::cvt::_hp;
 
 constexpr int INVALID_PSIZE = -1;
-
-static inline double calcMetric(const cv::Mat& lhs, const cv::Mat& rhs) noexcept
-{
-    const auto ssims = cv::quality::QualitySSIM::compute(lhs, rhs, cv::noArray());
-    const double metric = -ssims[0];
-    return metric;
-}
-
-static inline double calcMetricWithTwoPoints(const cv::Mat& gray_src, const cv::Point2d lhs_center,
-                                             const cv::Point2d rhs_center, const double upsampled_ksize) noexcept
-{
-    const auto& lhs_roi = getRoiImageByCenter(gray_src, lhs_center, upsampled_ksize);
-    const auto& rhs_roi = getRoiImageByCenter(gray_src, rhs_center, upsampled_ksize);
-    return calcMetric(lhs_roi, rhs_roi);
-}
-
-static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
-                                         const cv::Point index, const NeibMIIndices& neighbors, const int psize,
-                                         const double ksize) noexcept
-{
-    const cv::Point2d curr_center = layout.getMICenter(index);
-
-    const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
-
-    double max_metric = std::numeric_limits<double>::min();
-
-    auto calcWithNeib = [&]<Direction direction>() mutable {
-        if (neighbors.hasNeighbor<direction>()) {
-            const cv::Point2d anchor_shift = -match_shifts.getMatchShift<direction>();
-            const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
-            const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
-
-            const cv::Point2d anchor = curr_center + anchor_shift;
-            const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighbor<direction>());
-            const cv::Point2d cmp_center = neib_center + cmp_shift;
-
-            const double metric = calcMetricWithTwoPoints(gray_src, anchor, cmp_center, ksize);
-            if (metric > max_metric) {
-                max_metric = metric;
-            }
-        }
-    };
-
-    calcWithNeib.template operator()<Direction::LEFT>();
-    calcWithNeib.template operator()<Direction::RIGHT>();
-    calcWithNeib.template operator()<Direction::UPLEFT>();
-    calcWithNeib.template operator()<Direction::UPRIGHT>();
-    calcWithNeib.template operator()<Direction::DOWNLEFT>();
-    calcWithNeib.template operator()<Direction::DOWNRIGHT>();
-
-    return max_metric;
-}
 
 template <bool left_and_up_only = true>
 static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeibMIIndices& neighbors)
@@ -116,6 +65,59 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeibMII
     return std::move(ref_psizes);
 }
 
+static inline double stdvar(const std::vector<double>& arr) noexcept
+{
+    const double sum = std::accumulate(arr.begin(), arr.end(), 0.0);
+    const double mean = sum / (double)arr.size();
+    double var = 0.0;
+    for (const double elem : arr) {
+        var += (elem - mean) * (elem - mean);
+    }
+    var /= (double)arr.size();
+    const double stdvar = std::sqrt(var);
+    return stdvar;
+}
+
+static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
+                                         const cv::Point index, const NeibMIIndices& neighbors, const int psize,
+                                         const double ksize) noexcept
+{
+    const cv::Point2d curr_center = layout.getMICenter(index);
+
+    const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
+
+    double max_metric = std::numeric_limits<double>::min();
+
+    auto calcWithNeib = [&]<Direction direction>() mutable {
+        if (neighbors.hasNeighbor<direction>()) {
+            const cv::Point2d anchor_shift = -match_shifts.getMatchShift<direction>();
+            const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
+            const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
+
+            const cv::Point2d anchor_center = curr_center + anchor_shift;
+            const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighbor<direction>());
+            const cv::Point2d cmp_center = neib_center + cmp_shift;
+
+            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src, anchor_center, ksize));
+            const auto& rhs = getRoiImageByCenter(gray_src, cmp_center, ksize);
+
+            const double metric = anchor.compare(rhs);
+            if (metric > max_metric) {
+                max_metric = metric;
+            }
+        }
+    };
+
+    calcWithNeib.template operator()<Direction::LEFT>();
+    calcWithNeib.template operator()<Direction::RIGHT>();
+    calcWithNeib.template operator()<Direction::UPLEFT>();
+    calcWithNeib.template operator()<Direction::UPRIGHT>();
+    calcWithNeib.template operator()<Direction::DOWNLEFT>();
+    calcWithNeib.template operator()<Direction::DOWNRIGHT>();
+
+    return max_metric;
+}
+
 static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
                                                  const cv::Point index, const NeibMIIndices& neighbors,
                                                  const double ksize, Inspector& inspector) noexcept
@@ -132,18 +134,19 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     const int max_shift =
         (int)(match_shifts.getRight().x + std::sqrt(safe_radius * safe_radius - half_ksize * half_ksize) - half_ksize);
 
-    std::array<int, DIRECTION_NUM> psizes{};
-    std::fill(psizes.begin(), psizes.end(), INVALID_PSIZE);
-    int metric_num = 0;
+    double weighted_psize = 0.0;
+    double total_weight = 0.0;
+    std::vector<double> psizes, weights;
 
     auto calcWithNeib = [&]<Direction direction>() mutable {
         if (neighbors.hasNeighbor<direction>()) {
             const cv::Point2d anchor_shift = -match_shifts.getMatchShift<direction>();
-            const cv::Point2d anchor = curr_center + anchor_shift;
+            const cv::Point2d anchor_center = curr_center + anchor_shift;
             const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
+            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src, anchor_center, ksize));
 
             if (Inspector::PATTERN_ENABLED) {
-                Inspector::saveAnchor(inspector, getRoiImageByCenter(gray_src, anchor, ksize), index, direction);
+                Inspector::saveAnchor(inspector, getRoiImageByCenter(gray_src, anchor_center, ksize), index, direction);
             }
 
             const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighbor<direction>());
@@ -151,9 +154,13 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
 
             int min_metric_psize = INVALID_PSIZE;
             double min_metric = std::numeric_limits<double>::max();
+            std::vector<double> metrics;
+            metrics.reserve(max_shift - 1);
             for (const int psize : rgs::views::iota(1, max_shift)) {
                 cmp_shift += match_step;
-                const double metric = calcMetricWithTwoPoints(gray_src, anchor, neib_center + cmp_shift, ksize);
+                const auto& rhs = getRoiImageByCenter(gray_src, neib_center + cmp_shift, ksize);
+                const double metric = anchor.compare(rhs);
+                metrics.push_back(metric);
 
                 if (Inspector::PATTERN_ENABLED) {
                     Inspector::saveCmpPattern(inspector, getRoiImageByCenter(gray_src, neib_center + cmp_shift, ksize),
@@ -166,8 +173,14 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
                 }
             }
 
-            psizes[metric_num] = min_metric_psize;
-            metric_num++;
+            constexpr double max_valid_metric = -0.7;
+            constexpr double min_metric_stdvar = 0.1;
+            if (min_metric < max_valid_metric && stdvar(metrics) > min_metric_stdvar) {
+                weighted_psize += anchor.getWeight() * min_metric_psize;
+                total_weight += anchor.getWeight();
+                psizes.push_back(min_metric_psize);
+                weights.push_back(anchor.getWeight());
+            }
         }
     };
 
@@ -179,12 +192,14 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     calcWithNeib.template operator()<Direction::DOWNRIGHT>();
 
     if (Inspector::METRIC_REPORT_ENABLED) {
-        inspector.appendMetricReport(index, psizes, metric_num);
+        inspector.appendMetricReport(index, psizes, weights);
     }
 
-    std::sort(psizes.begin(), psizes.begin() + metric_num, std::greater<>());
-    const int mid_psize = psizes[metric_num / 2];
-    return mid_psize;
+    if (total_weight == 0.0)
+        return INVALID_PSIZE;
+
+    const int psize = (int)std::round(weighted_psize / total_weight);
+    return psize;
 }
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
