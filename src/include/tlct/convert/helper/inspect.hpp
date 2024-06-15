@@ -1,6 +1,10 @@
 #pragma once
 
+#include <array>
+#include <cmath>
 #include <filesystem>
+#include <fstream>
+#include <numeric>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -26,14 +30,17 @@ public:
 #else
     static constexpr bool ENABLED = false;
 #endif
+    static constexpr bool PATTERN_ENABLED = false;
+    static constexpr bool METRIC_REPORT_ENABLED = true;
 
     // Constructor
-    inline Inspector() noexcept : dst_dir_(){};
+    inline Inspector() noexcept : dst_dir_(), fstream_(){};
     inline Inspector& operator=(const Inspector& rhs) noexcept = default;
     inline Inspector(const Inspector& rhs) noexcept = default;
     inline Inspector& operator=(Inspector&& rhs) noexcept = default;
     inline Inspector(Inspector&& rhs) noexcept = default;
-    inline Inspector(const fs::path dst_dir) : dst_dir_(std::move(dst_dir)){};
+    inline Inspector(const fs::path dst_dir, std::ofstream&& fstream)
+        : dst_dir_(std::move(dst_dir)), fstream_(std::move(fstream)){};
 
     // Init from
     [[nodiscard]] static inline Inspector fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg,
@@ -51,21 +58,21 @@ public:
                                   const Direction direction);
     static inline void saveCmpPattern(const Inspector& inspector, const cv::Mat& img, const cv::Point index,
                                       const Direction direction, const int psize, const double metric);
+    inline void appendMetricReport(const cv::Point index, const std::array<int, DIRECTION_NUM> psizes,
+                                   const int psize_num);
 
 private:
     fs::path dst_dir_;
+    std::ofstream fstream_;
 };
 
 Inspector Inspector::fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg, const tcfg::tspc::Layout& layout)
 {
-    if constexpr (!ENABLED)
-        return {};
-
     const fs::path dst_pattern{common_cfg.getDstPattern()};
     const fs::path dst_dir = dst_pattern.parent_path() / "inspect";
-    Inspector inspector{dst_dir};
+    std::ofstream fstream{dst_dir / "report.csv"};
 
-    return {dst_dir};
+    return {dst_dir, std::move(fstream)};
 }
 
 fs::path Inspector::getMIDir(const int row, const int col) const noexcept
@@ -112,6 +119,24 @@ void Inspector::saveCmpPattern(const Inspector& inspector, const cv::Mat& img, c
     ss << "cmp" << "-p" << psize << "-m" << std::fixed << std::setprecision(3) << metric << ".png";
     const fs::path save_path = dir / ss.str();
     cv::imwrite(save_path.string(), img);
+}
+
+void Inspector::appendMetricReport(const cv::Point index, const std::array<int, DIRECTION_NUM> psizes,
+                                   const int psize_num)
+{
+    const int sum = std::accumulate(psizes.begin(), psizes.begin() + psize_num, 0);
+    const double mean = (double)sum / psize_num;
+    double var = 0;
+    for (auto it = psizes.begin(); it < (psizes.begin() + psize_num); it++) {
+        var += (*it - mean) * (*it - mean);
+    }
+    var /= psize_num;
+    var = std::sqrt(var);
+    fstream_ << index.y << ',' << index.x << ',' << var;
+    for (auto it = psizes.begin(); it < (psizes.begin() + psize_num); it++) {
+        fstream_ << ',' << *it;
+    }
+    fstream_ << '\n';
 }
 
 } // namespace tlct::cvt::_hp

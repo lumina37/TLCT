@@ -118,12 +118,11 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeibMII
 
 static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
                                                  const cv::Point index, const NeibMIIndices& neighbors,
-                                                 const double ksize, const double metric_threshold,
-                                                 const Inspector& inspector) noexcept
+                                                 const double ksize, Inspector& inspector) noexcept
 {
     const cv::Point2d curr_center = layout.getMICenter(index);
 
-    if (Inspector::ENABLED) {
+    if (Inspector::PATTERN_ENABLED) {
         Inspector::saveMI(inspector, getRoiImageByCenter(gray_src, curr_center, layout.getDiameter()), index);
     }
 
@@ -143,7 +142,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
             const cv::Point2d anchor = curr_center + anchor_shift;
             const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
 
-            if (Inspector::ENABLED) {
+            if (Inspector::PATTERN_ENABLED) {
                 Inspector::saveAnchor(inspector, getRoiImageByCenter(gray_src, anchor, ksize), index, direction);
             }
 
@@ -156,21 +155,19 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
                 cmp_shift += match_step;
                 const double metric = calcMetricWithTwoPoints(gray_src, anchor, neib_center + cmp_shift, ksize);
 
-                if (Inspector::ENABLED) {
+                if (Inspector::PATTERN_ENABLED) {
                     Inspector::saveCmpPattern(inspector, getRoiImageByCenter(gray_src, neib_center + cmp_shift, ksize),
                                               index, direction, psize, metric);
                 }
 
-                if (metric < metric_threshold && metric < min_metric) {
+                if (metric < min_metric) {
                     min_metric = metric;
                     min_metric_psize = psize;
                 }
             }
 
-            if (min_metric_psize != INVALID_PSIZE) {
-                psizes[metric_num] = min_metric_psize;
-                metric_num++;
-            }
+            psizes[metric_num] = min_metric_psize;
+            metric_num++;
         }
     };
 
@@ -181,18 +178,20 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     calcWithNeib.template operator()<Direction::DOWNLEFT>();
     calcWithNeib.template operator()<Direction::DOWNRIGHT>();
 
-    //    std::sort(psizes.begin(), psizes.begin() + metric_num, std::greater<>());
-    //    const int mid_psize = psizes[metric_num / 2];
-    //    return mid_psize;
-    const int max_psize = *std::max_element(psizes.begin(), psizes.begin() + metric_num);
-    return max_psize;
+    if (Inspector::METRIC_REPORT_ENABLED) {
+        inspector.appendMetricReport(index, psizes, metric_num);
+    }
+
+    std::sort(psizes.begin(), psizes.begin() + metric_num, std::greater<>());
+    const int mid_psize = psizes[metric_num / 2];
+    return mid_psize;
 }
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
-                                    const cv::Mat& prev_psizes, const cv::Point index, const Inspector& inspector)
+                                    const cv::Mat& prev_psizes, const cv::Point index, Inspector& inspector)
 {
     const int ksize = (int)(25.0 / 70.0 * layout.getDiameter());
-    constexpr double ref_metric_threshold = -0.875;
+    constexpr double ref_metric_threshold = -0.9;
 
     const auto neighbors = NeibMIIndices::fromLayoutAndIndex(layout, index);
 
@@ -230,9 +229,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
         return min_prev_ref_psize;
     }
 
-    constexpr double metric_threshold = -0.875;
-    const int psize =
-        estimatePatchsizeOverFullMatch(layout, gray_src, index, neighbors, ksize, metric_threshold, inspector);
+    const int psize = estimatePatchsizeOverFullMatch(layout, gray_src, index, neighbors, ksize, inspector);
 
     if (psize == INVALID_PSIZE) {
         return prev_psize;
@@ -243,7 +240,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
 
 } // namespace _hp
 
-TLCT_API inline cv::Mat estimatePatchsizes(const State& state)
+TLCT_API inline cv::Mat estimatePatchsizes(State& state)
 {
     const auto& layout = state.layout_;
 

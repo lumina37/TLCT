@@ -24,7 +24,7 @@ public:
 
     // Constructor
     State() = delete;
-    TLCT_API inline State(const State& cfg) noexcept = default;
+    State(const State& cfg) = delete;
     TLCT_API inline State(State&& cfg) noexcept = default;
     TLCT_API inline State(const TLayout& layout, int views);
 
@@ -32,7 +32,7 @@ public:
     [[nodiscard]] TLCT_API static inline State fromLayoutAndViews(const TLayout& layout, int views);
 
     // Non-const methods
-    inline void setInspector(_hp::Inspector&& inspector) noexcept { inspector_ = inspector; };
+    inline void setInspector(_hp::Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
     TLCT_API inline void feed(const cv::Mat& newsrc);
 
     // Iterator
@@ -83,7 +83,7 @@ public:
         return iterator::fromStateAndView(*this, views_, views_, 0);
     }
 
-    TLCT_API friend inline cv::Mat estimatePatchsizes(const State& state);
+    TLCT_API friend inline cv::Mat estimatePatchsizes(State& state);
     TLCT_API friend inline cv::Mat renderView(const State& state, int view_row, int view_col);
 
 private:
