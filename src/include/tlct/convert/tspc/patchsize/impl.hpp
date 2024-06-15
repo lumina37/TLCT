@@ -28,7 +28,7 @@ using namespace tlct::cvt::_hp;
 
 constexpr int INVALID_PSIZE = -1;
 
-template <bool left_and_up_only = true>
+template <bool left_and_up_only>
 static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeibMIIndices& neighbors)
 {
     std::set<int> ref_psizes_set;
@@ -65,19 +65,6 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeibMII
     return std::move(ref_psizes);
 }
 
-static inline double stdvar(const std::vector<double>& arr) noexcept
-{
-    const double sum = std::accumulate(arr.begin(), arr.end(), 0.0);
-    const double mean = sum / (double)arr.size();
-    double var = 0.0;
-    for (const double elem : arr) {
-        var += (elem - mean) * (elem - mean);
-    }
-    var /= (double)arr.size();
-    const double stdvar = std::sqrt(var);
-    return stdvar;
-}
-
 static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
                                          const cv::Point index, const NeibMIIndices& neighbors, const int psize,
                                          const double ksize) noexcept
@@ -86,7 +73,8 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
 
     const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
 
-    double max_metric = std::numeric_limits<double>::min();
+    double weighted_metric = 0.0;
+    double total_weight = 0.0;
 
     auto calcWithNeib = [&]<Direction direction>() mutable {
         if (neighbors.hasNeighbor<direction>()) {
@@ -102,9 +90,8 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
             const auto& rhs = getRoiImageByCenter(gray_src, cmp_center, ksize);
 
             const double metric = anchor.compare(rhs);
-            if (metric > max_metric) {
-                max_metric = metric;
-            }
+            weighted_metric += metric * anchor.getWeight();
+            total_weight += anchor.getWeight();
         }
     };
 
@@ -115,7 +102,8 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
     calcWithNeib.template operator()<Direction::DOWNLEFT>();
     calcWithNeib.template operator()<Direction::DOWNRIGHT>();
 
-    return max_metric;
+    const double final_metric = weighted_metric / total_weight;
+    return final_metric;
 }
 
 static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
@@ -174,8 +162,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
             }
 
             constexpr double max_valid_metric = -0.7;
-            constexpr double min_metric_stdvar = 0.1;
-            if (min_metric < max_valid_metric && stdvar(metrics) > min_metric_stdvar) {
+            if (min_metric < max_valid_metric) {
                 weighted_psize += anchor.getWeight() * min_metric_psize;
                 total_weight += anchor.getWeight();
                 psizes.push_back(min_metric_psize);
@@ -198,15 +185,15 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     if (total_weight == 0.0)
         return INVALID_PSIZE;
 
-    const int psize = (int)std::round(weighted_psize / total_weight);
-    return psize;
+    const int final_psize = (int)std::round(weighted_psize / total_weight);
+    return final_psize;
 }
 
 static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
                                     const cv::Mat& prev_psizes, const cv::Point index, Inspector& inspector)
 {
     const int ksize = (int)(25.0 / 70.0 * layout.getDiameter());
-    constexpr double ref_metric_threshold = -0.9;
+    constexpr double ref_metric_threshold = -0.875;
 
     const auto neighbors = NeibMIIndices::fromLayoutAndIndex(layout, index);
 
@@ -216,7 +203,7 @@ static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::M
         return prev_psize;
     }
 
-    const std::vector<int>& ref_psizes = getRefPsizes(psizes, neighbors);
+    const std::vector<int>& ref_psizes = getRefPsizes<true>(psizes, neighbors);
     double min_ref_metric = std::numeric_limits<double>::max();
     int min_ref_psize = 0;
     for (const int ref_psize : ref_psizes) {
