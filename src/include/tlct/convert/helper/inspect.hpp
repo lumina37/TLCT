@@ -30,8 +30,8 @@ public:
 #else
     static constexpr bool ENABLED = false;
 #endif
-    static constexpr bool PATTERN_ENABLED = false;
-    static constexpr bool METRIC_REPORT_ENABLED = true;
+    static constexpr bool PATTERN_ENABLED = ENABLED;
+    static constexpr bool METRIC_REPORT_ENABLED = ENABLED;
 
     // Constructor
     inline Inspector() noexcept : dst_dir_(), fstream_(){};
@@ -68,6 +68,9 @@ private:
 
 Inspector Inspector::fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg, const tcfg::tspc::Layout& layout)
 {
+    if (!ENABLED)
+        return {};
+
     const fs::path dst_pattern{common_cfg.getDstPattern()};
     const fs::path dst_dir = dst_pattern.parent_path() / "inspect";
     fs::create_directories(dst_dir);
