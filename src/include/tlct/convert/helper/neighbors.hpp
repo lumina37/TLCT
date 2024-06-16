@@ -102,37 +102,38 @@ NeighborIdx_<TLayout, LEN_TYPE_NUM>::fromLayoutAndIndex(const TLayout& layout, c
     cv::Point downleft{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
     cv::Point downright{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
 
-    if (index.x > 0) {
-        left = {index.x - 1, index.y};
+    if (index.x > LEN_TYPE_NUM - 1) {
+        left = {index.x - LEN_TYPE_NUM, index.y};
     }
-    if (index.x < (layout.getMICols(index.y) - 1)) {
-        right = {index.x + 1, index.y};
+    if (index.x < (layout.getMICols(index.y) - LEN_TYPE_NUM)) {
+        right = {index.x + LEN_TYPE_NUM, index.y};
     }
 
+    constexpr int half_shift = LEN_TYPE_NUM / 2 + 1;
     if (index.y > 0) {
         if (layout.isOutShift() ^ (index.y % 2 == 0)) {
-            upright = {index.x, index.y - 1};
-            if (index.x > 0) {
-                upleft = {index.x - 1, index.y - 1};
+            upright = {index.x + (half_shift - 1), index.y - 1};
+            if (index.x > half_shift - 1) {
+                upleft = {index.x - half_shift, index.y - 1};
             }
         } else {
-            upleft = {index.x, index.y - 1};
-            if (index.x < (layout.getMICols(index.y - 1) - 1)) {
-                upright = {index.x + 1, index.y - 1};
+            upleft = {index.x - (half_shift - 1), index.y - 1};
+            if (index.x < (layout.getMICols(index.y - 1) - half_shift)) {
+                upright = {index.x + half_shift, index.y - 1};
             }
         }
     }
 
     if (index.y < (layout.getMIRows() - 1)) {
         if (layout.isOutShift() ^ (index.y % 2 == 0)) {
-            downright = {index.x, index.y + 1};
-            if (index.x > 0) {
-                downleft = {index.x - 1, index.y + 1};
+            downright = {index.x + (half_shift - 1), index.y + 1};
+            if (index.x > half_shift - 1) {
+                downleft = {index.x - half_shift, index.y + 1};
             }
         } else {
-            downleft = {index.x, index.y + 1};
-            if (index.x < (layout.getMICols(index.y + 1) - 1)) {
-                downright = {index.x + 1, index.y + 1};
+            downleft = {index.x - (half_shift - 1), index.y + 1};
+            if (index.x < (layout.getMICols(index.y + 1) - half_shift)) {
+                downright = {index.x + half_shift, index.y + 1};
             }
         }
     }

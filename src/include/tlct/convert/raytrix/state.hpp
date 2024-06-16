@@ -6,12 +6,12 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/tspc.hpp"
+#include "tlct/config/raytrix.hpp"
 #include "tlct/convert/concepts/state.hpp"
 #include "tlct/convert/helper/inspect.hpp"
 #include "tlct/convert/helper/roi.hpp"
 
-namespace tlct::cvt::tspc {
+namespace tlct::cvt::raytrix {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
@@ -20,7 +20,7 @@ class State
 {
 public:
     // Typename alias
-    using TLayout = tcfg::tspc::Layout;
+    using TLayout = tcfg::raytrix::Layout;
 
     // Constructor
     State() = delete;
@@ -161,4 +161,4 @@ State::iterator State::iterator::fromStateAndView(const State& state, int views,
     return {state, views, view_row, view_col};
 }
 
-} // namespace tlct::cvt::tspc
+} // namespace tlct::cvt::raytrix

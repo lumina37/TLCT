@@ -6,8 +6,8 @@
 #include "tlct.hpp"
 
 namespace fs = std::filesystem;
-namespace tcfg = tlct::cfg::tspc;
-namespace tcvt = tlct::cvt::tspc;
+namespace tcfg = tlct::cfg::raytrix;
+namespace tcvt = tlct::cvt::raytrix;
 
 using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
 

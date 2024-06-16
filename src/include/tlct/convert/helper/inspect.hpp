@@ -13,6 +13,7 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/common.hpp"
+#include "tlct/config/concepts/layout.hpp"
 #include "tlct/config/tspc/layout.hpp"
 #include "tlct/convert/helper/direction.hpp"
 
@@ -22,7 +23,9 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-class Inspector
+template <typename TLayout_>
+    requires tcfg::concepts::CLayout<TLayout_>
+class Inspector_
 {
 public:
 #ifdef TLCT_ENABLE_INSPECT
@@ -31,20 +34,23 @@ public:
     static constexpr bool ENABLED = false;
 #endif
     static constexpr bool PATTERN_ENABLED = ENABLED;
-    static constexpr bool METRIC_REPORT_ENABLED = ENABLED;
+    static constexpr bool METRIC_REPORT_ENABLED = false;
+
+    // Typename alias
+    using TLayout = TLayout_;
 
     // Constructor
-    inline Inspector() noexcept : dst_dir_(), fstream_(){};
-    inline Inspector& operator=(const Inspector& rhs) noexcept = default;
-    inline Inspector(const Inspector& rhs) noexcept = default;
-    inline Inspector& operator=(Inspector&& rhs) noexcept = default;
-    inline Inspector(Inspector&& rhs) noexcept = default;
-    inline Inspector(const fs::path dst_dir, std::ofstream&& fstream)
+    inline Inspector_() noexcept : dst_dir_(), fstream_(){};
+    inline Inspector_& operator=(const Inspector_& rhs) noexcept = default;
+    inline Inspector_(const Inspector_& rhs) noexcept = default;
+    inline Inspector_& operator=(Inspector_&& rhs) noexcept = default;
+    inline Inspector_(Inspector_&& rhs) noexcept = default;
+    inline Inspector_(const fs::path dst_dir, std::ofstream&& fstream)
         : dst_dir_(std::move(dst_dir)), fstream_(std::move(fstream)){};
 
     // Init from
-    [[nodiscard]] static inline Inspector fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg,
-                                                                 const tcfg::tspc::Layout& layout);
+    [[nodiscard]] static inline Inspector_ fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg,
+                                                                  const TLayout& layout);
 
     // Const methods
     [[nodiscard]] inline fs::path getDstDir() const noexcept { return dst_dir_; }
@@ -53,10 +59,10 @@ public:
     [[nodiscard]] inline fs::path getDirectionDir(const cv::Point index, const Direction direction) const noexcept;
 
     // Utils
-    static inline void saveMI(const Inspector& inspector, const cv::Mat& img, const cv::Point index);
-    static inline void saveAnchor(const Inspector& inspector, const cv::Mat& img, const cv::Point index,
+    static inline void saveMI(const Inspector_& inspector, const cv::Mat& img, const cv::Point index);
+    static inline void saveAnchor(const Inspector_& inspector, const cv::Mat& img, const cv::Point index,
                                   const Direction direction);
-    static inline void saveCmpPattern(const Inspector& inspector, const cv::Mat& img, const cv::Point index,
+    static inline void saveCmpPattern(const Inspector_& inspector, const cv::Mat& img, const cv::Point index,
                                       const Direction direction, const int psize, const double metric);
     inline void appendMetricReport(const cv::Point index, const std::vector<double>& psizes,
                                    const std::vector<double>& weights);
@@ -66,7 +72,10 @@ private:
     std::ofstream fstream_;
 };
 
-Inspector Inspector::fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg, const tcfg::tspc::Layout& layout)
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+Inspector_<TLayout> Inspector_<TLayout>::fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg,
+                                                                const TLayout& layout)
 {
     if (!ENABLED)
         return {};
@@ -79,7 +88,9 @@ Inspector Inspector::fromCommonCfgAndLayout(const tcfg::CommonParamConfig& commo
     return {dst_dir, std::move(fstream)};
 }
 
-fs::path Inspector::getMIDir(const int row, const int col) const noexcept
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+fs::path Inspector_<TLayout>::getMIDir(const int row, const int col) const noexcept
 {
     std::stringstream ss;
     ss << row << '-' << col;
@@ -88,9 +99,16 @@ fs::path Inspector::getMIDir(const int row, const int col) const noexcept
     return mi_dir;
 }
 
-fs::path Inspector::getMIDir(const cv::Point index) const noexcept { return getMIDir(index.y, index.x); }
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+fs::path Inspector_<TLayout>::getMIDir(const cv::Point index) const noexcept
+{
+    return getMIDir(index.y, index.x);
+}
 
-fs::path Inspector::getDirectionDir(const cv::Point index, const Direction direction) const noexcept
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+fs::path Inspector_<TLayout>::getDirectionDir(const cv::Point index, const Direction direction) const noexcept
 {
     const fs::path mi_dir = getMIDir(index.y, index.x);
     std::stringstream ss;
@@ -100,23 +118,29 @@ fs::path Inspector::getDirectionDir(const cv::Point index, const Direction direc
     return direction_dir;
 }
 
-void Inspector::saveMI(const Inspector& inspector, const cv::Mat& img, const cv::Point index)
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+void Inspector_<TLayout>::saveMI(const Inspector_& inspector, const cv::Mat& img, const cv::Point index)
 {
     const fs::path mi_dir = inspector.getMIDir(index);
     const fs::path save_path = mi_dir / "mi.png";
     cv::imwrite(save_path.string(), img);
 }
 
-void Inspector::saveAnchor(const Inspector& inspector, const cv::Mat& img, const cv::Point index,
-                           const Direction direction)
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+void Inspector_<TLayout>::saveAnchor(const Inspector_& inspector, const cv::Mat& img, const cv::Point index,
+                                     const Direction direction)
 {
     const fs::path dir = inspector.getDirectionDir(index, direction);
     const fs::path save_path = dir / "anchor.png";
     cv::imwrite(save_path.string(), img);
 }
 
-void Inspector::saveCmpPattern(const Inspector& inspector, const cv::Mat& img, const cv::Point index,
-                               const Direction direction, const int psize, const double metric)
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+void Inspector_<TLayout>::saveCmpPattern(const Inspector_& inspector, const cv::Mat& img, const cv::Point index,
+                                         const Direction direction, const int psize, const double metric)
 {
     const fs::path dir = inspector.getDirectionDir(index, direction);
     std::stringstream ss;
@@ -125,8 +149,10 @@ void Inspector::saveCmpPattern(const Inspector& inspector, const cv::Mat& img, c
     cv::imwrite(save_path.string(), img);
 }
 
-void Inspector::appendMetricReport(const cv::Point index, const std::vector<double>& psizes,
-                                   const std::vector<double>& weights)
+template <typename TLayout>
+    requires tcfg::concepts::CLayout<TLayout>
+void Inspector_<TLayout>::appendMetricReport(const cv::Point index, const std::vector<double>& psizes,
+                                             const std::vector<double>& weights)
 {
     double total_psize = 0.0;
     double total_weight = std::numeric_limits<double>::epsilon();

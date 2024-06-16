@@ -11,21 +11,21 @@
 #include <opencv2/quality.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/tspc/layout.hpp"
+#include "tlct/config/raytrix/layout.hpp"
 #include "tlct/convert/helper/direction.hpp"
 #include "tlct/convert/helper/neighbors.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/convert/helper/wrapper.hpp"
-#include "tlct/convert/tspc/state.hpp"
+#include "tlct/convert/raytrix/state.hpp"
 
-namespace tlct::cvt::tspc {
+namespace tlct::cvt::raytrix {
 
 namespace rgs = std::ranges;
 
 namespace _hp {
 
 using namespace tlct::cvt::_hp;
-namespace tcfg = tlct::cfg::tspc;
+namespace tcfg = tlct::cfg::raytrix;
 
 using NeighborIdx = NeighborIdx_<tcfg::Layout, 1>;
 using Inspector = Inspector_<tcfg::Layout>;
@@ -69,7 +69,7 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const Neighbo
     return std::move(ref_psizes);
 }
 
-static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
+static inline double calcMetricWithPsize(const cfg::raytrix::Layout& layout, const cv::Mat& gray_src,
                                          const cv::Point index, const NeighborIdx& neighbors, const int psize,
                                          const double ksize) noexcept
 {
@@ -82,8 +82,8 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
 
     auto calcWithNeib = [&]<Direction direction>() mutable {
         if (neighbors.hasNeighbor<direction>()) {
-            const cv::Point2d anchor_shift = -match_shifts.getMatchShift<direction>();
-            const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
+            const cv::Point2d anchor_shift = match_shifts.getMatchShift<direction>();
+            const cv::Point2d match_step = -MatchSteps::getMatchStep<direction>();
             const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
 
             const cv::Point2d anchor_center = curr_center + anchor_shift;
@@ -110,7 +110,7 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
     return final_metric;
 }
 
-static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout, const cv::Mat& gray_src,
+static inline int estimatePatchsizeOverFullMatch(const cfg::raytrix::Layout& layout, const cv::Mat& gray_src,
                                                  const cv::Point index, const NeighborIdx& neighbors,
                                                  const double ksize, Inspector& inspector) noexcept
 {
@@ -132,9 +132,9 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
 
     auto calcWithNeib = [&]<Direction direction>() mutable {
         if (neighbors.hasNeighbor<direction>()) {
-            const cv::Point2d anchor_shift = -match_shifts.getMatchShift<direction>();
+            const cv::Point2d anchor_shift = match_shifts.getMatchShift<direction>();
             const cv::Point2d anchor_center = curr_center + anchor_shift;
-            const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
+            const cv::Point2d match_step = -MatchSteps::getMatchStep<direction>();
             const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src, anchor_center, ksize));
 
             if (Inspector::PATTERN_ENABLED) {
@@ -165,7 +165,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
                 }
             }
 
-            constexpr double max_valid_metric = -0.7;
+            constexpr double max_valid_metric = -0.5;
             if (min_metric < max_valid_metric) {
                 weighted_psize += anchor.getWeight() * min_metric_psize;
                 total_weight += anchor.getWeight();
@@ -193,11 +193,11 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::tspc::Layout& layout
     return final_psize;
 }
 
-static inline int estimatePatchsize(const cfg::tspc::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
+static inline int estimatePatchsize(const cfg::raytrix::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
                                     const cv::Mat& prev_psizes, const cv::Point index, Inspector& inspector)
 {
-    const int ksize = (int)(25.0 / 70.0 * layout.getDiameter());
-    constexpr double ref_metric_threshold = -0.875;
+    const int ksize = (int)(23.0 / 70.0 * layout.getDiameter());
+    constexpr double ref_metric_threshold = -0.85;
 
     const auto neighbors = NeighborIdx::fromLayoutAndIndex(layout, index);
 
@@ -271,4 +271,4 @@ TLCT_API inline cv::Mat estimatePatchsizes(State& state)
     return std::move(psizes);
 }
 
-} // namespace tlct::cvt::tspc
+} // namespace tlct::cvt::raytrix
