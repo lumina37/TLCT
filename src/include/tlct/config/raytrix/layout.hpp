@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <numbers>
+#include <ranges>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -11,6 +13,8 @@
 
 namespace tlct::cfg::raytrix {
 
+namespace rgs = std::ranges;
+
 class Layout
 {
 public:
@@ -19,13 +23,14 @@ public:
 
     // Constructor
     TLCT_API inline Layout() noexcept
-        : left_top_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), mirows_(), micols_(), imgsize_(), diameter_(),
+        : left_top_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), imgsize_(), mirows_(), micols_(), diameter_(),
           radius_(), rotation_(), upsample_(1){};
     TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
     TLCT_API inline Layout(const Layout& rhs) noexcept = default;
     TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout(Layout&& rhs) noexcept = default;
-    TLCT_API inline Layout(cv::Point2d point, cv::Size imgsize, double diameter, double rotation) noexcept;
+    TLCT_API inline Layout(cv::Point2d center_mi, cv::Size imgsize, const TCalibConfig::LenOffsets lofs,
+                           double diameter, double rotation) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
@@ -38,6 +43,8 @@ public:
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
     [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
+    [[nodiscard]] TLCT_API inline int getMIType(const int row, const int col) const noexcept;
+    [[nodiscard]] TLCT_API inline int getMIType(const cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline double getRotation() const noexcept { return rotation_; };
@@ -66,6 +73,7 @@ private:
     cv::Size imgsize_;
     cv::Vec2i mirows_;
     cv::Vec2i micols_;
+    std::array<std::array<int, LEN_TYPE_NUM>, 2> idx2type_;
     double diameter_;
     double radius_;
     double rotation_;
@@ -74,20 +82,22 @@ private:
 
 static_assert(concepts::CLayout<Layout>);
 
-Layout::Layout(cv::Point2d point, const cv::Size imgsize, double diameter, double rotation) noexcept
+Layout::Layout(cv::Point2d center_mi, const cv::Size imgsize, const TCalibConfig::LenOffsets lofs, double diameter,
+               double rotation) noexcept
     : imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation), upsample_(1)
 {
     if (rotation_ != 0.0) {
         transpose();
-        std::swap(point.x, point.y);
+        std::swap(center_mi.x, center_mi.y);
     }
 
-    x_unit_shift_ = diameter;
-    y_unit_shift_ = diameter * std::numbers::sqrt3 / 2.0;
+    x_unit_shift_ = diameter_;
+    y_unit_shift_ = diameter_ * std::numbers::sqrt3 / 2.0;
+    const int center_mi_xidx = (int)((center_mi.x - radius_) / x_unit_shift_);
+    const int center_mi_yidx = (int)((center_mi.y - radius_) / y_unit_shift_);
 
-    const int point_yidx = (int)((point.y - radius_) / y_unit_shift_);
-    const double left_x = point.x - std::floor((point.x - x_unit_shift_ / 2.0) / x_unit_shift_) * x_unit_shift_;
-    if (point_yidx % 2 == 0) {
+    const double left_x = center_mi.x - x_unit_shift_ * center_mi_xidx;
+    if (center_mi_yidx % 2 == 0) {
         left_top_.x = left_x;
         if (left_top_.x > diameter_) {
             is_out_shift_ = true;
@@ -103,19 +113,31 @@ Layout::Layout(cv::Point2d point, const cv::Size imgsize, double diameter, doubl
             is_out_shift_ = true;
         }
     }
-    left_top_.y = point.y - std::floor((point.y - y_unit_shift_ / 2.0) / y_unit_shift_) * y_unit_shift_;
+    left_top_.y = center_mi.y - std::floor((center_mi.y - y_unit_shift_ / 2.0) / y_unit_shift_) * y_unit_shift_;
 
     micols_[0] = (int)(((double)imgsize_.width - left_top_.x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
     micols_[1] = (int)(((double)imgsize_.width - getMICenter(1, 0).x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
     mirows_[0] = (int)(((double)imgsize_.height - left_top_.y - y_unit_shift_ / 2.0) / y_unit_shift_) + 1;
     mirows_[1] = mirows_[0];
+
+    const bool is_odd_yidx = center_mi_yidx % 2;
+    for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
+        const int ofs = lofs[type];
+        const int idx = (center_mi_xidx + ofs) % LEN_TYPE_NUM;
+        idx2type_[is_odd_yidx][idx] = type;
+    }
+    const bool is_another_row_on_left = is_odd_yidx ^ is_out_shift_;
+    for (const int idx : rgs::views::iota(0, LEN_TYPE_NUM)) {
+        const int type = idx2type_[is_odd_yidx][(idx + 2 - is_another_row_on_left) % 3];
+        idx2type_[!is_odd_yidx][idx] = type;
+    }
 }
 
 Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
 {
     const cv::Point2d center = cv::Point2d(imgsize) / 2.0;
     const cv::Point2d point{center.x + cfg.offset_.x, center.y - cfg.offset_.y};
-    return {point, imgsize, cfg.diameter_, cfg.rotation_};
+    return {point, imgsize, cfg.lofs_, cfg.diameter_, cfg.rotation_};
 }
 
 Layout& Layout::upsample(const int factor) noexcept
@@ -138,6 +160,14 @@ Layout& Layout::transpose() noexcept
     std::swap(imgsize_.height, imgsize_.width);
     return *this;
 }
+
+int Layout::getMIType(const int row, const int col) const noexcept
+{
+    const int type = idx2type_[row % idx2type_.size()][col % LEN_TYPE_NUM];
+    return type;
+}
+
+int Layout::getMIType(const cv::Point index) const noexcept { return getMIType(index.y, index.x); }
 
 cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
 {

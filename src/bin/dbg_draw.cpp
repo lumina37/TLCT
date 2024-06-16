@@ -27,7 +27,7 @@ int main()
         cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
     }
 
-    auto neighbors = tcvt::_hp::NeibMIIndices::fromLayoutAndIndex(layout, {1, 1});
+    auto neighbors = tcvt::_hp::NeighborIdx_::fromLayoutAndIndex(layout, {1, 1});
     cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeft()), tlct::_hp::iround(layout.getRadius()),
                {0, 63 * 1, 0}, 2, cv::LINE_AA);
     cv::circle(resized_img, layout.getMICenter(neighbors.getUpRight()), tlct::_hp::iround(layout.getRadius()),
@@ -37,7 +37,7 @@ int main()
     cv::circle(resized_img, layout.getMICenter(neighbors.getDownRight()), tlct::_hp::iround(layout.getRadius()),
                {0, 63 * 4, 0}, 2, cv::LINE_AA);
 
-    neighbors = tcvt::_hp::NeibMIIndices::fromLayoutAndIndex(layout, {1, 4});
+    neighbors = tcvt::_hp::NeighborIdx_::fromLayoutAndIndex(layout, {1, 4});
     cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeft()), tlct::_hp::iround(layout.getRadius()),
                {0, 63 * 1, 0}, 2, cv::LINE_AA);
     cv::circle(resized_img, layout.getMICenter(neighbors.getUpRight()), tlct::_hp::iround(layout.getRadius()),

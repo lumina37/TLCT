@@ -3,30 +3,35 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/config/concepts/layout.hpp"
 #include "tlct/config/tspc/layout.hpp"
+#include "tlct/convert/helper/direction.hpp"
 
-namespace tlct::cvt::tspc::_hp {
+namespace tlct::cvt::_hp {
 
-namespace tcfg = tlct::cfg::tspc;
-using namespace tlct::cvt::_hp;
-
-class NeibMIIndices
+template <typename TLayout_, int LEN_TYPE_NUM_>
+    requires tlct::cfg::concepts::CLayout<TLayout_>
+class NeighborIdx_
 {
 public:
+    static constexpr int LEN_TYPE_NUM = LEN_TYPE_NUM_;
     static constexpr int DEFAULT_INDEX = -1;
 
+    // Typename alias
+    using TLayout = TLayout_;
+
     // Constructor
-    TLCT_API inline NeibMIIndices& operator=(const NeibMIIndices& rhs) noexcept = default;
-    TLCT_API inline NeibMIIndices(const NeibMIIndices& rhs) noexcept = default;
-    TLCT_API inline NeibMIIndices& operator=(NeibMIIndices&& rhs) noexcept = default;
-    TLCT_API inline NeibMIIndices(NeibMIIndices&& rhs) noexcept = default;
-    TLCT_API inline NeibMIIndices(cv::Point left, cv::Point right, cv::Point upleft, cv::Point upright,
-                                  cv::Point downleft, cv::Point downright) noexcept
+    TLCT_API inline NeighborIdx_& operator=(const NeighborIdx_& rhs) noexcept = default;
+    TLCT_API inline NeighborIdx_(const NeighborIdx_& rhs) noexcept = default;
+    TLCT_API inline NeighborIdx_& operator=(NeighborIdx_&& rhs) noexcept = default;
+    TLCT_API inline NeighborIdx_(NeighborIdx_&& rhs) noexcept = default;
+    TLCT_API inline NeighborIdx_(cv::Point left, cv::Point right, cv::Point upleft, cv::Point upright,
+                                 cv::Point downleft, cv::Point downright) noexcept
         : left_(left), right_(right), upleft_(upleft), upright_(upright), downleft_(downleft), downright_(downright){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline NeibMIIndices fromLayoutAndIndex(const tcfg::Layout& layout,
-                                                                          const cv::Point index) noexcept;
+    [[nodiscard]] TLCT_API static inline NeighborIdx_ fromLayoutAndIndex(const TLayout& layout,
+                                                                         const cv::Point index) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline bool hasLeft() const noexcept { return left_.x != DEFAULT_INDEX; }
@@ -85,14 +90,17 @@ private:
     cv::Point downright_;
 };
 
-NeibMIIndices NeibMIIndices::fromLayoutAndIndex(const tcfg::Layout& layout, const cv::Point index) noexcept
+template <typename TLayout, int LEN_TYPE_NUM>
+    requires tlct::cfg::concepts::CLayout<TLayout>
+NeighborIdx_<TLayout, LEN_TYPE_NUM>
+NeighborIdx_<TLayout, LEN_TYPE_NUM>::fromLayoutAndIndex(const TLayout& layout, const cv::Point index) noexcept
 {
-    cv::Point left{NeibMIIndices::DEFAULT_INDEX, NeibMIIndices::DEFAULT_INDEX};
-    cv::Point right{NeibMIIndices::DEFAULT_INDEX, NeibMIIndices::DEFAULT_INDEX};
-    cv::Point upleft{NeibMIIndices::DEFAULT_INDEX, NeibMIIndices::DEFAULT_INDEX};
-    cv::Point upright{NeibMIIndices::DEFAULT_INDEX, NeibMIIndices::DEFAULT_INDEX};
-    cv::Point downleft{NeibMIIndices::DEFAULT_INDEX, NeibMIIndices::DEFAULT_INDEX};
-    cv::Point downright{NeibMIIndices::DEFAULT_INDEX, NeibMIIndices::DEFAULT_INDEX};
+    cv::Point left{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
+    cv::Point right{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
+    cv::Point upleft{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
+    cv::Point upright{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
+    cv::Point downleft{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
+    cv::Point downright{NeighborIdx_::DEFAULT_INDEX, NeighborIdx_::DEFAULT_INDEX};
 
     if (index.x > 0) {
         left = {index.x - 1, index.y};
@@ -132,4 +140,4 @@ NeibMIIndices NeibMIIndices::fromLayoutAndIndex(const tcfg::Layout& layout, cons
     return {left, right, upleft, upright, downleft, downright};
 }
 
-} // namespace tlct::cvt::tspc::_hp
+} // namespace tlct::cvt::_hp

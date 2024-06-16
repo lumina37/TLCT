@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <iostream>
 #include <string>
 
@@ -12,12 +13,14 @@
 namespace tlct::cfg::raytrix {
 
 constexpr int LEN_TYPE_NUM = 3;
-using LenOffsets = cv::Vec<cv::Point2d, LEN_TYPE_NUM>;
 
 class CalibConfig
 {
 public:
     friend class Layout;
+
+    // Typename alias
+    using LenOffsets = std::array<int, LEN_TYPE_NUM>;
 
     // Constructor
     TLCT_API inline CalibConfig() noexcept : diameter_(), rotation_(), offset_(){};
@@ -53,11 +56,12 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 
     LenOffsets lofs;
     for (const auto ltype_node : data_node.children("lens_type")) {
-        const auto loffset = ltype_node.child("offset"); // Len Type Offset
+        const auto loffset_node = ltype_node.child("offset"); // Len Type Offset
         const int lid = ltype_node.attribute("id").as_int();
-        const double loffset_x = loffset.child("x").text().as_double();
-        const double loffset_y = loffset.child("y").text().as_double();
-        lofs[lid] = {loffset_x, loffset_y};
+        const double loffset_x = loffset_node.child("x").text().as_double();
+        const double loffset_y = loffset_node.child("y").text().as_double();
+        const int loffset = (int)std::round(loffset_x + loffset_y);
+        lofs[lid] = loffset;
     }
 
     return {diameter, rotation, offset, lofs};
