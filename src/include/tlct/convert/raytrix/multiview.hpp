@@ -6,6 +6,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "tlct/config/raytrix.hpp"
+#include "tlct/convert/helper/grad.hpp"
 #include "tlct/convert/raytrix/state.hpp"
 
 namespace tlct::cvt::raytrix {
@@ -42,6 +43,7 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             const int patch_lefttop_y = (int)std::round(center.y - (double)psize / 2.0 - bound + view_shift_y);
             const cv::Mat patch =
                 state.src_32f_({patch_lefttop_x, patch_lefttop_y, psize_with_bound, psize_with_bound});
+            const double grad_weight = tlct::cvt::_hp::gradient(patch);
 
             // Paste patch
             cv::resize(patch, resized_patch, {p_resize_width_withbound, p_resize_width_withbound}, 0, 0,
@@ -62,8 +64,8 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             const int right_shift = ((i % 2) ^ (int)layout.isOutShift()) * (state.patch_resize_width_ / 2);
             const cv::Rect roi{j * patch_resize_width + right_shift, i * state.patch_resize_height_,
                                p_resize_width_withbound, p_resize_width_withbound};
-            render_canvas(roi) += weighted_patch;
-            weight_canvas(roi) += state.patch_fadeout_weight_;
+            render_canvas(roi) += weighted_patch * grad_weight;
+            weight_canvas(roi) += state.patch_fadeout_weight_ * grad_weight;
         }
     }
 

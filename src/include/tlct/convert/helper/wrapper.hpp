@@ -4,6 +4,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/quality.hpp>
 
+#include "grad.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
 
@@ -37,15 +38,7 @@ private:
 
 AnchorWrapper AnchorWrapper::fromRoi(const cv::Mat& roi)
 {
-    cv::Mat edges;
-    double weight = 0.0;
-    cv::Sobel(roi, edges, CV_16S, 1, 0);
-    edges = cv::abs(edges);
-    weight += cv::sum(edges)[0];
-    cv::Sobel(roi, edges, CV_16S, 0, 1);
-    edges = cv::abs(edges);
-    weight += cv::sum(edges)[0];
-    weight /= edges.size().area();
+    double weight = gradient(roi);
     auto base = TBase::create(roi);
     return {std::move(base), weight};
 }

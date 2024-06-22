@@ -259,14 +259,13 @@ TLCT_API inline cv::Mat estimatePatchsizes(State& state)
     }
 
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int col : rgs::views::iota(0, layout.getMICols(row) - 1)) {
+        for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const cv::Point index{col, row};
             const int psize =
                 _hp::estimatePatchsize(layout, state.gray_src_, psizes, prev_psizes, index, state.inspector_);
             psizes.at<int>(index) = psize;
         }
     }
-    psizes.col(layout.getMIMinCols() - 2).copyTo(psizes.col(layout.getMIMinCols() - 1));
 
     return std::move(psizes);
 }
