@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 
     const auto layout = tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize());
 
-    const auto srcpath = tlct::cfg::CommonParamConfig::fmtSrcPath(common_cfg, 1);
+    const auto srcpath = tlct::cfg::CommonParamConfig::fmtSrcPath(common_cfg, common_cfg.getRange().start);
     const cv::Mat src = cv::imread(srcpath.string());
     const cv::Mat resized_img = tcfg::Layout::procImg(layout, src);
 

@@ -82,7 +82,7 @@ Layout::Layout(const cv::Point2d left_top, const cv::Point2d right_top, const cv
     : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), imgsize_(imgsize), mirows_(mirows, mirows),
       micols_(micols, micols), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation), upsample_(1)
 {
-    if (rotation_ != 0.0) {
+    if (rotation_ > 1e-2) {
         transpose();
     }
 
@@ -169,7 +169,7 @@ void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
     dst = src;
 
     const double rotation = layout.getRotation();
-    if (rotation != 0.0) {
+    if (rotation > 1e-2) {
         cv::Mat transposed_src;
         cv::transpose(src, transposed_src);
         dst = std::move(transposed_src);

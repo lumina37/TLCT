@@ -86,7 +86,7 @@ Layout::Layout(cv::Point2d center_mi, const cv::Size imgsize, const TCalibConfig
                double rotation) noexcept
     : imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), rotation_(rotation), upsample_(1)
 {
-    if (rotation_ != 0.0) {
+    if (rotation_ > 1e-2) {
         transpose();
         std::swap(center_mi.x, center_mi.y);
     }
@@ -185,7 +185,7 @@ void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
     dst = src;
 
     const double rotation = layout.getRotation();
-    if (rotation != 0.0) {
+    if (rotation > 1e-2) {
         cv::Mat transposed_src;
         cv::transpose(src, transposed_src);
         dst = std::move(transposed_src);

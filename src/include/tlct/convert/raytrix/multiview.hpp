@@ -85,7 +85,7 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
                cv::INTER_CUBIC);
 
     cv::Mat view_image;
-    if (layout.getRotation() != 0.0) {
+    if (layout.getRotation() > 1e-2) {
         cv::transpose(resized_normed_image_u8, view_image);
     } else {
         view_image = std::move(resized_normed_image_u8);
