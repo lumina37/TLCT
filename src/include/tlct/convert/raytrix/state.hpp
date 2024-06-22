@@ -97,6 +97,7 @@ private:
     int patch_resize_height_;
     int bound_;
     int p_resize_width_withbound_;
+    int p_resize_height_withbound_;
     cv::Mat patch_fadeout_weight_;
     int move_range_;
     int interval_;
@@ -119,11 +120,12 @@ State::State(const TLayout& layout, int views)
     patch_resize_width_ = (int)std::round(patch_resize_width_factor * layout.getDiameter());
     patch_resize_height_ = (int)std::round((double)patch_resize_width_ * std::numbers::sqrt3 / 2.0);
     // Block effect if the bound is too small. Blurring if the bound is too large.
-    constexpr double patch_bound_factor = 0.06;
-    bound_ = (int)std::round(patch_bound_factor * layout.getDiameter());
+    constexpr double patch_bound_factor = 0.21;
+    bound_ = (int)std::round(patch_bound_factor * patch_resize_width_);
 
-    p_resize_width_withbound_ = patch_resize_width_ + 2 * bound_;
-    patch_fadeout_weight_ = _hp::rectWithFadeoutBorder({p_resize_width_withbound_, p_resize_width_withbound_}, bound_);
+    p_resize_width_withbound_ = (int)std::round(std::numbers::sqrt2 * patch_resize_width_) + 2 * bound_;
+    p_resize_height_withbound_ = (int)std::round(std::numbers::sqrt2 * patch_resize_height_) + 2 * bound_;
+    patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_width_withbound_, bound_);
 
     // Controls the view shift.
     // The distance between the patches from the left and middle viewpoint is `move_range_` pix.
@@ -131,13 +133,16 @@ State::State(const TLayout& layout, int views)
     move_range_ = (int)std::round(move_range_factor * layout.getDiameter() * 2.0);
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
-    canvas_width_ = (layout.getMIMinCols() - 1) * patch_resize_width_ + 2 * bound_ + patch_resize_width_ / 2;
-    canvas_height_ = layout.getMIRows() * patch_resize_height_ + p_resize_width_withbound_ - patch_resize_height_;
-    final_width_ = tlct::_hp::align_to_2((int)std::round((double)canvas_width_ / upsample));
-    final_height_ = tlct::_hp::align_to_2((int)std::round((double)canvas_height_ / upsample));
+    canvas_width_ = layout.getMIMinCols() * patch_resize_width_ + p_resize_width_withbound_;
+    canvas_height_ = layout.getMIRows() * patch_resize_height_ + p_resize_height_withbound_;
 
-    canvas_crop_roi_[0] = cv::Range::all();
-    canvas_crop_roi_[1] = cv::Range{p_resize_width_withbound_ / 2, canvas_width_ - p_resize_width_withbound_ / 2};
+    const cv::Range col_range{p_resize_width_withbound_ / 2, canvas_width_ - p_resize_width_withbound_};
+    const cv::Range row_range{bound_ / 2 + 1, canvas_height_ - p_resize_height_withbound_ / 2};
+    canvas_crop_roi_[0] = row_range;
+    canvas_crop_roi_[1] = col_range;
+
+    final_width_ = tlct::_hp::align_to_2((int)std::round((double)col_range.size() / upsample));
+    final_height_ = tlct::_hp::align_to_2((int)std::round((double)row_range.size() / upsample));
 }
 
 State State::fromLayoutAndViews(const TLayout& layout, int views) { return {layout, views}; }

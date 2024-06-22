@@ -121,7 +121,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::raytrix::Layout& lay
     }
 
     const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
-    const double safe_radius = layout.getRadius() * 0.9;
+    const double safe_radius = layout.getRadius() * 0.975;
     const double half_ksize = ksize / 2.0;
     const int max_shift =
         (int)(match_shifts.getRight().x + std::sqrt(safe_radius * safe_radius - half_ksize * half_ksize) - half_ksize);
@@ -196,8 +196,8 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::raytrix::Layout& lay
 static inline int estimatePatchsize(const cfg::raytrix::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
                                     const cv::Mat& prev_psizes, const cv::Point index, Inspector& inspector)
 {
-    const int ksize = (int)(23.0 / 70.0 * layout.getDiameter());
-    constexpr double ref_metric_threshold = -0.85;
+    const int ksize = (int)(25.0 / 70.0 * layout.getDiameter());
+    constexpr double ref_metric_threshold = -0.875;
 
     const auto neighbors = NeighborIdx::fromLayoutAndIndex(layout, index);
 

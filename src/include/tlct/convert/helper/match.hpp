@@ -59,7 +59,7 @@ public:
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline MatchShifts fromDiamAndKsize(const double diameter, const double ksize,
-                                                                      const double safe_radius_factor = 0.825) noexcept;
+                                                                      const double safe_radius_factor = 0.9) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Point2d getLeft() const noexcept { return left_; };

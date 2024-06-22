@@ -29,19 +29,17 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     cv::Mat rotated_patch, resized_patch;
 
     for (const int i : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int j : rgs::views::iota(0, layout.getMIMinCols() - 1)) {
+        for (const int j : rgs::views::iota(0, layout.getMIMinCols())) {
             const cv::Point2d center = layout.getMICenter(i, j);
             if (center.x == 0.0 or center.y == 0.0)
                 continue;
 
             // Extract patch
             const int psize = state.patchsizes_.at<int>(i, j);
-            const int bound = state.bound_;
-            const int psize_with_bound = psize + bound * 2;
-            const int patch_lefttop_x = (int)std::round(center.x - (double)psize / 2.0 - bound + view_shift_x);
-            const int patch_lefttop_y = (int)std::round(center.y - (double)psize / 2.0 - bound + view_shift_y);
-            const cv::Mat patch =
-                state.src_32f_({patch_lefttop_x, patch_lefttop_y, psize_with_bound, psize_with_bound});
+            const double rect_psize = psize * std::numbers::sqrt2;
+            const double rect_psize_with_bound = rect_psize + state.bound_ * 2;
+            const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
+            const cv::Mat& patch = _hp::getRoiImageByCenter(state.src_32f_, patch_center, rect_psize_with_bound);
 
             // Paste patch
             cv::rotate(patch, rotated_patch, cv::ROTATE_180);

@@ -15,7 +15,7 @@ namespace rgs = std::ranges;
 
 cv::Mat renderView(const State& state, int view_row, int view_col)
 {
-    constexpr int channels = 3;
+    constexpr int CHANNELS = 3;
 
     const auto layout = state.layout_;
     const int view_shift_x = (view_col - state.views_ / 2) * state.interval_;
@@ -30,7 +30,7 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     cv::Mat rotated_patch, resized_patch;
 
     for (const int i : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int j : rgs::views::iota(0, layout.getMIMinCols() - 1)) {
+        for (const int j : rgs::views::iota(0, layout.getMIMinCols())) {
             const cv::Point2d center = layout.getMICenter(i, j);
             if (center.x == 0.0 or center.y == 0.0)
                 continue;
@@ -39,24 +39,22 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             const int psize = state.patchsizes_.at<int>(i, j);
             const int bound = state.bound_;
             const int psize_with_bound = psize + bound * 2;
-            const int patch_lefttop_x = (int)std::round(center.x - (double)psize / 2.0 - bound + view_shift_x);
-            const int patch_lefttop_y = (int)std::round(center.y - (double)psize / 2.0 - bound + view_shift_y);
-            const cv::Mat patch =
-                state.src_32f_({patch_lefttop_x, patch_lefttop_y, psize_with_bound, psize_with_bound});
-            const double grad_weight = tlct::cvt::_hp::gradient(patch);
+            const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
+            const cv::Mat& patch = _hp::getRoiImageByCenter(state.src_32f_, patch_center, (double)psize_with_bound);
+            const double grad_weight = _hp::gradient(patch) + std::numeric_limits<float>::epsilon();
 
             // Paste patch
             cv::resize(patch, resized_patch, {p_resize_width_withbound, p_resize_width_withbound}, 0, 0,
                        cv::INTER_CUBIC);
 
-            cv::Mat resized_patch_channels[channels];
+            cv::Mat resized_patch_channels[CHANNELS];
             cv::split(resized_patch, resized_patch_channels);
             for (cv::Mat& resized_patch_channel : resized_patch_channels) {
                 cv::multiply(resized_patch_channel, state.patch_fadeout_weight_, resized_patch_channel);
             }
 
             cv::Mat weighted_patch;
-            cv::merge(resized_patch_channels, channels, weighted_patch);
+            cv::merge(resized_patch_channels, CHANNELS, weighted_patch);
 
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
@@ -73,13 +71,13 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     cv::Mat cropped_weight_matrix = weight_canvas(state.canvas_crop_roi_);
     cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
 
-    cv::Mat cropped_rendered_image_channels[channels];
+    cv::Mat cropped_rendered_image_channels[CHANNELS];
     cv::split(cropped_rendered_image, cropped_rendered_image_channels);
     for (cv::Mat& cropped_new_image_channel : cropped_rendered_image_channels) {
         cropped_new_image_channel /= cropped_weight_matrix;
     }
     cv::Mat normed_image;
-    cv::merge(cropped_rendered_image_channels, channels, normed_image);
+    cv::merge(cropped_rendered_image_channels, CHANNELS, normed_image);
 
     cv::Mat resized_normed_image_u8, normed_image_u8;
     normed_image.convertTo(normed_image_u8, CV_8UC3);

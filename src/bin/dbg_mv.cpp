@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     const auto param_cfg = ParamConfig::fromConfigMap(cfg_map);
     const auto& common_cfg = param_cfg.getCommonCfg();
 
-    constexpr int upsample = 2;
+    constexpr int upsample = 1;
     const auto layout =
         tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize()).upsample(upsample);
     auto state = tcvt::State::fromLayoutAndViews(layout, common_cfg.getViews());
