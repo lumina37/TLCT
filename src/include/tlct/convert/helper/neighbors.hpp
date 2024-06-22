@@ -109,32 +109,28 @@ NeighborIdx_<TLayout, LEN_TYPE_NUM>::fromLayoutAndIndex(const TLayout& layout, c
         right = {index.x + LEN_TYPE_NUM, index.y};
     }
 
-    constexpr int half_shift = LEN_TYPE_NUM / 2 + 1;
+    constexpr int type_shift = LEN_TYPE_NUM / 2;
+    const int is_left_row = layout.isOutShift() ^ (index.y % 2 == 0); // this row is on the left side of up/down row
+    const int udleft_xidx = index.x - type_shift - is_left_row;       // x index of the up/down-left MI
+    const int udright_xidx = udleft_xidx + LEN_TYPE_NUM;              // x index of the up/down-right MI
+
     if (index.y > 0) {
-        if (layout.isOutShift() ^ (index.y % 2 == 0)) {
-            upright = {index.x + (half_shift - 1), index.y - 1};
-            if (index.x > half_shift - 1) {
-                upleft = {index.x - half_shift, index.y - 1};
-            }
-        } else {
-            upleft = {index.x - (half_shift - 1), index.y - 1};
-            if (index.x < (layout.getMICols(index.y - 1) - half_shift)) {
-                upright = {index.x + half_shift, index.y - 1};
-            }
+        const int yidx = index.y - 1;
+        if (udleft_xidx >= 0) {
+            upleft = {udleft_xidx, yidx};
+        }
+        if (udright_xidx < layout.getMICols(yidx)) {
+            upright = {udright_xidx, yidx};
         }
     }
 
     if (index.y < (layout.getMIRows() - 1)) {
-        if (layout.isOutShift() ^ (index.y % 2 == 0)) {
-            downright = {index.x + (half_shift - 1), index.y + 1};
-            if (index.x > half_shift - 1) {
-                downleft = {index.x - half_shift, index.y + 1};
-            }
-        } else {
-            downleft = {index.x - (half_shift - 1), index.y + 1};
-            if (index.x < (layout.getMICols(index.y + 1) - half_shift)) {
-                downright = {index.x + half_shift, index.y + 1};
-            }
+        const int yidx = index.y + 1;
+        if (udleft_xidx >= 0) {
+            downleft = {udleft_xidx, yidx};
+        }
+        if (udright_xidx < layout.getMICols(yidx)) {
+            downright = {udright_xidx, yidx};
         }
     }
 
