@@ -112,7 +112,8 @@ static inline double calcMetricWithPsize(const cfg::raytrix::Layout& layout, con
 
 static inline int estimatePatchsizeOverFullMatch(const cfg::raytrix::Layout& layout, const cv::Mat& gray_src,
                                                  const cv::Point index, const NeighborIdx& neighbors,
-                                                 const double ksize, Inspector& inspector) noexcept
+                                                 const double ksize, const double min_psize_factor,
+                                                 Inspector& inspector) noexcept
 {
     const cv::Point2d curr_center = layout.getMICenter(index);
 
@@ -123,6 +124,7 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::raytrix::Layout& lay
     const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize);
     const double safe_radius = layout.getRadius() * 0.975;
     const double half_ksize = ksize / 2.0;
+    const int min_psize = (int)(min_psize_factor * layout.getDiameter());
     const int max_shift =
         (int)(match_shifts.getRight().x + std::sqrt(safe_radius * safe_radius - half_ksize * half_ksize) - half_ksize);
 
@@ -142,13 +144,13 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::raytrix::Layout& lay
             }
 
             const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighbor<direction>());
-            cv::Point2d cmp_shift = anchor_shift;
+            cv::Point2d cmp_shift = anchor_shift + match_step * min_psize;
 
             int min_metric_psize = INVALID_PSIZE;
             double min_metric = std::numeric_limits<double>::max();
             std::vector<double> metrics;
-            metrics.reserve(max_shift - 1);
-            for (const int psize : rgs::views::iota(1, max_shift)) {
+            metrics.reserve(max_shift - min_psize);
+            for (const int psize : rgs::views::iota(min_psize, max_shift)) {
                 cmp_shift += match_step;
                 const auto& rhs = getRoiImageByCenter(gray_src, neib_center + cmp_shift, ksize);
                 const double metric = anchor.compare(rhs);
@@ -194,7 +196,8 @@ static inline int estimatePatchsizeOverFullMatch(const cfg::raytrix::Layout& lay
 }
 
 static inline int estimatePatchsize(const cfg::raytrix::Layout& layout, const cv::Mat& gray_src, const cv::Mat& psizes,
-                                    const cv::Mat& prev_psizes, const cv::Point index, Inspector& inspector)
+                                    const cv::Mat& prev_psizes, const cv::Point index, const double min_psize_factor,
+                                    Inspector& inspector)
 {
     const int ksize = (int)(25.0 / 70.0 * layout.getDiameter());
     constexpr double ref_metric_threshold = -0.875;
@@ -235,7 +238,8 @@ static inline int estimatePatchsize(const cfg::raytrix::Layout& layout, const cv
         return min_prev_ref_psize;
     }
 
-    const int psize = estimatePatchsizeOverFullMatch(layout, gray_src, index, neighbors, ksize, inspector);
+    const int psize =
+        estimatePatchsizeOverFullMatch(layout, gray_src, index, neighbors, ksize, min_psize_factor, inspector);
 
     if (psize == INVALID_PSIZE) {
         return prev_psize;
@@ -250,7 +254,8 @@ TLCT_API inline cv::Mat estimatePatchsizes(State& state)
 {
     const auto& layout = state.layout_;
 
-    cv::Mat psizes = cv::Mat::ones(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1);
+    const int min_psize = (int)(state.min_psize_factor_ * layout.getDiameter());
+    cv::Mat psizes = cv::Mat::ones(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1) * min_psize;
     cv::Mat prev_psizes;
     if (!state.prev_patchsizes_.empty()) {
         prev_psizes = state.prev_patchsizes_;
@@ -261,8 +266,8 @@ TLCT_API inline cv::Mat estimatePatchsizes(State& state)
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const cv::Point index{col, row};
-            const int psize =
-                _hp::estimatePatchsize(layout, state.gray_src_, psizes, prev_psizes, index, state.inspector_);
+            const int psize = _hp::estimatePatchsize(layout, state.gray_src_, psizes, prev_psizes, index,
+                                                     state.min_psize_factor_, state.inspector_);
             psizes.at<int>(index) = psize;
         }
     }

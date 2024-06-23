@@ -91,11 +91,12 @@ private:
     int views_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
+    double min_psize_factor_;
     cv::Mat gray_src_;
     cv::Mat src_32f_;
     int patch_resize_width_; // the extracted patch will be zoomed to this height
     int patch_resize_height_;
-    int bound_;
+    double bound_;
     int p_resize_width_withbound_;
     int p_resize_height_withbound_;
     cv::Mat patch_fadeout_weight_;
@@ -116,16 +117,19 @@ State::State(const TLayout& layout, int views)
 {
     const int upsample = layout.getUpsample();
     // This indirectly controls the final output size. DO NOT make it too large.
-    constexpr double patch_resize_width_factor = 0.285;
+    constexpr double patch_resize_width_factor = 0.35;
     patch_resize_width_ = (int)std::round(patch_resize_width_factor * layout.getDiameter());
     patch_resize_height_ = (int)std::round((double)patch_resize_width_ * std::numbers::sqrt3 / 2.0);
     // Block effect if the bound is too small. Blurring if the bound is too large.
     constexpr double patch_bound_factor = 0.21;
-    bound_ = (int)std::round(patch_bound_factor * patch_resize_width_);
+    bound_ = patch_bound_factor * patch_resize_width_;
 
-    p_resize_width_withbound_ = (int)std::round(std::numbers::sqrt2 * patch_resize_width_) + 2 * bound_;
-    p_resize_height_withbound_ = (int)std::round(std::numbers::sqrt2 * patch_resize_height_) + 2 * bound_;
-    patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_width_withbound_, bound_);
+    p_resize_width_withbound_ = (int)std::round(patch_resize_width_ + 2 * bound_);
+    p_resize_height_withbound_ = (int)std::round(patch_resize_height_ + 2 * bound_);
+    patch_fadeout_weight_ =
+        _hp::rectWithFadeoutBorder({p_resize_width_withbound_, p_resize_width_withbound_}, patch_bound_factor);
+
+    min_psize_factor_ = 0.15;
 
     // Controls the view shift.
     // The distance between the patches from the left and middle viewpoint is `move_range_` pix.
@@ -133,11 +137,11 @@ State::State(const TLayout& layout, int views)
     move_range_ = (int)std::round(move_range_factor * layout.getDiameter() * 2.0);
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
-    canvas_width_ = layout.getMIMinCols() * patch_resize_width_ + p_resize_width_withbound_;
-    canvas_height_ = layout.getMIRows() * patch_resize_height_ + p_resize_height_withbound_;
+    canvas_width_ = (int)std::round(layout.getMIMinCols() * patch_resize_width_) + p_resize_width_withbound_;
+    canvas_height_ = (int)std::round(layout.getMIRows() * patch_resize_height_) + p_resize_height_withbound_;
 
     const cv::Range col_range{p_resize_width_withbound_ / 2, canvas_width_ - p_resize_width_withbound_};
-    const cv::Range row_range{bound_ / 2 + 1, canvas_height_ - p_resize_height_withbound_ / 2};
+    const cv::Range row_range{0, canvas_height_ - p_resize_width_withbound_ / 2 - (int)(bound_ / 2)};
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 
