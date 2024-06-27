@@ -126,8 +126,7 @@ State::State(const TLayout& layout, int views)
 
     p_resize_width_withbound_ = (int)std::round(patch_resize_width_ + 2 * bound_);
     p_resize_height_withbound_ = (int)std::round(patch_resize_height_ + 2 * bound_);
-    patch_fadeout_weight_ =
-        _hp::rectWithFadeoutBorder({p_resize_width_withbound_, p_resize_width_withbound_}, patch_bound_factor);
+    patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_width_withbound_, patch_bound_factor);
 
     min_psize_factor_ = 0.15;
 
@@ -141,7 +140,7 @@ State::State(const TLayout& layout, int views)
     canvas_height_ = (int)std::round(layout.getMIRows() * patch_resize_height_) + p_resize_height_withbound_;
 
     const cv::Range col_range{p_resize_width_withbound_ / 2, canvas_width_ - p_resize_width_withbound_};
-    const cv::Range row_range{0, canvas_height_ - p_resize_width_withbound_ / 2 - (int)(bound_ / 2)};
+    const cv::Range row_range{(int)bound_, canvas_height_ - p_resize_width_withbound_ / 2 - (int)bound_};
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 

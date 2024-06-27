@@ -126,8 +126,7 @@ State::State(const TLayout& layout, int views)
 
     p_resize_width_withbound_ = (int)std::round(patch_resize_width_ + 2 * bound_);
     p_resize_height_withbound_ = (int)std::round(patch_resize_height_ + 2 * bound_);
-    patch_fadeout_weight_ =
-        _hp::rectWithFadeoutBorder({p_resize_width_withbound_, p_resize_width_withbound_}, patch_bound_factor);
+    patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_width_withbound_, patch_bound_factor);
 
     min_psize_factor_ = 0.15;
 
