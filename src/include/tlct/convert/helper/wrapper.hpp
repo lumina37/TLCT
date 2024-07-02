@@ -38,7 +38,7 @@ private:
 
 AnchorWrapper AnchorWrapper::fromRoi(const cv::Mat& roi)
 {
-    double weight = gradient(roi);
+    double weight = computeGrad(roi);
     auto base = TBase::create(roi);
     return {std::move(base), weight};
 }

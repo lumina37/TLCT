@@ -45,11 +45,10 @@ concept CLayout = std::copyable<Self> && requires {
     { self.getMIMinCols() } noexcept -> std::integral;
     { self.isOutShift() } noexcept -> std::convertible_to<bool>;
     { self.isOutShiftSgn() } noexcept -> std::integral;
-} && requires {
-    // Utils
-    requires requires(const Self& self, const cv::Mat& src, cv::Mat& dst) { Self::procImg_(self, src, dst); };
-    requires requires(const Self& self, const cv::Mat& src) {
-        { Self::procImg(self, src) } -> std::same_as<cv::Mat>;
+
+    requires requires(const cv::Mat& src, cv::Mat& dst) { self.procImg_(src, dst); };
+    requires requires(const cv::Mat& src) {
+        { self.procImg(src) } -> std::same_as<cv::Mat>;
     };
 };
 

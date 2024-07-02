@@ -34,7 +34,7 @@ public:
     static constexpr bool ENABLED = false;
 #endif
     static constexpr bool PATTERN_ENABLED = ENABLED;
-    static constexpr bool METRIC_REPORT_ENABLED = false;
+    static constexpr bool METRIC_REPORT_ENABLED = ENABLED;
 
     // Typename alias
     using TLayout = TLayout_;

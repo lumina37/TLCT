@@ -47,6 +47,11 @@ static_assert(concepts::CCalibConfig<CalibConfig>);
 CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("RayCalibData");
+    if (data_node.empty()) {
+        std::cerr << "Missing xml node `RayCalibData` when initializing " << typeid(CalibConfig).name();
+        return {};
+    }
+
     const auto offset_node = data_node.child("offset");
     const double offset_x = offset_node.child("x").text().as_double();
     const double offset_y = offset_node.child("y").text().as_double();

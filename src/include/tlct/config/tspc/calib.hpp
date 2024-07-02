@@ -46,6 +46,11 @@ static_assert(concepts::CCalibConfig<CalibConfig>);
 CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("TSPCCalibData");
+    if (data_node.empty()) {
+        std::cerr << "Missing xml node `RayCalibData` when initializing " << typeid(CalibConfig).name();
+        return {};
+    }
+
     const double diameter = data_node.child("diameter").text().as_double();
     const double rotation = data_node.child("rotation").text().as_double();
 

@@ -153,7 +153,7 @@ State State::fromLayoutAndViews(const TLayout& layout, int views) { return {layo
 void State::feed(const cv::Mat& newsrc)
 {
     cv::Mat proced_src;
-    TLayout::procImg_(layout_, newsrc, proced_src);
+    layout_.procImg_(newsrc, proced_src);
     cv::cvtColor(proced_src, gray_src_, cv::COLOR_BGR2GRAY);
     proced_src.convertTo(src_32f_, CV_32FC3);
 

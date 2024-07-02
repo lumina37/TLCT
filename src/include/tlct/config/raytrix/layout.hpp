@@ -61,9 +61,8 @@ public:
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
     [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return (int)(isOutShift()) * 2 - 1; };
 
-    // Utils
-    TLCT_API static inline void procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst);
-    [[nodiscard]] TLCT_API static inline cv::Mat procImg(const Layout& layout, const cv::Mat& src);
+    TLCT_API inline void procImg_(const cv::Mat& src, cv::Mat& dst) const;
+    [[nodiscard]] TLCT_API inline cv::Mat procImg(const cv::Mat& src) const;
 
 private:
     cv::Point2d left_top_;
@@ -180,18 +179,18 @@ cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
 
 cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
+void Layout::procImg_(const cv::Mat& src, cv::Mat& dst) const
 {
     dst = src;
 
-    const double rotation = layout.getRotation();
+    const double rotation = getRotation();
     if (rotation > 1e-2) {
         cv::Mat transposed_src;
         cv::transpose(src, transposed_src);
         dst = std::move(transposed_src);
     }
 
-    const int upsample = layout.getUpsample();
+    const int upsample = getUpsample();
     if (upsample != 1) {
         cv::Mat upsampled_src;
         cv::resize(dst, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
@@ -199,10 +198,10 @@ void Layout::procImg_(const Layout& layout, const cv::Mat& src, cv::Mat& dst)
     }
 }
 
-cv::Mat Layout::procImg(const Layout& layout, const cv::Mat& src)
+cv::Mat Layout::procImg(const cv::Mat& src) const
 {
     cv::Mat dst;
-    procImg_(layout, src, dst);
+    procImg_(src, dst);
     return std::move(dst);
 }
 

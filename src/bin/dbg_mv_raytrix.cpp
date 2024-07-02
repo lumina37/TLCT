@@ -9,12 +9,10 @@ namespace fs = std::filesystem;
 namespace tcfg = tlct::cfg::raytrix;
 namespace tcvt = tlct::cvt::raytrix;
 
-using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
-
 int main(int argc, char* argv[])
 {
     const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
-    const auto param_cfg = ParamConfig::fromConfigMap(cfg_map);
+    const auto param_cfg = tcfg::ParamConfig::fromConfigMap(cfg_map);
     const auto& common_cfg = param_cfg.getCommonCfg();
 
     constexpr int upsample = 4;
@@ -25,11 +23,11 @@ int main(int argc, char* argv[])
 
     const cv::Range range = common_cfg.getRange();
     for (int i = range.start; i <= range.end; i++) {
-        const auto srcpath = tlct::cfg::CommonParamConfig::fmtSrcPath(common_cfg, i);
+        const auto srcpath = common_cfg.fmtSrcPath(i);
         state.feed(cv::imread(srcpath.string()));
 
         int img_cnt = 1;
-        const auto dstdir = tlct::cfg::CommonParamConfig::fmtDstPath(common_cfg, i);
+        const auto dstdir = common_cfg.fmtDstPath(i);
         fs::create_directories(dstdir);
 
         for (const auto& mv : state) {

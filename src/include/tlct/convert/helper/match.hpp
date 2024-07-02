@@ -102,7 +102,7 @@ MatchShifts MatchShifts::fromDiamAndKsize(const double diameter, const double ks
     const double safe_radius = radius * safe_radius_factor;
     const double half_ksize = ksize / 2.0;
 
-    const double radial_shift = std::sqrt(safe_radius * safe_radius - half_ksize * half_ksize) - half_ksize;
+    const double radial_shift = std::sqrt((safe_radius - half_ksize) * (safe_radius + half_ksize)) - half_ksize;
     const double x_shift = radial_shift / 2.0;
     const double y_shift = x_shift * std::numbers::sqrt3;
 

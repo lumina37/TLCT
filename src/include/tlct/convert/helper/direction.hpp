@@ -32,3 +32,10 @@ enum class Direction {
 }
 
 } // namespace tlct::cvt::_hp
+
+namespace tlct::cvt {
+
+using _hp::Direction;
+using _hp::opposite;
+
+} // namespace tlct::cvt

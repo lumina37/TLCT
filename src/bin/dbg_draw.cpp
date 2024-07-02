@@ -11,15 +11,13 @@ namespace tcvt = tlct::cvt::tspc;
 
 int main(int argc, char* argv[])
 {
-    using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
-
     const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
-    const auto param_cfg = ParamConfig::fromConfigMap(cfg_map);
+    const auto param_cfg = tcfg::ParamConfig::fromConfigMap(cfg_map);
     const auto& common_cfg = param_cfg.getCommonCfg();
 
     const auto layout = tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getImgSize());
 
-    const auto srcpath = tlct::cfg::CommonParamConfig::fmtSrcPath(common_cfg, common_cfg.getRange().start);
+    const auto srcpath = common_cfg.fmtSrcPath(common_cfg.getRange().start);
     const cv::Mat src = cv::imread(srcpath.string());
     const cv::Mat resized_img = tcfg::Layout::procImg(layout, src);
 

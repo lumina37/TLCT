@@ -7,7 +7,7 @@
 
 namespace tlct::cvt::_hp {
 
-static double gradient(const cv::Mat& src)
+static double computeGrad(const cv::Mat& src)
 {
     cv::Mat edges;
     double weight = 0.0;

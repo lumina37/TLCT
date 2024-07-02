@@ -6,10 +6,8 @@ namespace tcfg = tlct::cfg::tspc;
 
 int main(int argc, char* argv[])
 {
-    using ParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
-
     const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
-    const auto param_cfg = ParamConfig::fromConfigMap(cfg_map);
+    const auto param_cfg = tcfg::ParamConfig::fromConfigMap(cfg_map);
 
     constexpr int upsample = 1;
     const auto layout =
