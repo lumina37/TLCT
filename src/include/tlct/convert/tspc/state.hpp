@@ -14,22 +14,24 @@
 namespace tlct::cvt::tspc {
 
 namespace rgs = std::ranges;
-namespace tcfg = tlct::cfg;
+namespace tcfg = tlct::cfg::tspc;
 
 class State
 {
 public:
     // Typename alias
-    using TLayout = tcfg::tspc::Layout;
+    using TParamConfig = tcfg::ParamConfig;
+    using TSpecificConfig = TParamConfig::TSpecificConfig;
+    using TLayout = tcfg::Layout;
 
     // Constructor
     State() = delete;
     State(const State& cfg) = delete;
     TLCT_API inline State(State&& cfg) noexcept = default;
-    TLCT_API inline State(const TLayout& layout, int views);
+    TLCT_API inline State(const TLayout layout, const TSpecificConfig spec_cfg, int views);
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline State fromLayoutAndViews(const TLayout& layout, int views);
+    [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
 
     // Non-const methods
     inline void setInspector(_hp::Inspector_<TLayout>&& inspector) noexcept { inspector_ = std::move(inspector); };
@@ -87,7 +89,8 @@ public:
     TLCT_API friend inline cv::Mat renderView(const State& state, int view_row, int view_col);
 
 private:
-    const TLayout& layout_;
+    const TLayout layout_;
+    const TSpecificConfig spec_cfg_;
     int views_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
@@ -112,17 +115,14 @@ private:
 
 static_assert(concepts::CState<State>);
 
-State::State(const TLayout& layout, int views)
-    : layout_(layout), views_(views), prev_patchsizes_(), patchsizes_(), src_32f_(), inspector_()
+State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
+    : layout_(layout), spec_cfg_(spec_cfg), views_(views), prev_patchsizes_(), patchsizes_(), src_32f_(), inspector_()
 {
     const int upsample = layout.getUpsample();
-    // This indirectly controls the final output size. DO NOT make it too large.
-    constexpr double patch_resize_width_factor = 0.35;
-    patch_resize_width_ = (int)std::round(patch_resize_width_factor * layout.getDiameter());
+    patch_resize_width_ = (int)std::round(0.5 * layout.getDiameter());
     patch_resize_height_ = (int)std::round((double)patch_resize_width_ * std::numbers::sqrt3 / 2.0);
     // Block effect if the bound is too small. Blurring if the bound is too large.
-    constexpr double patch_bound_factor = 0.21;
-    bound_ = patch_bound_factor * patch_resize_width_;
+    bound_ = spec_cfg_.getGradientBlendingWidth() * patch_resize_width_;
 
     p_resize_width_withbound_ = (int)std::round(patch_resize_width_ + 2 * bound_);
     p_resize_height_withbound_ = (int)std::round(patch_resize_height_ + 2 * bound_);
@@ -148,7 +148,13 @@ State::State(const TLayout& layout, int views)
     final_height_ = tlct::_hp::align_to_2((int)std::round((double)row_range.size() / upsample));
 }
 
-State State::fromLayoutAndViews(const TLayout& layout, int views) { return {layout, views}; }
+State State::fromParamCfg(const TParamConfig& param_cfg)
+{
+    const auto& spec_cfg = param_cfg.getSpecificCfg();
+    const auto layout = TLayout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
+    const int views = param_cfg.getGenericCfg().getViews();
+    return {layout, spec_cfg, views};
+}
 
 void State::feed(const cv::Mat& newsrc)
 {

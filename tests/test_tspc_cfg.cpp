@@ -8,7 +8,7 @@
 namespace fs = std::filesystem;
 namespace tcfg = tlct::cfg::tspc;
 
-using CommonParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
+using GenericParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
 
 class TestTSPCCfg : public ::testing::Test
 {

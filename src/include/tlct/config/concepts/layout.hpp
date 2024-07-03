@@ -3,7 +3,6 @@
 #include <concepts>
 
 #include <opencv2/core.hpp>
-#include <pugixml.hpp>
 
 #include "calib.hpp"
 
@@ -43,7 +42,7 @@ concept CLayout = std::copyable<Self> && requires {
     };
     { self.getMIMaxCols() } noexcept -> std::integral;
     { self.getMIMinCols() } noexcept -> std::integral;
-    { self.isOutShift() } noexcept -> std::convertible_to<bool>;
+    { self.isOutShift() } noexcept -> std::same_as<bool>;
     { self.isOutShiftSgn() } noexcept -> std::integral;
 
     requires requires(const cv::Mat& src, cv::Mat& dst) { self.procImg_(src, dst); };

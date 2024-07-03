@@ -49,7 +49,7 @@ public:
         : dst_dir_(std::move(dst_dir)), fstream_(std::move(fstream)){};
 
     // Init from
-    [[nodiscard]] static inline Inspector_ fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg,
+    [[nodiscard]] static inline Inspector_ fromCommonCfgAndLayout(const tcfg::GenericParamConfig& common_cfg,
                                                                   const TLayout& layout);
 
     // Const methods
@@ -74,7 +74,7 @@ private:
 
 template <typename TLayout>
     requires tcfg::concepts::CLayout<TLayout>
-Inspector_<TLayout> Inspector_<TLayout>::fromCommonCfgAndLayout(const tcfg::CommonParamConfig& common_cfg,
+Inspector_<TLayout> Inspector_<TLayout>::fromCommonCfgAndLayout(const tcfg::GenericParamConfig& common_cfg,
                                                                 const TLayout& layout)
 {
     if (!ENABLED)
