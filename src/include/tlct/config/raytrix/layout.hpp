@@ -122,7 +122,7 @@ Layout::Layout(cv::Point2d center_mi, const cv::Size imgsize, const TCalibConfig
     const bool is_odd_yidx = center_mi_yidx % 2;
     for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
         const int ofs = lofs[type];
-        const int idx = (center_mi_xidx + ofs) % LEN_TYPE_NUM;
+        const int idx = (center_mi_xidx + ofs + LEN_TYPE_NUM) % LEN_TYPE_NUM;
         idx2type_[is_odd_yidx][idx] = type;
     }
     const bool is_another_row_on_left = is_odd_yidx ^ is_out_shift_;

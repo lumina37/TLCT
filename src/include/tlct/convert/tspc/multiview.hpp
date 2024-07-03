@@ -35,7 +35,7 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
 
             // Extract patch
             const int psize = state.patchsizes_.at<int>(i, j);
-            const double bound = state.bound_ / state.patch_resize_width_ * psize;
+            const double bound = state.bound_ / state.patch_xshift_ * psize;
             const double patch_width_with_bound = psize + bound * 2;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
             const cv::Mat& patch = _hp::getRoiImageByCenter(state.src_32f_, patch_center, patch_width_with_bound);
@@ -43,8 +43,8 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             // Paste patch
             cv::rotate(patch, rotated_patch, cv::ROTATE_180);
 
-            cv::resize(rotated_patch, resized_patch, {state.p_resize_width_withbound_, state.p_resize_width_withbound_},
-                       0, 0, cv::INTER_CUBIC);
+            cv::resize(rotated_patch, resized_patch, {state.p_resize_withbound_, state.p_resize_withbound_}, 0, 0,
+                       cv::INTER_CUBIC);
 
             cv::Mat resized_patch_channels[channels];
             cv::split(resized_patch, resized_patch_channels);
@@ -57,9 +57,9 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
 
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
-            const int right_shift = ((i % 2) ^ (int)layout.isOutShift()) * (state.patch_resize_width_ / 2);
-            const cv::Rect roi{j * state.patch_resize_width_ + right_shift, i * state.patch_resize_height_,
-                               state.p_resize_width_withbound_, state.p_resize_width_withbound_};
+            const int right_shift = ((i % 2) ^ (int)layout.isOutShift()) * (state.patch_xshift_ / 2);
+            const cv::Rect roi{j * state.patch_xshift_ + right_shift, i * state.patch_yshift_,
+                               state.p_resize_withbound_, state.p_resize_withbound_};
             render_canvas(roi) += weighted_patch;
             weight_canvas(roi) += state.patch_fadeout_weight_;
         }

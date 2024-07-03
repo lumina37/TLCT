@@ -59,7 +59,7 @@ public:
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline MatchShifts fromDiamAndKsize(const double diameter, const double ksize,
-                                                                      const double safe_radius_factor = 0.9) noexcept;
+                                                                      const double safe_range) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Point2d getLeft() const noexcept { return left_; };
@@ -95,11 +95,10 @@ private:
     cv::Point2d downright_;
 };
 
-MatchShifts MatchShifts::fromDiamAndKsize(const double diameter, const double ksize,
-                                          const double safe_radius_factor) noexcept
+MatchShifts MatchShifts::fromDiamAndKsize(const double diameter, const double ksize, const double safe_range) noexcept
 {
     const double radius = diameter / 2.0;
-    const double safe_radius = radius * safe_radius_factor;
+    const double safe_radius = radius * safe_range;
     const double half_ksize = ksize / 2.0;
 
     const double radial_shift = std::sqrt((safe_radius - half_ksize) * (safe_radius + half_ksize)) - half_ksize;

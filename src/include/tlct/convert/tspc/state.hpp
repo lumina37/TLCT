@@ -94,14 +94,12 @@ private:
     int views_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
-    double min_psize_factor_;
     cv::Mat gray_src_;
     cv::Mat src_32f_;
-    int patch_resize_width_; // the extracted patch will be zoomed to this height
-    int patch_resize_height_;
+    int patch_xshift_; // the extracted patch will be zoomed to this height
+    int patch_yshift_;
     double bound_;
-    int p_resize_width_withbound_;
-    int p_resize_height_withbound_;
+    int p_resize_withbound_;
     cv::Mat patch_fadeout_weight_;
     int move_range_;
     int interval_;
@@ -119,28 +117,23 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     : layout_(layout), spec_cfg_(spec_cfg), views_(views), prev_patchsizes_(), patchsizes_(), src_32f_(), inspector_()
 {
     const int upsample = layout.getUpsample();
-    patch_resize_width_ = (int)std::round(0.5 * layout.getDiameter());
-    patch_resize_height_ = (int)std::round((double)patch_resize_width_ * std::numbers::sqrt3 / 2.0);
+    patch_xshift_ = (int)std::round(0.5 * layout.getDiameter());
+    patch_yshift_ = (int)std::round((double)patch_xshift_ * std::numbers::sqrt3 / 2.0);
     // Block effect if the bound is too small. Blurring if the bound is too large.
-    bound_ = spec_cfg_.getGradientBlendingWidth() * patch_resize_width_;
+    bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_;
 
-    p_resize_width_withbound_ = (int)std::round(patch_resize_width_ + 2 * bound_);
-    p_resize_height_withbound_ = (int)std::round(patch_resize_height_ + 2 * bound_);
-    patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_width_withbound_, (int)std::round(bound_));
+    p_resize_withbound_ = (int)std::round(patch_xshift_ + 2 * bound_);
+    patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
 
-    min_psize_factor_ = 0.15;
-
-    // Controls the view shift.
-    // The distance between the patches from the left and middle viewpoint is `move_range_` pix.
-    constexpr double move_range_factor = 0.085;
-    move_range_ = (int)std::round(move_range_factor * layout.getDiameter() * 2.0);
+    move_range_ = (int)std::round((1.0 + spec_cfg_.getGradientBlendingWidth()) * spec_cfg_.getKernelSize() / 2.0 *
+                                  layout.getDiameter());
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
-    canvas_width_ = (int)std::round(layout.getMIMinCols() * patch_resize_width_) + p_resize_width_withbound_;
-    canvas_height_ = (int)std::round(layout.getMIRows() * patch_resize_height_) + p_resize_height_withbound_;
+    canvas_width_ = (int)std::round(layout.getMIMinCols() * patch_xshift_) + p_resize_withbound_;
+    canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_) + p_resize_withbound_;
 
-    const cv::Range col_range{p_resize_width_withbound_ / 2, canvas_width_ - p_resize_width_withbound_};
-    const cv::Range row_range{(int)bound_, canvas_height_ - p_resize_width_withbound_};
+    const cv::Range col_range{(int)std::ceil(patch_xshift_ / 2.0), canvas_width_ - p_resize_withbound_};
+    const cv::Range row_range{(int)std::ceil(patch_xshift_ / 2.0), canvas_height_ - p_resize_withbound_};
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 
@@ -151,7 +144,8 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
 State State::fromParamCfg(const TParamConfig& param_cfg)
 {
     const auto& spec_cfg = param_cfg.getSpecificCfg();
-    const auto layout = TLayout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
+    const auto layout = TLayout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize())
+                            .upsample(spec_cfg.getUpsample());
     const int views = param_cfg.getGenericCfg().getViews();
     return {layout, spec_cfg, views};
 }

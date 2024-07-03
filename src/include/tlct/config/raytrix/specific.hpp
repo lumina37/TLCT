@@ -12,7 +12,7 @@ public:
     // Constructor
     TLCT_API inline SpecificConfig() noexcept
         : imgsize_(), upsample_(1), kernel_size_(0.357), gradient_blending_width_(0.225),
-          psize_shortcut_threshold_(0.875){};
+          safe_range_(1.0 - 0.357 * 0.225), psize_shortcut_threshold_(-0.875){};
     TLCT_API inline SpecificConfig& operator=(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig& operator=(SpecificConfig&& rhs) noexcept = default;
@@ -20,13 +20,16 @@ public:
     TLCT_API inline SpecificConfig(const cv::Size imgsize, int upsample, double kernel_size,
                                    double gradient_blending_width, double psize_shortcut_threshold) noexcept
         : imgsize_(imgsize), upsample_(upsample), kernel_size_(kernel_size),
-          gradient_blending_width_(gradient_blending_width), psize_shortcut_threshold_(psize_shortcut_threshold){};
+          gradient_blending_width_(gradient_blending_width), safe_range_(1.0 - kernel_size * gradient_blending_width),
+          psize_shortcut_threshold_(psize_shortcut_threshold){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline SpecificConfig fromConfigMap(const ConfigMap& cfg_map);
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
+    [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
+    [[nodiscard]] TLCT_API inline double getSafeRange() const noexcept { return safe_range_; };
     [[nodiscard]] TLCT_API inline double getKernelSize() const noexcept { return kernel_size_; };
     [[nodiscard]] TLCT_API inline double getGradientBlendingWidth() const noexcept { return gradient_blending_width_; };
     [[nodiscard]] TLCT_API inline double getPsizeShortcutThreshold() const noexcept
@@ -37,6 +40,7 @@ public:
 private:
     cv::Size imgsize_;
     int upsample_;
+    double safe_range_;
     double kernel_size_;
     double gradient_blending_width_;
     double psize_shortcut_threshold_;

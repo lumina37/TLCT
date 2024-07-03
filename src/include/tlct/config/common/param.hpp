@@ -55,8 +55,7 @@ ParamConfig_<TSpecificConfig, TCalibConfig>::fromConfigMap(const ConfigMap& cfg_
 {
     const auto& map = cfg_map.getMap();
     const auto generic_cfg = GenericParamConfig::fromConfigMap(cfg_map);
-    // const auto spec_cfg = TSpecificConfig::fromConfigMap(cfg_map);
-    const auto spec_cfg = TSpecificConfig();
+    const auto spec_cfg = TSpecificConfig::fromConfigMap(cfg_map);
     const auto calib_cfg = TCalibConfig::fromXMLPath(map.at("Calibration_xml"));
     return {generic_cfg, spec_cfg, calib_cfg};
 }
