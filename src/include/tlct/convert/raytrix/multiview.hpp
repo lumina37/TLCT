@@ -37,6 +37,7 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             const cv::Mat mi =
                 _hp::getRoiImageByCenter(state.gray_src_, center, layout.getDiameter() / std::numbers::sqrt2);
             const double grad_weight = _hp::computeGrad(mi) + std::numeric_limits<float>::epsilon();
+            const double amped_grad_weight = grad_weight * grad_weight;
 
             // Extract patch
             const int psize = state.patchsizes_.at<int>(i, j);
@@ -63,8 +64,8 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             const int right_shift = ((i % 2) ^ (int)layout.isOutShift()) * (state.patch_xshift_ / 2);
             const cv::Rect roi{j * state.patch_xshift_ + right_shift, i * state.patch_yshift_,
                                state.p_resize_withbound_, state.p_resize_withbound_};
-            render_canvas(roi) += weighted_patch * grad_weight;
-            weight_canvas(roi) += state.patch_fadeout_weight_ * grad_weight;
+            render_canvas(roi) += weighted_patch * amped_grad_weight;
+            weight_canvas(roi) += state.patch_fadeout_weight_ * amped_grad_weight;
         }
     }
 

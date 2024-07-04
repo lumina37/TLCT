@@ -10,10 +10,10 @@
 #include <opencv2/core.hpp>
 #include <opencv2/quality.hpp>
 
+#include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/raytrix/layout.hpp"
 #include "tlct/convert/helper/direction.hpp"
-#include "tlct/convert/helper/neighbors.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/convert/helper/wrapper.hpp"
 #include "tlct/convert/raytrix/state.hpp"
@@ -27,40 +27,39 @@ namespace _hp {
 using namespace tlct::cvt::_hp;
 namespace tcfg = tlct::cfg::raytrix;
 
-using NeighborIdx = NeighborIdx_<tcfg::Layout, 1>;
 using Inspector = Inspector_<tcfg::Layout>;
 
 constexpr int INVALID_PSIZE = -1;
 
 template <bool left_and_up_only>
-static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const NeighborIdx& neighbors)
+static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const Neighbors& neighbors)
 {
     std::set<int> ref_psizes_set;
 
     if (neighbors.hasLeft()) {
-        const int psize = psizes.at<int>(neighbors.getLeft());
+        const int psize = psizes.at<int>(neighbors.getLeftIdx());
         ref_psizes_set.insert(psize);
     }
     if (neighbors.hasUpLeft()) {
-        const int psize = psizes.at<int>(neighbors.getUpLeft());
+        const int psize = psizes.at<int>(neighbors.getUpLeftIdx());
         ref_psizes_set.insert(psize);
     }
     if (neighbors.hasUpRight()) {
-        const int psize = psizes.at<int>(neighbors.getUpRight());
+        const int psize = psizes.at<int>(neighbors.getUpRightIdx());
         ref_psizes_set.insert(psize);
     }
 
     if constexpr (!left_and_up_only) {
         if (neighbors.hasRight()) {
-            const int psize = psizes.at<int>(neighbors.getRight());
+            const int psize = psizes.at<int>(neighbors.getRightIdx());
             ref_psizes_set.insert(psize);
         }
         if (neighbors.hasDownLeft()) {
-            const int psize = psizes.at<int>(neighbors.getDownLeft());
+            const int psize = psizes.at<int>(neighbors.getDownLeftIdx());
             ref_psizes_set.insert(psize);
         }
         if (neighbors.hasDownRight()) {
-            const int psize = psizes.at<int>(neighbors.getDownRight());
+            const int psize = psizes.at<int>(neighbors.getDownRightIdx());
             ref_psizes_set.insert(psize);
         }
     }
@@ -70,7 +69,7 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const Neighbo
 }
 
 static inline double calcMetricWithPsize(const cfg::raytrix::Layout& layout, const tcfg::SpecificConfig& spec_cfg,
-                                         const cv::Mat& gray_src, const cv::Point index, const NeighborIdx& neighbors,
+                                         const cv::Mat& gray_src, const cv::Point index, const Neighbors& neighbors,
                                          const int psize, const double ksize) noexcept
 {
     const cv::Point2d curr_center = layout.getMICenter(index);
@@ -87,7 +86,7 @@ static inline double calcMetricWithPsize(const cfg::raytrix::Layout& layout, con
             const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
 
             const cv::Point2d anchor_center = curr_center + anchor_shift;
-            const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighbor<direction>());
+            const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighborIdx<direction>());
             const cv::Point2d cmp_center = neib_center + cmp_shift;
 
             const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src, anchor_center, ksize));
@@ -112,7 +111,7 @@ static inline double calcMetricWithPsize(const cfg::raytrix::Layout& layout, con
 
 static inline int estimatePatchsizeOverFullMatch(const tcfg::Layout& layout, const tcfg::SpecificConfig& spec_cfg,
                                                  const cv::Mat& gray_src, const cv::Point index,
-                                                 const NeighborIdx& neighbors, Inspector& inspector) noexcept
+                                                 const Neighbors& neighbors, Inspector& inspector) noexcept
 {
     const cv::Point2d curr_center = layout.getMICenter(index);
 
@@ -143,7 +142,7 @@ static inline int estimatePatchsizeOverFullMatch(const tcfg::Layout& layout, con
                 Inspector::saveAnchor(inspector, getRoiImageByCenter(gray_src, anchor_center, ksize), index, direction);
             }
 
-            const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighbor<direction>());
+            const cv::Point2d neib_center = layout.getMICenter(neighbors.getNeighborIdx<direction>());
             cv::Point2d cmp_shift = anchor_shift + match_step * min_psize;
 
             int min_metric_psize = INVALID_PSIZE;
@@ -198,7 +197,7 @@ static inline int estimatePatchsize(const tcfg::Layout& layout, const tcfg::Spec
 {
     const int ksize = (int)std::round(spec_cfg.getKernelSize() * layout.getDiameter());
 
-    const auto neighbors = NeighborIdx::fromLayoutAndIndex(layout, index);
+    const auto neighbors = Neighbors::fromLayoutAndIndex(layout, index);
 
     const int prev_psize = prev_psizes.at<int>(index);
     const double prev_metric = calcMetricWithPsize(layout, spec_cfg, gray_src, index, neighbors, prev_psize, ksize);

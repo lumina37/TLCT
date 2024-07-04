@@ -33,26 +33,26 @@ int main(int argc, char* argv[])
         }
     }
 
-    using NeighborIdx = tcvt::_hp::NeighborIdx_<tlct::cfg::raytrix::Layout, 3>;
+    using Neighbors = tcvt::_hp::Neighbors_<tlct::cfg::raytrix::Layout, 3>;
     const cv::Scalar base_color{0, 63, 63};
     auto neighbors = NeighborIdx::fromLayoutAndIndex(layout, {3, 1});
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeft()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeftIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 1, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRight()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRightIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 2, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeft()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeftIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 3, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRight()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRightIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 4, 2, cv::LINE_AA);
 
     neighbors = NeighborIdx::fromLayoutAndIndex(layout, {3, 4});
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeft()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeftIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 1, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRight()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRightIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 2, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeft()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeftIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 3, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRight()), tlct::_hp::iround(layout.getRadius()),
+    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRightIdx()), tlct::_hp::iround(layout.getRadius()),
                base_color * 4, 2, cv::LINE_AA);
 
     cv::imwrite("dbg_center.png", resized_img);
