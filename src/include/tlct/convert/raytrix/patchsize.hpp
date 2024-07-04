@@ -15,6 +15,7 @@
 #include "tlct/config/raytrix/layout.hpp"
 #include "tlct/convert/helper/direction.hpp"
 #include "tlct/convert/helper/roi.hpp"
+#include "tlct/convert/helper/variance.hpp"
 #include "tlct/convert/helper/wrapper.hpp"
 #include "tlct/convert/raytrix/state.hpp"
 
@@ -168,8 +169,9 @@ static inline int estimatePatchsizeOverFullMatch(const tcfg::Layout& layout, con
                 }
             }
 
-            weighted_psize += anchor.getWeight() * min_metric_psize;
-            total_weight += anchor.getWeight();
+            const double weight = anchor.getWeight() * var_d(metrics);
+            weighted_psize += weight * min_metric_psize;
+            total_weight += weight;
             psizes.push_back(min_metric_psize);
             weights.push_back(anchor.getWeight());
         }

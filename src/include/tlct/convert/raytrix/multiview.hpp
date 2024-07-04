@@ -34,10 +34,11 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             if (center.x == 0.0 or center.y == 0.0)
                 continue;
 
-            const cv::Mat mi =
-                _hp::getRoiImageByCenter(state.gray_src_, center, layout.getDiameter() / std::numbers::sqrt2);
-            const double grad_weight = _hp::computeGrad(mi) + std::numeric_limits<float>::epsilon();
-            const double amped_grad_weight = grad_weight * grad_weight;
+            const double safe_range = state.spec_cfg_.getSafeRange();
+            const cv::Mat mi = _hp::getRoiImageByCenter(state.gray_src_, center,
+                                                        layout.getDiameter() / std::numbers::sqrt2 * safe_range);
+            const double grad_weight = _hp::computeGrad(mi);
+            const double amped_grad_weight = grad_weight * grad_weight + std::numeric_limits<float>::epsilon();
 
             // Extract patch
             const int psize = state.patchsizes_.at<int>(i, j);

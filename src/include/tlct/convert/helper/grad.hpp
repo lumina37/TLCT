@@ -7,7 +7,7 @@
 
 namespace tlct::cvt::_hp {
 
-static double computeGrad(const cv::Mat& src)
+TLCT_API inline double computeGrad(const cv::Mat& src)
 {
     cv::Mat edges;
     double weight = 0.0;
