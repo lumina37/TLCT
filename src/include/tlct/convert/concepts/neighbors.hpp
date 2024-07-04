@@ -27,8 +27,6 @@ concept CNeighbors = requires {
         { self.hasDownLeft() } noexcept -> std::same_as<bool>;
         { self.hasDownRight() } noexcept -> std::same_as<bool>;
 
-        { self.template getNeighborIdx<Direction::LEFT>() } noexcept -> std::same_as<cv::Point>;
-
         { self.getSelfIdx() } noexcept -> std::same_as<cv::Point>;
         { self.getLeftIdx() } noexcept -> std::same_as<cv::Point>;
         { self.getRightIdx() } noexcept -> std::same_as<cv::Point>;
@@ -36,6 +34,7 @@ concept CNeighbors = requires {
         { self.getUpRightIdx() } noexcept -> std::same_as<cv::Point>;
         { self.getDownLeftIdx() } noexcept -> std::same_as<cv::Point>;
         { self.getDownRightIdx() } noexcept -> std::same_as<cv::Point>;
+        { self.template getNeighborIdx<Direction::LEFT>() } noexcept -> std::same_as<cv::Point>;
 
         { self.getSelfPt() } noexcept -> std::same_as<cv::Point2d>;
         { self.getLeftPt() } noexcept -> std::same_as<cv::Point2d>;
@@ -44,6 +43,10 @@ concept CNeighbors = requires {
         { self.getUpRightPt() } noexcept -> std::same_as<cv::Point2d>;
         { self.getDownLeftPt() } noexcept -> std::same_as<cv::Point2d>;
         { self.getDownRightPt() } noexcept -> std::same_as<cv::Point2d>;
+
+        { self.template hasNeighbor<Direction::LEFT>() } noexcept -> std::same_as<bool>;
+        { self.template getNeighborIdx<Direction::LEFT>() } noexcept -> std::same_as<cv::Point>;
+        { self.template getNeighborPt<Direction::LEFT>() } noexcept -> std::same_as<cv::Point2d>;
     };
 };
 

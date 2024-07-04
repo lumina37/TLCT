@@ -63,6 +63,23 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getDownRightPt() const noexcept { return downright_pt_; };
 
     template <Direction direction>
+    [[nodiscard]] TLCT_API inline bool hasNeighbor() const noexcept
+    {
+        if constexpr (direction == Direction::LEFT)
+            return hasLeft();
+        if constexpr (direction == Direction::RIGHT)
+            return hasRight();
+        if constexpr (direction == Direction::UPLEFT)
+            return hasUpLeft();
+        if constexpr (direction == Direction::UPRIGHT)
+            return hasUpRight();
+        if constexpr (direction == Direction::DOWNLEFT)
+            return hasDownLeft();
+        if constexpr (direction == Direction::DOWNRIGHT)
+            return hasDownRight();
+    };
+
+    template <Direction direction>
     [[nodiscard]] TLCT_API inline cv::Point getNeighborIdx() const noexcept
     {
         if constexpr (direction == Direction::LEFT)
@@ -94,23 +111,6 @@ public:
             return getDownLeftPt();
         if constexpr (direction == Direction::DOWNRIGHT)
             return getDownRightPt();
-    };
-
-    template <Direction direction>
-    [[nodiscard]] TLCT_API inline bool hasNeighbor() const noexcept
-    {
-        if constexpr (direction == Direction::LEFT)
-            return hasLeft();
-        if constexpr (direction == Direction::RIGHT)
-            return hasRight();
-        if constexpr (direction == Direction::UPLEFT)
-            return hasUpLeft();
-        if constexpr (direction == Direction::UPRIGHT)
-            return hasUpRight();
-        if constexpr (direction == Direction::DOWNLEFT)
-            return hasDownLeft();
-        if constexpr (direction == Direction::DOWNRIGHT)
-            return hasDownRight();
     };
 
 private:
