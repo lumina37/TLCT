@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <ranges>
 #include <string>
 
@@ -119,9 +120,8 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     const int upsample = layout.getUpsample();
     patch_xshift_ = (int)std::round(0.5 * layout.getDiameter());
     patch_yshift_ = (int)std::round((double)patch_xshift_ * std::numbers::sqrt3 / 2.0);
-    // Block effect if the bound is too small. Blurring if the bound is too large.
-    bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_;
 
+    bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_;
     const double p_resize_withbound_d = patch_xshift_ + 2 * bound_;
     p_resize_withbound_ = (int)std::round(p_resize_withbound_d);
     patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));

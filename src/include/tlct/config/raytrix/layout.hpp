@@ -10,6 +10,7 @@
 #include "calib.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts/layout.hpp"
+#include "tlct/helper/static_math.hpp"
 
 namespace tlct::cfg::raytrix {
 
@@ -59,7 +60,7 @@ public:
     [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
-    [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return (int)(isOutShift()) * 2 - 1; };
+    [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return _hp::sgn(isOutShift()); };
 
     TLCT_API inline void procImg_(const cv::Mat& src, cv::Mat& dst) const;
     [[nodiscard]] TLCT_API inline cv::Mat procImg(const cv::Mat& src) const;
