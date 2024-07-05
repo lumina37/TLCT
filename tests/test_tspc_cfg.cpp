@@ -3,12 +3,11 @@
 #include <gtest/gtest.h>
 
 #include "tlct/common/cmake.h"
+#include "tlct/config/common.hpp"
 #include "tlct/config/tspc.hpp"
 
 namespace fs = std::filesystem;
 namespace tcfg = tlct::cfg::tspc;
-
-using GenericParamConfig = tcfg::ParamConfig<tcfg::CalibConfig>;
 
 class TestTSPCCfg : public ::testing::Test
 {
@@ -17,27 +16,27 @@ protected:
     {
         const fs::path testdata_dir{TLCT_TESTDATA_DIR};
         const fs::path param_cfg_path = testdata_dir / "config/TSPC/param.cfg";
-        const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib-v2.xml";
+        const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calibration.xml";
 
-        auto common_cfg = tlct::cfg::ConfigMap::fromPath(param_cfg_path.string());
-        auto param_cfg = ParamConfig::fromCommonCfg(common_cfg);
+        auto cfg_map = tlct::cfg::ConfigMap::fromPath(param_cfg_path.string());
+        auto param_cfg = tcfg::ParamConfig::fromConfigMap(cfg_map);
         auto calib_cfg = tcfg::CalibConfig::fromXMLPath(calib_cfg_path.string());
-        auto layout = tcfg::Layout::fromCfgAndImgsize(calib_cfg, param_cfg.getImgSize());
+        auto layout = tcfg::Layout::fromCfgAndImgsize(calib_cfg, param_cfg.getSpecificCfg().getImgSize());
 
-        common_cfg_ = std::make_unique<decltype(common_cfg)>(std::move(common_cfg));
+        common_cfg_ = std::make_unique<decltype(cfg_map)>(std::move(cfg_map));
         param_cfg_ = std::make_unique<decltype(param_cfg)>(std::move(param_cfg));
         calib_cfg_ = std::make_unique<decltype(calib_cfg)>(calib_cfg);
         layout_ = std::make_unique<decltype(layout)>(layout);
     }
 
     static std::unique_ptr<tlct::cfg::ConfigMap> common_cfg_;
-    static std::unique_ptr<ParamConfig> param_cfg_;
+    static std::unique_ptr<tcfg::ParamConfig> param_cfg_;
     static std::unique_ptr<tcfg::CalibConfig> calib_cfg_;
     static std::unique_ptr<tcfg::Layout> layout_;
 };
 
 std::unique_ptr<tlct::cfg::ConfigMap> TestTSPCCfg::common_cfg_ = nullptr;
-std::unique_ptr<ParamConfig> TestTSPCCfg::param_cfg_ = nullptr;
+std::unique_ptr<tcfg::ParamConfig> TestTSPCCfg::param_cfg_ = nullptr;
 std::unique_ptr<tcfg::CalibConfig> TestTSPCCfg::calib_cfg_ = nullptr;
 std::unique_ptr<tcfg::Layout> TestTSPCCfg::layout_ = nullptr;
 
@@ -45,12 +44,12 @@ TEST_F(TestTSPCCfg, Param)
 {
     const auto& param_cfg = *param_cfg_;
 
-    EXPECT_EQ(param_cfg.getViews(), 5);
-    EXPECT_EQ(param_cfg.getImgSize(), cv::Size(4080, 3068));
-    EXPECT_EQ(param_cfg.getRange(), cv::Range(0, 1));
-    const auto fmt_src = ParamConfig::fmtSrcPath(param_cfg, 25);
+    EXPECT_EQ(param_cfg.getGenericCfg().getViews(), 5);
+    EXPECT_EQ(param_cfg.getGenericCfg().getRange(), cv::Range(0, 1));
+    EXPECT_EQ(param_cfg.getSpecificCfg().getImgSize(), cv::Size(4080, 3068));
+    const auto fmt_src = param_cfg.getGenericCfg().fmtSrcPath(25);
     EXPECT_STREQ(fmt_src.string().c_str(), "./Cars/src/frame025.png");
-    const auto fmt_dst = ParamConfig::fmtDstPath(param_cfg, 25);
+    const auto fmt_dst = param_cfg.getGenericCfg().fmtDstPath(25);
     EXPECT_STREQ(fmt_dst.string().c_str(), "./Cars/dst/frame025");
 }
 
