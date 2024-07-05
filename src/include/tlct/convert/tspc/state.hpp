@@ -122,18 +122,21 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     // Block effect if the bound is too small. Blurring if the bound is too large.
     bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_;
 
-    p_resize_withbound_ = (int)std::round(patch_xshift_ + 2 * bound_);
+    const double p_resize_withbound_d = patch_xshift_ + 2 * bound_;
+    p_resize_withbound_ = (int)std::round(p_resize_withbound_d);
     patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
 
     move_range_ = (int)std::round((1.0 + spec_cfg_.getGradientBlendingWidth()) * spec_cfg_.getKernelSize() / 2.0 *
                                   layout.getDiameter());
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
-    canvas_width_ = (int)std::round(layout.getMIMinCols() * patch_xshift_) + p_resize_withbound_;
-    canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_) + p_resize_withbound_;
+    canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + p_resize_withbound_d);
+    canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_ + p_resize_withbound_d);
 
-    const cv::Range col_range{(int)std::ceil(patch_xshift_ / 2.0), canvas_width_ - p_resize_withbound_};
-    const cv::Range row_range{(int)std::ceil(patch_xshift_ / 2.0), canvas_height_ - p_resize_withbound_};
+    const cv::Range col_range{(int)std::ceil(patch_xshift_ * 1.5),
+                              (int)(canvas_width_ - p_resize_withbound_d - patch_xshift_ / 2.0)};
+    const cv::Range row_range{(int)std::ceil(patch_xshift_ * 1.5),
+                              (int)(canvas_height_ - p_resize_withbound_d - patch_xshift_ / 2.0)};
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 

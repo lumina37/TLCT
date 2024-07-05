@@ -28,10 +28,8 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     cv::Mat rotated_patch, resized_patch;
 
     for (const int i : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int j : rgs::views::iota(0, layout.getMIMinCols())) {
+        for (const int j : rgs::views::iota(0, layout.getMICols(i))) {
             const cv::Point2d center = layout.getMICenter(i, j);
-            if (center.x == 0.0 or center.y == 0.0)
-                continue;
 
             // Extract patch
             const int psize = state.patchsizes_.at<int>(i, j);
