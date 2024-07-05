@@ -14,7 +14,7 @@ namespace rgs = std::ranges;
 
 cv::Mat renderView(const State& state, int view_row, int view_col)
 {
-    constexpr int channels = 3;
+    constexpr int CHANNELS = 3;
 
     const auto layout = state.layout_;
     const int view_shift_x = (view_col - state.views_ / 2) * state.interval_;
@@ -26,6 +26,8 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_32FC1);
 
     cv::Mat rotated_patch, resized_patch;
+    cv::Mat resized_patch_channels[CHANNELS];
+    cv::Mat weighted_patch;
 
     for (const int i : rgs::views::iota(0, layout.getMIRows())) {
         for (const int j : rgs::views::iota(0, layout.getMICols(i))) {
@@ -44,14 +46,12 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             cv::resize(rotated_patch, resized_patch, {state.p_resize_withbound_, state.p_resize_withbound_}, 0, 0,
                        cv::INTER_CUBIC);
 
-            cv::Mat resized_patch_channels[channels];
             cv::split(resized_patch, resized_patch_channels);
             for (cv::Mat& resized_patch_channel : resized_patch_channels) {
                 cv::multiply(resized_patch_channel, state.patch_fadeout_weight_, resized_patch_channel);
             }
 
-            cv::Mat weighted_patch;
-            cv::merge(resized_patch_channels, channels, weighted_patch);
+            cv::merge(resized_patch_channels, CHANNELS, weighted_patch);
 
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
@@ -67,13 +67,13 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     cv::Mat cropped_weight_matrix = weight_canvas(state.canvas_crop_roi_);
     cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
 
-    cv::Mat cropped_rendered_image_channels[channels];
+    cv::Mat cropped_rendered_image_channels[CHANNELS];
     cv::split(cropped_rendered_image, cropped_rendered_image_channels);
     for (cv::Mat& cropped_new_image_channel : cropped_rendered_image_channels) {
         cropped_new_image_channel /= cropped_weight_matrix;
     }
     cv::Mat normed_image;
-    cv::merge(cropped_rendered_image_channels, channels, normed_image);
+    cv::merge(cropped_rendered_image_channels, CHANNELS, normed_image);
 
     cv::Mat resized_normed_image_u8, normed_image_u8;
     normed_image.convertTo(normed_image_u8, CV_8UC3);

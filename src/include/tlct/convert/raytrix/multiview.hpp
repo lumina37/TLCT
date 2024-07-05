@@ -27,14 +27,17 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
     cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_32FC1);
 
     cv::Mat rotated_patch, resized_patch;
+    cv::Mat mi;
+    cv::Mat resized_patch_channels[CHANNELS];
+    cv::Mat weighted_patch;
 
     for (const int i : rgs::views::iota(0, layout.getMIRows())) {
         for (const int j : rgs::views::iota(0, layout.getMICols(i))) {
             const cv::Point2d center = layout.getMICenter(i, j);
 
             const double safe_range = state.spec_cfg_.getSafeRange();
-            const cv::Mat mi = _hp::getRoiImageByCenter(state.gray_src_, center,
-                                                        layout.getDiameter() / std::numbers::sqrt2 * safe_range);
+            mi = _hp::getRoiImageByCenter(state.gray_src_, center,
+                                          layout.getDiameter() / std::numbers::sqrt2 * safe_range);
             const double grad_weight = _hp::computeGrad(mi);
             const double amped_grad_weight = grad_weight * grad_weight + std::numeric_limits<float>::epsilon();
 
@@ -49,13 +52,11 @@ cv::Mat renderView(const State& state, int view_row, int view_col)
             cv::resize(patch, resized_patch, {state.p_resize_withbound_, state.p_resize_withbound_}, 0, 0,
                        cv::INTER_CUBIC);
 
-            cv::Mat resized_patch_channels[CHANNELS];
             cv::split(resized_patch, resized_patch_channels);
             for (cv::Mat& resized_patch_channel : resized_patch_channels) {
                 cv::multiply(resized_patch_channel, state.patch_fadeout_weight_, resized_patch_channel);
             }
 
-            cv::Mat weighted_patch;
             cv::merge(resized_patch_channels, CHANNELS, weighted_patch);
 
             // if the second bar is not out shift, then we need to shift the 1 col

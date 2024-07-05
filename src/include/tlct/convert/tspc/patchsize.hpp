@@ -173,7 +173,7 @@ static inline int estimatePatchsizeOverFullMatch(const tcfg::Layout& layout, con
             weighted_psize += weight * min_metric_psize;
             total_weight += weight;
             psizes.push_back(min_metric_psize);
-            weights.push_back(anchor.getWeight());
+            weights.push_back(weight);
         }
     };
 
