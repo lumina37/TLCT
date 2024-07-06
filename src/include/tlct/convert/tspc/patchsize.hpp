@@ -10,10 +10,10 @@
 #include <opencv2/core.hpp>
 #include <opencv2/quality.hpp>
 
+#include "direction.hpp"
 #include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
-#include "tlct/convert/helper/direction.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/convert/helper/variance.hpp"
 #include "tlct/convert/helper/wrapper.hpp"
@@ -23,45 +23,31 @@ namespace tlct::cvt::tspc {
 
 namespace rgs = std::ranges;
 
-namespace _hp {
-
 using namespace tlct::cvt::_hp;
 namespace tcfg = tlct::cfg::tspc;
-
-using Inspector = Inspector_<tcfg::Layout>;
 
 constexpr int INVALID_PSIZE = -1;
 
 template <bool left_and_up_only>
-static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const Neighbors& neighbors)
+static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const _hp::Neighbors& neighbors)
 {
     std::set<int> ref_psizes_set;
 
-    if (neighbors.hasLeft()) {
-        const int psize = psizes.at<int>(neighbors.getLeftIdx());
-        ref_psizes_set.insert(psize);
-    }
-    if (neighbors.hasUpLeft()) {
-        const int psize = psizes.at<int>(neighbors.getUpLeftIdx());
-        ref_psizes_set.insert(psize);
-    }
-    if (neighbors.hasUpRight()) {
-        const int psize = psizes.at<int>(neighbors.getUpRightIdx());
-        ref_psizes_set.insert(psize);
+    for (const int idx : rgs::views::iota(0, DIRECTION_NUM / 2)) {
+        const auto direction = DIRECTIONS[idx];
+        if (neighbors.hasNeighbor(direction)) {
+            const int psize = psizes.at<int>(neighbors.getNeighborIdx(direction));
+            ref_psizes_set.insert(psize);
+        }
     }
 
     if constexpr (!left_and_up_only) {
-        if (neighbors.hasRight()) {
-            const int psize = psizes.at<int>(neighbors.getRightIdx());
-            ref_psizes_set.insert(psize);
-        }
-        if (neighbors.hasDownLeft()) {
-            const int psize = psizes.at<int>(neighbors.getDownLeftIdx());
-            ref_psizes_set.insert(psize);
-        }
-        if (neighbors.hasDownRight()) {
-            const int psize = psizes.at<int>(neighbors.getDownRightIdx());
-            ref_psizes_set.insert(psize);
+        for (const int idx : rgs::views::iota(DIRECTION_NUM / 2, DIRECTION_NUM)) {
+            const auto direction = DIRECTIONS[idx];
+            if (neighbors.hasNeighbor(direction)) {
+                const int psize = psizes.at<int>(neighbors.getNeighborIdx(direction));
+                ref_psizes_set.insert(psize);
+            }
         }
     }
 
@@ -69,29 +55,25 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const Neighbo
     return std::move(ref_psizes);
 }
 
-static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const tcfg::SpecificConfig& spec_cfg,
-                                         const cv::Mat& gray_src, const Neighbors& neighbors, const int psize,
-                                         const double ksize) noexcept
+double State::_calcMetricWithPsize(const _hp::Neighbors& neighbors, const int psize) const
 {
     const cv::Point2d curr_center = neighbors.getSelfPt();
-
-    const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize, spec_cfg.getSafeRange());
 
     double weighted_metric = 0.0;
     double total_weight = 0.0;
 
-    auto calcWithNeib = [&]<Direction direction>() mutable {
-        if (neighbors.hasNeighbor<direction>()) {
-            const cv::Point2d anchor_shift = -match_shifts.getMatchShift<direction>();
-            const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
+    for (const auto direction : DIRECTIONS) {
+        if (neighbors.hasNeighbor(direction)) {
+            const cv::Point2d anchor_shift = -neighbors.getUnitShift(direction) * pattern_shift_;
+            const cv::Point2d match_step = neighbors.getUnitShift(direction);
             const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
 
             const cv::Point2d anchor_center = curr_center + anchor_shift;
-            const cv::Point2d neib_center = neighbors.getNeighborPt<direction>();
+            const cv::Point2d neib_center = neighbors.getNeighborPt(direction);
             const cv::Point2d cmp_center = neib_center + cmp_shift;
 
-            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src, anchor_center, ksize));
-            const auto& rhs = getRoiImageByCenter(gray_src, cmp_center, ksize);
+            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src_, anchor_center, pattern_size_));
+            const auto& rhs = getRoiImageByCenter(gray_src_, cmp_center, pattern_size_);
 
             const double metric = anchor.compare(rhs);
             weighted_metric += metric * anchor.getWeight();
@@ -99,68 +81,52 @@ static inline double calcMetricWithPsize(const cfg::tspc::Layout& layout, const 
         }
     };
 
-    calcWithNeib.template operator()<Direction::LEFT>();
-    calcWithNeib.template operator()<Direction::RIGHT>();
-    calcWithNeib.template operator()<Direction::UPLEFT>();
-    calcWithNeib.template operator()<Direction::UPRIGHT>();
-    calcWithNeib.template operator()<Direction::DOWNLEFT>();
-    calcWithNeib.template operator()<Direction::DOWNRIGHT>();
-
     const double final_metric = weighted_metric / total_weight;
     return final_metric;
 }
 
-static inline int estimatePatchsizeOverFullMatch(const tcfg::Layout& layout, const tcfg::SpecificConfig& spec_cfg,
-                                                 const cv::Mat& gray_src, const Neighbors& neighbors,
-                                                 Inspector& inspector) noexcept
+int State::_estimatePatchsizeOverFullMatch(const _hp::Neighbors& neighbors)
 {
     const cv::Point2d curr_center = neighbors.getSelfPt();
 
     if (Inspector::PATTERN_ENABLED) {
-        Inspector::saveMI(inspector, getRoiImageByCenter(gray_src, curr_center, layout.getDiameter()),
-                          neighbors.getSelfIdx());
+        inspector_.saveMI(getRoiImageByCenter(gray_src_, curr_center, layout_.getDiameter()), neighbors.getSelfIdx());
     }
 
-    const double ksize = layout.getDiameter() * spec_cfg.getKernelSize();
-    const auto match_shifts = MatchShifts::fromDiamAndKsize(layout.getDiameter(), ksize, spec_cfg.getSafeRange());
-    const double safe_radius = spec_cfg.getSafeRange() * layout.getRadius();
-    const double half_ksize = ksize / 2.0;
-    const int min_psize = (int)(half_ksize);
-    const int max_shift = (int)(match_shifts.getRight().x +
-                                std::sqrt((safe_radius - half_ksize) * (safe_radius + half_ksize)) - half_ksize);
+    const int max_shift = (int)(pattern_shift_ * 2);
 
     double weighted_psize = 0.0;
     double total_weight = 0.0;
     std::vector<double> psizes, weights;
 
-    auto calcWithNeib = [&]<Direction direction>() mutable {
-        if (neighbors.hasNeighbor<direction>()) {
-            const cv::Point2d anchor_shift = -match_shifts.getMatchShift<direction>();
+    for (const auto direction : DIRECTIONS) {
+        if (neighbors.hasNeighbor(direction)) {
+            const cv::Point2d anchor_shift = -neighbors.getUnitShift(direction) * pattern_shift_;
             const cv::Point2d anchor_center = curr_center + anchor_shift;
-            const cv::Point2d match_step = MatchSteps::getMatchStep<direction>();
-            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src, anchor_center, ksize));
+            const cv::Point2d match_step = neighbors.getUnitShift(direction);
+            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src_, anchor_center, pattern_size_));
 
             if (Inspector::PATTERN_ENABLED) {
-                Inspector::saveAnchor(inspector, getRoiImageByCenter(gray_src, anchor_center, ksize),
-                                      neighbors.getSelfIdx(), direction);
+                inspector_.saveAnchor(getRoiImageByCenter(gray_src_, anchor_center, pattern_size_),
+                                      neighbors.getSelfIdx(), (int)direction);
             }
 
-            const cv::Point2d neib_center = neighbors.getNeighborPt<direction>();
-            cv::Point2d cmp_shift = anchor_shift + match_step * min_psize;
+            const cv::Point2d neib_center = neighbors.getNeighborPt(direction);
+            cv::Point2d cmp_shift = anchor_shift + match_step * min_psize_;
 
             int min_metric_psize = INVALID_PSIZE;
             double min_metric = std::numeric_limits<double>::max();
             std::vector<double> metrics;
-            metrics.reserve(max_shift - min_psize);
-            for (const int psize : rgs::views::iota(min_psize, max_shift)) {
+            metrics.reserve(max_shift - min_psize_);
+            for (const int psize : rgs::views::iota(min_psize_, max_shift)) {
                 cmp_shift += match_step;
-                const auto& rhs = getRoiImageByCenter(gray_src, neib_center + cmp_shift, ksize);
+                const auto& rhs = getRoiImageByCenter(gray_src_, neib_center + cmp_shift, pattern_size_);
                 const double metric = anchor.compare(rhs);
                 metrics.push_back(metric);
 
                 if (Inspector::PATTERN_ENABLED) {
-                    Inspector::saveCmpPattern(inspector, getRoiImageByCenter(gray_src, neib_center + cmp_shift, ksize),
-                                              neighbors.getSelfIdx(), direction, psize, metric);
+                    inspector_.saveCmpPattern(getRoiImageByCenter(gray_src_, neib_center + cmp_shift, pattern_size_),
+                                              neighbors.getSelfIdx(), (int)direction, psize, metric);
                 }
 
                 if (metric < min_metric) {
@@ -177,15 +143,8 @@ static inline int estimatePatchsizeOverFullMatch(const tcfg::Layout& layout, con
         }
     };
 
-    calcWithNeib.template operator()<Direction::LEFT>();
-    calcWithNeib.template operator()<Direction::RIGHT>();
-    calcWithNeib.template operator()<Direction::UPLEFT>();
-    calcWithNeib.template operator()<Direction::UPRIGHT>();
-    calcWithNeib.template operator()<Direction::DOWNLEFT>();
-    calcWithNeib.template operator()<Direction::DOWNRIGHT>();
-
     if (Inspector::METRIC_REPORT_ENABLED) {
-        inspector.appendMetricReport(neighbors.getSelfIdx(), psizes, weights);
+        inspector_.appendMetricReport(neighbors.getSelfIdx(), psizes, weights);
     }
 
     if (total_weight == 0.0)
@@ -195,17 +154,13 @@ static inline int estimatePatchsizeOverFullMatch(const tcfg::Layout& layout, con
     return final_psize;
 }
 
-static inline int estimatePatchsize(const tcfg::Layout& layout, const tcfg::SpecificConfig& spec_cfg,
-                                    const cv::Mat& gray_src, const cv::Mat& psizes, const cv::Mat& prev_psizes,
-                                    const cv::Point index, Inspector& inspector)
+int State::_estimatePatchsize(cv::Mat& psizes, const cv::Point index)
 {
-    const int ksize = (int)std::round(spec_cfg.getKernelSize() * layout.getDiameter());
+    const auto neighbors = _hp::Neighbors::fromLayoutAndIndex(layout_, index);
 
-    const auto neighbors = Neighbors::fromLayoutAndIndex(layout, index);
-
-    const int prev_psize = prev_psizes.at<int>(index);
-    const double prev_metric = calcMetricWithPsize(layout, spec_cfg, gray_src, neighbors, prev_psize, ksize);
-    if (prev_metric < spec_cfg.getPsizeShortcutThreshold()) {
+    const int prev_psize = prev_patchsizes_.at<int>(index);
+    const double prev_metric = _calcMetricWithPsize(neighbors, prev_psize);
+    if (prev_metric < spec_cfg_.getPsizeShortcutThreshold()) {
         return prev_psize;
     }
 
@@ -213,31 +168,31 @@ static inline int estimatePatchsize(const tcfg::Layout& layout, const tcfg::Spec
     double min_ref_metric = std::numeric_limits<double>::max();
     int min_ref_psize = 0;
     for (const int ref_psize : ref_psizes) {
-        const double ref_metric = calcMetricWithPsize(layout, spec_cfg, gray_src, neighbors, prev_psize, ksize);
+        const double ref_metric = _calcMetricWithPsize(neighbors, prev_psize);
         if (ref_metric < min_ref_metric) {
             min_ref_metric = ref_metric;
             min_ref_psize = ref_psize;
         }
     }
-    if (min_ref_metric < spec_cfg.getPsizeShortcutThreshold()) {
+    if (min_ref_metric < spec_cfg_.getPsizeShortcutThreshold()) {
         return min_ref_psize;
     }
 
-    const std::vector<int>& prev_ref_psizes = getRefPsizes<false>(prev_psizes, neighbors);
+    const std::vector<int>& prev_ref_psizes = getRefPsizes<false>(prev_patchsizes_, neighbors);
     double min_prev_ref_metric = std::numeric_limits<double>::max();
     int min_prev_ref_psize = 0;
     for (const int prev_ref_psize : prev_ref_psizes) {
-        const double prev_ref_metric = calcMetricWithPsize(layout, spec_cfg, gray_src, neighbors, prev_psize, ksize);
+        const double prev_ref_metric = _calcMetricWithPsize(neighbors, prev_psize);
         if (prev_ref_metric < min_prev_ref_metric) {
             min_prev_ref_metric = prev_ref_metric;
             min_prev_ref_psize = prev_ref_psize;
         }
     }
-    if (min_prev_ref_metric < spec_cfg.getPsizeShortcutThreshold()) {
+    if (min_prev_ref_metric < spec_cfg_.getPsizeShortcutThreshold()) {
         return min_prev_ref_psize;
     }
 
-    const int psize = estimatePatchsizeOverFullMatch(layout, spec_cfg, gray_src, neighbors, inspector);
+    const int psize = _estimatePatchsizeOverFullMatch(neighbors);
 
     if (psize == INVALID_PSIZE) {
         return prev_psize;
@@ -246,31 +201,17 @@ static inline int estimatePatchsize(const tcfg::Layout& layout, const tcfg::Spec
     }
 }
 
-} // namespace _hp
-
-TLCT_API inline cv::Mat estimatePatchsizes(State& state)
+inline cv::Mat State::estimatePatchsizes()
 {
-    const auto& layout = state.layout_;
-
-    const int min_psize = (int)std::round(0.5 * state.spec_cfg_.getKernelSize() * layout.getDiameter());
-    cv::Mat psizes = cv::Mat::ones(layout.getMIRows(), layout.getMIMaxCols(), CV_32SC1) * min_psize;
-    cv::Mat prev_psizes;
-    if (!state.prev_patchsizes_.empty()) {
-        prev_psizes = state.prev_patchsizes_;
-    } else {
-        prev_psizes = psizes.clone();
-    }
-
-    for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
+    for (const int row : rgs::views::iota(0, layout_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, layout_.getMICols(row))) {
             const cv::Point index{col, row};
-            const int psize = _hp::estimatePatchsize(layout, state.spec_cfg_, state.gray_src_, psizes, prev_psizes,
-                                                     index, state.inspector_);
-            psizes.at<int>(index) = psize;
+            const int psize = _estimatePatchsize(patchsizes_, index);
+            patchsizes_.at<int>(index) = psize;
         }
     }
 
-    return std::move(psizes);
+    return std::move(patchsizes_);
 }
 
 } // namespace tlct::cvt::tspc

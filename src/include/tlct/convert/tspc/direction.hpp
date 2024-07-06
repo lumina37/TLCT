@@ -1,17 +1,21 @@
 #pragma once
 
-namespace tlct::cvt::_hp {
+#include <array>
 
-constexpr int DIRECTION_NUM = 6;
+namespace tlct::cvt::tspc::_hp {
 
 enum class Direction {
     LEFT,
-    RIGHT,
     UPLEFT,
     UPRIGHT,
-    DOWNLEFT,
+    RIGHT,
     DOWNRIGHT,
+    DOWNLEFT,
 };
+
+constexpr int DIRECTION_NUM = 6;
+constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{Direction::LEFT,  Direction::UPLEFT,    Direction::UPRIGHT,
+                                                          Direction::RIGHT, Direction::DOWNRIGHT, Direction::DOWNLEFT};
 
 [[nodiscard]] constexpr Direction opposite(const Direction direction)
 {
@@ -31,11 +35,13 @@ enum class Direction {
     }
 }
 
-} // namespace tlct::cvt::_hp
+} // namespace tlct::cvt::tspc::_hp
 
-namespace tlct::cvt {
+namespace tlct::cvt::tspc {
 
 using _hp::Direction;
+using _hp::DIRECTION_NUM;
+using _hp::DIRECTIONS;
 using _hp::opposite;
 
-} // namespace tlct::cvt
+} // namespace tlct::cvt::tspc

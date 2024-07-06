@@ -6,6 +6,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/concepts/state.hpp"
@@ -16,6 +17,7 @@ namespace tlct::cvt::tspc {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::tspc;
+namespace tcvthp = tlct::cvt::_hp;
 
 class State
 {
@@ -35,7 +37,7 @@ public:
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
 
     // Non-const methods
-    inline void setInspector(_hp::Inspector_<TLayout>&& inspector) noexcept { inspector_ = std::move(inspector); };
+    inline void setInspector(tcvthp::Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
     TLCT_API inline void feed(const cv::Mat& newsrc);
 
     // Iterator
@@ -55,7 +57,7 @@ public:
                                                                        int view_col) noexcept;
 
         // Const methods
-        [[nodiscard]] TLCT_API inline value_type operator*() const { return renderView(state_, view_row_, view_col_); };
+        [[nodiscard]] TLCT_API inline value_type operator*() const { return state_.renderView(view_row_, view_col_); };
         [[nodiscard]] TLCT_API inline bool operator==(const iterator& rhs) const noexcept
         {
             return view_col_ == rhs.view_col_ && view_row_ == rhs.view_row_;
@@ -86,8 +88,11 @@ public:
         return iterator::fromStateAndView(*this, views_, views_, 0);
     }
 
-    TLCT_API friend inline cv::Mat estimatePatchsizes(State& state);
-    TLCT_API friend inline cv::Mat renderView(const State& state, int view_row, int view_col);
+    [[nodiscard]] inline cv::Mat estimatePatchsizes();
+    [[nodiscard]] inline cv::Mat renderView(int view_row, int view_col) const;
+    [[nodiscard]] inline double _calcMetricWithPsize(const _hp::Neighbors& neighbors, const int psize) const;
+    [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const _hp::Neighbors& neighbors);
+    [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, const cv::Point index);
 
 private:
     const TLayout layout_;
@@ -102,6 +107,9 @@ private:
     double bound_;
     int p_resize_withbound_;
     cv::Mat patch_fadeout_weight_;
+    double pattern_size_;
+    double pattern_shift_;
+    int min_psize_;
     int move_range_;
     int interval_;
     int canvas_width_;
@@ -109,13 +117,13 @@ private:
     int final_width_;
     int final_height_;
     cv::Range canvas_crop_roi_[2];
-    _hp::Inspector_<TLayout> inspector_;
+    tcvthp::Inspector inspector_;
 };
 
 static_assert(concepts::CState<State>);
 
 State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
-    : layout_(layout), spec_cfg_(spec_cfg), views_(views), prev_patchsizes_(), patchsizes_(), src_32f_(), inspector_()
+    : layout_(layout), spec_cfg_(spec_cfg), views_(views), src_32f_(), inspector_()
 {
     const int upsample = layout.getUpsample();
     patch_xshift_ = (int)std::round(0.5 * layout.getDiameter());
@@ -124,7 +132,18 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_;
     const double p_resize_withbound_d = patch_xshift_ + 2 * bound_;
     p_resize_withbound_ = (int)std::round(p_resize_withbound_d);
-    patch_fadeout_weight_ = _hp::circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
+    patch_fadeout_weight_ = tcvthp::circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
+
+    pattern_size_ = layout.getDiameter() * spec_cfg.getKernelSize();
+    const double radius = layout.getDiameter() / 2.0;
+    const double safe_radius = radius * spec_cfg.getSafeRange();
+    const double half_pattern_size = pattern_size_ / 2.0;
+    pattern_shift_ =
+        std::sqrt((safe_radius - half_pattern_size) * (safe_radius + half_pattern_size)) - half_pattern_size;
+
+    min_psize_ = (int)std::round(0.35 * pattern_size_);
+    prev_patchsizes_ = cv::Mat(layout_.getMIRows(), layout_.getMIMaxCols(), CV_32SC1);
+    patchsizes_ = cv::Mat::ones(prev_patchsizes_.size(), CV_32SC1) * min_psize_;
 
     move_range_ = (int)std::round((1.0 + spec_cfg_.getGradientBlendingWidth()) * spec_cfg_.getKernelSize() / 2.0 *
                                   layout.getDiameter());
@@ -160,11 +179,8 @@ void State::feed(const cv::Mat& newsrc)
     cv::cvtColor(proced_src, gray_src_, cv::COLOR_BGR2GRAY);
     proced_src.convertTo(src_32f_, CV_32FC3);
 
-    prev_patchsizes_ = std::move(patchsizes_);
-    patchsizes_ = estimatePatchsizes(*this);
-    if (prev_patchsizes_.empty()) {
-        prev_patchsizes_ = patchsizes_;
-    }
+    std::swap(prev_patchsizes_, patchsizes_);
+    patchsizes_ = estimatePatchsizes();
 }
 
 State::iterator State::iterator::fromStateAndView(const State& state, int views, int view_row, int view_col) noexcept
