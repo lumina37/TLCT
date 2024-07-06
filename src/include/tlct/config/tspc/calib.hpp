@@ -47,7 +47,7 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("TSPCCalibData");
     if (data_node.empty()) {
-        std::cerr << "Missing xml node `RayCalibData` when initializing " << typeid(CalibConfig).name();
+        std::cerr << "Missing xml node `TSPCCalibData` when initializing " << typeid(CalibConfig).name() << std::endl;
         return {};
     }
 
