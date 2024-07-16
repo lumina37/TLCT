@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
                    base_color * (int)direction, 2, cv::LINE_AA);
     }
 
-    neighbors = tcvt::_hp::Neighbors::fromLayoutAndIndex(layout, {4, 8});
+    neighbors = Neighbors::fromLayoutAndIndex(layout, {4, 8});
     for (const auto direction : tcvt::DIRECTIONS) {
         cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
                    base_color * (int)direction, 2, cv::LINE_AA);

@@ -10,8 +10,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/raytrix.hpp"
 #include "tlct/convert/concepts/state.hpp"
-#include "tlct/convert/helper/inspect.hpp"
-#include "tlct/convert/helper/roi.hpp"
+#include "tlct/convert/helper.hpp"
 
 namespace tlct::cvt::raytrix {
 

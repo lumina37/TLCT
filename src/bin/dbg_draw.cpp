@@ -33,27 +33,19 @@ int main(int argc, char* argv[])
         cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
     }
 
-    using Neighbors = tcvt::_hp::Neighbors_<tlct::cfg::tspc::Layout, 1>;
-    const cv::Scalar base_color{0, 63, 63};
-    auto neighbors = tcvt::_hp::Neighbors::fromLayoutAndIndex(layout, {1, 1});
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeftIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 1, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRightIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 2, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeftIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 3, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRightIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 4, 2, cv::LINE_AA);
+    using Neighbors = tcvt::_hp::Neighbors;
+    const cv::Scalar base_color{0, 255.0 / 6, 255.0 / 6};
+    auto neighbors = Neighbors::fromLayoutAndIndex(layout, {4, 3});
+    for (const auto direction : tcvt::DIRECTIONS) {
+        cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
+                   base_color * (int)direction, 2, cv::LINE_AA);
+    }
 
-    neighbors = tcvt::_hp::Neighbors::fromLayoutAndIndex(layout, {1, 4});
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpLeftIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 1, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getUpRightIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 2, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownLeftIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 3, 2, cv::LINE_AA);
-    cv::circle(resized_img, layout.getMICenter(neighbors.getDownRightIdx()), tlct::_hp::iround(layout.getRadius()),
-               base_color * 4, 2, cv::LINE_AA);
+    neighbors = Neighbors::fromLayoutAndIndex(layout, {4, 8});
+    for (const auto direction : tcvt::DIRECTIONS) {
+        cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
+                   base_color * (int)direction, 2, cv::LINE_AA);
+    }
 
     cv::imwrite("dbg_center.png", resized_img);
 }

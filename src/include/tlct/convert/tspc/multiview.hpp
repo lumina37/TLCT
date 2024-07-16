@@ -5,8 +5,8 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/config/tspc.hpp"
-#include "tlct/convert/tspc/state.hpp"
+#include "state.hpp"
+#include "tlct/convert/helper.hpp"
 
 namespace tlct::cvt::tspc {
 
@@ -34,7 +34,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
             const cv::Point2d center = layout_.getMICenter(i, j);
 
             // Extract patch
-            const int psize = patchsizes_.at<int>(i, j);
+            const double psize = (double)patchsizes_.at<int>(i, j);
             const double bound = psize * spec_cfg_.getGradientBlendingWidth();
             const double patch_width_with_bound = psize + bound * 2;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};

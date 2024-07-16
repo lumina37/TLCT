@@ -18,9 +18,9 @@ int main(int argc, char* argv[])
     auto state = tcvt::State::fromParamCfg(param_cfg);
     const auto layout =
         tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
-    //    auto inspector = tcvt::Inspector::fromGenericCfg(param_cfg.getGenericCfg());
-    //    inspector.setEnableIf([](cv::Point index) { return index == cv::Point{10, 11}; });
-    //    state.setInspector(std::move(inspector));
+    auto inspector = tcvt::Inspector::fromGenericCfg(param_cfg.getGenericCfg());
+    inspector.setEnableIf([](cv::Point index) { return index.x <= 20 and index.y <= 20; });
+    state.setInspector(std::move(inspector));
 
     const cv::Range range = common_cfg.getRange();
     for (int i = range.start; i <= range.end; i++) {

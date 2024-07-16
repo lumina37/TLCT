@@ -11,13 +11,10 @@
 #include <opencv2/quality.hpp>
 
 #include "neighbors.hpp"
+#include "state.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/raytrix/layout.hpp"
-#include "direction.hpp"
-#include "tlct/convert/helper/roi.hpp"
-#include "tlct/convert/helper/variance.hpp"
-#include "tlct/convert/helper/wrapper.hpp"
-#include "tlct/convert/raytrix/state.hpp"
+#include "tlct/convert/helper.hpp"
 
 namespace tlct::cvt::raytrix {
 

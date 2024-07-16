@@ -10,14 +10,11 @@
 #include <opencv2/core.hpp>
 #include <opencv2/quality.hpp>
 
-#include "direction.hpp"
 #include "neighbors.hpp"
+#include "state.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
-#include "tlct/convert/helper/roi.hpp"
-#include "tlct/convert/helper/variance.hpp"
-#include "tlct/convert/helper/wrapper.hpp"
-#include "tlct/convert/tspc/state.hpp"
+#include "tlct/convert/helper.hpp"
 
 namespace tlct::cvt::tspc {
 

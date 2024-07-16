@@ -1,15 +1,13 @@
 #pragma once
 
 #include <cmath>
+#include <numbers>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
 
-#include "neighbors.hpp"
-#include "tlct/config/raytrix.hpp"
-#include "tlct/convert/helper/grad.hpp"
-#include "tlct/convert/helper/roi.hpp"
-#include "tlct/convert/raytrix/state.hpp"
+#include "state.hpp"
+#include "tlct/convert/helper.hpp"
 
 namespace tlct::cvt::raytrix {
 
@@ -41,10 +39,10 @@ cv::Mat State::renderView(int view_row, int view_col) const
             mi = tcvthp::getRoiImageByCenter(gray_src_, center,
                                              layout_.getDiameter() / std::numbers::sqrt2 * safe_range);
             const double grad_weight = tcvthp::computeGrad(mi);
-            const double amped_grad_weight = std::pow(grad_weight, 2.0) + std::numeric_limits<float>::epsilon();
+            const double amped_grad_weight = grad_weight + std::numeric_limits<float>::epsilon();
 
             // Extract patch
-            const int psize = patchsizes_.at<int>(i, j);
+            const double psize = std::numbers::sqrt3 * patchsizes_.at<int>(i, j);
             const double bound = psize * spec_cfg_.getGradientBlendingWidth();
             const double patch_width_with_bound = psize + bound * 2;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};

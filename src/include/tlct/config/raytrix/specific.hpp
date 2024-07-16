@@ -21,7 +21,7 @@ public:
                                    double gradient_blending_width, double psize_shortcut_threshold) noexcept
         : imgsize_(imgsize), upsample_(upsample), pattern_size_(pattern_size),
           gradient_blending_width_(gradient_blending_width),
-          safe_range_((1.0 - pattern_size) / (1 + gradient_blending_width)),
+          safe_range_(std::min((1.0 - pattern_size), 1.0 / (1.0 + gradient_blending_width))),
           psize_shortcut_threshold_(psize_shortcut_threshold){};
 
     // Initialize from
