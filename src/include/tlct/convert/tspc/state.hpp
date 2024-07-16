@@ -134,7 +134,7 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     p_resize_withbound_ = (int)std::round(p_resize_withbound_d);
     patch_fadeout_weight_ = tcvthp::circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
 
-    pattern_size_ = layout.getDiameter() * spec_cfg.getKernelSize();
+    pattern_size_ = layout.getDiameter() * spec_cfg.getPatternSize();
     const double radius = layout.getDiameter() / 2.0;
     const double safe_radius = radius * spec_cfg.getSafeRange();
     const double half_pattern_size = pattern_size_ / 2.0;
@@ -145,7 +145,7 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     prev_patchsizes_ = cv::Mat(layout_.getMIRows(), layout_.getMIMaxCols(), CV_32SC1);
     patchsizes_ = cv::Mat::ones(prev_patchsizes_.size(), CV_32SC1) * min_psize_;
 
-    move_range_ = (int)std::round((1.0 + spec_cfg_.getGradientBlendingWidth()) * spec_cfg_.getKernelSize() / 2.0 *
+    move_range_ = (int)std::round((1.0 + spec_cfg_.getGradientBlendingWidth()) * spec_cfg_.getPatternSize() / 2.0 *
                                   layout.getDiameter());
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 

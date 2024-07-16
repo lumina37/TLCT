@@ -35,17 +35,13 @@ cv::Mat State::renderView(int view_row, int view_col) const
 
     for (const int i : rgs::views::iota(0, layout_.getMIRows())) {
         for (const int j : rgs::views::iota(0, layout_.getMICols(i))) {
-            if (layout_.getMIType(i, j) != 2) {
-                continue;
-            }
-
             const cv::Point2d center = layout_.getMICenter(i, j);
 
             const double safe_range = spec_cfg_.getSafeRange();
             mi = tcvthp::getRoiImageByCenter(gray_src_, center,
                                              layout_.getDiameter() / std::numbers::sqrt2 * safe_range);
             const double grad_weight = tcvthp::computeGrad(mi);
-            const double amped_grad_weight = std::pow(grad_weight, 4.0) + std::numeric_limits<float>::epsilon();
+            const double amped_grad_weight = std::pow(grad_weight, 2.0) + std::numeric_limits<float>::epsilon();
 
             // Extract patch
             const int psize = patchsizes_.at<int>(i, j);
