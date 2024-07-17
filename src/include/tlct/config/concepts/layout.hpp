@@ -6,7 +6,7 @@
 
 #include "calib.hpp"
 
-namespace tlct::cfg::concepts {
+namespace tlct::_cfg::concepts {
 
 template <typename Self>
 concept CLayout = std::copyable<Self> && requires {
@@ -51,4 +51,4 @@ concept CLayout = std::copyable<Self> && requires {
     };
 };
 
-} // namespace tlct::cfg::concepts
+} // namespace tlct::_cfg::concepts

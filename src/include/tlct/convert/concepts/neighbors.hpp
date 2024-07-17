@@ -7,7 +7,7 @@
 #include "tlct/config/concepts/layout.hpp"
 #include "tlct/convert/helper/direction.hpp"
 
-namespace tlct::cvt::concepts {
+namespace tlct::_cvt::concepts {
 
 namespace tcfg = tlct::cfg;
 
@@ -23,11 +23,11 @@ concept CNeighbors = requires {
         { self.getSelfIdx() } noexcept -> std::same_as<cv::Point>;
         { self.getSelfPt() } noexcept -> std::same_as<cv::Point2d>;
 
-        { self.hasNeighbor(_hp::Direction::LEFT) } noexcept -> std::same_as<bool>;
-        { self.getNeighborIdx(_hp::Direction::LEFT) } noexcept -> std::same_as<cv::Point>;
-        { self.getNeighborPt(_hp::Direction::LEFT) } noexcept -> std::same_as<cv::Point2d>;
-        { self.getUnitShift(_hp::Direction::LEFT) } noexcept -> std::same_as<cv::Point2d>;
+        { self.hasNeighbor(Direction::LEFT) } noexcept -> std::same_as<bool>;
+        { self.getNeighborIdx(Direction::LEFT) } noexcept -> std::same_as<cv::Point>;
+        { self.getNeighborPt(Direction::LEFT) } noexcept -> std::same_as<cv::Point2d>;
+        { self.getUnitShift(Direction::LEFT) } noexcept -> std::same_as<cv::Point2d>;
     };
 };
 
-} // namespace tlct::cvt::concepts
+} // namespace tlct::_cvt::concepts

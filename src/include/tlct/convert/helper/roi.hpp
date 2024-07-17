@@ -4,7 +4,7 @@
 
 #include <opencv2/core.hpp>
 
-namespace tlct::cvt::_hp {
+namespace tlct::_cvt {
 
 static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2d& center, const double width) noexcept
 {
@@ -78,4 +78,4 @@ static inline cv::Mat circleWithFadeoutBorder(const int diameter, const int bord
     return std::move(rect);
 }
 
-} // namespace tlct::cvt::_hp
+} // namespace tlct::_cvt

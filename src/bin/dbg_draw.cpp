@@ -6,17 +6,15 @@
 #include "tlct.hpp"
 
 namespace rgs = std::ranges;
-namespace tcfg = tlct::cfg::tspc;
-namespace tcvt = tlct::cvt::tspc;
+namespace tn = tlct::tspc;
 
 int main(int argc, char* argv[])
 {
-    const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
-    const auto param_cfg = tcfg::ParamConfig::fromConfigMap(cfg_map);
+    const auto cfg_map = tlct::ConfigMap::fromPath(argv[1]);
+    const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     const auto& common_cfg = param_cfg.getGenericCfg();
 
-    const auto layout =
-        tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
+    const auto layout = tn::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
 
     const auto srcpath = common_cfg.fmtSrcPath(common_cfg.getRange().start);
     const cv::Mat src = cv::imread(srcpath.string());
@@ -33,16 +31,15 @@ int main(int argc, char* argv[])
         cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
     }
 
-    using Neighbors = tcvt::_hp::Neighbors;
     const cv::Scalar base_color{0, 255.0 / 6, 255.0 / 6};
-    auto neighbors = Neighbors::fromLayoutAndIndex(layout, {4, 3});
-    for (const auto direction : tcvt::DIRECTIONS) {
+    auto neighbors = tn::Neighbors::fromLayoutAndIndex(layout, {4, 3});
+    for (const auto direction : tlct::DIRECTIONS) {
         cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
                    base_color * (int)direction, 2, cv::LINE_AA);
     }
 
-    neighbors = Neighbors::fromLayoutAndIndex(layout, {4, 8});
-    for (const auto direction : tcvt::DIRECTIONS) {
+    neighbors = tn::Neighbors::fromLayoutAndIndex(layout, {4, 8});
+    for (const auto direction : tlct::DIRECTIONS) {
         cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
                    base_color * (int)direction, 2, cv::LINE_AA);
     }

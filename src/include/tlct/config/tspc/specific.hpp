@@ -4,7 +4,7 @@
 
 #include <opencv2/core.hpp>
 
-namespace tlct::cfg::tspc {
+namespace tlct::_cfg::tspc {
 
 class SpecificConfig
 {
@@ -58,5 +58,13 @@ SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
     const double psize_shortcut_threshold = std::stod(map.at("psizeShortcutThreshold"));
     return {{width, height}, upsample, kernel_size, gradient_blending_width, psize_shortcut_threshold};
 }
+
+} // namespace tlct::_cfg::tspc
+
+namespace tlct::cfg::tspc {
+
+namespace _priv = tlct::_cfg::tspc;
+
+using _priv::SpecificConfig;
 
 } // namespace tlct::cfg::tspc

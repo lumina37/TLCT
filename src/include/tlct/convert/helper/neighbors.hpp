@@ -5,7 +5,7 @@
 #include "direction.hpp"
 #include "tlct/config/concepts/layout.hpp"
 
-namespace tlct::cvt::_hp {
+namespace tlct::_cvt {
 
 template <typename TLayout_>
     requires tlct::cfg::concepts::CLayout<TLayout_>
@@ -138,4 +138,4 @@ Neighbors_<TLayout> Neighbors_<TLayout>::fromLayoutAndIndex(const TLayout& layou
     return {index, indices, self_pt, points};
 }
 
-} // namespace tlct::cvt::_hp
+} // namespace tlct::_cvt

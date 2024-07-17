@@ -4,7 +4,7 @@
 
 #include <opencv2/core.hpp>
 
-namespace tlct::cfg::raytrix {
+namespace tlct::_cfg::raytrix {
 
 class SpecificConfig
 {
@@ -59,4 +59,4 @@ SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
     return {{width, height}, upsample, kernel_size, gradient_blending_width, psize_shortcut_threshold};
 }
 
-} // namespace tlct::cfg::raytrix
+} // namespace tlct::_cfg::raytrix

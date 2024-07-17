@@ -8,10 +8,9 @@
 #include "state.hpp"
 #include "tlct/convert/helper.hpp"
 
-namespace tlct::cvt::tspc {
+namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
-namespace tcvthp = tlct::cvt::_hp;
 
 cv::Mat State::renderView(int view_row, int view_col) const
 {
@@ -38,7 +37,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
             const double bound = psize * spec_cfg_.getGradientBlendingWidth();
             const double patch_width_with_bound = psize + bound * 2;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
-            const cv::Mat& patch = tcvthp::getRoiImageByCenter(src_32f_, patch_center, patch_width_with_bound);
+            const cv::Mat& patch = getRoiImageByCenter(src_32f_, patch_center, patch_width_with_bound);
 
             // Paste patch
             cv::rotate(patch, rotated_patch, cv::ROTATE_180);
@@ -88,4 +87,4 @@ cv::Mat State::renderView(int view_row, int view_col) const
     return std::move(view_image);
 }
 
-} // namespace tlct::cvt::tspc
+} // namespace tlct::_cvt::tspc

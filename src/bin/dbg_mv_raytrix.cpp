@@ -6,19 +6,17 @@
 #include "tlct.hpp"
 
 namespace fs = std::filesystem;
-namespace tcfg = tlct::cfg::raytrix;
-namespace tcvt = tlct::cvt::raytrix;
+namespace tn = tlct::raytrix;
 
 int main(int argc, char* argv[])
 {
-    const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
-    const auto param_cfg = tcfg::ParamConfig::fromConfigMap(cfg_map);
+    const auto cfg_map = tlct::ConfigMap::fromPath(argv[1]);
+    const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     const auto& common_cfg = param_cfg.getGenericCfg();
 
-    auto state = tcvt::State::fromParamCfg(param_cfg);
-    const auto layout =
-        tcfg::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
-    auto inspector = tcvt::Inspector::fromGenericCfg(param_cfg.getGenericCfg());
+    auto state = tn::State::fromParamCfg(param_cfg);
+    const auto layout = tn::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
+    auto inspector = tlct::Inspector::fromGenericCfg(param_cfg.getGenericCfg());
     inspector.setEnableIf([](cv::Point index) { return index.x <= 20 and index.y <= 20; });
     state.setInspector(std::move(inspector));
 

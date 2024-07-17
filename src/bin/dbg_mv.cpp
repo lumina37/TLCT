@@ -6,16 +6,15 @@
 #include "tlct.hpp"
 
 namespace fs = std::filesystem;
-namespace tcfg = tlct::cfg::tspc;
-namespace tcvt = tlct::cvt::tspc;
+namespace tn = tlct::tspc;
 
 int main(int argc, char* argv[])
 {
-    const auto cfg_map = tlct::cfg::ConfigMap::fromPath(argv[1]);
-    const auto param_cfg = tcfg::ParamConfig::fromConfigMap(cfg_map);
+    const auto cfg_map = tlct::ConfigMap::fromPath(argv[1]);
+    const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     const auto& common_cfg = param_cfg.getGenericCfg();
 
-    auto state = tcvt::State::fromParamCfg(param_cfg);
+    auto state = tn::State::fromParamCfg(param_cfg);
 
     const cv::Range range = common_cfg.getRange();
     for (int i = range.start; i <= range.end; i++) {

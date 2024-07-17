@@ -11,7 +11,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 
-namespace tlct::cfg {
+namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
 
@@ -60,4 +60,4 @@ ParamConfig_<TSpecificConfig, TCalibConfig>::fromConfigMap(const ConfigMap& cfg_
     return {generic_cfg, spec_cfg, calib_cfg};
 }
 
-} // namespace tlct::cfg
+} // namespace tlct::_cfg

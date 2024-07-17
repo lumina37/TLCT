@@ -5,7 +5,7 @@
 
 #include "tlct/common/defines.h"
 
-namespace tlct::cvt::_hp {
+namespace tlct::_cvt {
 
 TLCT_API inline double var_d(const std::vector<double>& vec)
 {
@@ -21,4 +21,4 @@ TLCT_API inline double var_d(const std::vector<double>& vec)
     return var;
 }
 
-} // namespace tlct::cvt::_hp
+} // namespace tlct::_cvt

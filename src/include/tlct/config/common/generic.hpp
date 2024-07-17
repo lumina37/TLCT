@@ -9,7 +9,7 @@
 #include "cfg_map.hpp"
 #include "tlct/common/defines.h"
 
-namespace tlct::cfg {
+namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
 
@@ -23,7 +23,7 @@ public:
     TLCT_API inline GenericParamConfig& operator=(GenericParamConfig&& rhs) noexcept = default;
     TLCT_API inline GenericParamConfig(GenericParamConfig&& rhs) noexcept = default;
     TLCT_API inline GenericParamConfig(int views, cv::Range range, std::string src_pattern,
-                                      std::string dst_pattern) noexcept
+                                       std::string dst_pattern) noexcept
         : views_(views), range_(range), src_pattern_(std::move(src_pattern)), dst_pattern_(std::move(dst_pattern)){};
 
     // Initialize from
@@ -70,4 +70,4 @@ fs::path GenericParamConfig::fmtDstPath(int i) const noexcept
     return {buffer};
 }
 
-} // namespace tlct::cfg
+} // namespace tlct::_cfg

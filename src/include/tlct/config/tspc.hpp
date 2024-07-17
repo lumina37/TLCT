@@ -6,6 +6,12 @@
 
 namespace tlct::cfg::tspc {
 
-using ParamConfig = ParamConfig_<SpecificConfig, CalibConfig>;
+namespace _priv = tlct::_cfg::tspc;
 
-}
+using _priv::CalibConfig;
+using _priv::Layout;
+using _priv::SpecificConfig;
+
+using ParamConfig = _cfg::ParamConfig_<SpecificConfig, CalibConfig>;
+
+} // namespace tlct::cfg::tspc

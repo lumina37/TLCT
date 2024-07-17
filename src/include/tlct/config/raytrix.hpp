@@ -6,6 +6,13 @@
 
 namespace tlct::cfg::raytrix {
 
-using ParamConfig = ParamConfig_<SpecificConfig, CalibConfig>;
+namespace _priv = tlct::_cfg::raytrix;
 
-}
+using _priv::CalibConfig;
+using _priv::Layout;
+using _priv::LEN_TYPE_NUM;
+using _priv::SpecificConfig;
+
+using ParamConfig = _cfg::ParamConfig_<SpecificConfig, CalibConfig>;
+
+} // namespace tlct::cfg::raytrix

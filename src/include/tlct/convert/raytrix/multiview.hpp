@@ -9,10 +9,9 @@
 #include "state.hpp"
 #include "tlct/convert/helper.hpp"
 
-namespace tlct::cvt::raytrix {
+namespace tlct::_cvt::raytrix {
 
 namespace rgs = std::ranges;
-namespace tcvthp = tlct::cvt::_hp;
 
 cv::Mat State::renderView(int view_row, int view_col) const
 {
@@ -36,9 +35,8 @@ cv::Mat State::renderView(int view_row, int view_col) const
             const cv::Point2d center = layout_.getMICenter(i, j);
 
             const double safe_range = spec_cfg_.getSafeRange();
-            mi = tcvthp::getRoiImageByCenter(gray_src_, center,
-                                             layout_.getDiameter() / std::numbers::sqrt2 * safe_range);
-            const double grad_weight = tcvthp::computeGrad(mi);
+            mi = getRoiImageByCenter(gray_src_, center, layout_.getDiameter() / std::numbers::sqrt2 * safe_range);
+            const double grad_weight = computeGrad(mi);
             const double amped_grad_weight = grad_weight + std::numeric_limits<float>::epsilon();
 
             // Extract patch
@@ -46,7 +44,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
             const double bound = psize * spec_cfg_.getGradientBlendingWidth();
             const double patch_width_with_bound = psize + bound * 2;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
-            const cv::Mat& patch = tcvthp::getRoiImageByCenter(src_32f_, patch_center, patch_width_with_bound);
+            const cv::Mat& patch = getRoiImageByCenter(src_32f_, patch_center, patch_width_with_bound);
 
             // Paste patch
             cv::resize(patch, resized_patch, {p_resize_withbound_, p_resize_withbound_}, 0, 0, cv::INTER_CUBIC);
@@ -94,4 +92,4 @@ cv::Mat State::renderView(int view_row, int view_col) const
     return std::move(view_image);
 }
 
-} // namespace tlct::cvt::raytrix
+} // namespace tlct::_cvt::raytrix

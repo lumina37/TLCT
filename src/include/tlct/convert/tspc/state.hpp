@@ -12,11 +12,10 @@
 #include "tlct/convert/concepts/state.hpp"
 #include "tlct/convert/helper.hpp"
 
-namespace tlct::cvt::tspc {
+namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::tspc;
-namespace tcvthp = tlct::cvt::_hp;
 
 class State
 {
@@ -36,7 +35,7 @@ public:
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
 
     // Non-const methods
-    inline void setInspector(tcvthp::Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
+    inline void setInspector(Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
     TLCT_API inline void feed(const cv::Mat& newsrc);
 
     // Iterator
@@ -89,8 +88,8 @@ public:
 
     [[nodiscard]] inline cv::Mat estimatePatchsizes();
     [[nodiscard]] inline cv::Mat renderView(int view_row, int view_col) const;
-    [[nodiscard]] inline double _calcMetricWithPsize(const _hp::Neighbors& neighbors, const int psize) const;
-    [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const _hp::Neighbors& neighbors);
+    [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, const int psize) const;
+    [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors);
     [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, const cv::Point index);
 
 private:
@@ -116,7 +115,7 @@ private:
     int final_width_;
     int final_height_;
     cv::Range canvas_crop_roi_[2];
-    tcvthp::Inspector inspector_;
+    Inspector inspector_;
 };
 
 static_assert(concepts::CState<State>);
@@ -131,7 +130,7 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_;
     const double p_resize_withbound_d = patch_xshift_ + 2 * bound_;
     p_resize_withbound_ = (int)std::round(p_resize_withbound_d);
-    patch_fadeout_weight_ = tcvthp::circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
+    patch_fadeout_weight_ = circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
 
     pattern_size_ = layout.getDiameter() * spec_cfg.getPatternSize();
     const double radius = layout.getDiameter() / 2.0;
@@ -187,4 +186,4 @@ State::iterator State::iterator::fromStateAndView(const State& state, int views,
     return {state, views, view_row, view_col};
 }
 
-} // namespace tlct::cvt::tspc
+} // namespace tlct::_cvt::tspc

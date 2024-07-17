@@ -7,7 +7,7 @@
 
 #include "tlct/config/concepts.hpp"
 
-namespace tlct::cvt::concepts {
+namespace tlct::_cvt::concepts {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
@@ -30,4 +30,4 @@ concept CState = requires {
     std::convertible_to<decltype(std::declval<Self>().end()), cv::Mat>;
 };
 
-} // namespace tlct::cvt::concepts
+} // namespace tlct::_cvt::concepts

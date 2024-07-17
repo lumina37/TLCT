@@ -16,17 +16,14 @@
 #include "tlct/config/raytrix/layout.hpp"
 #include "tlct/convert/helper.hpp"
 
-namespace tlct::cvt::raytrix {
+namespace tlct::_cvt::raytrix {
 
 namespace rgs = std::ranges;
-
-using namespace tlct::cvt::_hp;
-namespace tcfg = tlct::cfg::raytrix;
 
 constexpr int INVALID_PSIZE = -1;
 
 template <bool left_and_up_only>
-static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const _hp::Neighbors& neighbors)
+static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const Neighbors& neighbors)
 {
     std::set<int> ref_psizes_set;
 
@@ -52,7 +49,7 @@ static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const _hp::Ne
     return std::move(ref_psizes);
 }
 
-double State::_calcMetricWithPsize(const _hp::Neighbors& neighbors, const int psize) const
+double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) const
 {
     const cv::Point2d curr_center = neighbors.getSelfPt();
 
@@ -82,7 +79,7 @@ double State::_calcMetricWithPsize(const _hp::Neighbors& neighbors, const int ps
     return final_metric;
 }
 
-int State::_estimatePatchsizeOverFullMatch(const _hp::Neighbors& neighbors)
+int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
 {
     const cv::Point2d curr_center = neighbors.getSelfPt();
 
@@ -153,7 +150,7 @@ int State::_estimatePatchsizeOverFullMatch(const _hp::Neighbors& neighbors)
 
 int State::_estimatePatchsize(cv::Mat& psizes, const cv::Point index)
 {
-    const auto neighbors = _hp::Neighbors::fromLayoutAndIndex(layout_, index);
+    const auto neighbors = Neighbors::fromLayoutAndIndex(layout_, index);
 
     const int prev_psize = prev_patchsizes_.at<int>(index);
     const double prev_metric = _calcMetricWithPsize(neighbors, prev_psize);
@@ -211,4 +208,4 @@ inline cv::Mat State::estimatePatchsizes()
     return std::move(patchsizes_);
 }
 
-} // namespace tlct::cvt::raytrix
+} // namespace tlct::_cvt::raytrix

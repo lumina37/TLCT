@@ -12,7 +12,7 @@
 #include "tlct/config/concepts/layout.hpp"
 #include "tlct/helper/static_math.hpp"
 
-namespace tlct::cfg::raytrix {
+namespace tlct::_cfg::raytrix {
 
 namespace rgs = std::ranges;
 
@@ -206,4 +206,4 @@ cv::Mat Layout::procImg(const cv::Mat& src) const
     return std::move(dst);
 }
 
-} // namespace tlct::cfg::raytrix
+} // namespace tlct::_cfg::raytrix

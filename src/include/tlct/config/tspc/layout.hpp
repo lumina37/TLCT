@@ -8,7 +8,7 @@
 #include "tlct/config/concepts/layout.hpp"
 #include "tlct/helper/static_math.hpp"
 
-namespace tlct::cfg::tspc {
+namespace tlct::_cfg::tspc {
 
 class Layout
 {
@@ -187,5 +187,13 @@ cv::Mat Layout::procImg(const cv::Mat& src) const
     procImg_(src, dst);
     return dst;
 }
+
+} // namespace tlct::_cfg::tspc
+
+namespace tlct::cfg::tspc {
+
+namespace _priv = tlct::_cfg::tspc;
+
+using _priv::Layout;
 
 } // namespace tlct::cfg::tspc

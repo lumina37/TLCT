@@ -1,7 +1,10 @@
 #pragma once
 
-namespace tlct::cfg {
+namespace tlct::_cfg {
 
-enum class PipelineType { RLC, TLCT };
+enum PipelineType {
+    RLC = 0,
+    TLCT = 1,
+};
 
 }

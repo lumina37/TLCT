@@ -2,7 +2,7 @@
 
 #include <array>
 
-namespace tlct::cvt::_hp {
+namespace tlct::_cvt {
 
 enum class Direction {
     LEFT,
@@ -35,13 +35,4 @@ constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{Direction::LEFT,  Dire
     }
 }
 
-} // namespace tlct::cvt::_hp
-
-namespace tlct::cvt {
-
-using _hp::Direction;
-using _hp::DIRECTION_NUM;
-using _hp::DIRECTIONS;
-using _hp::opposite;
-
-} // namespace tlct::cvt
+} // namespace tlct::_cvt

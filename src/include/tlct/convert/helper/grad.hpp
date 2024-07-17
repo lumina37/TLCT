@@ -5,7 +5,7 @@
 
 #include "tlct/common/defines.h"
 
-namespace tlct::cvt::_hp {
+namespace tlct::_cvt {
 
 TLCT_API inline double computeGrad(const cv::Mat& src)
 {
@@ -21,4 +21,4 @@ TLCT_API inline double computeGrad(const cv::Mat& src)
     return weight;
 }
 
-} // namespace tlct::cvt::_hp
+} // namespace tlct::_cvt

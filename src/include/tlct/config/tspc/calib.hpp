@@ -8,7 +8,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts/calib.hpp"
 
-namespace tlct::cfg::tspc {
+namespace tlct::_cfg::tspc {
 
 class CalibConfig
 {
@@ -87,5 +87,13 @@ CalibConfig CalibConfig::fromXMLPath(const std::string_view& path)
     }
     return CalibConfig::fromXMLDoc(doc);
 }
+
+} // namespace tlct::_cfg::tspc
+
+namespace tlct::cfg::tspc {
+
+namespace _priv = tlct::_cfg::tspc;
+
+using _priv::CalibConfig;
 
 } // namespace tlct::cfg::tspc

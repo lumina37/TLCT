@@ -4,7 +4,7 @@
 
 #include "tlct/config/common/cfg_map.hpp"
 
-namespace tlct::cfg::concepts {
+namespace tlct::_cfg::concepts {
 
 template <typename Self>
 concept CSpecificConfig = std::copyable<Self> && requires {
@@ -15,4 +15,4 @@ concept CSpecificConfig = std::copyable<Self> && requires {
     { Self::fromConfigMap(cfg_map) } -> std::same_as<Self>;
 };
 
-} // namespace tlct::cfg::concepts
+} // namespace tlct::_cfg::concepts

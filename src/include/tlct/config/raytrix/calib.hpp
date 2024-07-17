@@ -11,7 +11,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts/calib.hpp"
 
-namespace tlct::cfg::raytrix {
+namespace tlct::_cfg::raytrix {
 
 constexpr int LEN_TYPE_NUM = 3;
 
@@ -84,4 +84,4 @@ CalibConfig CalibConfig::fromXMLPath(const std::string_view& path)
     return CalibConfig::fromXMLDoc(doc);
 }
 
-} // namespace tlct::cfg::raytrix
+} // namespace tlct::_cfg::raytrix

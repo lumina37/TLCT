@@ -9,7 +9,7 @@
 #include "enums.hpp"
 #include "tlct/common/defines.h"
 
-namespace tlct::cfg {
+namespace tlct::_cfg {
 
 class ConfigMap
 {
@@ -30,7 +30,7 @@ public:
 
     // Const methods
     [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
-    [[nodiscard]] TLCT_API inline PipelineType getPipelineType() const noexcept;
+    [[nodiscard]] TLCT_API inline int getPipelineType() const noexcept;
     [[nodiscard]] TLCT_API inline const TMap& getMap() const noexcept;
 
 private:
@@ -63,17 +63,17 @@ ConfigMap ConfigMap::fromPath(const std::string_view& path)
 
 bool ConfigMap::isEmpty() const noexcept { return map_.empty(); }
 
-PipelineType ConfigMap::getPipelineType() const noexcept
+int ConfigMap::getPipelineType() const noexcept
 {
     const auto it = map_.find("pipeline");
     if (it == map_.end()) {
-        return PipelineType::RLC;
+        return (int)PipelineType::RLC;
     }
     const std::string& val = it->second;
     const int ival = std::stoi(val);
-    return (PipelineType)ival;
+    return ival;
 }
 
 const ConfigMap::TMap& ConfigMap::getMap() const noexcept { return map_; }
 
-} // namespace tlct::cfg
+} // namespace tlct::_cfg

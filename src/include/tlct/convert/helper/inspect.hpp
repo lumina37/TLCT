@@ -13,7 +13,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/common.hpp"
 
-namespace tlct::cvt::_hp {
+namespace tlct::_cvt {
 
 namespace fs = std::filesystem;
 namespace tcfg = tlct::cfg;
@@ -167,4 +167,4 @@ void Inspector::appendMetricReport(const cv::Point index, const std::vector<doub
     fstream_ << '\n';
 }
 
-} // namespace tlct::cvt::_hp
+} // namespace tlct::_cvt

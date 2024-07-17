@@ -8,7 +8,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc/layout.hpp"
 
-namespace tlct::cvt::_hp {
+namespace tlct::_cvt {
 
 class AnchorWrapper
 {
@@ -47,4 +47,4 @@ double AnchorWrapper::getWeight() const noexcept { return weight_; }
 
 double AnchorWrapper::compare(const cv::Mat& rhs) const { return -base_->compute(rhs)[0]; }
 
-} // namespace tlct::cvt::_hp
+} // namespace tlct::_cvt
