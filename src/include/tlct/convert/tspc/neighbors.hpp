@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tlct/config/tspc/layout.hpp"
-#include "tlct/convert/concepts/neighbors.hpp"
+#include "tlct/config/tspc.hpp"
+#include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper/neighbors.hpp"
 
 namespace tlct::_cvt::tspc {

@@ -2,8 +2,10 @@
 
 #include <array>
 
+#include <opencv2/core.hpp>
+
 #include "direction.hpp"
-#include "tlct/config/concepts/layout.hpp"
+#include "tlct/config/concepts.hpp"
 
 namespace tlct::_cvt {
 

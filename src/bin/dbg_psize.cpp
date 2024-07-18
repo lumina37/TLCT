@@ -1,7 +1,6 @@
-#include <filesystem>
 #include <iostream>
 
-#include <opencv2/imgcodecs.hpp>
+#include <opencv2/core.hpp>
 
 #include "tlct.hpp"
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdio>
-#include <filesystem>
 #include <string>
 
 #include <opencv2/core.hpp>
@@ -12,8 +11,6 @@
 #include "tlct/config/concepts.hpp"
 
 namespace tlct::_cfg {
-
-namespace fs = std::filesystem;
 
 template <typename TSpecificConfig_, typename TCalibConfig_>
     requires concepts::CSpecificConfig<TSpecificConfig_> && concepts::CCalibConfig<TCalibConfig_>

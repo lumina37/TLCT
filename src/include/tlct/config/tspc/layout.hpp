@@ -1,11 +1,10 @@
 #pragma once
 
-#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "calib.hpp"
 #include "tlct/common/defines.h"
-#include "tlct/config/concepts/layout.hpp"
+#include "tlct/config/concepts.hpp"
 #include "tlct/helper/static_math.hpp"
 
 namespace tlct::_cfg::tspc {

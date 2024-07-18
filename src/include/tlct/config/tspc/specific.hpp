@@ -1,8 +1,9 @@
 #pragma once
 
-#include "calib.hpp"
-
 #include <opencv2/core.hpp>
+
+#include "calib.hpp"
+#include "tlct/common/defines.h"
 
 namespace tlct::_cfg::tspc {
 

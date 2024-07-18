@@ -6,7 +6,7 @@
 #include <pugixml.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/concepts/calib.hpp"
+#include "tlct/config/concepts.hpp"
 
 namespace tlct::_cfg::tspc {
 

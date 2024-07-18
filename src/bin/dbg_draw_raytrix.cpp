@@ -23,9 +23,10 @@ int main(int argc, char* argv[])
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto center = layout.getMICenter(row, col);
-            const bool r = layout.getMIType(row, col) == 0;
-            const bool g = layout.getMIType(row, col) == 1;
-            const bool b = layout.getMIType(row, col) == 2;
+            const auto mitype = layout.getMIType(row, col);
+            const bool r = mitype == 0;
+            const bool g = mitype == 1;
+            const bool b = mitype == 2;
             cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255.0 * b, 255.0 * g, 255.0 * r}, 1,
                        cv::LINE_AA);
         }

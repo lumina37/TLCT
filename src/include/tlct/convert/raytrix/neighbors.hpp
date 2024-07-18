@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tlct/config/raytrix/layout.hpp"
-#include "tlct/convert/concepts/neighbors.hpp"
+#include "tlct/config/raytrix.hpp"
+#include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper/neighbors.hpp"
 
 namespace tlct::_cvt::raytrix {

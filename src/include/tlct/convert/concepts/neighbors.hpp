@@ -4,7 +4,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/config/concepts/layout.hpp"
+#include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/direction.hpp"
 
 namespace tlct::_cvt::concepts {

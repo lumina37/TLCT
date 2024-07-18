@@ -7,13 +7,12 @@
 #include <set>
 #include <vector>
 
-#include <opencv2/core.hpp>
 #include <opencv2/quality.hpp>
 
 #include "neighbors.hpp"
 #include "state.hpp"
 #include "tlct/common/defines.h"
-#include "tlct/config/tspc/layout.hpp"
+#include "tlct/config/tspc.hpp"
 #include "tlct/convert/helper.hpp"
 
 namespace tlct::_cvt::tspc {

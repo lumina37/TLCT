@@ -9,7 +9,7 @@
 #include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
-#include "tlct/convert/concepts/state.hpp"
+#include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 
 namespace tlct::_cvt::tspc {

@@ -1,12 +1,10 @@
 #pragma once
 
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
 #include <opencv2/quality.hpp>
 
 #include "grad.hpp"
 #include "tlct/common/defines.h"
-#include "tlct/config/tspc/layout.hpp"
+#include "tlct/config/tspc.hpp"
 
 namespace tlct::_cvt {
 
