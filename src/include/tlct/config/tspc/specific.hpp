@@ -9,10 +9,16 @@ namespace tlct::_cfg::tspc {
 class SpecificConfig
 {
 public:
+    static constexpr double DEFAULT_PATTERN_SIZE = 0.325;
+    static constexpr double DEFAULT_GRADIENT_BLENDING_WIDTH = 0.225;
+    static constexpr double DEFAULT_SAFE_RANGE = 1.0 - DEFAULT_PATTERN_SIZE * DEFAULT_GRADIENT_BLENDING_WIDTH;
+    static constexpr double DEFAULT_PSIZE_SHORTCUT_THRESHOLD = -0.875;
+
     // Constructor
     TLCT_API inline SpecificConfig() noexcept
-        : imgsize_(), upsample_(1), pattern_size_(0.357), gradient_blending_width_(0.225),
-          safe_range_(1.0 - 0.357 * 0.225), psize_shortcut_threshold_(-0.875){};
+        : imgsize_(), upsample_(1), pattern_size_(DEFAULT_PATTERN_SIZE),
+          gradient_blending_width_(DEFAULT_GRADIENT_BLENDING_WIDTH), safe_range_(DEFAULT_SAFE_RANGE),
+          psize_shortcut_threshold_(DEFAULT_PSIZE_SHORTCUT_THRESHOLD){};
     TLCT_API inline SpecificConfig& operator=(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig& operator=(SpecificConfig&& rhs) noexcept = default;
@@ -49,13 +55,12 @@ private:
 
 SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
 {
-    const auto& map = cfg_map.getMap();
-    const int width = std::stoi(map.at("width"));
-    const int height = std::stoi(map.at("height"));
-    const int upsample = std::stoi(map.at("upsample"));
-    const double kernel_size = std::stod(map.at("patternSize"));
-    const double gradient_blending_width = std::stod(map.at("gradientBlendingWidth"));
-    const double psize_shortcut_threshold = std::stod(map.at("psizeShortcutThreshold"));
+    const int width = cfg_map.get<int>("width");
+    const int height = cfg_map.get<int>("height");
+    const int upsample = cfg_map.get<int>("upsample");
+    const double kernel_size = cfg_map.get("patternSize", DEFAULT_PATTERN_SIZE);
+    const double gradient_blending_width = cfg_map.get("gradientBlendingWidth", DEFAULT_GRADIENT_BLENDING_WIDTH);
+    const double psize_shortcut_threshold = cfg_map.get("psizeShortcutThreshold", DEFAULT_GRADIENT_BLENDING_WIDTH);
     return {{width, height}, upsample, kernel_size, gradient_blending_width, psize_shortcut_threshold};
 }
 

@@ -33,6 +33,11 @@ public:
     [[nodiscard]] TLCT_API inline int getPipelineType() const noexcept;
     [[nodiscard]] TLCT_API inline const TMap& getMap() const noexcept;
 
+    template <typename Tv>
+    [[nodiscard]] TLCT_API inline Tv get(const std::string& key) const;
+    template <typename Tv>
+    [[nodiscard]] TLCT_API inline Tv get(const std::string& key, const Tv& default_val) const noexcept;
+
 private:
     TMap map_;
 };
@@ -73,6 +78,76 @@ int ConfigMap::getPipelineType() const noexcept
     const int ival = std::stoi(val);
     return ival;
 }
+
+template <>
+int ConfigMap::get(const std::string& key, const int& default_val) const noexcept
+{
+    const auto it = map_.find(key);
+    if (it == map_.end()) {
+        return default_val;
+    }
+    const std::string& val = it->second;
+    const int nval = std::stoi(val);
+    return nval;
+};
+
+template <>
+int ConfigMap::get(const std::string& key) const
+{
+    return std::stoi(map_.at(key));
+};
+
+template <>
+double ConfigMap::get(const std::string& key, const double& default_val) const noexcept
+{
+    const auto it = map_.find(key);
+    if (it == map_.end()) {
+        return default_val;
+    }
+    const std::string& val = it->second;
+    const double nval = std::stod(val);
+    return nval;
+};
+
+template <>
+double ConfigMap::get(const std::string& key) const
+{
+    return std::stod(map_.at(key));
+};
+
+template <>
+float ConfigMap::get(const std::string& key, const float& default_val) const noexcept
+{
+    const auto it = map_.find(key);
+    if (it == map_.end()) {
+        return default_val;
+    }
+    const std::string& val = it->second;
+    const float nval = std::stof(val);
+    return nval;
+};
+
+template <>
+float ConfigMap::get(const std::string& key) const
+{
+    return std::stof(map_.at(key));
+};
+
+template <>
+std::string ConfigMap::get(const std::string& key, const std::string& default_val) const noexcept
+{
+    const auto it = map_.find(key);
+    if (it == map_.end()) {
+        return default_val;
+    }
+    return it->second;
+};
+
+template <>
+std::string ConfigMap::get(const std::string& key) const
+{
+    return map_.at(key);
+};
 
 const ConfigMap::TMap& ConfigMap::getMap() const noexcept { return map_; }
 
