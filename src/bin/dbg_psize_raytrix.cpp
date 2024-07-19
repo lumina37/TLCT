@@ -11,11 +11,11 @@ int main(int argc, char* argv[])
 {
     const auto cfg_map = tlct::ConfigMap::fromPath(argv[1]);
     const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
-    const auto& common_cfg = param_cfg.getGenericCfg();
+    const auto& generic_cfg = param_cfg.getGenericCfg();
 
     auto state = tn::State::fromParamCfg(param_cfg);
 
-    const auto srcpath = common_cfg.fmtSrcPath(1);
+    const auto srcpath = generic_cfg.fmtSrcPath(generic_cfg.getRange().start);
 
     const cv::Mat& src = cv::imread(srcpath.string());
     state.feed(src);
