@@ -128,7 +128,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
                 }
             }
 
-            const double weight = anchor.getWeight() * var_d(metrics);
+            const double weight = anchor.getWeight() * stdvar(metrics);
             weighted_psize += weight * min_metric_psize;
             total_weight += weight;
             psizes.push_back(min_metric_psize);

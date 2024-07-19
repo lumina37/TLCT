@@ -3,22 +3,22 @@
 #include <numeric>
 #include <vector>
 
-#include "tlct/common/defines.h"
-
 namespace tlct::_cvt {
 
-TLCT_API inline double var_d(const std::vector<double>& vec)
+template <typename Tv>
+inline Tv stdvar(const std::vector<Tv>& vec)
 {
-    const double sum = std::reduce(vec.begin(), vec.end());
-    const double avg = sum / (double)vec.size();
+    const Tv sum = std::reduce(vec.begin(), vec.end());
+    const Tv avg = sum / (Tv)vec.size();
 
-    double var = 0.0;
-    for (const double elem : vec) {
-        const double diff = elem - avg;
-        var += diff * diff / (double)vec.size();
+    Tv var = 0.0;
+    for (const Tv elem : vec) {
+        const Tv diff = elem - avg;
+        var += diff * diff;
     }
+    Tv stdvar = var / (Tv)vec.size();
 
-    return var;
+    return stdvar;
 }
 
 } // namespace tlct::_cvt
