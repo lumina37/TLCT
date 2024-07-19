@@ -2,8 +2,10 @@ include(CMakeDependentOption)
 
 option(TLCT_BUILD_TESTS "Build tests" OFF)
 option(TLCT_HEADER_ONLY "Enable the header-only mode" OFF)
-cmake_dependent_option(TLCT_BUILD_SHARED_LIBS "Specifies the type of TLCT to build" OFF
-        "NOT TLCT_HEADER_ONLY" OFF)
+cmake_dependent_option(TLCT_BUILD_SHARED_LIBS "Specifies the type of TLCT to build" ON
+        "NOT TLCT_HEADER_ONLY AND BUILD_SHARED_LIBS" OFF)
+cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
+        "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 option(TLCT_ENABLE_INSPECT "Enable inspector of rendering" OFF)
 
 if (MSVC)

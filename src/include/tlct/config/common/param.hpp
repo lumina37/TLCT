@@ -9,6 +9,10 @@
 #include "generic.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
+#include "tlct/config/raytrix/calib.hpp"
+#include "tlct/config/raytrix/specific.hpp"
+#include "tlct/config/tspc/calib.hpp"
+#include "tlct/config/tspc/specific.hpp"
 
 namespace tlct::_cfg {
 
@@ -56,5 +60,8 @@ ParamConfig_<TSpecificConfig, TCalibConfig>::fromConfigMap(const ConfigMap& cfg_
     const auto calib_cfg = TCalibConfig::fromXMLPath(map.at("Calibration_xml"));
     return {generic_cfg, spec_cfg, calib_cfg};
 }
+
+template class ParamConfig_<tspc::SpecificConfig, tspc::CalibConfig>;
+template class ParamConfig_<raytrix::SpecificConfig, raytrix::CalibConfig>;
 
 } // namespace tlct::_cfg
