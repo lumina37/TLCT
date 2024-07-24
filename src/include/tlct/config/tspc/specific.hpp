@@ -10,6 +10,7 @@ namespace tlct::_cfg::tspc {
 class SpecificConfig
 {
 public:
+    static constexpr int DEFAULT_UPSAMPLE = 1;
     static constexpr double DEFAULT_PATTERN_SIZE = 0.325;
     static constexpr double DEFAULT_GRADIENT_BLENDING_WIDTH = 0.225;
     static constexpr double DEFAULT_SAFE_RANGE = 1.0 - DEFAULT_PATTERN_SIZE * DEFAULT_GRADIENT_BLENDING_WIDTH;
@@ -58,7 +59,7 @@ SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
 {
     const int width = cfg_map.get<int>("width");
     const int height = cfg_map.get<int>("height");
-    const int upsample = cfg_map.get<int>("upsample");
+    const int upsample = cfg_map.get("upsample", DEFAULT_UPSAMPLE);
     const double kernel_size = cfg_map.get("patternSize", DEFAULT_PATTERN_SIZE);
     const double gradient_blending_width = cfg_map.get("gradientBlendingWidth", DEFAULT_GRADIENT_BLENDING_WIDTH);
     const double psize_shortcut_threshold = cfg_map.get("psizeShortcutThreshold", DEFAULT_GRADIENT_BLENDING_WIDTH);

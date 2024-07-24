@@ -61,7 +61,7 @@ else ()
 endif ()
 FetchContent_MakeAvailable(OpenCV_contrib)
 
-set(OPENCV_EXTRA_MODULES_PATH ${OpenCV_contrib_SOURCE_DIR}/modules CACHE STRING "")
+set(OPENCV_EXTRA_MODULES_PATH ${opencv_contrib_SOURCE_DIR}/modules CACHE STRING "")
 
 if (TLCT_OPENCV_PATH MATCHES "\.git$")
     FetchContent_Declare(
