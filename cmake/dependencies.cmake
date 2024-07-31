@@ -23,6 +23,7 @@ set(CPU_BASELINE AVX2 CACHE STRING "")
 set(CPU_DISPATCH AVX2 CACHE STRING "")
 
 set(BUILD_OpenCV_apps OFF CACHE BOOL "")
+set(WITH_ADE OFF CACHE BOOL "")
 set(WITH_DSHOW OFF CACHE BOOL "")
 set(WITH_FFMPEG OFF CACHE BOOL "")
 set(WITH_FLATBUFFERS OFF CACHE BOOL "")
@@ -68,14 +69,14 @@ if (TLCT_OPENCV_PATH MATCHES "\.git$")
             OpenCV
             GIT_REPOSITORY ${TLCT_OPENCV_PATH}
             GIT_TAG ${OpenCV_VERSION}
-            FIND_PACKAGE_ARGS ${OpenCV_VERSION} COMPONENTS ${OpenCV_FIND_PACKAGE_ARGS}
+            OVERRIDE_FIND_PACKAGE
     )
 else ()
     FetchContent_Declare(
             OpenCV
             DOWNLOAD_EXTRACT_TIMESTAMP ON
             URL ${TLCT_OPENCV_PATH}
-            FIND_PACKAGE_ARGS ${OpenCV_VERSION} COMPONENTS ${OpenCV_FIND_PACKAGE_ARGS}
+            OVERRIDE_FIND_PACKAGE
     )
 endif ()
 FetchContent_MakeAvailable(OpenCV)
@@ -99,14 +100,14 @@ if (TLCT_PUGIXML_PATH MATCHES "\.git$")
             pugixml
             GIT_REPOSITORY ${TLCT_PUGIXML_PATH}
             GIT_TAG v1.14
-            FIND_PACKAGE_ARGS
+            OVERRIDE_FIND_PACKAGE
     )
 else ()
     FetchContent_Declare(
             pugixml
             DOWNLOAD_EXTRACT_TIMESTAMP ON
             URL ${TLCT_PUGIXML_PATH}
-            FIND_PACKAGE_ARGS
+            OVERRIDE_FIND_PACKAGE
     )
 endif ()
 FetchContent_MakeAvailable(pugixml)
@@ -130,7 +131,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/SIGS-TZ/TLCT-test-data.git
-            GIT_TAG 0b0ee4d57b7ffba9cbd086dcac2617a07404888a
+            GIT_TAG 7b501f584c510d79d979bb14ca41034c8b0e5bc6
     )
     FetchContent_MakeAvailable(tlct-test-data)
 endif ()

@@ -51,11 +51,22 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) noexcept
         if (row.empty() || row.starts_with('=')) {
             break;
         }
+
         std::istringstream srow(row);
         std::string key, value;
-        srow >> key;
-        srow >> value;
-        cfg_map[key] = value;
+
+        char delim = '\t';
+        if (row.find(delim) == std::string::npos) {
+            delim = ' ';
+        }
+
+        if (std::getline(srow, key, delim) && std::getline(srow, value)) {
+            key.erase(0, key.find_first_not_of(" \t"));
+            key.erase(key.find_last_not_of(" \t") + 1);
+            value.erase(0, value.find_first_not_of(" \t"));
+            value.erase(value.find_last_not_of(" \t") + 1);
+            cfg_map[key] = value;
+        }
     }
 
     return ConfigMap(cfg_map);
@@ -74,16 +85,7 @@ ConfigMap ConfigMap::fromPath(const std::string_view& path)
 
 bool ConfigMap::isEmpty() const noexcept { return map_.empty(); }
 
-int ConfigMap::getPipelineType() const noexcept
-{
-    const auto it = map_.find("pipeline");
-    if (it == map_.end()) {
-        return (int)PipelineType::RLC;
-    }
-    const std::string& val = it->second;
-    const int ival = std::stoi(val);
-    return ival;
-}
+int ConfigMap::getPipelineType() const noexcept { return get("pipeline", (int)PipelineType::RLC); }
 
 template <typename Tv>
 inline Tv stox(const std::string& str);
