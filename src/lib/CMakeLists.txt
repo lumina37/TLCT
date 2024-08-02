@@ -32,3 +32,10 @@ target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
 target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
         $<$<NOT:$<BOOL:${PUGIXML_HEADER_ONLY}>>:pugixml>)
+
+if (NOT TLCT_HEADER_ONLY)
+    install(TARGETS ${TLCT_LIB_NAME}
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+    )
+endif ()

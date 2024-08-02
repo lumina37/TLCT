@@ -25,8 +25,8 @@ public:
     TLCT_API inline SpecificConfig(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig& operator=(SpecificConfig&& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(SpecificConfig&& rhs) noexcept = default;
-    TLCT_API inline SpecificConfig(const cv::Size imgsize, int upsample, double pattern_size,
-                                   double gradient_blending_width, double psize_shortcut_threshold) noexcept
+    TLCT_API inline SpecificConfig(cv::Size imgsize, int upsample, double pattern_size, double gradient_blending_width,
+                                   double psize_shortcut_threshold) noexcept
         : imgsize_(imgsize), upsample_(upsample), pattern_size_(pattern_size),
           gradient_blending_width_(gradient_blending_width),
           safe_range_(std::min((1.0 - pattern_size), 1.0 / (1.0 + gradient_blending_width))),

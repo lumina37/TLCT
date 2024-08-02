@@ -25,15 +25,15 @@ concept CLayout = std::copyable<Self> && requires {
     // Const methods
     { self.getImgWidth() } noexcept -> std::integral;
     { self.getImgHeight() } noexcept -> std::integral;
-    { self.getImgSize() } noexcept -> std::convertible_to<cv::Size>;
+    { self.getImgSize() } noexcept -> std::same_as<cv::Size>;
     { self.getDiameter() } noexcept -> std::floating_point;
     { self.getRotation() } noexcept -> std::floating_point;
     { self.getUpsample() } noexcept -> std::integral;
     requires requires(int row, int col) {
-        { self.getMICenter(row, col) } noexcept -> std::convertible_to<cv::Point2d>;
+        { self.getMICenter(row, col) } noexcept -> std::same_as<cv::Point2d>;
     };
     requires requires(cv::Point index) {
-        { self.getMICenter(index) } noexcept -> std::convertible_to<cv::Point2d>;
+        { self.getMICenter(index) } noexcept -> std::same_as<cv::Point2d>;
     };
     { self.getMIRows() } noexcept -> std::integral;
     requires requires(int row) {

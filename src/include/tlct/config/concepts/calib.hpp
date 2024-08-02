@@ -15,7 +15,7 @@ concept CCalibConfig = std::copyable<Self> && requires {
     requires requires(const pugi::xml_document& doc) {
         { Self::fromXMLDoc(doc) } -> std::same_as<Self>;
     };
-    requires requires(const std::string_view& path) {
+    requires requires(std::string_view path) {
         { Self::fromXMLPath(path) } -> std::same_as<Self>;
     };
 };

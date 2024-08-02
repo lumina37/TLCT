@@ -27,7 +27,7 @@ public:
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline ConfigMap fromFstream(std::ifstream&& ifs) noexcept;
-    [[nodiscard]] TLCT_API static inline ConfigMap fromPath(const std::string_view& path);
+    [[nodiscard]] TLCT_API static inline ConfigMap fromPath(std::string_view path);
 
     // Const methods
     [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
@@ -61,10 +61,8 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) noexcept
         }
 
         if (std::getline(srow, key, delim) && std::getline(srow, value)) {
-            key.erase(0, key.find_first_not_of(" \t"));
             key.erase(key.find_last_not_of(" \t") + 1);
             value.erase(0, value.find_first_not_of(" \t"));
-            value.erase(value.find_last_not_of(" \t") + 1);
             cfg_map[key] = value;
         }
     }
@@ -72,7 +70,7 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) noexcept
     return ConfigMap(cfg_map);
 }
 
-ConfigMap ConfigMap::fromPath(const std::string_view& path)
+ConfigMap ConfigMap::fromPath(std::string_view path)
 {
     std::ifstream ifs(path.data());
     if (!ifs) {

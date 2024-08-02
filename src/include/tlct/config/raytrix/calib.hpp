@@ -29,12 +29,12 @@ public:
     TLCT_API inline CalibConfig(const CalibConfig& rhs) noexcept = default;
     TLCT_API inline CalibConfig& operator=(CalibConfig&& rhs) noexcept = default;
     TLCT_API inline CalibConfig(CalibConfig&& rhs) noexcept = default;
-    TLCT_API inline CalibConfig(double diameter, double rotation, cv::Point2d offset, const LenOffsets& lens) noexcept
+    TLCT_API inline CalibConfig(double diameter, double rotation, cv::Point2d offset, LenOffsets lens) noexcept
         : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLDoc(const pugi::xml_document& doc);
-    [[nodiscard]] TLCT_API static inline CalibConfig fromXMLPath(const std::string_view& path);
+    [[nodiscard]] TLCT_API static inline CalibConfig fromXMLPath(std::string_view path);
 
 private:
     double diameter_;
@@ -73,7 +73,7 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     return {diameter, rotation, offset, lofs};
 }
 
-CalibConfig CalibConfig::fromXMLPath(const std::string_view& path)
+CalibConfig CalibConfig::fromXMLPath(std::string_view path)
 {
     pugi::xml_document doc;
     const auto ret = doc.load_file(path.data(), pugi::parse_minimal, pugi::encoding_utf8);
