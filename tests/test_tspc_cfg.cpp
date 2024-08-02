@@ -14,7 +14,7 @@ protected:
     {
         const fs::path testdata_dir{TLCT_TESTDATA_DIR};
         const fs::path param_cfg_path = testdata_dir / "config/TSPC/param.cfg";
-        const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calibration.xml";
+        const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib.xml";
 
         auto cfg_map = tlct::ConfigMap::fromPath(param_cfg_path.string());
         auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
@@ -43,7 +43,7 @@ TEST_F(TestTSPCCfg, Param)
     const auto& param_cfg = *param_cfg_;
 
     EXPECT_EQ(param_cfg.getGenericCfg().getViews(), 5);
-    EXPECT_EQ(param_cfg.getGenericCfg().getRange(), cv::Range(0, 1));
+    EXPECT_EQ(param_cfg.getGenericCfg().getRange(), cv::Range(1, 2));
     EXPECT_EQ(param_cfg.getSpecificCfg().getImgSize(), cv::Size(4080, 3068));
     const auto fmt_src = param_cfg.getGenericCfg().fmtSrcPath(25);
     EXPECT_STREQ(fmt_src.string().c_str(), "./Cars/src/frame025.png");
