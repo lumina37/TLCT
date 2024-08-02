@@ -62,7 +62,7 @@ SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
     const int upsample = cfg_map.get("upsample", DEFAULT_UPSAMPLE);
     const double kernel_size = cfg_map.get("patternSize", DEFAULT_PATTERN_SIZE);
     const double gradient_blending_width = cfg_map.get("gradientBlendingWidth", DEFAULT_GRADIENT_BLENDING_WIDTH);
-    const double psize_shortcut_threshold = cfg_map.get("psizeShortcutThreshold", DEFAULT_GRADIENT_BLENDING_WIDTH);
+    const double psize_shortcut_threshold = cfg_map.get("psizeShortcutThreshold", DEFAULT_PSIZE_SHORTCUT_THRESHOLD);
     return {{width, height}, upsample, kernel_size, gradient_blending_width, psize_shortcut_threshold};
 }
 

@@ -16,9 +16,6 @@ int main(int argc, char* argv[])
 
     auto state = tn::State::fromParamCfg(param_cfg);
     const auto layout = tn::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
-    auto inspector = tlct::Inspector::fromGenericCfg(param_cfg.getGenericCfg());
-    inspector.setEnableIf([](cv::Point index) { return index.x <= 20 and index.y <= 20; });
-    state.setInspector(std::move(inspector));
 
     const cv::Range range = common_cfg.getRange();
     for (int i = range.start; i <= range.end; i++) {
