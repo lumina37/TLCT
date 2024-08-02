@@ -17,14 +17,14 @@ public:
 
     // Constructor
     TLCT_API inline CalibConfig() noexcept
-        : left_top_(), right_top_(), left_bottom_(), rows_(), cols_(), diameter_(), rotation_(){};
+        : left_top_(), right_top_(), left_bottom_(), right_bottom_(), diameter_(), rotation_(){};
     TLCT_API inline CalibConfig& operator=(const CalibConfig& rhs) noexcept = default;
     TLCT_API inline CalibConfig(const CalibConfig& rhs) noexcept = default;
     TLCT_API inline CalibConfig& operator=(CalibConfig&& rhs) noexcept = default;
     TLCT_API inline CalibConfig(CalibConfig&& rhs) noexcept = default;
     TLCT_API inline CalibConfig(const cv::Point2d left_top, const cv::Point2d right_top, const cv::Point2d left_bottom,
-                                int rows, int cols, double diameter, double rotation) noexcept
-        : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), rows_(rows), cols_(cols),
+                                const cv::Point2d right_bottom, double diameter, double rotation) noexcept
+        : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), right_bottom_(right_bottom),
           diameter_(diameter), rotation_(rotation){};
 
     // Initialize from
@@ -35,8 +35,7 @@ private:
     cv::Point2d left_top_;
     cv::Point2d right_top_;
     cv::Point2d left_bottom_;
-    int rows_;
-    int cols_;
+    cv::Point2d right_bottom_;
     double diameter_;
     double rotation_;
 };
@@ -56,9 +55,6 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 
     const auto centers_node = data_node.child("centers");
 
-    const int rows = centers_node.child("rows").text().as_int();
-    const int cols = centers_node.child("cols").text().as_int();
-
     const auto left_top_node = centers_node.child("ltop");
     const double left_top_x = left_top_node.child("x").text().as_double();
     const double left_top_y = left_top_node.child("y").text().as_double();
@@ -74,7 +70,12 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     const double left_bottom_y = left_bottom_node.child("y").text().as_double();
     const cv::Point2d left_bottom{left_bottom_x, left_bottom_y};
 
-    return {left_top, right_top, left_bottom, rows, cols, diameter, rotation};
+    const auto right_bottom_node = centers_node.child("rbot");
+    const double right_bottom_x = right_bottom_node.child("x").text().as_double();
+    const double right_bottom_y = right_bottom_node.child("y").text().as_double();
+    const cv::Point2d right_bottom{right_bottom_x, right_bottom_y};
+
+    return {left_top, right_top, left_bottom, right_bottom, diameter, rotation};
 }
 
 CalibConfig CalibConfig::fromXMLPath(const std::string_view& path)

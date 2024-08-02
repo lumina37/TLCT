@@ -21,7 +21,6 @@ concept CLayout = std::copyable<Self> && requires {
     requires requires(int factor) {
         { self.upsample(factor) } noexcept -> std::same_as<Self&>;
     };
-    { self.transpose() } -> std::same_as<Self&>;
 } && requires(const Self self) {
     // Const methods
     { self.getImgWidth() } noexcept -> std::integral;

@@ -136,6 +136,9 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
 {
     const cv::Point2d center = cv::Point2d(imgsize) / 2.0;
     const cv::Point2d point{center.x + cfg.offset_.x, center.y - cfg.offset_.y};
+
+
+
     return {point, imgsize, cfg.lofs_, cfg.diameter_, cfg.rotation_};
 }
 

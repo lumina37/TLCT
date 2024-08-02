@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 
 include(cmake/policies.cmake)
 
-project(TLCT VERSION 0.13.1 LANGUAGES CXX)
+project(TLCT VERSION 0.14.0 LANGUAGES CXX)
 
 include(cmake/options.cmake)
 include(cmake/dependencies.cmake)
