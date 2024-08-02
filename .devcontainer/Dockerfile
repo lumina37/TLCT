@@ -1,18 +1,8 @@
-FROM mcr.microsoft.com/devcontainers/cpp:1-debian-12
+FROM debian:12
 
-ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.22.2"
-
-# Optionally install the cmake for vcpkg
-COPY ./reinstall-cmake.sh /tmp/
-
-RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
-        chmod +x /tmp/reinstall-cmake.sh && /tmp/reinstall-cmake.sh ${REINSTALL_CMAKE_VERSION_FROM_SOURCE}; \
-    fi \
-    && rm -f /tmp/reinstall-cmake.sh
-
-# [Optional] Uncomment this section to install additional vcpkg ports.
-# RUN su vscode -c "${VCPKG_ROOT}/vcpkg install <your-port-name-here>"
-
-# [Optional] Uncomment this section to install additional packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
+RUN sed -i 's/deb\.debian\.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends build-essential cmake unzip tar wget && \
+    apt-get install -y git && \
+    wget https://github.com/opencv/opencv/archive/refs/tags/4.10.0.tar.gz && \
+    wget https://github.com/opencv/opencv_contrib/archive/refs/tags/4.10.0.tar.gz

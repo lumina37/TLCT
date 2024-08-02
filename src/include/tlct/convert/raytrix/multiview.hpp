@@ -37,7 +37,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
             const double safe_range = spec_cfg_.getSafeRange();
             mi = getRoiImageByCenter(gray_src_, center, layout_.getDiameter() / std::numbers::sqrt2 * safe_range);
             const double grad_weight = computeGrad(mi);
-            const double amped_grad_weight = grad_weight + std::numeric_limits<float>::epsilon();
+            const double amped_grad_weight = grad_weight * grad_weight + std::numeric_limits<float>::epsilon();
 
             // Extract patch
             const double psize = std::numbers::sqrt3 * patchsizes_.at<int>(i, j);
