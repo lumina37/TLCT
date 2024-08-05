@@ -82,11 +82,11 @@ else ()
 endif ()
 FetchContent_MakeAvailable(OpenCV)
 
-set(OpenCV_INCLUDE_DIR ${OPENCV_CONFIG_FILE_INCLUDE_DIR})
+set(OpenCV_INCLUDE_DIRS ${OPENCV_CONFIG_FILE_INCLUDE_DIR})
 set(OpenCV_LIBS ${OPENCV_MODULES_BUILD})
 
 foreach (mod ${OpenCV_LIBS})
-    list(APPEND OpenCV_INCLUDE_DIR ${OPENCV_MODULE_${mod}_LOCATION}/include)
+    list(APPEND OpenCV_INCLUDE_DIRS ${OPENCV_MODULE_${mod}_LOCATION}/include)
 endforeach ()
 
 # pugixml
