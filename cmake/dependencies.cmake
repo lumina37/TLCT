@@ -1,12 +1,13 @@
 include(FetchContent)
 
 # OpenCV
-set(TLCT_OPENCV_PATH "https://github.com/OpenCV/OpenCV.git" CACHE STRING
-        "Specifies the path of OpenCV (git repo or local dir)")
-set(TLCT_OPENCV_CONTRIB_PATH "https://github.com/OpenCV/OpenCV_contrib.git" CACHE STRING
-        "Specifies the path of OpenCV-contrib (git repo or local dir)")
+set(TLCT_OpenCV_VERSION 4.10.0 CACHE STRING "Specifies the version of OpenCV")
 
-set(OpenCV_VERSION 4.10.0)
+set(TLCT_OPENCV_PATH "https://github.com/opencv/opencv/archive/refs/tags/${TLCT_OpenCV_VERSION}.tar.gz" CACHE STRING
+        "Specifies the path of OpenCV")
+set(TLCT_OPENCV_CONTRIB_PATH "https://github.com/opencv/opencv_contrib/archive/refs/tags/${TLCT_OpenCV_VERSION}.tar.gz" CACHE STRING
+        "Specifies the path of OpenCV_contrib")
+
 set(OpenCV_REQUIRED_MODULES imgcodecs imgproc quality)
 string(REPLACE ";" "," OpenCV_BUILD_LIST "${OpenCV_REQUIRED_MODULES}")
 string(REPLACE ";" " " OpenCV_FIND_PACKAGE_ARGS "${OpenCV_REQUIRED_MODULES}")
@@ -46,40 +47,22 @@ set(WITH_TIFF OFF CACHE BOOL "")
 set(WITH_VTK OFF CACHE BOOL "")
 set(WITH_WEBP OFF CACHE BOOL "")
 
-if (TLCT_OPENCV_CONTRIB_PATH MATCHES "\.git$")
-    FetchContent_Declare(
-            OpenCV_contrib
-            GIT_REPOSITORY ${TLCT_OPENCV_CONTRIB_PATH}
-            GIT_TAG ${OpenCV_VERSION}
-            OVERRIDE_FIND_PACKAGE
-    )
-else ()
-    FetchContent_Declare(
-            OpenCV_contrib
-            DOWNLOAD_EXTRACT_TIMESTAMP ON
-            URL ${TLCT_OPENCV_CONTRIB_PATH}
-            OVERRIDE_FIND_PACKAGE
-    )
-endif ()
+FetchContent_Declare(
+        OpenCV_contrib
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
+        URL ${TLCT_OPENCV_CONTRIB_PATH}
+        OVERRIDE_FIND_PACKAGE
+)
 FetchContent_MakeAvailable(OpenCV_contrib)
 
 set(OPENCV_EXTRA_MODULES_PATH ${opencv_contrib_SOURCE_DIR}/modules CACHE STRING "")
 
-if (TLCT_OPENCV_PATH MATCHES "\.git$")
-    FetchContent_Declare(
-            OpenCV
-            GIT_REPOSITORY ${TLCT_OPENCV_PATH}
-            GIT_TAG ${OpenCV_VERSION}
-            OVERRIDE_FIND_PACKAGE
-    )
-else ()
-    FetchContent_Declare(
-            OpenCV
-            DOWNLOAD_EXTRACT_TIMESTAMP ON
-            URL ${TLCT_OPENCV_PATH}
-            OVERRIDE_FIND_PACKAGE
-    )
-endif ()
+FetchContent_Declare(
+        OpenCV
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
+        URL ${TLCT_OPENCV_PATH}
+        OVERRIDE_FIND_PACKAGE
+)
 FetchContent_MakeAvailable(OpenCV)
 
 set(OpenCV_INCLUDE_DIRS ${OPENCV_CONFIG_FILE_INCLUDE_DIR})
@@ -90,27 +73,20 @@ foreach (mod ${OpenCV_LIBS})
 endforeach ()
 
 # pugixml
-set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml.git" CACHE STRING
-        "Specifies the path of pugixml (git repo or local dir)")
+set(TLCT_PUGIXML_VERSION 1.14 CACHE STRING "Specifies the version of pugixml")
+
+set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml/archive/refs/tags/v${TLCT_PUGIXML_VERSION}.tar.gz" CACHE STRING
+        "Specifies the path of pugixml")
 set(PUGIXML_NO_XPATH ON CACHE BOOL "")
 set(PUGIXML_NO_EXCEPTIONS ON CACHE BOOL "")
 set(PUGIXML_NO_STL ON CACHE BOOL "")
 
-if (TLCT_PUGIXML_PATH MATCHES "\.git$")
-    FetchContent_Declare(
-            pugixml
-            GIT_REPOSITORY ${TLCT_PUGIXML_PATH}
-            GIT_TAG v1.14
-            OVERRIDE_FIND_PACKAGE
-    )
-else ()
-    FetchContent_Declare(
-            pugixml
-            DOWNLOAD_EXTRACT_TIMESTAMP ON
-            URL ${TLCT_PUGIXML_PATH}
-            OVERRIDE_FIND_PACKAGE
-    )
-endif ()
+FetchContent_Declare(
+        pugixml
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
+        URL ${TLCT_PUGIXML_PATH}
+        OVERRIDE_FIND_PACKAGE
+)
 FetchContent_MakeAvailable(pugixml)
 
 # google test
