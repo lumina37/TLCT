@@ -22,19 +22,13 @@ FetchContent_MakeAvailable(pugixml)
 
 # google test
 if (TLCT_BUILD_TESTS)
-    set(BUILD_GMOCK OFF CACHE BOOL "")
-    set(GTEST_LINKED_AS_SHARED_LIBRARY 1 CACHE BOOL "")
-    set(gtest_force_shared_crt ON CACHE INTERNAL "" FORCE)
     FetchContent_Declare(
-            googletest
-            GIT_REPOSITORY https://github.com/google/googletest.git
-            GIT_TAG v1.14.0
-            FIND_PACKAGE_ARGS
+            doctest
+            GIT_REPOSITORY https://github.com/doctest/doctest.git
+            GIT_TAG v2.4.11
+            OVERRIDE_FIND_PACKAGE
     )
-    FetchContent_MakeAvailable(googletest)
-
-    enable_testing()
-    include(GoogleTest)
+    FetchContent_MakeAvailable(doctest)
 
     FetchContent_Declare(
             tlct-test-data
