@@ -134,17 +134,18 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
 
     pattern_size_ = layout.getDiameter() * spec_cfg.getPatternSize();
     const double radius = layout.getDiameter() / 2.0;
-    const double safe_radius = radius * spec_cfg.getSafeRange();
     const double half_pattern_size = pattern_size_ / 2.0;
-    pattern_shift_ =
-        std::sqrt((safe_radius - half_pattern_size) * (safe_radius + half_pattern_size)) - half_pattern_size;
+    const double max_pattern_shift =
+        std::sqrt((radius - half_pattern_size) * (radius + half_pattern_size)) - half_pattern_size;
+    const double candidate_pattern_shift = radius * spec_cfg.getMaxPatchSize();
+    pattern_shift_ = std::min(max_pattern_shift, candidate_pattern_shift);
 
-    min_psize_ = (int)std::round(0.35 * pattern_size_);
+    min_psize_ = (int)std::round(0.3 * pattern_size_);
     prev_patchsizes_ = cv::Mat(layout_.getMIRows(), layout_.getMIMaxCols(), CV_32SC1);
     patchsizes_ = cv::Mat::ones(prev_patchsizes_.size(), CV_32SC1) * min_psize_;
 
-    move_range_ = (int)std::round((1.0 + spec_cfg_.getGradientBlendingWidth()) * spec_cfg_.getPatternSize() / 2.0 *
-                                  layout.getDiameter());
+    move_range_ = (int)std::round(layout.getDiameter() *
+                                  (1.0 - spec_cfg.getMaxPatchSize() * (1.0 + spec_cfg.getGradientBlendingWidth())));
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
     canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + p_resize_withbound_d);

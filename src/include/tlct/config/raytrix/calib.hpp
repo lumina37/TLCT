@@ -85,3 +85,4 @@ CalibConfig CalibConfig::fromXMLPath(std::string_view path)
 }
 
 } // namespace tlct::_cfg::raytrix
+

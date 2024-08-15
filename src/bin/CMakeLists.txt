@@ -8,6 +8,7 @@ function(tlct_add_executable name srcs)
         )
     endif ()
 
+    install_target(${name})
     copy_dlls_if_needed(${name})
 endfunction()
 

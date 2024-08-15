@@ -1,3 +1,5 @@
+set(TLCT_LIB_NAME tlct)
+
 if (TLCT_HEADER_ONLY)
     set(TLCT_LIB_TYPE "INTERFACE")
     set(TLCT_LIB_DEP_SCOPE "INTERFACE")
@@ -16,7 +18,6 @@ else ()
     endif ()
 endif ()
 
-set(TLCT_LIB_NAME tlct)
 add_library(${TLCT_LIB_NAME} ${TLCT_LIB_TYPE} ${TLCT_LIB_SRCS})
 set_target_properties(${TLCT_LIB_NAME} PROPERTIES
         VERSION ${TLCT_VERSION}
@@ -35,3 +36,7 @@ target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
         $<$<NOT:$<BOOL:${PUGIXML_HEADER_ONLY}>>:pugixml>
 )
+
+if (NOT TLCT_HEADER_ONLY)
+    install_target(${TLCT_LIB_NAME})
+endif ()

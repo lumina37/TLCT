@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cmath>
 #include <numbers>
 
 #include <opencv2/imgproc.hpp>
@@ -191,11 +190,3 @@ cv::Mat Layout::procImg(const cv::Mat& src) const
 }
 
 } // namespace tlct::_cfg::tspc
-
-namespace tlct::cfg::tspc {
-
-namespace _priv = tlct::_cfg::tspc;
-
-using _priv::Layout;
-
-} // namespace tlct::cfg::tspc

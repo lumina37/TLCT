@@ -12,5 +12,3 @@ add_subdirectory(src)
 if (TLCT_BUILD_TESTS)
     add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif ()
-
-include(cmake/install.cmake)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <numbers>
+
 #include <opencv2/core.hpp>
 
 #include "calib.hpp"
@@ -11,26 +13,32 @@ class SpecificConfig
 {
 public:
     static constexpr int DEFAULT_UPSAMPLE = 1;
+    static constexpr double DEFAULT_MAX_PATCH_SIZE = 0.75;
     static constexpr double DEFAULT_PATTERN_SIZE = 0.325;
     static constexpr double DEFAULT_GRADIENT_BLENDING_WIDTH = 0.225;
-    static constexpr double DEFAULT_SAFE_RANGE = 1.0 - DEFAULT_PATTERN_SIZE * DEFAULT_GRADIENT_BLENDING_WIDTH;
     static constexpr double DEFAULT_PSIZE_SHORTCUT_THRESHOLD = -0.875;
+
+    static constexpr double PSIZE_AMP = std::numbers::sqrt3;
 
     // Constructor
     TLCT_API inline SpecificConfig() noexcept
-        : imgsize_(), upsample_(1), pattern_size_(DEFAULT_PATTERN_SIZE),
-          gradient_blending_width_(DEFAULT_GRADIENT_BLENDING_WIDTH), safe_range_(DEFAULT_SAFE_RANGE),
-          psize_shortcut_threshold_(DEFAULT_PSIZE_SHORTCUT_THRESHOLD){};
+        : imgsize_(), upsample_(1), max_patch_size_(DEFAULT_MAX_PATCH_SIZE), pattern_size_(DEFAULT_PATTERN_SIZE),
+          gradient_blending_width_(DEFAULT_GRADIENT_BLENDING_WIDTH),
+          psize_shortcut_threshold_(DEFAULT_PSIZE_SHORTCUT_THRESHOLD)
+    {
+        adjustMaxPatchSize();
+    };
     TLCT_API inline SpecificConfig& operator=(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig& operator=(SpecificConfig&& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(SpecificConfig&& rhs) noexcept = default;
-    TLCT_API inline SpecificConfig(cv::Size imgsize, int upsample, double pattern_size, double gradient_blending_width,
-                                   double psize_shortcut_threshold) noexcept
-        : imgsize_(imgsize), upsample_(upsample), pattern_size_(pattern_size),
-          gradient_blending_width_(gradient_blending_width),
-          safe_range_(std::min((1.0 - pattern_size), 1.0 / (1.0 + gradient_blending_width))),
-          psize_shortcut_threshold_(psize_shortcut_threshold){};
+    TLCT_API inline SpecificConfig(cv::Size imgsize, int upsample, double max_patch_size, double pattern_size,
+                                   double gradient_blending_width, double psize_shortcut_threshold) noexcept
+        : imgsize_(imgsize), upsample_(upsample), max_patch_size_(max_patch_size), pattern_size_(pattern_size),
+          gradient_blending_width_(gradient_blending_width), psize_shortcut_threshold_(psize_shortcut_threshold)
+    {
+        adjustMaxPatchSize();
+    };
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline SpecificConfig fromConfigMap(const ConfigMap& cfg_map);
@@ -38,7 +46,7 @@ public:
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
-    [[nodiscard]] TLCT_API inline double getSafeRange() const noexcept { return safe_range_; };
+    [[nodiscard]] TLCT_API inline double getMaxPatchSize() const noexcept { return max_patch_size_; };
     [[nodiscard]] TLCT_API inline double getPatternSize() const noexcept { return pattern_size_; };
     [[nodiscard]] TLCT_API inline double getGradientBlendingWidth() const noexcept { return gradient_blending_width_; };
     [[nodiscard]] TLCT_API inline double getPsizeShortcutThreshold() const noexcept
@@ -47,9 +55,17 @@ public:
     };
 
 private:
+    void adjustMaxPatchSize() noexcept
+    {
+        const double derived_max_psize = 1.0 / (1.0 + gradient_blending_width_) / PSIZE_AMP;
+        if (max_patch_size_ > derived_max_psize) {
+            max_patch_size_ = derived_max_psize;
+        }
+    }
+
     cv::Size imgsize_;
     int upsample_;
-    double safe_range_;
+    double max_patch_size_;
     double pattern_size_;
     double gradient_blending_width_;
     double psize_shortcut_threshold_;
@@ -60,10 +76,11 @@ SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
     const int width = cfg_map.get<int>("width");
     const int height = cfg_map.get<int>("height");
     const int upsample = cfg_map.get("upsample", DEFAULT_UPSAMPLE);
-    const double kernel_size = cfg_map.get("patternSize", DEFAULT_PATTERN_SIZE);
+    const double max_patch_size = cfg_map.get("maxPatchSize", DEFAULT_MAX_PATCH_SIZE);
+    const double pattern_size = cfg_map.get("patternSize", DEFAULT_PATTERN_SIZE);
     const double gradient_blending_width = cfg_map.get("gradientBlendingWidth", DEFAULT_GRADIENT_BLENDING_WIDTH);
     const double psize_shortcut_threshold = cfg_map.get("psizeShortcutThreshold", DEFAULT_PSIZE_SHORTCUT_THRESHOLD);
-    return {{width, height}, upsample, kernel_size, gradient_blending_width, psize_shortcut_threshold};
+    return {{width, height}, upsample, max_patch_size, pattern_size, gradient_blending_width, psize_shortcut_threshold};
 }
 
 } // namespace tlct::_cfg::raytrix

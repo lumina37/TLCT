@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cmath>
-#include <numbers>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
@@ -34,8 +33,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
         for (const int j : rgs::views::iota(0, layout_.getMICols(i))) {
             const cv::Point2d center = layout_.getMICenter(i, j);
 
-            const double safe_range = spec_cfg_.getSafeRange();
-            mi = getRoiImageByCenter(gray_src_, center, layout_.getDiameter() / std::numbers::sqrt2 * safe_range);
+            mi = getRoiImageByCenter(gray_src_, center, layout_.getDiameter() / std::numbers::sqrt2);
             const double grad_weight = computeGrad(mi);
             const double amped_grad_weight = grad_weight * grad_weight + std::numeric_limits<float>::epsilon();
 

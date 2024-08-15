@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 
 #include <opencv2/core.hpp>
 #include <pugixml.hpp>
@@ -90,11 +91,3 @@ CalibConfig CalibConfig::fromXMLPath(std::string_view path)
 }
 
 } // namespace tlct::_cfg::tspc
-
-namespace tlct::cfg::tspc {
-
-namespace _priv = tlct::_cfg::tspc;
-
-using _priv::CalibConfig;
-
-} // namespace tlct::cfg::tspc
