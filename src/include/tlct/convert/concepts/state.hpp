@@ -16,8 +16,8 @@ template <typename Self>
 concept CState = requires {
     // Initialize from
     requires requires(const Self::TParamConfig& param_cfg) {
+        tcfg::concepts::CSpecificConfig<typename Self::TSpecificConfig>;
         tcfg::concepts::CLayout<typename Self::TLayout>;
-        tcfg::concepts::CLayout<typename Self::TSpecificConfig>;
         { Self::fromParamCfg(param_cfg) } -> std::same_as<Self>;
     };
 } && requires {

@@ -4,9 +4,7 @@ include(FetchContent)
 find_package(OpenCV REQUIRED COMPONENTS imgproc imgcodecs quality)
 
 # pugixml
-set(TLCT_PUGIXML_VERSION 1.14 CACHE STRING "Specifies the version of pugixml")
-
-set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml/archive/refs/tags/v${TLCT_PUGIXML_VERSION}.tar.gz" CACHE STRING
+set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml/archive/refs/tags/v1.14.tar.gz" CACHE STRING
         "Specifies the path of pugixml")
 set(PUGIXML_NO_XPATH ON CACHE BOOL "")
 set(PUGIXML_NO_EXCEPTIONS ON CACHE BOOL "")
@@ -19,6 +17,16 @@ FetchContent_Declare(
         OVERRIDE_FIND_PACKAGE
 )
 FetchContent_MakeAvailable(pugixml)
+
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    FetchContent_Declare(
+            argparse
+            GIT_REPOSITORY https://github.com/p-ranav/argparse.git
+            GIT_TAG v3.1
+            OVERRIDE_FIND_PACKAGE
+    )
+    FetchContent_MakeAvailable(argparse)
+endif ()
 
 # google test
 if (TLCT_BUILD_TESTS)

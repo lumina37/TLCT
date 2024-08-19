@@ -144,8 +144,9 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     prev_patchsizes_ = cv::Mat(layout_.getMIRows(), layout_.getMIMaxCols(), CV_32SC1);
     patchsizes_ = cv::Mat::ones(prev_patchsizes_.size(), CV_32SC1) * min_psize_;
 
-    move_range_ = (int)std::round(layout.getDiameter() *
-                                  (1.0 - spec_cfg.getMaxPatchSize() * (1.0 + spec_cfg.getGradientBlendingWidth())));
+    move_range_ =
+        (int)std::round(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_AMP *
+                                                          (1.0 + spec_cfg.getGradientBlendingWidth())));
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
     canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + p_resize_withbound_d);
