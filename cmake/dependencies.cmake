@@ -14,7 +14,6 @@ FetchContent_Declare(
         pugixml
         DOWNLOAD_EXTRACT_TIMESTAMP ON
         URL ${TLCT_PUGIXML_PATH}
-        OVERRIDE_FIND_PACKAGE
 )
 FetchContent_MakeAvailable(pugixml)
 
@@ -23,7 +22,6 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
             argparse
             GIT_REPOSITORY https://github.com/p-ranav/argparse.git
             GIT_TAG v3.1
-            OVERRIDE_FIND_PACKAGE
     )
     FetchContent_MakeAvailable(argparse)
 endif ()
@@ -34,7 +32,6 @@ if (TLCT_BUILD_TESTS)
             doctest
             GIT_REPOSITORY https://github.com/doctest/doctest.git
             GIT_TAG v2.4.11
-            OVERRIDE_FIND_PACKAGE
     )
     FetchContent_MakeAvailable(doctest)
 
