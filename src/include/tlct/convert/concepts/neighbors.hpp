@@ -15,7 +15,7 @@ template <typename Self>
 concept CNeighbors = requires {
     // Initialize from
     requires requires(const Self::TLayout& layout, const cv::Point index) {
-        tcfg::concepts::CLayout<typename Self::TLayout>;
+        requires tcfg::concepts::CLayout<typename Self::TLayout>;
         { Self::fromLayoutAndIndex(layout, index) } noexcept -> std::same_as<Self>;
     };
 } && requires {

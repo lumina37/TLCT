@@ -16,8 +16,8 @@ template <typename Self>
 concept CState = requires {
     // Initialize from
     requires requires(const Self::TParamConfig& param_cfg) {
-        tcfg::concepts::CSpecificConfig<typename Self::TSpecificConfig>;
-        tcfg::concepts::CLayout<typename Self::TLayout>;
+        requires tcfg::concepts::CSpecificConfig<typename Self::TSpecificConfig>;
+        requires tcfg::concepts::CLayout<typename Self::TLayout>;
         { Self::fromParamCfg(param_cfg) } -> std::same_as<Self>;
     };
 } && requires {
@@ -25,9 +25,9 @@ concept CState = requires {
     requires requires(Self self, const cv::Mat& newsrc) { self.feed(newsrc); };
 } && requires {
     // Iterator
-    rgs::forward_range<Self>;
-    std::convertible_to<decltype(std::declval<Self>().begin()), cv::Mat>;
-    std::convertible_to<decltype(std::declval<Self>().end()), cv::Mat>;
+    requires rgs::forward_range<Self>;
+    requires std::convertible_to<decltype(std::declval<Self>().begin()), cv::Mat>;
+    requires std::convertible_to<decltype(std::declval<Self>().end()), cv::Mat>;
 };
 
 } // namespace tlct::_cvt::concepts

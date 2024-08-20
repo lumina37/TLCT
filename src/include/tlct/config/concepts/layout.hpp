@@ -14,7 +14,7 @@ concept CLayout = std::copyable<Self> && requires {
     { Self() } -> std::same_as<Self>;
 } && requires(const Self::TCalibConfig& cfg, cv::Size imgsize) {
     // Init from
-    CCalibConfig<typename Self::TCalibConfig>;
+    requires CCalibConfig<typename Self::TCalibConfig>;
     { Self::fromCfgAndImgsize(cfg, imgsize) } -> std::same_as<Self>;
 } && requires(Self self) {
     // Non-const methods
