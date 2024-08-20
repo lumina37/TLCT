@@ -25,9 +25,10 @@ concept CState = requires {
     requires requires(Self self, const cv::Mat& newsrc) { self.feed(newsrc); };
 } && requires {
     // Iterator
-    requires rgs::forward_range<Self>;
-    requires std::convertible_to<decltype(std::declval<Self>().begin()), cv::Mat>;
-    requires std::convertible_to<decltype(std::declval<Self>().end()), cv::Mat>;
+    requires requires(Self self) {
+        { *self.begin() } -> std::same_as<cv::Mat>;
+        { *self.end() } -> std::same_as<cv::Mat>;
+    };
 };
 
 } // namespace tlct::_cvt::concepts
