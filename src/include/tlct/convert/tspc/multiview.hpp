@@ -35,7 +35,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
             // Extract patch
             const double psize = (double)patchsizes_.at<int>(i, j);
             const double bound = psize * spec_cfg_.getGradientBlendingWidth();
-            const double patch_width_with_bound = psize + bound * 2;
+            const double patch_width_with_bound = psize + bound;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
             const cv::Mat& patch = getRoiImageByCenter(src_32f_, patch_center, patch_width_with_bound);
 

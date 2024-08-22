@@ -128,9 +128,9 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     patch_yshift_ = (int)std::round((double)patch_xshift_ * std::numbers::sqrt3 / 2.0);
 
     bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_AMP;
-    const double p_resize_withbound_d = patch_xshift_ * TSpecificConfig::PSIZE_AMP + 2 * bound_;
+    const double p_resize_withbound_d = patch_xshift_ * TSpecificConfig::PSIZE_AMP + bound_;
     p_resize_withbound_ = (int)std::round(p_resize_withbound_d);
-    patch_fadeout_weight_ = circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_));
+    patch_fadeout_weight_ = circleWithFadeoutBorder(p_resize_withbound_, (int)std::round(bound_ / 2));
 
     pattern_size_ = layout.getDiameter() * spec_cfg.getPatternSize();
     const double radius = layout.getDiameter() / 2.0;
@@ -146,7 +146,7 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
 
     move_range_ =
         (int)std::round(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_AMP *
-                                                          (1.0 + 2 * spec_cfg.getGradientBlendingWidth())));
+                                                          (1.0 + spec_cfg.getGradientBlendingWidth())));
     interval_ = views > 1 ? move_range_ / (views - 1) : 0;
 
     canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + p_resize_withbound_d);

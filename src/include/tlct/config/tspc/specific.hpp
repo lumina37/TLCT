@@ -29,9 +29,8 @@ public:
     TLCT_API inline SpecificConfig(cv::Size imgsize, int upsample, double max_patch_size, double pattern_size,
                                    double gradient_blending_width, double psize_shortcut_threshold) noexcept
         : imgsize_(imgsize), upsample_(upsample),
-          max_patch_size_(std::min(max_patch_size, 1.0 / (1.0 + 2 * gradient_blending_width))),
-          pattern_size_(pattern_size), gradient_blending_width_(gradient_blending_width),
-          psize_shortcut_threshold_(psize_shortcut_threshold){};
+          max_patch_size_(std::min(max_patch_size, 1.0 / (1.0 + gradient_blending_width))), pattern_size_(pattern_size),
+          gradient_blending_width_(gradient_blending_width), psize_shortcut_threshold_(psize_shortcut_threshold){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline SpecificConfig fromConfigMap(const ConfigMap& cfg_map);
