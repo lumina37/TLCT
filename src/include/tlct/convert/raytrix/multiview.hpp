@@ -38,7 +38,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
             const double amped_grad_weight = grad_weight * grad_weight + std::numeric_limits<float>::epsilon();
 
             // Extract patch
-            const double psize = std::numbers::sqrt3 * patchsizes_.at<int>(i, j);
+            const double psize = TSpecificConfig::PSIZE_AMP * patchsizes_.at<int>(i, j);
             const double bound = psize * spec_cfg_.getGradientBlendingWidth();
             const double patch_width_with_bound = psize + bound * 2;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
