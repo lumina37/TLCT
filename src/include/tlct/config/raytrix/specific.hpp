@@ -22,23 +22,20 @@ public:
 
     // Constructor
     TLCT_API inline SpecificConfig() noexcept
-        : imgsize_(), upsample_(1), max_patch_size_(DEFAULT_MAX_PATCH_SIZE), pattern_size_(DEFAULT_PATTERN_SIZE),
-          gradient_blending_width_(DEFAULT_GRADIENT_BLENDING_WIDTH),
-          psize_shortcut_threshold_(DEFAULT_PSIZE_SHORTCUT_THRESHOLD)
-    {
-        adjustMaxPatchSize();
-    };
+        : imgsize_(), upsample_(1),
+          max_patch_size_(std::min(DEFAULT_MAX_PATCH_SIZE, 1.0 / (1.0 + DEFAULT_GRADIENT_BLENDING_WIDTH) / PSIZE_AMP)),
+          pattern_size_(DEFAULT_PATTERN_SIZE), gradient_blending_width_(DEFAULT_GRADIENT_BLENDING_WIDTH),
+          psize_shortcut_threshold_(DEFAULT_PSIZE_SHORTCUT_THRESHOLD){};
     TLCT_API inline SpecificConfig& operator=(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig& operator=(SpecificConfig&& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(SpecificConfig&& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(cv::Size imgsize, int upsample, double max_patch_size, double pattern_size,
                                    double gradient_blending_width, double psize_shortcut_threshold) noexcept
-        : imgsize_(imgsize), upsample_(upsample), max_patch_size_(max_patch_size), pattern_size_(pattern_size),
-          gradient_blending_width_(gradient_blending_width), psize_shortcut_threshold_(psize_shortcut_threshold)
-    {
-        adjustMaxPatchSize();
-    };
+        : imgsize_(imgsize), upsample_(upsample),
+          max_patch_size_(std::min(max_patch_size, 1.0 / (1.0 + gradient_blending_width) / PSIZE_AMP)),
+          pattern_size_(pattern_size), gradient_blending_width_(gradient_blending_width),
+          psize_shortcut_threshold_(psize_shortcut_threshold){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline SpecificConfig fromConfigMap(const ConfigMap& cfg_map);
@@ -55,14 +52,6 @@ public:
     };
 
 private:
-    void adjustMaxPatchSize() noexcept
-    {
-        const double derived_max_psize = 1.0 / (1.0 + gradient_blending_width_) / PSIZE_AMP;
-        if (max_patch_size_ > derived_max_psize) {
-            max_patch_size_ = derived_max_psize;
-        }
-    }
-
     cv::Size imgsize_;
     int upsample_;
     double max_patch_size_;
