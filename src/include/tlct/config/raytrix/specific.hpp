@@ -1,7 +1,5 @@
 #pragma once
 
-#include <numbers>
-
 #include <opencv2/core.hpp>
 
 #include "calib.hpp"
@@ -18,7 +16,7 @@ public:
     static constexpr double DEFAULT_GRADIENT_BLENDING_WIDTH = 0.225;
     static constexpr double DEFAULT_PSIZE_SHORTCUT_THRESHOLD = -0.875;
 
-    static constexpr double PSIZE_AMP = std::numbers::sqrt3;
+    static constexpr double PSIZE_AMP = 1.5;
 
     // Constructor
     TLCT_API inline SpecificConfig() noexcept
