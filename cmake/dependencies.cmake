@@ -18,10 +18,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(pugixml)
 
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
+            "Specifies the path of argparse")
     FetchContent_Declare(
             argparse
-            GIT_REPOSITORY https://github.com/p-ranav/argparse.git
-            GIT_TAG v3.1
+            DOWNLOAD_EXTRACT_TIMESTAMP ON
+            URL ${TLCT_ARGPARSE_PATH}
     )
     FetchContent_MakeAvailable(argparse)
 endif ()
