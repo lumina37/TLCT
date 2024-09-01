@@ -21,6 +21,36 @@ namespace rgs = std::ranges;
 
 constexpr int INVALID_PSIZE = -1;
 
+double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) const
+{
+    const cv::Point2d curr_center = neighbors.getSelfPt();
+
+    double weighted_metric = 0.0;
+    double total_weight = 0.0;
+
+    for (const auto direction : DIRECTIONS) {
+        if (neighbors.hasNeighbor(direction)) {
+            const cv::Point2d anchor_shift = -neighbors.getUnitShift(direction) * pattern_shift_;
+            const cv::Point2d match_step = neighbors.getUnitShift(direction);
+            const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
+
+            const cv::Point2d anchor_center = curr_center + anchor_shift;
+            const cv::Point2d neib_center = neighbors.getNeighborPt(direction);
+            const cv::Point2d cmp_center = neib_center + cmp_shift;
+
+            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src_, anchor_center, pattern_size_));
+            const auto& rhs = getRoiImageByCenter(gray_src_, cmp_center, pattern_size_);
+
+            const double metric = anchor.compare(rhs);
+            weighted_metric += metric * anchor.getWeight();
+            total_weight += anchor.getWeight();
+        }
+    };
+
+    const double final_metric = weighted_metric / total_weight;
+    return final_metric;
+}
+
 int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
 {
     const cv::Point2d curr_center = neighbors.getSelfPt();
@@ -95,6 +125,10 @@ int State::_estimatePatchsize(cv::Mat& psizes, const cv::Point index)
     const auto neighbors = Neighbors::fromLayoutAndIndex(layout_, index);
 
     const int prev_psize = prev_patchsizes_.at<int>(index);
+    const double prev_metric = _calcMetricWithPsize(neighbors, prev_psize);
+    if (prev_metric < spec_cfg_.getPsizeShortcutThreshold()) {
+        return prev_psize;
+    }
 
     const int psize = _estimatePatchsizeOverFullMatch(neighbors);
 

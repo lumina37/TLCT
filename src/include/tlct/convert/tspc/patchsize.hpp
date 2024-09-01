@@ -157,34 +157,6 @@ int State::_estimatePatchsize(cv::Mat& psizes, const cv::Point index)
         return prev_psize;
     }
 
-    const std::vector<int>& ref_psizes = getRefPsizes<true>(psizes, neighbors);
-    double min_ref_metric = std::numeric_limits<double>::max();
-    int min_ref_psize = 0;
-    for (const int ref_psize : ref_psizes) {
-        const double ref_metric = _calcMetricWithPsize(neighbors, prev_psize);
-        if (ref_metric < min_ref_metric) {
-            min_ref_metric = ref_metric;
-            min_ref_psize = ref_psize;
-        }
-    }
-    if (min_ref_metric < spec_cfg_.getPsizeShortcutThreshold()) {
-        return min_ref_psize;
-    }
-
-    const std::vector<int>& prev_ref_psizes = getRefPsizes<false>(prev_patchsizes_, neighbors);
-    double min_prev_ref_metric = std::numeric_limits<double>::max();
-    int min_prev_ref_psize = 0;
-    for (const int prev_ref_psize : prev_ref_psizes) {
-        const double prev_ref_metric = _calcMetricWithPsize(neighbors, prev_psize);
-        if (prev_ref_metric < min_prev_ref_metric) {
-            min_prev_ref_metric = prev_ref_metric;
-            min_prev_ref_psize = prev_ref_psize;
-        }
-    }
-    if (min_prev_ref_metric < spec_cfg_.getPsizeShortcutThreshold()) {
-        return min_prev_ref_psize;
-    }
-
     const int psize = _estimatePatchsizeOverFullMatch(neighbors);
 
     if (psize == INVALID_PSIZE) {

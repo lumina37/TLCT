@@ -38,13 +38,11 @@ cv::Mat State::renderView(int view_row, int view_col) const
 
             // Extract patch
             const double psize = TSpecificConfig::PSIZE_AMP * patchsizes_.at<int>(i, j);
-            const double bound = psize * spec_cfg_.getGradientBlendingWidth();
-            const double patch_width_with_bound = psize + bound;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
-            const cv::Mat& patch = getRoiImageByCenter(src_32f_, patch_center, patch_width_with_bound);
+            const cv::Mat& patch = getRoiImageByCenter(src_32f_, patch_center, psize);
 
             // Paste patch
-            cv::resize(patch, resized_patch, {p_resize_withbound_, p_resize_withbound_}, 0, 0, cv::INTER_CUBIC);
+            cv::resize(patch, resized_patch, {p_resize_, p_resize_}, 0, 0, cv::INTER_CUBIC);
 
             cv::split(resized_patch, resized_patch_channels);
             for (cv::Mat& resized_patch_channel : resized_patch_channels) {
@@ -56,8 +54,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
             const int right_shift = ((i % 2) ^ (int)layout_.isOutShift()) * (patch_xshift_ / 2);
-            const cv::Rect roi{j * patch_xshift_ + right_shift, i * patch_yshift_, p_resize_withbound_,
-                               p_resize_withbound_};
+            const cv::Rect roi{j * patch_xshift_ + right_shift, i * patch_yshift_, p_resize_, p_resize_};
             render_canvas(roi) += weighted_patch * grad_weight;
             weight_canvas(roi) += patch_fadeout_weight_ * grad_weight;
         }
