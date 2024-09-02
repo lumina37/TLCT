@@ -17,6 +17,5 @@ tlct_add_executable(RLC40 "dbg_mv.cpp")
 tlct_add_executable(dbg_draw "dbg_draw.cpp")
 tlct_add_executable(dbg_psize "dbg_psize.cpp")
 tlct_add_executable(dbg_draw_raytrix "dbg_draw_raytrix.cpp")
-tlct_add_executable(dbg_psize_raytrix "dbg_psize_raytrix.cpp")
 
 tlct_add_executable(get_center "get_center.cpp")

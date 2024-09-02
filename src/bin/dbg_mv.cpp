@@ -14,17 +14,17 @@ template <typename TState>
 static inline void render(const tlct::cfg::ConfigMap& cfg_map)
 {
     const auto param_cfg = TState::TParamConfig::fromConfigMap(cfg_map);
-    const auto& common_cfg = param_cfg.getGenericCfg();
+    const auto& generic_cfg = param_cfg.getGenericCfg();
 
     auto state = TState::fromParamCfg(param_cfg);
 
-    const cv::Range range = common_cfg.getRange();
+    const cv::Range range = generic_cfg.getRange();
     for (int i = range.start; i <= range.end; i++) {
-        const auto srcpath = common_cfg.fmtSrcPath(i);
+        const auto srcpath = generic_cfg.fmtSrcPath(i);
         state.feed(cv::imread(srcpath.string()));
 
         int img_cnt = 1;
-        const auto dstdir = common_cfg.fmtDstPath(i);
+        const auto dstdir = generic_cfg.fmtDstPath(i);
         fs::create_directories(dstdir);
 
         for (const auto& mv : state) {
@@ -40,7 +40,7 @@ static inline void render(const tlct::cfg::ConfigMap& cfg_map)
 int main(int argc, char* argv[])
 {
     argparse::ArgumentParser program("TLCT", TLCT_VERSION, argparse::default_arguments::all);
-    program.add_argument("param_file_path").help("the RLC parameter file path").required();
+    program.add_argument("param_file_path").help("the parameter file path").required();
 
     try {
         program.parse_args(argc, argv);
