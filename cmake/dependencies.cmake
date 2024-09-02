@@ -28,14 +28,17 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     FetchContent_MakeAvailable(argparse)
 endif ()
 
-# google test
+# doctest
 if (TLCT_BUILD_TESTS)
+    include(CTest)
+
     FetchContent_Declare(
             doctest
             GIT_REPOSITORY https://github.com/doctest/doctest.git
             GIT_TAG v2.4.11
     )
     FetchContent_MakeAvailable(doctest)
+    include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
 
     FetchContent_Declare(
             tlct-test-data
