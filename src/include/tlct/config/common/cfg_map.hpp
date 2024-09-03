@@ -45,6 +45,8 @@ private:
 
 ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) noexcept
 {
+    auto has_delim = [](const char c) { return c == '\t' || c == ' '; };
+
     std::map<std::string, std::string> cfg_map;
     std::string row;
     while (std::getline(ifs, row)) {
@@ -52,19 +54,28 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) noexcept
             break;
         }
 
-        std::istringstream srow(row);
-        std::string key, value;
-
-        char delim = '\t';
-        if (row.find(delim) == std::string::npos) {
-            delim = ' ';
+        std::string::iterator key_end = row.begin();
+        for (; key_end != row.end(); key_end++) {
+            if (has_delim(*key_end)) {
+                break;
+            }
         }
 
-        if (std::getline(srow, key, delim) && std::getline(srow, value)) {
-            key.erase(key.find_last_not_of(" \t") + 1);
-            value.erase(0, value.find_first_not_of(" \t"));
-            cfg_map[key] = value;
+        if (key_end == row.end()) {
+            // row without KV
+            continue;
         }
+
+        std::string::iterator value_start = key_end;
+        for (; value_start != row.end(); value_start++) {
+            if (!has_delim(*value_start)) {
+                break;
+            }
+        }
+
+        const std::string_view key{row.begin(), key_end};
+        const std::string_view value{value_start, row.end()};
+        cfg_map.emplace(key, value);
     }
 
     return ConfigMap(cfg_map);
@@ -74,7 +85,7 @@ ConfigMap ConfigMap::fromPath(std::string_view path)
 {
     std::ifstream ifs(path.data());
     if (!ifs) {
-        std::cerr << "Failed to load `" << typeid(ConfigMap).name() << "` from `" << path << "`!" << std::endl;
+        std::cerr << "Failed to load `ConfigMap` from `" << path << "`!" << std::endl;
         return {};
     }
 
