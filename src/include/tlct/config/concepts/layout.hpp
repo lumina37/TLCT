@@ -9,7 +9,7 @@
 namespace tlct::_cfg::concepts {
 
 template <typename Self>
-concept CLayout = std::copyable<Self> && requires {
+concept CLayout = std::is_trivially_copyable_v<Self> && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
 } && requires(const Self::TParamConfig& cfg) {

@@ -21,6 +21,7 @@ public:
     // Typename alias
     using TParamConfig = ParamConfig;
     using TIdx2Type = std::array<std::array<int, LEN_TYPE_NUM>, 2>;
+    using TMiCols = std::array<int, 2>;
 
     // Constructor
     TLCT_API inline Layout() noexcept
@@ -31,7 +32,7 @@ public:
     TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout(cv::Point2d left_top, bool is_out_shift, double x_unit_shift, double y_unit_shift,
-                           cv::Size imgsize, int mirows, cv::Vec2i micols, TIdx2Type idx2type, double diameter,
+                           cv::Size imgsize, int mirows, TMiCols micols, TIdx2Type idx2type, double diameter,
                            double rotation) noexcept
         : left_top_(left_top), is_out_shift_(is_out_shift), x_unit_shift_(x_unit_shift), y_unit_shift_(y_unit_shift),
           imgsize_(imgsize), mirows_(mirows), micols_(micols), idx2type_(idx2type), diameter_(diameter),
@@ -41,7 +42,7 @@ public:
     [[nodiscard]] TLCT_API static inline Layout fromParamConfig(const TParamConfig& cfg);
 
     // Non-const methods
-    TLCT_API inline Layout& upsample(const int factor) noexcept;
+    TLCT_API inline Layout& upsample(int factor) noexcept;
     TLCT_API inline Layout& transpose() noexcept;
 
     // Const methods
@@ -57,10 +58,7 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
-    [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept
-    {
-        return micols_[row % micols_.channels];
-    };
+    [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
     [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
@@ -76,7 +74,7 @@ private:
     double y_unit_shift_;
     cv::Size imgsize_;
     int mirows_;
-    cv::Vec2i micols_;
+    TMiCols micols_;
     TIdx2Type idx2type_;
     double diameter_;
     double radius_;
@@ -127,7 +125,7 @@ Layout Layout::fromParamConfig(const TParamConfig& cfg)
     }
     left_top.y = center_mi.y - std::floor((center_mi.y - y_unit_shift / 2.0) / y_unit_shift) * y_unit_shift;
 
-    cv::Vec2i micols;
+    TMiCols micols;
     const double mi_1_0_x = left_top.x - x_unit_shift / 2.0 * _hp::sgn(is_out_shift);
     micols[0] = (int)(((double)imgsize.width - left_top.x - x_unit_shift / 2.0) / x_unit_shift) + 1;
     micols[1] = (int)(((double)imgsize.width - mi_1_0_x - x_unit_shift / 2.0) / x_unit_shift) + 1;

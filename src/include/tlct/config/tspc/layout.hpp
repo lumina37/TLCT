@@ -16,6 +16,7 @@ class Layout
 public:
     // Typename alias
     using TParamConfig = ParamConfig;
+    using TMiCols = std::array<int, 2>;
 
     // Constructor
     TLCT_API inline Layout() noexcept
@@ -26,7 +27,7 @@ public:
     TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout(cv::Point2d left_top, cv::Point2d right_top, bool is_out_shift,
-                           cv::Point2d left_y_unit_shift, cv::Point2d right_y_unit_shift, int mirows, cv::Vec2i micols,
+                           cv::Point2d left_y_unit_shift, cv::Point2d right_y_unit_shift, int mirows, TMiCols micols,
                            cv::Size imgsize, double diameter, double rotation) noexcept
         : left_top_(left_top), right_top_(right_top), is_out_shift_(is_out_shift),
           left_y_unit_shift_(left_y_unit_shift), right_y_unit_shift_(right_y_unit_shift), mirows_(mirows),
@@ -50,10 +51,7 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const int row, const int col) const noexcept;
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
-    [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept
-    {
-        return micols_[row % micols_.channels];
-    };
+    [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
     [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
@@ -70,7 +68,7 @@ private:
     cv::Point2d right_y_unit_shift_;
     cv::Size imgsize_;
     int mirows_;
-    cv::Vec2i micols_;
+    TMiCols micols_;
     double diameter_;
     double radius_;
     double rotation_;
@@ -111,7 +109,7 @@ Layout Layout::fromParamConfig(const TParamConfig& cfg)
         is_out_shift = true;
     }
 
-    cv::Vec2i micols = {top_cols, top_cols};
+    TMiCols micols{top_cols, top_cols};
     if (is_out_shift) {
         // Now the second row have one more intact MI than the first row
         if (left_top.x + top_x_unit_shift.x * top_cols < imgsize.width) {

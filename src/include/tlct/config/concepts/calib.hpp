@@ -7,7 +7,7 @@
 namespace tlct::_cfg::concepts {
 
 template <typename Self>
-concept CCalibConfig = std::copyable<Self> && requires {
+concept CCalibConfig = std::is_trivially_copyable_v<Self> && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
 } && requires {

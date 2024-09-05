@@ -7,7 +7,7 @@
 namespace tlct::_cfg::concepts {
 
 template <typename Self>
-concept CSpecificConfig = std::copyable<Self> && requires {
+concept CSpecificConfig = std::is_trivially_copyable_v<Self> && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
 } && requires(const ConfigMap& cfg_map) {
