@@ -6,7 +6,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "calib.hpp"
+#include "param.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 #include "tlct/helper/static_math.hpp"
@@ -19,7 +19,7 @@ class Layout
 {
 public:
     // Typename alias
-    using TCalibConfig = CalibConfig;
+    using TParamConfig = ParamConfig;
     using TIdx2Type = std::array<std::array<int, LEN_TYPE_NUM>, 2>;
 
     // Constructor
@@ -38,7 +38,7 @@ public:
           radius_(diameter / 2.0), rotation_(rotation), upsample_(1){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
+    [[nodiscard]] TLCT_API static inline Layout fromParamConfig(const TParamConfig& cfg);
 
     // Non-const methods
     TLCT_API inline Layout& upsample(const int factor) noexcept;
@@ -48,14 +48,14 @@ public:
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
     [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
-    [[nodiscard]] TLCT_API inline int getMIType(const int row, const int col) const noexcept;
-    [[nodiscard]] TLCT_API inline int getMIType(const cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API inline int getMIType(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API inline int getMIType(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline double getRotation() const noexcept { return rotation_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const int row, const int col) const noexcept;
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept
     {
@@ -86,14 +86,16 @@ private:
 
 static_assert(concepts::CLayout<Layout>);
 
-Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
+Layout Layout::fromParamConfig(const TParamConfig& cfg)
 {
-    const double diameter = cfg.getDiameter();
-    const auto offset = cfg.getOffset();
+    const auto& calib_cfg = cfg.getCalibCfg();
+    const double diameter = calib_cfg.getDiameter();
+    const auto offset = calib_cfg.getOffset();
+    auto imgsize = cfg.getSpecificCfg().getImgSize();
 
     cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};
 
-    if (cfg.getRotation() > 1e-2) {
+    if (calib_cfg.getRotation() > 1e-2) {
         std::swap(imgsize.height, imgsize.width);
         std::swap(center_mi.x, center_mi.y);
     }
@@ -115,7 +117,7 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
             is_out_shift = false;
         }
     } else {
-        if (left_x > cfg.getDiameter()) {
+        if (left_x > diameter) {
             left_top.x = left_x - radius;
             is_out_shift = false;
         } else {
@@ -134,7 +136,7 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
     TIdx2Type idx2type;
     const bool is_odd_yidx = center_mi_yidx % 2;
     for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
-        const int ofs = cfg.getLenOffsets()[type];
+        const int ofs = calib_cfg.getLenOffsets()[type];
         const int idx = (center_mi_xidx + ofs + LEN_TYPE_NUM) % LEN_TYPE_NUM;
         idx2type[is_odd_yidx][idx] = type;
     }
@@ -145,10 +147,10 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
     }
 
     return {left_top, is_out_shift, x_unit_shift, y_unit_shift, imgsize,
-            mirows,   micols,       idx2type,     diameter,     cfg.getRotation()};
+            mirows,   micols,       idx2type,     diameter,     calib_cfg.getRotation()};
 }
 
-Layout& Layout::upsample(const int factor) noexcept
+Layout& Layout::upsample(int factor) noexcept
 {
     left_top_ *= factor;
     x_unit_shift_ *= factor;
@@ -162,15 +164,15 @@ Layout& Layout::upsample(const int factor) noexcept
 
 Layout& Layout::transpose() noexcept { return *this; }
 
-int Layout::getMIType(const int row, const int col) const noexcept
+int Layout::getMIType(int row, int col) const noexcept
 {
     const int type = idx2type_[row % idx2type_.size()][col % LEN_TYPE_NUM];
     return type;
 }
 
-int Layout::getMIType(const cv::Point index) const noexcept { return getMIType(index.y, index.x); }
+int Layout::getMIType(cv::Point index) const noexcept { return getMIType(index.y, index.x); }
 
-cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
+cv::Point2d Layout::getMICenter(int row, int col) const noexcept
 {
     cv::Point2d center{left_top_.x + x_unit_shift_ * col, left_top_.y + y_unit_shift_ * row};
     if (row % 2 == 1) {
@@ -179,7 +181,7 @@ cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
     return center;
 }
 
-cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
+cv::Point2d Layout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
 void Layout::procImg_(const cv::Mat& src, cv::Mat& dst) const
 {

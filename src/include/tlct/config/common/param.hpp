@@ -43,6 +43,13 @@ public:
     [[nodiscard]] TLCT_API inline const TSpecificConfig& getSpecificCfg() const noexcept { return spec_cfg_; };
     [[nodiscard]] TLCT_API inline const TCalibConfig& getCalibCfg() const noexcept { return calib_cfg_; };
 
+    // Non-const methods
+    TLCT_API inline ParamConfig_& setCalibCfg(const TCalibConfig& cfg) noexcept
+    {
+        calib_cfg_ = cfg;
+        return *this;
+    };
+
 private:
     GenericParamConfig generic_cfg_;
     TSpecificConfig spec_cfg_;

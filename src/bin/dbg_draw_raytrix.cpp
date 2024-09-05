@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
     const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     const auto& common_cfg = param_cfg.getGenericCfg();
 
-    const auto layout = tn::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
+    const auto layout = tn::Layout::fromParamConfig(param_cfg);
 
     const auto srcpath = common_cfg.fmtSrcPath(common_cfg.getRange().start);
     const cv::Mat src = cv::imread(srcpath.string());

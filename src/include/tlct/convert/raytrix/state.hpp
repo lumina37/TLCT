@@ -166,8 +166,7 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
 State State::fromParamCfg(const TParamConfig& param_cfg)
 {
     const auto& spec_cfg = param_cfg.getSpecificCfg();
-    const auto layout = TLayout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize())
-                            .upsample(spec_cfg.getUpsample());
+    const auto layout = TLayout::fromParamConfig(param_cfg).upsample(spec_cfg.getUpsample());
     const int views = param_cfg.getGenericCfg().getViews();
     return {layout, spec_cfg, views};
 }

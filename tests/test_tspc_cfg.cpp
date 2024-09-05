@@ -18,7 +18,8 @@ TEST_CASE("cfg::tspc")
     auto cfg_map = tlct::ConfigMap::fromPath(param_cfg_path.string());
     auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     auto calib_cfg = tn::CalibConfig::fromXMLPath(calib_cfg_path.string());
-    auto layout = tn::Layout::fromCfgAndImgsize(calib_cfg, param_cfg.getSpecificCfg().getImgSize());
+    param_cfg.setCalibCfg(calib_cfg);
+    auto layout = tn::Layout::fromParamConfig(param_cfg);
 
     SUBCASE("tspc::ParamConfig")
     {

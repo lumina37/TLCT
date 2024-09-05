@@ -12,10 +12,9 @@ template <typename Self>
 concept CLayout = std::copyable<Self> && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
-} && requires(const Self::TCalibConfig& cfg, cv::Size imgsize) {
+} && requires(const Self::TParamConfig& cfg) {
     // Init from
-    requires CCalibConfig<typename Self::TCalibConfig>;
-    { Self::fromCfgAndImgsize(cfg, imgsize) } -> std::same_as<Self>;
+    { Self::fromParamConfig(cfg) } -> std::same_as<Self>;
 } && requires(Self self) {
     // Non-const methods
     requires requires(int factor) {

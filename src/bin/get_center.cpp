@@ -12,14 +12,12 @@ int main(int argc, char* argv[])
 
     if (cfg_map.getPipelineType() == tlct::PipelineType::RLC) {
         const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
-        const auto layout =
-            tn::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
+        const auto layout = tn::Layout::fromParamConfig(param_cfg);
         const auto center = layout.getMICenter(row, col);
         std::cout << center << std::endl;
     } else {
         const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
-        const auto layout =
-            tn::Layout::fromCfgAndImgsize(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg().getImgSize());
+        const auto layout = tn::Layout::fromParamConfig(param_cfg);
         const auto center = layout.getMICenter(row, col);
         std::cout << center << std::endl;
     }

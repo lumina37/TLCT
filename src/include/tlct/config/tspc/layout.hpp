@@ -4,7 +4,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "calib.hpp"
+#include "param.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 #include "tlct/helper/static_math.hpp"
@@ -15,7 +15,7 @@ class Layout
 {
 public:
     // Typename alias
-    using TCalibConfig = CalibConfig;
+    using TParamConfig = ParamConfig;
 
     // Constructor
     TLCT_API inline Layout() noexcept
@@ -34,7 +34,7 @@ public:
           upsample_(1){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromCfgAndImgsize(const TCalibConfig& cfg, cv::Size imgsize);
+    [[nodiscard]] TLCT_API static inline Layout fromParamConfig(const TParamConfig& cfg);
 
     // Non-const methods
     TLCT_API inline Layout& upsample(const int factor) noexcept;
@@ -79,15 +79,17 @@ private:
 
 static_assert(concepts::CLayout<Layout>);
 
-Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
+Layout Layout::fromParamConfig(const TParamConfig& cfg)
 {
-    const double diameter = cfg.getDiameter();
-    cv::Point2d left_top = cfg.getLeftTop();
-    cv::Point2d right_top = cfg.getRightTop();
-    cv::Point2d left_bottom = cfg.getLeftBottom();
-    cv::Point2d right_bottom = cfg.getRightBottom();
+    const auto& calib_cfg = cfg.getCalibCfg();
+    const double diameter = calib_cfg.getDiameter();
+    cv::Point2d left_top = calib_cfg.getLeftTop();
+    cv::Point2d right_top = calib_cfg.getRightTop();
+    cv::Point2d left_bottom = calib_cfg.getLeftBottom();
+    cv::Point2d right_bottom = calib_cfg.getRightBottom();
+    auto imgsize = cfg.getSpecificCfg().getImgSize();
 
-    if (cfg.getRotation() > 1e-2) {
+    if (calib_cfg.getRotation() > 1e-2) {
         std::swap(left_top.x, left_top.y);
         std::swap(right_bottom.x, right_bottom.y);
         std::swap(right_top.x, right_top.y);
@@ -132,7 +134,7 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
     const cv::Point2d right_y_unit_shift = right_y_shift / (left_y_rows - 1);
 
     return {left_top, right_top, is_out_shift, left_y_unit_shift, right_y_unit_shift,
-            mirows,   micols,    imgsize,      diameter,          cfg.getRotation()};
+            mirows,   micols,    imgsize,      diameter,          calib_cfg.getRotation()};
 }
 
 Layout& Layout::upsample(const int factor) noexcept
