@@ -18,8 +18,6 @@ constexpr int LEN_TYPE_NUM = 3;
 class CalibConfig
 {
 public:
-    friend class Layout;
-
     // Typename alias
     using LenOffsets = std::array<int, LEN_TYPE_NUM>;
 
@@ -35,6 +33,12 @@ public:
     // Initialize from
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLDoc(const pugi::xml_document& doc);
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLPath(std::string_view path);
+
+    // Const methods
+    [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
+    [[nodiscard]] TLCT_API inline double getRotation() const noexcept { return rotation_; };
+    [[nodiscard]] TLCT_API inline cv::Point2d getOffset() const noexcept { return offset_; };
+    [[nodiscard]] TLCT_API inline LenOffsets getLenOffsets() const noexcept { return lofs_; };
 
 private:
     double diameter_;
@@ -85,4 +89,3 @@ CalibConfig CalibConfig::fromXMLPath(std::string_view path)
 }
 
 } // namespace tlct::_cfg::raytrix
-

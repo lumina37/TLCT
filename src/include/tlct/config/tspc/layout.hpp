@@ -81,12 +81,13 @@ static_assert(concepts::CLayout<Layout>);
 
 Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
 {
-    cv::Point2d left_top = cfg.left_top_;
-    cv::Point2d right_top = cfg.right_top_;
-    cv::Point2d left_bottom = cfg.left_bottom_;
-    cv::Point2d right_bottom = cfg.right_bottom_;
+    const double diameter = cfg.getDiameter();
+    cv::Point2d left_top = cfg.getLeftTop();
+    cv::Point2d right_top = cfg.getRightTop();
+    cv::Point2d left_bottom = cfg.getLeftBottom();
+    cv::Point2d right_bottom = cfg.getRightBottom();
 
-    if (cfg.rotation_ > 1e-2) {
+    if (cfg.getRotation() > 1e-2) {
         std::swap(left_top.x, left_top.y);
         std::swap(right_bottom.x, right_bottom.y);
         std::swap(right_top.x, right_top.y);
@@ -98,7 +99,7 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
     const auto veclen = [](const cv::Point2d vec) { return std::sqrt(vec.x * vec.x + vec.y * vec.y); };
 
     const cv::Point2d top_x_shift = right_top - left_top;
-    const int top_cols = _hp::iround(veclen(top_x_shift) / cfg.diameter_) + 1;
+    const int top_cols = _hp::iround(veclen(top_x_shift) / diameter) + 1;
     const cv::Point2d top_x_unit_shift = top_x_shift / (top_cols - 1);
 
     bool is_out_shift;
@@ -122,16 +123,16 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
     }
 
     const cv::Point2d left_y_shift = left_bottom - left_top;
-    const double approx_y_unit_shift = cfg.diameter_ * std::numbers::sqrt3 / 2.0;
+    const double approx_y_unit_shift = diameter * std::numbers::sqrt3 / 2.0;
     const int left_y_rows = _hp::iround(veclen(left_y_shift) / approx_y_unit_shift) + 1;
     const cv::Point2d left_y_unit_shift = left_y_shift / (left_y_rows - 1);
-    const int mirows = (int)(((double)imgsize.height - cfg.diameter_ / 2.0 - left_top.y) / left_y_unit_shift.y) + 1;
+    const int mirows = (int)(((double)imgsize.height - diameter / 2.0 - left_top.y) / left_y_unit_shift.y) + 1;
 
     const cv::Point2d right_y_shift = right_bottom - right_top;
     const cv::Point2d right_y_unit_shift = right_y_shift / (left_y_rows - 1);
 
     return {left_top, right_top, is_out_shift, left_y_unit_shift, right_y_unit_shift,
-            mirows,   micols,    imgsize,      cfg.diameter_,     cfg.rotation_};
+            mirows,   micols,    imgsize,      diameter,          cfg.getRotation()};
 }
 
 Layout& Layout::upsample(const int factor) noexcept

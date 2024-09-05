@@ -88,16 +88,19 @@ static_assert(concepts::CLayout<Layout>);
 
 Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
 {
-    cv::Point2d center_mi{imgsize.width / 2.0 + cfg.offset_.x, imgsize.height / 2.0 - cfg.offset_.y};
+    const double diameter = cfg.getDiameter();
+    const auto offset = cfg.getOffset();
 
-    if (cfg.rotation_ > 1e-2) {
+    cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};
+
+    if (cfg.getRotation() > 1e-2) {
         std::swap(imgsize.height, imgsize.width);
         std::swap(center_mi.x, center_mi.y);
     }
 
-    const double x_unit_shift = cfg.diameter_;
-    const double y_unit_shift = cfg.diameter_ * std::numbers::sqrt3 / 2.0;
-    const double radius = cfg.diameter_ / 2.0;
+    const double x_unit_shift = diameter;
+    const double y_unit_shift = diameter * std::numbers::sqrt3 / 2.0;
+    const double radius = diameter / 2.0;
     const int center_mi_xidx = (int)((center_mi.x - radius) / x_unit_shift);
     const int center_mi_yidx = (int)((center_mi.y - radius) / y_unit_shift);
 
@@ -106,13 +109,13 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
     const double left_x = center_mi.x - x_unit_shift * center_mi_xidx;
     if (center_mi_yidx % 2 == 0) {
         left_top.x = left_x;
-        if (left_top.x > cfg.diameter_) {
+        if (left_top.x > diameter) {
             is_out_shift = true;
         } else {
             is_out_shift = false;
         }
     } else {
-        if (left_x > cfg.diameter_) {
+        if (left_x > cfg.getDiameter()) {
             left_top.x = left_x - radius;
             is_out_shift = false;
         } else {
@@ -131,7 +134,7 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
     TIdx2Type idx2type;
     const bool is_odd_yidx = center_mi_yidx % 2;
     for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
-        const int ofs = cfg.lofs_[type];
+        const int ofs = cfg.getLenOffsets()[type];
         const int idx = (center_mi_xidx + ofs + LEN_TYPE_NUM) % LEN_TYPE_NUM;
         idx2type[is_odd_yidx][idx] = type;
     }
@@ -141,8 +144,8 @@ Layout Layout::fromCfgAndImgsize(const CalibConfig& cfg, cv::Size imgsize)
         idx2type[!is_odd_yidx][idx] = type;
     }
 
-    return {left_top, is_out_shift, x_unit_shift, y_unit_shift,  imgsize,
-            mirows,   micols,       idx2type,     cfg.diameter_, cfg.rotation_};
+    return {left_top, is_out_shift, x_unit_shift, y_unit_shift, imgsize,
+            mirows,   micols,       idx2type,     diameter,     cfg.getRotation()};
 }
 
 Layout& Layout::upsample(const int factor) noexcept
@@ -205,5 +208,3 @@ cv::Mat Layout::procImg(const cv::Mat& src) const
 }
 
 } // namespace tlct::_cfg::raytrix
-
-

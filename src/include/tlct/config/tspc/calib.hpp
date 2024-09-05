@@ -14,23 +14,29 @@ namespace tlct::_cfg::tspc {
 class CalibConfig
 {
 public:
-    friend class Layout;
-
     // Constructor
     TLCT_API inline CalibConfig() noexcept
-        : left_top_(), right_top_(), left_bottom_(), right_bottom_(), diameter_(), rotation_(){};
+        : diameter_(), rotation_(), left_top_(), right_top_(), left_bottom_(), right_bottom_(){};
     TLCT_API inline CalibConfig& operator=(const CalibConfig& rhs) noexcept = default;
     TLCT_API inline CalibConfig(const CalibConfig& rhs) noexcept = default;
     TLCT_API inline CalibConfig& operator=(CalibConfig&& rhs) noexcept = default;
     TLCT_API inline CalibConfig(CalibConfig&& rhs) noexcept = default;
-    TLCT_API inline CalibConfig(cv::Point2d left_top, cv::Point2d right_top, cv::Point2d left_bottom,
-                                cv::Point2d right_bottom, double diameter, double rotation) noexcept
-        : left_top_(left_top), right_top_(right_top), left_bottom_(left_bottom), right_bottom_(right_bottom),
-          diameter_(diameter), rotation_(rotation){};
+    TLCT_API inline CalibConfig(double diameter, double rotation, cv::Point2d left_top, cv::Point2d right_top,
+                                cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
+        : diameter_(diameter), rotation_(rotation), left_top_(left_top), right_top_(right_top),
+          left_bottom_(left_bottom), right_bottom_(right_bottom){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLDoc(const pugi::xml_document& doc);
     [[nodiscard]] TLCT_API static inline CalibConfig fromXMLPath(std::string_view path);
+
+    // Const methods
+    [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
+    [[nodiscard]] TLCT_API inline double getRotation() const noexcept { return rotation_; };
+    [[nodiscard]] TLCT_API inline cv::Point2d getLeftTop() const noexcept { return left_top_; };
+    [[nodiscard]] TLCT_API inline cv::Point2d getRightTop() const noexcept { return right_top_; };
+    [[nodiscard]] TLCT_API inline cv::Point2d getLeftBottom() const noexcept { return left_bottom_; };
+    [[nodiscard]] TLCT_API inline cv::Point2d getRightBottom() const noexcept { return right_bottom_; };
 
 private:
     cv::Point2d left_top_;
@@ -76,7 +82,7 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     const double right_bottom_y = right_bottom_node.child("y").text().as_double();
     const cv::Point2d right_bottom{right_bottom_x, right_bottom_y};
 
-    return {left_top, right_top, left_bottom, right_bottom, diameter, rotation};
+    return {diameter, rotation, left_top, right_top, left_bottom, right_bottom};
 }
 
 CalibConfig CalibConfig::fromXMLPath(std::string_view path)
