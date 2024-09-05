@@ -1,8 +1,7 @@
 #pragma once
 
-#include <opencv2/quality.hpp>
-
 #include "grad.hpp"
+#include "ssim.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 
@@ -12,14 +11,14 @@ class AnchorWrapper
 {
 public:
     // Typename alias
-    using TBase = cv::quality::QualitySSIM;
+    using TBase = QualitySSIM;
 
     // Constructor
     TLCT_API AnchorWrapper& operator=(const AnchorWrapper& rhs) noexcept = default;
     TLCT_API inline AnchorWrapper(const AnchorWrapper& rhs) noexcept = default;
     TLCT_API AnchorWrapper& operator=(AnchorWrapper&& rhs) noexcept = default;
     TLCT_API AnchorWrapper(AnchorWrapper&& rhs) noexcept = default;
-    TLCT_API inline AnchorWrapper(cv::Ptr<cv::quality::QualitySSIM>&& base, const double weight)
+    TLCT_API inline AnchorWrapper(cv::Ptr<TBase>&& base, const double weight)
         : base_(std::move(base)), weight_(weight){};
 
     // Const methods
