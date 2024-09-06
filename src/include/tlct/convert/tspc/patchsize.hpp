@@ -7,7 +7,7 @@
 #include <set>
 #include <vector>
 
-#include <opencv2/quality.hpp>
+#include <opencv2/core.hpp>
 
 #include "neighbors.hpp"
 #include "state.hpp"
