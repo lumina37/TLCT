@@ -24,6 +24,7 @@ public:
     using TParamConfig = tcfg::ParamConfig;
     using TSpecificConfig = TParamConfig::TSpecificConfig;
     using TLayout = tcfg::Layout;
+    using TMIs = MIs<TLayout>;
 
     // Constructor
     State() = delete;
@@ -100,6 +101,7 @@ private:
     cv::Mat patchsizes_;
     cv::Mat gray_src_;
     cv::Mat src_32f_;
+    TMIs mis_;
     int patch_xshift_; // the extracted patch will be zoomed to this height
     int patch_yshift_;
     double bound_;
@@ -177,6 +179,8 @@ void State::feed(const cv::Mat& newsrc)
     layout_.procImg_(newsrc, proced_src);
     cv::cvtColor(proced_src, gray_src_, cv::COLOR_BGR2GRAY);
     proced_src.convertTo(src_32f_, CV_32FC3);
+
+    mis_ = TMIs::fromLayoutAndImg(layout_, gray_src_);
 
     std::swap(prev_patchsizes_, patchsizes_);
     patchsizes_ = estimatePatchsizes();
