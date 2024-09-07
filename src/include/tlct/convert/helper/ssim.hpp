@@ -2,6 +2,8 @@
 
 #include <opencv2/imgproc.hpp>
 
+#include "tlct/common/defines.h"
+
 namespace tlct::_cvt {
 
 static inline cv::Mat expand_mat(const cv::Mat& src)
@@ -14,9 +16,9 @@ static inline cv::Mat expand_mat(const cv::Mat& src)
 class QualitySSIM
 {
 public:
-    inline cv::Scalar compute(const cv::Mat& cmp);
+    [[nodiscard]] TLCT_API inline cv::Scalar compute(const cv::Mat& cmp);
 
-    static inline cv::Ptr<QualitySSIM> create(const cv::Mat& ref);
+    [[nodiscard]] TLCT_API static inline cv::Ptr<QualitySSIM> create(const cv::Mat& ref);
 
 private:
     // holds computed values for a mat
@@ -24,16 +26,16 @@ private:
         cv::Mat I, I_2, mu, mu_2, sigma_2;
 
         // construct from mat_type
-        explicit _mat_data(const cv::Mat&);
+        TLCT_API explicit _mat_data(const cv::Mat&);
 
         // computes ssim and quality map for single frame
-        static cv::Scalar compute(const _mat_data& lhs, const _mat_data& rhs);
+        TLCT_API static inline cv::Scalar compute(const _mat_data& lhs, const _mat_data& rhs);
 
     }; // mat_data
 
     _mat_data _refImgData;
 
-    explicit QualitySSIM(_mat_data refImgData) : _refImgData(std::move(refImgData)) {}
+    TLCT_API explicit QualitySSIM(_mat_data refImgData) : _refImgData(std::move(refImgData)) {}
 };
 
 static inline cv::Mat blur(const cv::Mat& mat)

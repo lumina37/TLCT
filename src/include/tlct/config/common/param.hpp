@@ -31,9 +31,9 @@ public:
     TLCT_API inline ParamConfig_(const ParamConfig_& rhs) noexcept = default;
     TLCT_API inline ParamConfig_& operator=(ParamConfig_&& rhs) noexcept = default;
     TLCT_API inline ParamConfig_(ParamConfig_&& rhs) noexcept = default;
-    TLCT_API inline ParamConfig_(GenericParamConfig generic_cfg, TSpecificConfig spec_cfg,
-                                 TCalibConfig calib_cfg) noexcept
-        : generic_cfg_(std::move(generic_cfg)), spec_cfg_(spec_cfg), calib_cfg_(calib_cfg){};
+    TLCT_API inline ParamConfig_(GenericParamConfig&& generic_cfg, TSpecificConfig&& spec_cfg,
+                                 TCalibConfig&& calib_cfg) noexcept
+        : generic_cfg_(std::move(generic_cfg)), spec_cfg_(std::move(spec_cfg)), calib_cfg_(std::move(calib_cfg)){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline ParamConfig_ fromConfigMap(const ConfigMap& cfg_map);
@@ -62,10 +62,10 @@ ParamConfig_<TSpecificConfig, TCalibConfig>
 ParamConfig_<TSpecificConfig, TCalibConfig>::fromConfigMap(const ConfigMap& cfg_map)
 {
     const auto& map = cfg_map.getMap();
-    const auto generic_cfg = GenericParamConfig::fromConfigMap(cfg_map);
-    const auto spec_cfg = TSpecificConfig::fromConfigMap(cfg_map);
-    const auto calib_cfg = TCalibConfig::fromXMLPath(map.at("Calibration_xml"));
-    return {generic_cfg, spec_cfg, calib_cfg};
+    auto generic_cfg = GenericParamConfig::fromConfigMap(cfg_map);
+    auto spec_cfg = TSpecificConfig::fromConfigMap(cfg_map);
+    auto calib_cfg = TCalibConfig::fromXMLPath(map.at("Calibration_xml"));
+    return {std::move(generic_cfg), std::move(spec_cfg), std::move(calib_cfg)};
 }
 
 template class ParamConfig_<tspc::SpecificConfig, tspc::CalibConfig>;

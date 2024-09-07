@@ -23,7 +23,7 @@ public:
     TLCT_API inline ConfigMap(const ConfigMap& rhs) = default;
     TLCT_API inline ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
     TLCT_API inline ConfigMap(ConfigMap&& rhs) noexcept = default;
-    TLCT_API explicit inline ConfigMap(TMap cfg_map) : map_(std::move(cfg_map)){};
+    TLCT_API explicit inline ConfigMap(TMap&& cfg_map) : map_(std::move(cfg_map)){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline ConfigMap fromFstream(std::ifstream&& ifs) noexcept;
@@ -78,7 +78,7 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) noexcept
         cfg_map.emplace(key, value);
     }
 
-    return ConfigMap(cfg_map);
+    return ConfigMap(std::move(cfg_map));
 }
 
 ConfigMap ConfigMap::fromPath(std::string_view path)

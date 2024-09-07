@@ -38,7 +38,7 @@ public:
     inline Inspector(const Inspector& rhs) noexcept = default;
     inline Inspector& operator=(Inspector&& rhs) noexcept = default;
     inline Inspector(Inspector&& rhs) noexcept = default;
-    inline Inspector(const fs::path dst_dir, std::ofstream&& fstream)
+    inline Inspector(fs::path&& dst_dir, std::ofstream&& fstream)
         : dst_dir_(std::move(dst_dir)), fstream_(std::move(fstream)), enable_if_(ALWAYS_ENABLE){};
 
     // Init from
@@ -72,11 +72,11 @@ Inspector Inspector::fromGenericCfg(const tcfg::GenericParamConfig& generic_cfg)
         return {};
 
     const fs::path dst_pattern{generic_cfg.getDstPattern()};
-    const fs::path dst_dir = dst_pattern.parent_path() / "inspect";
+    fs::path dst_dir = dst_pattern.parent_path() / "inspect";
     fs::create_directories(dst_dir);
     std::ofstream fstream{dst_dir / "report.csv"};
 
-    return {dst_dir, std::move(fstream)};
+    return {std::move(dst_dir), std::move(fstream)};
 }
 
 fs::path Inspector::getMIDir(const int row, const int col) const noexcept
