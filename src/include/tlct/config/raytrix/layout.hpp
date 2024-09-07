@@ -43,7 +43,6 @@ public:
 
     // Non-const methods
     TLCT_API inline Layout& upsample(int factor) noexcept;
-    TLCT_API inline Layout& transpose() noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
@@ -159,8 +158,6 @@ Layout& Layout::upsample(int factor) noexcept
     upsample_ = factor;
     return *this;
 }
-
-Layout& Layout::transpose() noexcept { return *this; }
 
 int Layout::getMIType(int row, int col) const noexcept
 {

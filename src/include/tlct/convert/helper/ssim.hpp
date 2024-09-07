@@ -39,6 +39,8 @@ inline R expand_mat(cv::InputArray src, int TYPE_DEFAULT = EXPANDED_MAT_DEFAULT_
     return result;
 }
 
+using _mat_type = cv::UMat;
+
 class QualitySSIM
 {
 public:
@@ -49,16 +51,13 @@ public:
 protected:
     // holds computed values for a mat
     struct _mat_data {
-        // internal mat type
-        using mat_type = cv::UMat;
-
-        mat_type I, I_2, mu, mu_2, sigma_2;
+        _mat_type I, I_2, mu, mu_2, sigma_2;
 
         // allow default construction
         _mat_data() = default;
 
         // construct from mat_type
-        _mat_data(const mat_type&);
+        _mat_data(const _mat_type&);
 
         // construct from inputarray
         _mat_data(cv::InputArray);
@@ -67,22 +66,18 @@ protected:
         bool empty() const { return I.empty() && I_2.empty() && mu.empty() && mu_2.empty() && sigma_2.empty(); }
 
         // computes ssim and quality map for single frame
-        static std::pair<cv::Scalar, mat_type> compute(const _mat_data& lhs, const _mat_data& rhs);
+        static std::pair<cv::Scalar, _mat_type> compute(const _mat_data& lhs, const _mat_data& rhs);
 
     }; // mat_data
 
-    using _mat_type = cv::UMat;
     _mat_type _qualityMap;
     _mat_data _refImgData;
 
-    QualitySSIM(_mat_data refImgData) : _refImgData(std::move(refImgData)) {}
+    explicit QualitySSIM(_mat_data refImgData) : _refImgData(std::move(refImgData)) {}
 };
 
-using _mat_type = cv::UMat;
-using _quality_map_type = _mat_type;
-
 // SSIM blur function
-_mat_type blur(const _mat_type& mat)
+static inline _mat_type blur(const _mat_type& mat)
 {
     _mat_type result = {};
     cv::GaussianBlur(mat, result, cv::Size(11, 11), 1.5);
@@ -99,7 +94,7 @@ QualitySSIM::_mat_data::_mat_data(const _mat_type& mat)
     cv::subtract(this->sigma_2, this->mu_2, this->sigma_2);
 }
 
-QualitySSIM::_mat_data::_mat_data(cv::InputArray arr) : _mat_data(expand_mat<mat_type>(arr)) // delegate
+QualitySSIM::_mat_data::_mat_data(cv::InputArray arr) : _mat_data(expand_mat<_mat_type>(arr)) // delegate
 {
 }
 
@@ -108,7 +103,6 @@ cv::Ptr<QualitySSIM> QualitySSIM::create(cv::InputArray ref)
 {
     return cv::Ptr<QualitySSIM>(new QualitySSIM(_mat_data(ref)));
 }
-
 
 cv::Scalar QualitySSIM::compute(cv::InputArray cmp)
 {
@@ -122,7 +116,7 @@ std::pair<cv::Scalar, _mat_type> QualitySSIM::_mat_data::compute(const _mat_data
 {
     const double C1 = 6.5025, C2 = 58.5225;
 
-    mat_type I1_I2, mu1_mu2, t1, t2, t3, sigma12;
+    _mat_type I1_I2, mu1_mu2, t1, t2, t3, sigma12;
 
     cv::multiply(lhs.I, rhs.I, I1_I2);
     cv::multiply(lhs.mu, rhs.mu, mu1_mu2);

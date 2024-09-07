@@ -159,8 +159,8 @@ State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 
-    final_width_ = tlct::_hp::align_to_2((int)std::round((double)col_range.size() / upsample));
-    final_height_ = tlct::_hp::align_to_2((int)std::round((double)row_range.size() / upsample));
+    final_width_ = _hp::round_to<2>(_hp::iround((double)col_range.size() / upsample));
+    final_height_ = _hp::round_to<2>(_hp::iround((double)row_range.size() / upsample));
 }
 
 State State::fromParamCfg(const TParamConfig& param_cfg)
