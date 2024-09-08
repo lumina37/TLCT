@@ -124,6 +124,8 @@ static_assert(concepts::CState<State>);
 State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     : layout_(layout), spec_cfg_(spec_cfg), views_(views), src_32f_(), inspector_()
 {
+    mis_ = TMIs::fromLayout(layout);
+
     const int upsample = layout.getUpsample();
     const double patch_xshift_d = 0.5 * layout.getDiameter();
     patch_xshift_ = (int)std::ceil(patch_xshift_d);
@@ -177,8 +179,7 @@ void State::feed(const cv::Mat& newsrc)
     cv::Mat proced_src;
     layout_.procImg_(newsrc, proced_src);
     proced_src.convertTo(src_32f_, CV_32FC3);
-
-    mis_ = TMIs::fromLayoutAndImg(layout_, proced_src);
+    mis_.update(proced_src);
 
     std::swap(prev_patchsizes_, patchsizes_);
     patchsizes_ = estimatePatchsizes();
