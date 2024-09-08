@@ -6,8 +6,8 @@
 #include "helper/microimages.hpp"
 #include "helper/neighbors.hpp"
 #include "helper/roi.hpp"
+#include "helper/ssim.hpp"
 #include "helper/variance.hpp"
-#include "helper/wrapper.hpp"
 
 namespace tlct::cvt {
 

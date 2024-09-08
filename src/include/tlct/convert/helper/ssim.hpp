@@ -6,37 +6,6 @@
 
 namespace tlct::_cvt {
 
-static inline cv::Mat expand_mat(const cv::Mat& src)
-{
-    cv::Mat result;
-    src.convertTo(result, CV_32F);
-    return std::move(result);
-}
-
-class QualitySSIM
-{
-public:
-    [[nodiscard]] TLCT_API inline cv::Scalar compute(const cv::Mat& cmp);
-    [[nodiscard]] TLCT_API static inline cv::Ptr<QualitySSIM> create(const cv::Mat& ref);
-
-private:
-    // holds computed values for a mat
-    struct _mat_data {
-        cv::Mat I, I_2, mu, mu_2, sigma_2;
-
-        // construct from mat_type
-        TLCT_API explicit _mat_data(const cv::Mat&);
-
-        // computes ssim and quality map for single frame
-        TLCT_API static inline cv::Scalar compute(const _mat_data& lhs, const _mat_data& rhs);
-
-    }; // mat_data
-
-    _mat_data _refImgData;
-
-    TLCT_API explicit QualitySSIM(_mat_data refImgData) : _refImgData(std::move(refImgData)) {}
-};
-
 static inline cv::Mat blur(const cv::Mat& mat)
 {
     cv::Mat result;
@@ -44,32 +13,36 @@ static inline cv::Mat blur(const cv::Mat& mat)
     return result;
 }
 
-QualitySSIM::_mat_data::_mat_data(const cv::Mat& mat)
+class WrapSSIM
 {
-    this->I = expand_mat(mat);
-    cv::multiply(this->I, this->I, this->I_2);
-    this->mu = blur(this->I);
-    cv::multiply(this->mu, this->mu, this->mu_2);
-    this->sigma_2 = blur(this->I_2); // blur the squared img, subtract blurred_squared
-    cv::subtract(this->sigma_2, this->mu_2, this->sigma_2);
-}
+public:
+    // Constructor
+    TLCT_API explicit inline WrapSSIM(const cv::Mat& src);
+    TLCT_API WrapSSIM& operator=(const WrapSSIM& rhs) noexcept = default;
+    TLCT_API inline WrapSSIM(const WrapSSIM& rhs) noexcept = default;
+    TLCT_API WrapSSIM& operator=(WrapSSIM&& rhs) noexcept = default;
+    TLCT_API WrapSSIM(WrapSSIM&& rhs) noexcept = default;
 
-cv::Ptr<QualitySSIM> QualitySSIM::create(const cv::Mat& ref) { return {new QualitySSIM(_mat_data(ref))}; }
+    // Const methods
+    [[nodiscard]] TLCT_API inline double compare(const WrapSSIM& rhs) const;
 
-cv::Scalar QualitySSIM::compute(const cv::Mat& cmp)
-{
-    auto result = _mat_data::compute(this->_refImgData, _mat_data(cmp));
-    return result;
-}
+    // Init from
+    [[nodiscard]] static inline WrapSSIM fromRoi(const cv::Mat& roi);
 
-cv::Scalar QualitySSIM::_mat_data::compute(const _mat_data& lhs, const _mat_data& rhs)
+private:
+    cv::Mat I, I_2, mu, mu_2, sigma_2;
+};
+
+WrapSSIM WrapSSIM::fromRoi(const cv::Mat& roi) { return WrapSSIM(roi); }
+
+double WrapSSIM::compare(const WrapSSIM& rhs) const
 {
     constexpr double C1 = 6.5025, C2 = 58.5225;
 
     cv::Mat I1_I2, mu1_mu2, t1, t2, t3, sigma12;
 
-    cv::multiply(lhs.I, rhs.I, I1_I2);
-    cv::multiply(lhs.mu, rhs.mu, mu1_mu2);
+    cv::multiply(I, rhs.I, I1_I2);
+    cv::multiply(mu, rhs.mu, mu1_mu2);
     cv::subtract(blur(I1_I2), mu1_mu2, sigma12);
 
     // t3 = ((2*mu1_mu2 + C1).*(2*sigma12 + C2))
@@ -83,10 +56,10 @@ cv::Scalar QualitySSIM::_mat_data::compute(const _mat_data& lhs, const _mat_data
     cv::multiply(t1, t2, t3);
 
     // t1 =((mu1_2 + mu2_2 + C1).*(sigma1_2 + sigma2_2 + C2))
-    cv::add(lhs.mu_2, rhs.mu_2, t1);
+    cv::add(mu_2, rhs.mu_2, t1);
     cv::add(t1, C1, t1);
 
-    cv::add(lhs.sigma_2, rhs.sigma_2, t2);
+    cv::add(sigma_2, rhs.sigma_2, t2);
     cv::add(t2, C2, t2);
 
     // t1 *= t2
@@ -95,7 +68,19 @@ cv::Scalar QualitySSIM::_mat_data::compute(const _mat_data& lhs, const _mat_data
     // quality map: t3 /= t1
     cv::divide(t3, t1, t3);
 
-    return cv::mean(t3);
+    const auto ssim = cv::mean(t3);
+
+    return -ssim[0];
+}
+
+WrapSSIM::WrapSSIM(const cv::Mat& src)
+{
+    src.convertTo(this->I, CV_32F);
+    cv::multiply(this->I, this->I, this->I_2);
+    this->mu = blur(this->I);
+    cv::multiply(this->mu, this->mu, this->mu_2);
+    this->sigma_2 = blur(this->I_2); // blur the squared img, subtract blurred_squared
+    cv::subtract(this->sigma_2, this->mu_2, this->sigma_2);
 }
 
 } // namespace tlct::_cvt

@@ -97,10 +97,10 @@ private:
     const TLayout layout_;
     const TSpecificConfig spec_cfg_;
     int views_;
-    cv::Mat prev_patchsizes_;
-    cv::Mat patchsizes_;
     cv::Mat src_32f_;
     TMIs mis_;
+    cv::Mat prev_patchsizes_;
+    cv::Mat patchsizes_;
     int patch_xshift_; // the extracted patch will be zoomed to this height
     int patch_yshift_;
     double bound_;

@@ -36,14 +36,16 @@ double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) 
             const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
 
             const cv::Mat& anchor = getRoiImageByCenter(anchor_mi, mi_center + anchor_shift, pattern_size_);
-            const auto& anchor_wrapper = AnchorWrapper::fromRoi(anchor);
+            const auto& wrap_anchor = WrapSSIM::fromRoi(anchor);
             const cv::Point neib_idx = neighbors.getNeighborIdx(direction);
             const cv::Mat& neib_mi = mis_.getMI(neib_idx);
             const cv::Mat& neib = getRoiImageByCenter(neib_mi, mi_center + cmp_shift, pattern_size_);
+            const auto& wrap_neib = WrapSSIM::fromRoi(neib);
 
-            const double metric = anchor_wrapper.compare(neib);
-            weighted_metric += metric * anchor_wrapper.getWeight();
-            total_weight += anchor_wrapper.getWeight();
+            const double metric = wrap_anchor.compare(wrap_neib);
+            const double weight = computeGrad(anchor);
+            weighted_metric += metric * weight;
+            total_weight += weight;
         }
     };
 
@@ -71,7 +73,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
             const cv::Point2d anchor_shift = neighbors.getUnitShift(direction) * pattern_shift_;
 
             const cv::Mat& anchor = getRoiImageByCenter(anchor_mi, mi_center + anchor_shift, pattern_size_);
-            const auto& anchor_wrapper = AnchorWrapper::fromRoi(anchor);
+            const auto& wrap_anchor = WrapSSIM::fromRoi(anchor);
 
             if (Inspector::PATTERN_ENABLED) {
                 inspector_.saveAnchor(anchor, neighbors.getSelfIdx(), (int)direction);
@@ -88,8 +90,11 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
             metrics.reserve(max_shift - min_psize_);
             for (const int psize : rgs::views::iota(min_psize_, max_shift)) {
                 cmp_shift += match_step;
+
                 const cv::Mat& cmp = getRoiImageByCenter(neib_mi, mi_center + cmp_shift, pattern_size_);
-                const double metric = anchor_wrapper.compare(cmp);
+                const auto& wrap_cmp = WrapSSIM::fromRoi(cmp);
+
+                const double metric = wrap_anchor.compare(wrap_cmp);
                 metrics.push_back(metric);
 
                 if (Inspector::PATTERN_ENABLED) {
@@ -102,7 +107,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
                 }
             }
 
-            const double weight = anchor_wrapper.getWeight() * stdvar(metrics);
+            const double weight = computeGrad(anchor) * stdvar(metrics);
             weighted_psize += weight * min_metric_psize;
             total_weight += weight;
             psizes.push_back(min_metric_psize);
