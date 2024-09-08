@@ -33,7 +33,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
         for (const int j : rgs::views::iota(0, layout_.getMICols(i))) {
             const cv::Point2d center = layout_.getMICenter(i, j);
 
-            mi = getRoiImageByCenter(gray_src_, center, layout_.getDiameter() / std::numbers::sqrt2);
+            mi = mis_.getMI(i, j);
             const double grad_weight = computeGrad(mi) + std::numeric_limits<float>::epsilon();
 
             // Extract patch

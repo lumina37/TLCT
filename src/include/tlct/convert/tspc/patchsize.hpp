@@ -21,36 +21,10 @@ namespace rgs = std::ranges;
 
 constexpr int INVALID_PSIZE = -1;
 
-template <bool left_and_up_only>
-static inline std::vector<int> getRefPsizes(const cv::Mat& psizes, const Neighbors& neighbors)
-{
-    std::set<int> ref_psizes_set;
-
-    for (const int idx : rgs::views::iota(0, DIRECTION_NUM / 2)) {
-        const auto direction = DIRECTIONS[idx];
-        if (neighbors.hasNeighbor(direction)) {
-            const int psize = psizes.at<int>(neighbors.getNeighborIdx(direction));
-            ref_psizes_set.insert(psize);
-        }
-    }
-
-    if constexpr (!left_and_up_only) {
-        for (const int idx : rgs::views::iota(DIRECTION_NUM / 2, DIRECTION_NUM)) {
-            const auto direction = DIRECTIONS[idx];
-            if (neighbors.hasNeighbor(direction)) {
-                const int psize = psizes.at<int>(neighbors.getNeighborIdx(direction));
-                ref_psizes_set.insert(psize);
-            }
-        }
-    }
-
-    std::vector<int> ref_psizes(ref_psizes_set.begin(), ref_psizes_set.end());
-    return std::move(ref_psizes);
-}
-
 double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) const
 {
-    const cv::Point2d curr_center = neighbors.getSelfPt();
+    const cv::Point2d mi_center{layout_.getRadius(), layout_.getRadius()};
+    const cv::Mat& anchor_mi = mis_.getMI(neighbors.getSelfIdx());
 
     double weighted_metric = 0.0;
     double total_weight = 0.0;
@@ -61,16 +35,15 @@ double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) 
             const cv::Point2d match_step = neighbors.getUnitShift(direction);
             const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
 
-            const cv::Point2d anchor_center = curr_center + anchor_shift;
-            const cv::Point2d neib_center = neighbors.getNeighborPt(direction);
-            const cv::Point2d cmp_center = neib_center + cmp_shift;
+            const cv::Mat& anchor = getRoiImageByCenter(anchor_mi, mi_center + anchor_shift, pattern_size_);
+            const auto& anchor_wrapper = AnchorWrapper::fromRoi(anchor);
+            const cv::Point neib_idx = neighbors.getNeighborIdx(direction);
+            const cv::Mat& neib_mi = mis_.getMI(neib_idx);
+            const cv::Mat& neib = getRoiImageByCenter(neib_mi, mi_center + cmp_shift, pattern_size_);
 
-            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src_, anchor_center, pattern_size_));
-            const auto& rhs = getRoiImageByCenter(gray_src_, cmp_center, pattern_size_);
-
-            const double metric = anchor.compare(rhs);
-            weighted_metric += metric * anchor.getWeight();
-            total_weight += anchor.getWeight();
+            const double metric = anchor_wrapper.compare(neib);
+            weighted_metric += metric * anchor_wrapper.getWeight();
+            total_weight += anchor_wrapper.getWeight();
         }
     };
 
@@ -80,10 +53,11 @@ double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) 
 
 int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
 {
-    const cv::Point2d curr_center = neighbors.getSelfPt();
+    const cv::Point2d mi_center{layout_.getRadius(), layout_.getRadius()};
+    const cv::Mat& anchor_mi = mis_.getMI(neighbors.getSelfIdx());
 
     if (Inspector::PATTERN_ENABLED) {
-        inspector_.saveMI(getRoiImageByCenter(gray_src_, curr_center, layout_.getDiameter()), neighbors.getSelfIdx());
+        inspector_.saveMI(anchor_mi, neighbors.getSelfIdx());
     }
 
     const int max_shift = (int)(pattern_shift_ * 2);
@@ -95,16 +69,17 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
     for (const auto direction : DIRECTIONS) {
         if (neighbors.hasNeighbor(direction)) {
             const cv::Point2d anchor_shift = -neighbors.getUnitShift(direction) * pattern_shift_;
-            const cv::Point2d anchor_center = curr_center + anchor_shift;
-            const cv::Point2d match_step = neighbors.getUnitShift(direction);
-            const auto& anchor = AnchorWrapper::fromRoi(getRoiImageByCenter(gray_src_, anchor_center, pattern_size_));
+
+            const cv::Mat& anchor = getRoiImageByCenter(anchor_mi, mi_center + anchor_shift, pattern_size_);
+            const auto& anchor_wrapper = AnchorWrapper::fromRoi(anchor);
 
             if (Inspector::PATTERN_ENABLED) {
-                inspector_.saveAnchor(getRoiImageByCenter(gray_src_, anchor_center, pattern_size_),
-                                      neighbors.getSelfIdx(), (int)direction);
+                inspector_.saveAnchor(anchor, neighbors.getSelfIdx(), (int)direction);
             }
 
-            const cv::Point2d neib_center = neighbors.getNeighborPt(direction);
+            const cv::Mat& neib_mi = mis_.getMI(neighbors.getNeighborIdx(direction));
+
+            const cv::Point2d match_step = neighbors.getUnitShift(direction);
             cv::Point2d cmp_shift = anchor_shift + match_step * min_psize_;
 
             int min_metric_psize = INVALID_PSIZE;
@@ -113,13 +88,12 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
             metrics.reserve(max_shift - min_psize_);
             for (const int psize : rgs::views::iota(min_psize_, max_shift)) {
                 cmp_shift += match_step;
-                const auto& rhs = getRoiImageByCenter(gray_src_, neib_center + cmp_shift, pattern_size_);
-                const double metric = anchor.compare(rhs);
+                const cv::Mat& cmp = getRoiImageByCenter(neib_mi, mi_center + cmp_shift, pattern_size_);
+                const double metric = anchor_wrapper.compare(cmp);
                 metrics.push_back(metric);
 
                 if (Inspector::PATTERN_ENABLED) {
-                    inspector_.saveCmpPattern(getRoiImageByCenter(gray_src_, neib_center + cmp_shift, pattern_size_),
-                                              neighbors.getSelfIdx(), (int)direction, psize, metric);
+                    inspector_.saveCmpPattern(cmp, neighbors.getSelfIdx(), (int)direction, psize, metric);
                 }
 
                 if (metric < min_metric) {
@@ -128,7 +102,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
                 }
             }
 
-            const double weight = anchor.getWeight() * stdvar(metrics);
+            const double weight = anchor_wrapper.getWeight() * stdvar(metrics);
             weighted_psize += weight * min_metric_psize;
             total_weight += weight;
             psizes.push_back(min_metric_psize);
