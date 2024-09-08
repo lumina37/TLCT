@@ -30,7 +30,7 @@ public:
     State() = delete;
     State(const State& cfg) = delete;
     TLCT_API inline State(State&& cfg) noexcept = default;
-    TLCT_API inline State(const TLayout layout, const TSpecificConfig spec_cfg, int views);
+    TLCT_API inline State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views);
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
@@ -89,9 +89,9 @@ public:
 
     [[nodiscard]] inline cv::Mat estimatePatchsizes();
     [[nodiscard]] inline cv::Mat renderView(int view_row, int view_col) const;
-    [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, const int psize) const;
+    [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, int psize) const;
     [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors);
-    [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, const cv::Point index);
+    [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, cv::Point index);
 
 private:
     const TLayout layout_;
@@ -99,7 +99,6 @@ private:
     int views_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
-    cv::Mat gray_src_;
     cv::Mat src_32f_;
     TMIs mis_;
     int patch_xshift_; // the extracted patch will be zoomed to this height
@@ -122,7 +121,7 @@ private:
 
 static_assert(concepts::CState<State>);
 
-State::State(const TLayout layout, const TSpecificConfig spec_cfg, int views)
+State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     : layout_(layout), spec_cfg_(spec_cfg), views_(views), src_32f_(), inspector_()
 {
     const int upsample = layout.getUpsample();
@@ -177,10 +176,9 @@ void State::feed(const cv::Mat& newsrc)
 {
     cv::Mat proced_src;
     layout_.procImg_(newsrc, proced_src);
-    cv::cvtColor(proced_src, gray_src_, cv::COLOR_BGR2GRAY);
     proced_src.convertTo(src_32f_, CV_32FC3);
 
-    mis_ = TMIs::fromLayoutAndImg(layout_, gray_src_);
+    mis_ = TMIs::fromLayoutAndImg(layout_, proced_src);
 
     std::swap(prev_patchsizes_, patchsizes_);
     patchsizes_ = estimatePatchsizes();

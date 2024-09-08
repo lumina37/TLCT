@@ -40,7 +40,7 @@ public:
     TLCT_API inline ~MIs() { std::free(buffer_); }
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline MIs fromLayoutAndImg(const TLayout& layout, const cv::Mat& img);
+    [[nodiscard]] TLCT_API static inline MIs fromLayoutAndImg(const TLayout& layout, const cv::Mat& src);
 
     // Const methods
     [[nodiscard]] TLCT_API inline const cv::Mat& getMI(int row, int col) const noexcept
@@ -61,8 +61,11 @@ private:
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-MIs<TLayout> MIs<TLayout>::fromLayoutAndImg(const TLayout& layout, const cv::Mat& img)
+MIs<TLayout> MIs<TLayout>::fromLayoutAndImg(const TLayout& layout, const cv::Mat& src)
 {
+    cv::Mat gray_src;
+    cv::cvtColor(src, gray_src, cv::COLOR_BGR2GRAY);
+
     const int diameter = _hp::iround(layout.getDiameter());
     const int mi_size = diameter * diameter;
     const size_t aligned_mi_size = _hp::align_to<CACHELINE_SIZE>(mi_size);
@@ -82,7 +85,7 @@ MIs<TLayout> MIs<TLayout>::fromLayoutAndImg(const TLayout& layout, const cv::Mat
         const int mi_cols = layout.getMICols(irow);
         for (const int icol : rgs::views::iota(0, mi_cols)) {
             const auto mi_center = layout.getMICenter(irow, icol);
-            const cv::Mat& mi_src = getRoiImageByCenter(img, mi_center, layout.getDiameter());
+            const cv::Mat& mi_src = getRoiImageByCenter(gray_src, mi_center, layout.getDiameter());
             auto& mi_dst = mis.emplace_back(diameter, diameter, CV_8U, col_cursor);
             mi_src.copyTo(mi_dst);
             col_cursor += aligned_mi_size;
