@@ -19,25 +19,24 @@ template <typename TLayout>
 class MIs
 {
 public:
-    static constexpr size_t CACHELINE_SIZE = 64;
+    static constexpr size_t CACHELINE_SIZE = 0x40;
 
     // Constructor
-    TLCT_API inline MIs() noexcept : layout_(), mi_max_cols_(), mis_(), buffer_(){};
-    TLCT_API inline MIs(const TLayout& layout, std::vector<cv::Mat>&& mis, void* buffer) noexcept
-        : layout_(layout), mi_max_cols_(layout.getMIMaxCols()), mis_(std::move(mis)), buffer_(buffer){};
+    TLCT_API inline MIs() noexcept : layout_(), mi_max_cols_(), items_(), buffer_(){};
+    TLCT_API inline explicit MIs(const TLayout& layout) noexcept;
     TLCT_API inline MIs& operator=(const MIs& rhs) noexcept = delete;
     TLCT_API inline MIs(const MIs& rhs) noexcept = delete;
     TLCT_API inline MIs& operator=(MIs&& rhs) noexcept
     {
         layout_ = std::move(rhs.layout_);
         mi_max_cols_ = std::exchange(rhs.mi_max_cols_, 0);
-        mis_ = std::move(rhs.mis_);
+        items_ = std::move(rhs.items_);
         buffer_ = std::exchange(rhs.buffer_, nullptr);
         return *this;
     };
     TLCT_API inline MIs(MIs&& rhs) noexcept
-        : layout_(std::move(rhs.layout_)), mi_max_cols_(std::exchange(rhs.mi_max_cols_, 0)), mis_(std::move(rhs.mis_)),
-          buffer_(std::exchange(rhs.buffer_, nullptr)){};
+        : layout_(std::move(rhs.layout_)), mi_max_cols_(std::exchange(rhs.mi_max_cols_, 0)),
+          items_(std::move(rhs.items_)), buffer_(std::exchange(rhs.buffer_, nullptr)){};
     TLCT_API inline ~MIs() { std::free(buffer_); }
 
     // Initialize from
@@ -47,7 +46,7 @@ public:
     [[nodiscard]] TLCT_API inline const cv::Mat& getMI(int row, int col) const noexcept
     {
         const int offset = row * layout_.getMIMaxCols() + col;
-        return mis_.at(offset);
+        return items_.at(offset);
     };
     [[nodiscard]] TLCT_API inline const cv::Mat& getMI(cv::Point index) const noexcept
     {
@@ -60,13 +59,13 @@ public:
 private:
     TLayout layout_;
     int mi_max_cols_;
-    std::vector<cv::Mat> mis_;
+    std::vector<cv::Mat> items_;
     void* buffer_;
 };
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-MIs<TLayout> MIs<TLayout>::fromLayout(const TLayout& layout)
+MIs<TLayout>::MIs(const TLayout& layout) noexcept : layout_(layout), mi_max_cols_(layout.getMIMaxCols())
 {
     const int diameter = _hp::iround(layout.getDiameter());
     const int mi_size = diameter * diameter;
@@ -75,11 +74,15 @@ MIs<TLayout> MIs<TLayout>::fromLayout(const TLayout& layout)
     const int mi_num = mi_max_cols * layout.getMIRows();
     const size_t buffer_size = mi_num * aligned_mi_size;
 
-    std::vector<cv::Mat> mis;
-    mis.resize(mi_num);
-    void* buffer = std::malloc(buffer_size + CACHELINE_SIZE);
+    items_.resize(mi_num);
+    buffer_ = std::malloc(buffer_size + CACHELINE_SIZE);
+}
 
-    return {layout, std::move(mis), buffer};
+template <typename TLayout>
+    requires tlct::cfg::concepts::CLayout<TLayout>
+MIs<TLayout> MIs<TLayout>::fromLayout(const TLayout& layout)
+{
+    return MIs(layout);
 }
 
 template <typename TLayout>
@@ -95,7 +98,7 @@ MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src) noexcept
     const int mi_num = mi_max_cols_ * layout_.getMIRows();
     const size_t buffer_size = mi_num * aligned_mi_size;
 
-    auto mi_it = mis_.begin();
+    auto item_it = items_.begin();
     auto* row_cursor = (uint8_t*)_hp::align_to<CACHELINE_SIZE>((size_t)buffer_);
     size_t row_step = mi_max_cols_ * aligned_mi_size;
     for (const int irow : rgs::views::iota(0, layout_.getMIRows())) {
@@ -107,14 +110,14 @@ MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src) noexcept
             const cv::Mat& mi_src = getRoiImageByCenter(gray_src, mi_center, layout_.getDiameter());
             cv::Mat mi_dst = cv::Mat(diameter, diameter, CV_8U, col_cursor);
             mi_src.copyTo(mi_dst);
-            *mi_it = std::move(mi_dst);
+            *item_it = std::move(mi_dst);
 
-            mi_it++;
+            item_it++;
             col_cursor += aligned_mi_size;
         }
 
         if (mi_cols < mi_max_cols_) {
-            mi_it++;
+            item_it++;
         }
 
         row_cursor += row_step;
