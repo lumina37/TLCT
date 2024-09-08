@@ -23,20 +23,21 @@ public:
 
     // Constructor
     TLCT_API inline MIs() noexcept : mis_(), buffer_(), mi_max_cols_(){};
-    TLCT_API inline MIs(std::vector<cv::Mat>&& mis, std::vector<uint8_t>&& buffer, int mi_max_cols) noexcept
-        : mis_(std::move(mis)), buffer_(std::move(buffer)), mi_max_cols_(mi_max_cols){};
+    TLCT_API inline MIs(std::vector<cv::Mat>&& mis, void* buffer, int mi_max_cols) noexcept
+        : mis_(std::move(mis)), buffer_(buffer), mi_max_cols_(mi_max_cols){};
     TLCT_API inline MIs& operator=(const MIs& rhs) noexcept = delete;
     TLCT_API inline MIs(const MIs& rhs) noexcept = delete;
     TLCT_API inline MIs& operator=(MIs&& rhs) noexcept
     {
         mis_ = std::move(rhs.mis_);
-        buffer_ = std::move(rhs.buffer_);
+        buffer_ = std::exchange(rhs.buffer_, nullptr);
         mi_max_cols_ = std::exchange(rhs.mi_max_cols_, 0);
         return *this;
     };
     TLCT_API inline MIs(MIs&& rhs) noexcept
-        : mis_(std::move(rhs.mis_)), buffer_(std::move(rhs.buffer_)),
+        : mis_(std::move(rhs.mis_)), buffer_(std::exchange(rhs.buffer_, nullptr)),
           mi_max_cols_(std::exchange(rhs.mi_max_cols_, 0)){};
+    TLCT_API inline ~MIs() { std::free(buffer_); }
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline MIs fromLayoutAndImg(const TLayout& layout, const cv::Mat& img);
@@ -54,7 +55,7 @@ public:
 
 private:
     std::vector<cv::Mat> mis_;
-    std::vector<uint8_t> buffer_;
+    void* buffer_;
     int mi_max_cols_;
 };
 
@@ -71,10 +72,9 @@ MIs<TLayout> MIs<TLayout>::fromLayoutAndImg(const TLayout& layout, const cv::Mat
 
     std::vector<cv::Mat> mis;
     mis.reserve(mi_num);
-    std::vector<uint8_t> buffer;
-    buffer.resize(buffer_size + CACHELINE_SIZE);
+    void* buffer = std::malloc(buffer_size + CACHELINE_SIZE);
 
-    auto* row_cursor = (uint8_t*)_hp::align_to<CACHELINE_SIZE>((size_t)buffer.data());
+    auto* row_cursor = (uint8_t*)_hp::align_to<CACHELINE_SIZE>((size_t)buffer);
     size_t row_step = mi_max_cols * aligned_mi_size;
     for (const int irow : rgs::views::iota(0, layout.getMIRows())) {
 
@@ -95,7 +95,7 @@ MIs<TLayout> MIs<TLayout>::fromLayoutAndImg(const TLayout& layout, const cv::Mat
         row_cursor += row_step;
     }
 
-    return {std::move(mis), std::move(buffer), layout.getMIMaxCols()};
+    return {std::move(mis), buffer, layout.getMIMaxCols()};
 }
 
 } // namespace tlct::_cvt

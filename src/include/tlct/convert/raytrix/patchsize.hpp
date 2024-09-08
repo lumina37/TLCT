@@ -57,8 +57,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
     const cv::Mat& anchor_mi = mis_.getMI(neighbors.getSelfIdx());
 
     if (Inspector::PATTERN_ENABLED) {
-        inspector_.saveMI(getRoiImageByCenter(gray_src_, neighbors.getSelfPt(), layout_.getDiameter()),
-                          neighbors.getSelfIdx());
+        inspector_.saveMI(anchor_mi, neighbors.getSelfIdx());
     }
 
     const int max_shift = (int)(pattern_shift_ * 2);

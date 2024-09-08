@@ -17,7 +17,6 @@ class QualitySSIM
 {
 public:
     [[nodiscard]] TLCT_API inline cv::Scalar compute(const cv::Mat& cmp);
-
     [[nodiscard]] TLCT_API static inline cv::Ptr<QualitySSIM> create(const cv::Mat& ref);
 
 private:
