@@ -96,7 +96,7 @@ public:
     };
 
     // Non-const methods
-    TLCT_API inline MIs& update(const cv::Mat& src) noexcept;
+    TLCT_API inline MIs& update(const cv::Mat& src);
 
 private:
     TLayout layout_;
@@ -122,7 +122,7 @@ MIs<TLayout> MIs<TLayout>::fromLayout(const TLayout& layout)
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src) noexcept
+MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
 {
     cv::Mat Iu8;
     cv::cvtColor(src, Iu8, cv::COLOR_BGR2GRAY);
