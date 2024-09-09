@@ -18,7 +18,7 @@ static inline void render(const tlct::cfg::ConfigMap& cfg_map)
 
     auto state = TState::fromParamCfg(param_cfg);
     auto inspector = tlct::Inspector::fromGenericCfg(generic_cfg);
-    inspector.setEnableIf([](cv::Point idx) { return idx.x == 20 && idx.y == 20; });
+    inspector.setEnableIf([](cv::Point idx) { return idx.x == 35 && idx.y == 35; });
     state.setInspector(std::move(inspector));
 
     const cv::Range range = generic_cfg.getRange();

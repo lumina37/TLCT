@@ -36,10 +36,10 @@ public:
 
     // Constructor
     Neighbors_() = delete;
-    TLCT_API inline Neighbors_& operator=(const Neighbors_& rhs) noexcept = default;
     TLCT_API inline Neighbors_(const Neighbors_& rhs) noexcept = default;
-    TLCT_API inline Neighbors_& operator=(Neighbors_&& rhs) noexcept = default;
+    TLCT_API inline Neighbors_& operator=(const Neighbors_& rhs) noexcept = default;
     TLCT_API inline Neighbors_(Neighbors_&& rhs) noexcept = default;
+    TLCT_API inline Neighbors_& operator=(Neighbors_&& rhs) noexcept = default;
     TLCT_API inline Neighbors_(const cv::Point self_idx, const TIndices indices, cv::Point2d self_pt,
                                const TPoints points) noexcept
         : self_idx_(self_idx), indices_(indices), self_pt_(self_pt), points_(points){};

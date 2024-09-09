@@ -22,11 +22,11 @@ public:
     using LenOffsets = std::array<int, LEN_TYPE_NUM>;
 
     // Constructor
-    TLCT_API inline CalibConfig() noexcept : diameter_(), rotation_(), offset_(){};
-    TLCT_API inline CalibConfig& operator=(const CalibConfig& rhs) noexcept = default;
+    TLCT_API inline CalibConfig() noexcept : diameter_(), rotation_(), offset_(), lofs_(){};
     TLCT_API inline CalibConfig(const CalibConfig& rhs) noexcept = default;
-    TLCT_API inline CalibConfig& operator=(CalibConfig&& rhs) noexcept = default;
+    TLCT_API inline CalibConfig& operator=(const CalibConfig& rhs) noexcept = default;
     TLCT_API inline CalibConfig(CalibConfig&& rhs) noexcept = default;
+    TLCT_API inline CalibConfig& operator=(CalibConfig&& rhs) noexcept = default;
     TLCT_API inline CalibConfig(double diameter, double rotation, cv::Point2d offset, LenOffsets lens) noexcept
         : diameter_(diameter), rotation_(rotation), offset_(offset), lofs_(lens){};
 

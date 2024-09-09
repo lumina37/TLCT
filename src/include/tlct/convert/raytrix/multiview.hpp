@@ -25,7 +25,6 @@ cv::Mat State::renderView(int view_row, int view_col) const
     cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_32FC1);
 
     cv::Mat rotated_patch, resized_patch;
-    cv::Mat mi;
     cv::Mat resized_patch_channels[CHANNELS];
     cv::Mat weighted_patch;
 
@@ -33,8 +32,8 @@ cv::Mat State::renderView(int view_row, int view_col) const
         for (const int j : rgs::views::iota(0, layout_.getMICols(i))) {
             const cv::Point2d center = layout_.getMICenter(i, j);
 
-            mi = mis_.getMI(i, j);
-            const double grad_weight = computeGrad(mi) + std::numeric_limits<float>::epsilon();
+            const auto& mi = mis_.getMI(i, j);
+            const double grad_weight = computeGrad(mi.I_) + std::numeric_limits<float>::epsilon();
 
             // Extract patch
             const double psize = TSpecificConfig::PSIZE_AMP * patchsizes_.at<int>(i, j);

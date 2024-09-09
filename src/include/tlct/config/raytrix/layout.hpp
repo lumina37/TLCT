@@ -25,12 +25,12 @@ public:
 
     // Constructor
     TLCT_API inline Layout() noexcept
-        : left_top_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), imgsize_(), mirows_(), micols_(), diameter_(),
-          radius_(), rotation_(), upsample_(1){};
-    TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
+        : left_top_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), imgsize_(), mirows_(), micols_(), idx2type_(),
+          diameter_(), radius_(), rotation_(), upsample_(1){};
     TLCT_API inline Layout(const Layout& rhs) noexcept = default;
-    TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
+    TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
     TLCT_API inline Layout(Layout&& rhs) noexcept = default;
+    TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout(cv::Point2d left_top, bool is_out_shift, double x_unit_shift, double y_unit_shift,
                            cv::Size imgsize, int mirows, TMiCols micols, TIdx2Type idx2type, double diameter,
                            double rotation) noexcept

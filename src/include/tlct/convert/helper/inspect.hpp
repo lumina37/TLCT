@@ -33,31 +33,30 @@ public:
     static constexpr auto ALWAYS_ENABLE = [](cv::Point) { return true; };
 
     // Constructor
-    inline Inspector() noexcept : dst_dir_(), fstream_(), enable_if_(ALWAYS_ENABLE){};
-    inline Inspector& operator=(const Inspector& rhs) noexcept = default;
-    inline Inspector(const Inspector& rhs) noexcept = default;
-    inline Inspector& operator=(Inspector&& rhs) noexcept = default;
+    inline Inspector() noexcept : dst_dir_(), fstream_(), enable_if_(ALWAYS_ENABLE) {};
+    Inspector(const Inspector& rhs) noexcept = delete;
+    Inspector& operator=(const Inspector& rhs) noexcept = delete;
     inline Inspector(Inspector&& rhs) noexcept = default;
+    inline Inspector& operator=(Inspector&& rhs) noexcept = default;
     inline Inspector(fs::path&& dst_dir, std::ofstream&& fstream)
-        : dst_dir_(std::move(dst_dir)), fstream_(std::move(fstream)), enable_if_(ALWAYS_ENABLE){};
+        : dst_dir_(std::move(dst_dir)), fstream_(std::move(fstream)), enable_if_(ALWAYS_ENABLE) {};
 
     // Init from
     [[nodiscard]] static inline Inspector fromGenericCfg(const tcfg::GenericParamConfig& generic_cfg);
 
     // Const methods
     [[nodiscard]] inline fs::path getDstDir() const noexcept { return dst_dir_; }
-    [[nodiscard]] inline fs::path getMIDir(const int row, const int col) const noexcept;
-    [[nodiscard]] inline fs::path getMIDir(const cv::Point index) const noexcept;
-    [[nodiscard]] inline fs::path getDirectionDir(const cv::Point index, const int direction) const noexcept;
+    [[nodiscard]] inline fs::path getMIDir(int row, int col) const noexcept;
+    [[nodiscard]] inline fs::path getMIDir(cv::Point index) const noexcept;
+    [[nodiscard]] inline fs::path getDirectionDir(cv::Point index, int direction) const noexcept;
 
-    inline void saveMI(const cv::Mat& img, const cv::Point index) const;
-    inline void saveAnchor(const cv::Mat& img, const cv::Point index, const int direction) const;
-    inline void saveCmpPattern(const cv::Mat& img, const cv::Point index, const int direction, const int psize,
-                               const double metric) const;
+    inline void saveMI(const cv::Mat& img, cv::Point index) const;
+    inline void saveAnchor(const cv::Mat& img, cv::Point index, int direction) const;
+    inline void saveCmpPattern(const cv::Mat& img, cv::Point index, int direction, int psize, double metric) const;
 
     // Non-const methods
     inline void setEnableIf(const std::function<FnEnableIf>& enable_if) noexcept { enable_if_ = enable_if; };
-    inline void appendMetricReport(const cv::Point index, const std::vector<double>& psizes,
+    inline void appendMetricReport(cv::Point index, const std::vector<double>& psizes,
                                    const std::vector<double>& weights);
 
 private:
@@ -113,7 +112,10 @@ void Inspector::saveMI(const cv::Mat& img, const cv::Point index) const
 
     const fs::path mi_dir = getMIDir(index);
     const fs::path save_path = mi_dir / "mi.png";
-    cv::imwrite(save_path.string(), img);
+
+    cv::Mat imgu8;
+    img.assignTo(imgu8, CV_8U);
+    cv::imwrite(save_path.string(), imgu8);
 }
 
 void Inspector::saveAnchor(const cv::Mat& img, const cv::Point index, const int direction) const
@@ -123,7 +125,10 @@ void Inspector::saveAnchor(const cv::Mat& img, const cv::Point index, const int 
 
     const fs::path dir = getDirectionDir(index, direction);
     const fs::path save_path = dir / "anchor.png";
-    cv::imwrite(save_path.string(), img);
+
+    cv::Mat imgu8;
+    img.assignTo(imgu8, CV_8U);
+    cv::imwrite(save_path.string(), imgu8);
 }
 
 void Inspector::saveCmpPattern(const cv::Mat& img, const cv::Point index, const int direction, const int psize,
@@ -136,7 +141,10 @@ void Inspector::saveCmpPattern(const cv::Mat& img, const cv::Point index, const 
     std::stringstream ss;
     ss << "cmp" << "-p" << psize << "-m" << std::fixed << std::setprecision(3) << metric << ".png";
     const fs::path save_path = dir / ss.str();
-    cv::imwrite(save_path.string(), img);
+
+    cv::Mat imgu8;
+    img.assignTo(imgu8, CV_8U);
+    cv::imwrite(save_path.string(), imgu8);
 }
 
 void Inspector::appendMetricReport(const cv::Point index, const std::vector<double>& psizes,

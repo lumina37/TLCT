@@ -26,10 +26,10 @@ public:
           max_patch_size_(std::min(DEFAULT_MAX_PATCH_SIZE, 1.0 / (1.0 + DEFAULT_GRADIENT_BLENDING_WIDTH) / PSIZE_AMP)),
           pattern_size_(DEFAULT_PATTERN_SIZE), gradient_blending_width_(DEFAULT_GRADIENT_BLENDING_WIDTH),
           psize_shortcut_threshold_(DEFAULT_PSIZE_SHORTCUT_THRESHOLD){};
-    TLCT_API inline SpecificConfig& operator=(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(const SpecificConfig& rhs) noexcept = default;
-    TLCT_API inline SpecificConfig& operator=(SpecificConfig&& rhs) noexcept = default;
+    TLCT_API inline SpecificConfig& operator=(const SpecificConfig& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(SpecificConfig&& rhs) noexcept = default;
+    TLCT_API inline SpecificConfig& operator=(SpecificConfig&& rhs) noexcept = default;
     TLCT_API inline SpecificConfig(cv::Size imgsize, int upsample, double max_patch_size, double pattern_size,
                                    double gradient_blending_width, double psize_shortcut_threshold) noexcept
         : imgsize_(imgsize), upsample_(upsample), max_patch_size_(std::min(max_patch_size, 1.0 / PSIZE_AMP)),

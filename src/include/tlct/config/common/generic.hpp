@@ -18,10 +18,10 @@ class GenericParamConfig
 public:
     // Constructor
     TLCT_API inline GenericParamConfig() noexcept : views_(), range_(), src_pattern_(), dst_pattern_(){};
-    TLCT_API inline GenericParamConfig& operator=(const GenericParamConfig& rhs) noexcept = default;
     TLCT_API inline GenericParamConfig(const GenericParamConfig& rhs) noexcept = default;
-    TLCT_API inline GenericParamConfig& operator=(GenericParamConfig&& rhs) noexcept = default;
+    TLCT_API inline GenericParamConfig& operator=(const GenericParamConfig& rhs) noexcept = default;
     TLCT_API inline GenericParamConfig(GenericParamConfig&& rhs) noexcept = default;
+    TLCT_API inline GenericParamConfig& operator=(GenericParamConfig&& rhs) noexcept = default;
     TLCT_API inline GenericParamConfig(int views, cv::Range range, std::string src_pattern,
                                        std::string dst_pattern) noexcept
         : views_(views), range_(range), src_pattern_(std::move(src_pattern)), dst_pattern_(std::move(dst_pattern)){};

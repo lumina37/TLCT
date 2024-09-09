@@ -19,10 +19,10 @@ public:
 
     // Constructor
     TLCT_API inline ConfigMap() : map_(){};
-    TLCT_API inline ConfigMap& operator=(const ConfigMap& rhs) = default;
     TLCT_API inline ConfigMap(const ConfigMap& rhs) = default;
-    TLCT_API inline ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
+    TLCT_API inline ConfigMap& operator=(const ConfigMap& rhs) = default;
     TLCT_API inline ConfigMap(ConfigMap&& rhs) noexcept = default;
+    TLCT_API inline ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
     TLCT_API explicit inline ConfigMap(TMap&& cfg_map) : map_(std::move(cfg_map)){};
 
     // Initialize from

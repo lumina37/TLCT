@@ -2,35 +2,43 @@
 
 #include <opencv2/imgproc.hpp>
 
+#include "functional.hpp"
+#include "microimages.hpp"
 #include "tlct/common/defines.h"
 
 namespace tlct::_cvt {
-
-static inline void blur(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 
 class WrapSSIM
 {
 public:
     // Constructor
-    TLCT_API explicit inline WrapSSIM(const cv::Mat& src);
-    TLCT_API WrapSSIM& operator=(const WrapSSIM& rhs) = default;
+    TLCT_API inline explicit WrapSSIM(const WrapMI& mi) noexcept : mi_(mi){};
     TLCT_API inline WrapSSIM(const WrapSSIM& rhs) = default;
-    TLCT_API WrapSSIM& operator=(WrapSSIM&& rhs) noexcept = default;
+    WrapSSIM& operator=(const WrapSSIM& rhs) = delete;
     TLCT_API WrapSSIM(WrapSSIM&& rhs) noexcept = default;
+    WrapSSIM& operator=(WrapSSIM&& rhs) noexcept = delete;
 
     // Const methods
-    [[nodiscard]] TLCT_API inline double compare(const WrapSSIM& rhs) const;
+    [[nodiscard]] TLCT_API inline double compare(const WrapSSIM& rhs) const noexcept;
 
-    // Init from
-    [[nodiscard]] static inline WrapSSIM fromRoi(const cv::Mat& roi);
+    // Non-const methods
+    inline void updateRoi(cv::Rect roi) noexcept;
 
-private:
+    const WrapMI& mi_;
     cv::Mat I_, I_2_, mu_, mu_2_, sigma_2_;
 };
 
-WrapSSIM WrapSSIM::fromRoi(const cv::Mat& roi) { return WrapSSIM(roi); }
+void WrapSSIM::updateRoi(cv::Rect roi) noexcept
+{
+    I_ = mi_.I_(roi);
+    I_2_ = mi_.I_2_(roi);
+    blur(I_, mu_);
+    cv::multiply(mu_, mu_, mu_2_);
+    blur(I_2_, sigma_2_);
+    cv::subtract(sigma_2_, mu_2_, sigma_2_);
+}
 
-double WrapSSIM::compare(const WrapSSIM& rhs) const
+double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
 {
     constexpr double C1 = 6.5025, C2 = 58.5225;
 
@@ -67,16 +75,6 @@ double WrapSSIM::compare(const WrapSSIM& rhs) const
     const auto ssim = cv::mean(t3);
 
     return -ssim[0];
-}
-
-WrapSSIM::WrapSSIM(const cv::Mat& src)
-{
-    src.convertTo(I_, CV_32F);
-    cv::multiply(I_, I_, I_2_);
-    blur(I_, mu_);
-    cv::multiply(mu_, mu_, mu_2_);
-    blur(I_2_, sigma_2_);
-    cv::subtract(sigma_2_, mu_2_, sigma_2_);
 }
 
 } // namespace tlct::_cvt

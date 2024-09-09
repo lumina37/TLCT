@@ -27,10 +27,10 @@ public:
 
     // Constructor
     TLCT_API inline ParamConfig_() noexcept : generic_cfg_(), spec_cfg_(), calib_cfg_(){};
-    TLCT_API inline ParamConfig_& operator=(const ParamConfig_& rhs) noexcept = default;
     TLCT_API inline ParamConfig_(const ParamConfig_& rhs) noexcept = default;
-    TLCT_API inline ParamConfig_& operator=(ParamConfig_&& rhs) noexcept = default;
+    TLCT_API inline ParamConfig_& operator=(const ParamConfig_& rhs) noexcept = default;
     TLCT_API inline ParamConfig_(ParamConfig_&& rhs) noexcept = default;
+    TLCT_API inline ParamConfig_& operator=(ParamConfig_&& rhs) noexcept = default;
     TLCT_API inline ParamConfig_(GenericParamConfig&& generic_cfg, TSpecificConfig&& spec_cfg,
                                  TCalibConfig&& calib_cfg) noexcept
         : generic_cfg_(std::move(generic_cfg)), spec_cfg_(std::move(spec_cfg)), calib_cfg_(std::move(calib_cfg)){};
