@@ -26,6 +26,9 @@ public:
 
     const WrapMI& mi_;
     cv::Mat I_, I_2_, mu_, mu_2_, sigma_2_;
+
+private:
+    mutable cv::Mat I1_I2, mu1_mu2, t1, t2, t3, sigma12;
 };
 
 void WrapSSIM::updateRoi(cv::Rect roi) noexcept
@@ -41,8 +44,6 @@ void WrapSSIM::updateRoi(cv::Rect roi) noexcept
 double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
 {
     constexpr double C1 = 6.5025, C2 = 58.5225;
-
-    cv::Mat I1_I2, mu1_mu2, t1, t2, t3, sigma12;
 
     cv::multiply(I_, rhs.I_, I1_I2);
     cv::multiply(mu_, rhs.mu_, mu1_mu2);
