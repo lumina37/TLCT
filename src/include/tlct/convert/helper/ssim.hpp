@@ -72,9 +72,10 @@ double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
     // quality map: t3 /= t1
     cv::divide(t3, t1, t3);
 
-    const auto ssim = cv::mean(t3);
+    const auto ssim_scalar = cv::mean(t3);
+    const double ssim = ssim_scalar[0];
 
-    return -ssim[0];
+    return -ssim;
 }
 
 } // namespace tlct::_cvt

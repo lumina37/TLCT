@@ -64,10 +64,10 @@ public:
     };
 
     // Constructor
-    TLCT_API inline MIs() noexcept : layout_(), params_(), items_(), buffer_(){};
-    TLCT_API inline explicit MIs(const TLayout& layout) noexcept;
-    MIs& operator=(const MIs& rhs) noexcept = delete;
-    MIs(const MIs& rhs) noexcept = delete;
+    TLCT_API inline MIs() noexcept : layout_(), params_(), items_(), buffer_(nullptr){};
+    TLCT_API inline explicit MIs(const TLayout& layout);
+    MIs& operator=(const MIs& rhs) = delete;
+    MIs(const MIs& rhs) = delete;
     TLCT_API inline MIs& operator=(MIs&& rhs) noexcept
     {
         layout_ = std::move(rhs.layout_);
@@ -107,7 +107,7 @@ private:
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-MIs<TLayout>::MIs(const TLayout& layout) noexcept : layout_(layout), params_(layout)
+MIs<TLayout>::MIs(const TLayout& layout) : layout_(layout), params_(layout)
 {
     items_.resize(params_.mi_num_);
     buffer_ = std::malloc(params_.buffer_size_ + Params::CACHELINE_SIZE);
