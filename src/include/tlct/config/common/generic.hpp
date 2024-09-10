@@ -17,13 +17,13 @@ class GenericParamConfig
 {
 public:
     // Constructor
-    TLCT_API inline GenericParamConfig() noexcept : views_(), range_(), src_pattern_(), dst_pattern_(){};
-    TLCT_API inline GenericParamConfig(const GenericParamConfig& rhs) noexcept = default;
-    TLCT_API inline GenericParamConfig& operator=(const GenericParamConfig& rhs) noexcept = default;
+    GenericParamConfig() noexcept = delete;
+    TLCT_API inline GenericParamConfig(const GenericParamConfig& rhs) = default;
+    TLCT_API inline GenericParamConfig& operator=(const GenericParamConfig& rhs) = default;
     TLCT_API inline GenericParamConfig(GenericParamConfig&& rhs) noexcept = default;
     TLCT_API inline GenericParamConfig& operator=(GenericParamConfig&& rhs) noexcept = default;
-    TLCT_API inline GenericParamConfig(int views, cv::Range range, std::string src_pattern,
-                                       std::string dst_pattern) noexcept
+    TLCT_API inline GenericParamConfig(int views, cv::Range range, std::string&& src_pattern,
+                                       std::string&& dst_pattern) noexcept
         : views_(views), range_(range), src_pattern_(std::move(src_pattern)), dst_pattern_(std::move(dst_pattern)){};
 
     // Initialize from
@@ -50,9 +50,9 @@ GenericParamConfig GenericParamConfig::fromConfigMap(const ConfigMap& cfg_map)
     const int views = cfg_map.get("viewNum", 5);
     const int start = cfg_map.get<int>("start_frame");
     const int end = cfg_map.get<int>("end_frame");
-    const std::string& src_pattern = cfg_map.get<std::string>("RawImage_Path");
-    const std::string& dst_pattern = cfg_map.get<std::string>("Output_Path");
-    return {views, {start, end}, src_pattern, dst_pattern};
+    std::string src_pattern = cfg_map.get<std::string>("RawImage_Path");
+    std::string dst_pattern = cfg_map.get<std::string>("Output_Path");
+    return {views, {start, end}, std::move(src_pattern), std::move(dst_pattern)};
 }
 
 fs::path GenericParamConfig::fmtSrcPath(int i) const noexcept

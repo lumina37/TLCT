@@ -23,10 +23,10 @@ public:
     TLCT_API inline ConfigMap& operator=(const ConfigMap& rhs) = default;
     TLCT_API inline ConfigMap(ConfigMap&& rhs) noexcept = default;
     TLCT_API inline ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
-    TLCT_API explicit inline ConfigMap(TMap&& cfg_map) : map_(std::move(cfg_map)){};
+    TLCT_API explicit inline ConfigMap(TMap&& cfg_map) noexcept : map_(std::move(cfg_map)){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline ConfigMap fromFstream(std::ifstream&& ifs) noexcept;
+    [[nodiscard]] TLCT_API static inline ConfigMap fromFstream(std::ifstream&& ifs);
     [[nodiscard]] TLCT_API static inline ConfigMap fromPath(std::string_view path);
 
     // Const methods
@@ -37,13 +37,13 @@ public:
     template <typename Tv>
     [[nodiscard]] TLCT_API inline Tv get(const std::string& key) const;
     template <typename Tv>
-    [[nodiscard]] TLCT_API inline Tv get(const std::string& key, const Tv& default_val) const;
+    [[nodiscard]] TLCT_API inline Tv get(const std::string& key, const Tv& default_val) const noexcept;
 
 private:
     TMap map_;
 };
 
-ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) noexcept
+ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
 {
     auto has_delim = [](const char c) { return c == '\t' || c == ' '; };
 
@@ -94,31 +94,24 @@ ConfigMap ConfigMap::fromPath(std::string_view path)
 
 bool ConfigMap::isEmpty() const noexcept { return map_.empty(); }
 
-int ConfigMap::getPipelineType() const noexcept { return get("pipeline", (int)PipelineType::RLC); }
+int ConfigMap::getPipelineType() const noexcept { return this->get("pipeline", (int)PipelineType::RLC); }
 
 template <typename Tv>
-inline Tv stox(const std::string& str);
-
-template <>
-inline int stox(const std::string& str)
+inline Tv stox(const std::string& str)
 {
-    return std::stoi(str);
-}
-
-template <>
-inline float stox(const std::string& str)
-{
-    return std::stof(str);
-}
-
-template <>
-inline double stox(const std::string& str)
-{
-    return std::stod(str);
-}
+    if constexpr (std::is_same_v<Tv, int>) {
+        return std::stoi(str);
+    } else if constexpr (std::is_same_v<Tv, float>) {
+        return std::stof(str);
+    } else if constexpr (std::is_same_v<Tv, double>) {
+        return std::stod(str);
+    } else {
+        return str;
+    }
+};
 
 template <typename Tv>
-Tv ConfigMap::get(const std::string& key, const Tv& default_val) const
+Tv ConfigMap::get(const std::string& key, const Tv& default_val) const noexcept
 {
     const auto it = map_.find(key);
     if (it == map_.end()) {
@@ -136,7 +129,7 @@ Tv ConfigMap::get(const std::string& key) const
 };
 
 template <>
-std::string ConfigMap::get(const std::string& key, const std::string& default_val) const
+std::string ConfigMap::get(const std::string& key, const std::string& default_val) const noexcept
 {
     const auto it = map_.find(key);
     if (it == map_.end()) {

@@ -148,7 +148,7 @@ int State::_estimatePatchsize(cv::Mat& psizes, const cv::Point index)
     }
 }
 
-inline cv::Mat State::estimatePatchsizes()
+cv::Mat State::estimatePatchsizes()
 {
     for (const int row : rgs::views::iota(0, layout_.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout_.getMICols(row))) {

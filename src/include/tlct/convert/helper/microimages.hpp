@@ -6,7 +6,6 @@
 #include <opencv2/core.hpp>
 
 #include "roi.hpp"
-#include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 #include "tlct/helper/static_math.hpp"
 
@@ -19,12 +18,12 @@ class WrapMI
 public:
     static constexpr int CACHED_MAT_NUM = 2;
 
-    TLCT_API inline WrapMI() = default;
-    TLCT_API inline WrapMI(cv::Mat&& I, cv::Mat&& I_2) noexcept : I_(std::move(I)), I_2_(std::move(I_2)){};
-    TLCT_API inline WrapMI& operator=(const WrapMI& rhs) = default;
-    TLCT_API inline WrapMI(const WrapMI& rhs) = default;
-    TLCT_API inline WrapMI& operator=(WrapMI&& rhs) noexcept = default;
-    TLCT_API inline WrapMI(WrapMI&& rhs) noexcept = default;
+    inline WrapMI() = default;
+    inline WrapMI(cv::Mat&& I, cv::Mat&& I_2) noexcept : I_(std::move(I)), I_2_(std::move(I_2)) {};
+    inline WrapMI& operator=(const WrapMI& rhs) = default;
+    inline WrapMI(const WrapMI& rhs) = default;
+    inline WrapMI& operator=(WrapMI&& rhs) noexcept = default;
+    inline WrapMI(WrapMI&& rhs) noexcept = default;
 
     cv::Mat I_, I_2_;
 };
@@ -39,8 +38,8 @@ public:
     public:
         static constexpr int SIMD_FETCH_SIZE = 256 / 8;
 
-        TLCT_API inline Params() noexcept = default;
-        TLCT_API inline explicit Params(const TLayout& layout) noexcept
+        inline Params() noexcept = default;
+        inline explicit Params(const TLayout& layout) noexcept
         {
             idiameter_ = _hp::iround(layout.getDiameter());
             const int row_step = _hp::align_to<SIMD_FETCH_SIZE>(idiameter_ * sizeof(float));
@@ -50,8 +49,8 @@ public:
             mi_num_ = mi_max_cols_ * layout.getMIRows();
             buffer_size_ = mi_num_ * aligned_mi_size_;
         };
-        TLCT_API inline Params& operator=(Params&& rhs) noexcept = default;
-        TLCT_API inline Params(Params&& rhs) noexcept = default;
+        inline Params& operator=(Params&& rhs) noexcept = default;
+        inline Params(Params&& rhs) noexcept = default;
 
         int idiameter_;
         int aligned_mat_size_;
@@ -62,11 +61,11 @@ public:
     };
 
     // Constructor
-    TLCT_API inline MIs() noexcept : layout_(), params_(), items_(), buffer_(nullptr){};
-    TLCT_API inline explicit MIs(const TLayout& layout);
+    inline MIs() noexcept : layout_(), params_(), items_(), buffer_(nullptr) {};
+    inline explicit MIs(const TLayout& layout);
     MIs& operator=(const MIs& rhs) = delete;
     MIs(const MIs& rhs) = delete;
-    TLCT_API inline MIs& operator=(MIs&& rhs) noexcept
+    inline MIs& operator=(MIs&& rhs) noexcept
     {
         layout_ = std::move(rhs.layout_);
         params_ = std::move(rhs.params_);
@@ -74,27 +73,24 @@ public:
         buffer_ = std::exchange(rhs.buffer_, nullptr);
         return *this;
     };
-    TLCT_API inline MIs(MIs&& rhs) noexcept
+    inline MIs(MIs&& rhs) noexcept
         : layout_(std::move(rhs.layout_)), params_(std::move(rhs.params_)), items_(std::move(rhs.items_)),
-          buffer_(std::exchange(rhs.buffer_, nullptr)){};
-    TLCT_API inline ~MIs() { std::free(buffer_); }
+          buffer_(std::exchange(rhs.buffer_, nullptr)) {};
+    inline ~MIs() { std::free(buffer_); }
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline MIs fromLayout(const TLayout& layout);
+    [[nodiscard]] static inline MIs fromLayout(const TLayout& layout);
 
     // Const methods
-    [[nodiscard]] TLCT_API inline const WrapMI& getMI(int row, int col) const noexcept
+    [[nodiscard]] inline const WrapMI& getMI(int row, int col) const noexcept
     {
         const int offset = row * params_.mi_max_cols_ + col;
         return items_.at(offset);
     };
-    [[nodiscard]] TLCT_API inline const WrapMI& getMI(cv::Point index) const noexcept
-    {
-        return getMI(index.y, index.x);
-    };
+    [[nodiscard]] inline const WrapMI& getMI(cv::Point index) const noexcept { return getMI(index.y, index.x); };
 
     // Non-const methods
-    TLCT_API inline MIs& update(const cv::Mat& src);
+    inline MIs& update(const cv::Mat& src);
 
 private:
     TLayout layout_;

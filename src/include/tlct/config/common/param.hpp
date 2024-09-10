@@ -26,9 +26,9 @@ public:
     using TCalibConfig = TCalibConfig_;
 
     // Constructor
-    TLCT_API inline ParamConfig_() noexcept : generic_cfg_(), spec_cfg_(), calib_cfg_(){};
-    TLCT_API inline ParamConfig_(const ParamConfig_& rhs) noexcept = default;
-    TLCT_API inline ParamConfig_& operator=(const ParamConfig_& rhs) noexcept = default;
+    ParamConfig_() = delete;
+    TLCT_API inline ParamConfig_(const ParamConfig_& rhs) = default;
+    TLCT_API inline ParamConfig_& operator=(const ParamConfig_& rhs) = default;
     TLCT_API inline ParamConfig_(ParamConfig_&& rhs) noexcept = default;
     TLCT_API inline ParamConfig_& operator=(ParamConfig_&& rhs) noexcept = default;
     TLCT_API inline ParamConfig_(GenericParamConfig&& generic_cfg, TSpecificConfig&& spec_cfg,
@@ -44,9 +44,11 @@ public:
     [[nodiscard]] TLCT_API inline const TCalibConfig& getCalibCfg() const noexcept { return calib_cfg_; };
 
     // Non-const methods
-    TLCT_API inline ParamConfig_& setCalibCfg(const TCalibConfig& cfg) noexcept
+    template <typename T>
+        requires std::is_same_v<std::remove_cvref_t<T>, TCalibConfig>
+    inline ParamConfig_& setCalibCfg(T&& cfg)
     {
-        calib_cfg_ = cfg;
+        calib_cfg_ = std::forward<T>(cfg);
         return *this;
     };
 

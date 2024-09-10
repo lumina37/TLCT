@@ -53,7 +53,7 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("RayCalibData");
     if (data_node.empty()) {
-        std::cerr << "Missing xml node `RayCalibData` when initializing " << typeid(CalibConfig).name() << std::endl;
+        std::cerr << "Missing xml node `RayCalibData` when initializing raytrix::CalibConfig" << std::endl;
         return {};
     }
 

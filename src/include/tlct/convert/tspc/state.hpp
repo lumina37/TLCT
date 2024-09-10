@@ -28,8 +28,10 @@ public:
 
     // Constructor
     State() = delete;
-    State(const State& cfg) = delete;
-    TLCT_API inline State(State&& cfg) noexcept = default;
+    State(const State& rhs) = delete;
+    State& operator=(const State& rhs) = delete;
+    TLCT_API inline State(State&& rhs) noexcept = default;
+    TLCT_API inline State& operator=(State&& rhs) noexcept = default;
     TLCT_API inline State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views);
 
     // Initialize from
@@ -94,8 +96,8 @@ public:
     [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, cv::Point index);
 
 private:
-    const TLayout layout_;
-    const TSpecificConfig spec_cfg_;
+    TLayout layout_;
+    TSpecificConfig spec_cfg_;
     int views_;
     cv::Mat src_32f_;
     TMIs mis_;

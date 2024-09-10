@@ -4,7 +4,6 @@
 
 #include "functional.hpp"
 #include "microimages.hpp"
-#include "tlct/common/defines.h"
 
 namespace tlct::_cvt {
 
@@ -12,14 +11,15 @@ class WrapSSIM
 {
 public:
     // Constructor
-    TLCT_API inline explicit WrapSSIM(const WrapMI& mi) noexcept : mi_(mi){};
-    TLCT_API inline WrapSSIM(const WrapSSIM& rhs) = default;
+    WrapSSIM() = delete;
+    inline explicit WrapSSIM(const WrapMI& mi) noexcept : mi_(mi) {};
+    inline WrapSSIM(const WrapSSIM& rhs) = default;
     WrapSSIM& operator=(const WrapSSIM& rhs) = delete;
-    TLCT_API WrapSSIM(WrapSSIM&& rhs) noexcept = default;
+    WrapSSIM(WrapSSIM&& rhs) noexcept = default;
     WrapSSIM& operator=(WrapSSIM&& rhs) noexcept = delete;
 
     // Const methods
-    [[nodiscard]] TLCT_API inline double compare(const WrapSSIM& rhs) const noexcept;
+    [[nodiscard]] inline double compare(const WrapSSIM& rhs) const noexcept;
 
     // Non-const methods
     inline void updateRoi(cv::Rect roi) noexcept;
@@ -35,9 +35,9 @@ void WrapSSIM::updateRoi(cv::Rect roi) noexcept
 {
     mi_.I_(roi).copyTo(I_); // `BORDER_ISOLATED` has no effect, so we must copy here
     mi_.I_2_(roi).copyTo(I_2_);
-    blur(I_, mu_);
+    blur_(I_, mu_);
     cv::multiply(mu_, mu_, mu_2_);
-    blur(I_2_, sigma_2_);
+    blur_(I_2_, sigma_2_);
     cv::subtract(sigma_2_, mu_2_, sigma_2_);
 }
 
@@ -47,7 +47,7 @@ double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
 
     cv::multiply(I_, rhs.I_, I1_I2);
     cv::multiply(mu_, rhs.mu_, mu1_mu2);
-    blur(I1_I2, I1_I2);
+    blur_(I1_I2, I1_I2);
     cv::subtract(I1_I2, mu1_mu2, sigma12);
 
     // t3 = ((2*mu1_mu2 + C1).*(2*sigma12 + C2))

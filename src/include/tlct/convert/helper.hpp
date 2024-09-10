@@ -16,7 +16,6 @@ using _priv::Direction;
 using _priv::DIRECTION_NUM;
 using _priv::DIRECTIONS;
 using _priv::Inspector;
-using _priv::MIs;
 using _priv::opposite;
 
 } // namespace tlct::cvt

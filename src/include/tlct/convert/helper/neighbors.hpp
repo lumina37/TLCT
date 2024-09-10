@@ -40,13 +40,11 @@ public:
     TLCT_API inline Neighbors_& operator=(const Neighbors_& rhs) noexcept = default;
     TLCT_API inline Neighbors_(Neighbors_&& rhs) noexcept = default;
     TLCT_API inline Neighbors_& operator=(Neighbors_&& rhs) noexcept = default;
-    TLCT_API inline Neighbors_(const cv::Point self_idx, const TIndices indices, cv::Point2d self_pt,
-                               const TPoints points) noexcept
+    TLCT_API inline Neighbors_(cv::Point self_idx, TIndices indices, cv::Point2d self_pt, TPoints points) noexcept
         : self_idx_(self_idx), indices_(indices), self_pt_(self_pt), points_(points){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Neighbors_ fromLayoutAndIndex(const TLayout& layout,
-                                                                       const cv::Point index) noexcept;
+    [[nodiscard]] TLCT_API static inline Neighbors_ fromLayoutAndIndex(const TLayout& layout, cv::Point index) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Point getSelfIdx() const noexcept { return self_idx_; };
@@ -80,7 +78,7 @@ private:
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-Neighbors_<TLayout> Neighbors_<TLayout>::fromLayoutAndIndex(const TLayout& layout, const cv::Point index) noexcept
+Neighbors_<TLayout> Neighbors_<TLayout>::fromLayoutAndIndex(const TLayout& layout, cv::Point index) noexcept
 {
     cv::Point left_idx{Neighbors_::DEFAULT_INDEX, Neighbors_::DEFAULT_INDEX};
     cv::Point right_idx{Neighbors_::DEFAULT_INDEX, Neighbors_::DEFAULT_INDEX};

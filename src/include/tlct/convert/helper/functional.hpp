@@ -5,11 +5,9 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/common/defines.h"
-
 namespace tlct::_cvt {
 
-TLCT_API inline double computeGrad(const cv::Mat& src)
+static inline double computeGrad(const cv::Mat& src)
 {
     cv::Mat edges;
     double weight = 0.0;
@@ -39,6 +37,6 @@ inline Tv stdvar(const std::vector<Tv>& vec)
     return stdvar;
 }
 
-static inline void blur(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
+static inline void blur_(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 
 } // namespace tlct::_cvt
