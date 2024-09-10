@@ -127,7 +127,7 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     mis_ = TMIs::fromLayout(layout);
 
     const int upsample = layout.getUpsample();
-    const double patch_xshift_d = 0.5 * layout.getDiameter();
+    const double patch_xshift_d = 0.35 * layout.getDiameter();
     patch_xshift_ = (int)std::ceil(patch_xshift_d);
     patch_yshift_ = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
 
