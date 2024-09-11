@@ -28,11 +28,14 @@ public:
     cv::Mat I_, I_2_;
 };
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <typename TLayout_>
+    requires tlct::cfg::concepts::CLayout<TLayout_>
 class MIs
 {
 public:
+    // Typename alias
+    using TLayout = TLayout_;
+
     class Params
     {
     public:
