@@ -8,6 +8,7 @@
 
 #include "enums.hpp"
 #include "tlct/common/defines.h"
+#include "tlct/helper/charset.hpp"
 
 namespace tlct::_cfg {
 
@@ -106,7 +107,7 @@ inline Tv stox(const std::string& str)
     } else if constexpr (std::is_same_v<Tv, double>) {
         return std::stod(str);
     } else {
-        return str;
+        return _hp::cconv(str);
     }
 };
 
@@ -118,7 +119,7 @@ Tv ConfigMap::get(const std::string& key, const Tv& default_val) const noexcept
         return default_val;
     }
     const std::string& val = it->second;
-    const float nval = stox<Tv>(val);
+    const Tv nval = stox<Tv>(val);
     return nval;
 };
 
@@ -126,22 +127,6 @@ template <typename Tv>
 Tv ConfigMap::get(const std::string& key) const
 {
     return stox<Tv>(map_.at(key));
-};
-
-template <>
-std::string ConfigMap::get(const std::string& key, const std::string& default_val) const noexcept
-{
-    const auto it = map_.find(key);
-    if (it == map_.end()) {
-        return default_val;
-    }
-    return it->second;
-};
-
-template <>
-std::string ConfigMap::get(const std::string& key) const
-{
-    return map_.at(key);
 };
 
 const ConfigMap::TMap& ConfigMap::getMap() const noexcept { return map_; }
