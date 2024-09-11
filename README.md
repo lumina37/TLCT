@@ -42,6 +42,10 @@ gradientBlendingWidth   0.450
 psizeShortcutThreshold  -0.9
 ```
 
+### Charset
+
+Must be utf-8!
+
 ## Compile Options
 
 See `cmake/options.cmake`
