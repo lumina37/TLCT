@@ -24,8 +24,8 @@ public:
     // Non-const methods
     inline void updateRoi(cv::Rect roi) noexcept;
 
-    const WrapMI& mi_;
     cv::Mat I_, I_2_, mu_, mu_2_, sigma_2_;
+    const WrapMI& mi_;
 
 private:
     mutable cv::Mat I1_I2, mu1_mu2, t1, t2, t3, sigma12;

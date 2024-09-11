@@ -61,9 +61,9 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
     const auto& anchor_mi = mis_.getMI(neighbors.getSelfIdx());
     WrapSSIM wrap_anchor{anchor_mi};
 
-    if (Inspector::PATTERN_ENABLED) {
-        inspector_.saveMI(anchor_mi.I_, neighbors.getSelfIdx());
-    }
+#ifdef TLCT_ENABLE_INSPECT
+    inspector_.saveMI(anchor_mi.I_, neighbors.getSelfIdx());
+#endif
 
     const int max_shift = (int)(pattern_shift_ * 2);
 
@@ -77,9 +77,9 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
             const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, pattern_size_);
             wrap_anchor.updateRoi(anchor_roi);
 
-            if (Inspector::PATTERN_ENABLED) {
-                inspector_.saveAnchor(wrap_anchor.I_, neighbors.getSelfIdx(), (int)direction);
-            }
+#ifdef TLCT_ENABLE_INSPECT
+            inspector_.saveAnchor(wrap_anchor.I_, neighbors.getSelfIdx(), (int)direction);
+#endif
 
             const auto& neib_mi = mis_.getMI(neighbors.getNeighborIdx(direction));
             WrapSSIM wrap_neib{neib_mi};
@@ -100,9 +100,9 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
                 const double metric = wrap_anchor.compare(wrap_neib);
                 metrics.push_back(metric);
 
-                if (Inspector::PATTERN_ENABLED) {
-                    inspector_.saveCmpPattern(wrap_neib.I_, neighbors.getSelfIdx(), (int)direction, psize, metric);
-                }
+#ifdef TLCT_ENABLE_INSPECT
+                inspector_.saveCmpPattern(wrap_neib.I_, neighbors.getSelfIdx(), (int)direction, psize, metric);
+#endif
 
                 if (metric < min_metric) {
                     min_metric = metric;
@@ -118,9 +118,9 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
         }
     };
 
-    if (Inspector::METRIC_REPORT_ENABLED) {
-        inspector_.appendMetricReport(neighbors.getSelfIdx(), psizes, weights);
-    }
+#ifdef TLCT_ENABLE_INSPECT
+    inspector_.appendMetricReport(neighbors.getSelfIdx(), psizes, weights);
+#endif
 
     if (total_weight == 0.0)
         return INVALID_PSIZE;

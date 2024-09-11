@@ -38,7 +38,9 @@ public:
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
 
     // Non-const methods
+#ifdef TLCT_ENABLE_INSPECT
     inline void setInspector(Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
+#endif
     TLCT_API inline void feed(const cv::Mat& newsrc);
 
     // Iterator
@@ -96,20 +98,24 @@ public:
     [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, cv::Point index);
 
 private:
+#ifdef TLCT_ENABLE_INSPECT
+    Inspector inspector_;
+#endif
     TLayout layout_;
     TSpecificConfig spec_cfg_;
-    int views_;
-    cv::Mat src_32f_;
     TMIs mis_;
+    cv::Mat src_32f_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
-    int patch_xshift_; // the extracted patch will be zoomed to this height
-    int patch_yshift_;
-    double bound_;
-    int p_resize_;
     cv::Mat patch_fadeout_weight_;
+    double bound_;
     double pattern_size_;
     double pattern_shift_;
+    cv::Range canvas_crop_roi_[2];
+    int views_;
+    int patch_xshift_; // the extracted patch will be zoomed to this height
+    int patch_yshift_;
+    int p_resize_;
     int min_psize_;
     int move_range_;
     int interval_;
@@ -117,14 +123,12 @@ private:
     int canvas_height_;
     int final_width_;
     int final_height_;
-    cv::Range canvas_crop_roi_[2];
-    Inspector inspector_;
 };
 
 static_assert(concepts::CState<State>);
 
 State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
-    : layout_(layout), spec_cfg_(spec_cfg), views_(views), src_32f_(), inspector_()
+    : layout_(layout), spec_cfg_(spec_cfg), views_(views), src_32f_()
 {
     mis_ = TMIs::fromLayout(layout);
 

@@ -70,10 +70,10 @@ public:
     };
 
 private:
-    cv::Point self_idx_;
-    TIndices indices_;
-    cv::Point2d self_pt_;
     TPoints points_;
+    cv::Point2d self_pt_;
+    TIndices indices_;
+    cv::Point self_idx_;
 };
 
 template <typename TLayout>

@@ -68,17 +68,17 @@ public:
 
 private:
     cv::Point2d left_top_;
-    bool is_out_shift_;
     double x_unit_shift_;
     double y_unit_shift_;
+    double diameter_;
+    double radius_;
+    double rotation_;
     cv::Size imgsize_;
     int mirows_;
     TMiCols micols_;
     TIdx2Type idx2type_;
-    double diameter_;
-    double radius_;
-    double rotation_;
     int upsample_;
+    bool is_out_shift_;
 };
 
 static_assert(concepts::CLayout<Layout>);

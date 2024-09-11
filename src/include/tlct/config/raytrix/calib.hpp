@@ -41,9 +41,9 @@ public:
     [[nodiscard]] TLCT_API inline LenOffsets getLenOffsets() const noexcept { return lofs_; };
 
 private:
+    cv::Point2d offset_; // be careful: (x,-y) is the corresponding coord repr in OpenCV
     double diameter_;
     double rotation_;
-    cv::Point2d offset_; // be careful: (x,-y) is the corresponding coord repr in OpenCV
     LenOffsets lofs_;
 };
 

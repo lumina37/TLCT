@@ -51,12 +51,12 @@ public:
     };
 
 private:
-    cv::Size imgsize_;
-    int upsample_;
     double max_patch_size_;
     double pattern_size_;
     double gradient_blending_width_;
     double psize_shortcut_threshold_;
+    cv::Size imgsize_;
+    int upsample_;
 };
 
 SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)

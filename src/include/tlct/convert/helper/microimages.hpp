@@ -36,7 +36,7 @@ public:
     class Params
     {
     public:
-        static constexpr int SIMD_FETCH_SIZE = 256 / 8;
+        static constexpr size_t SIMD_FETCH_SIZE = 256 / 8;
 
         inline Params() noexcept = default;
         inline explicit Params(const TLayout& layout) noexcept
@@ -52,12 +52,12 @@ public:
         inline Params& operator=(Params&& rhs) noexcept = default;
         inline Params(Params&& rhs) noexcept = default;
 
+        size_t aligned_mat_size_;
+        size_t aligned_mi_size_;
+        size_t buffer_size_;
         int idiameter_;
-        int aligned_mat_size_;
-        int aligned_mi_size_;
         int mi_max_cols_;
         int mi_num_;
-        int buffer_size_;
     };
 
     // Constructor

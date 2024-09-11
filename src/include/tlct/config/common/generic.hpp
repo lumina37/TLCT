@@ -39,10 +39,10 @@ public:
     [[nodiscard]] TLCT_API inline fs::path fmtDstPath(int i) const noexcept;
 
 private:
-    int views_;
     cv::Range range_;
     std::string src_pattern_;
     std::string dst_pattern_;
+    int views_;
 };
 
 GenericParamConfig GenericParamConfig::fromConfigMap(const ConfigMap& cfg_map)

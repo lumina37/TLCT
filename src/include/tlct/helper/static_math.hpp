@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bit>
 #include <concepts>
 
 namespace tlct::_hp {
@@ -18,13 +17,6 @@ constexpr T round_to(T v)
 {
     constexpr T half_to = to >> 1;
     return (v + half_to) / to * to;
-}
-
-template <typename Tv>
-    requires std::is_unsigned_v<Tv>
-constexpr Tv log2(const Tv v)
-{
-    return std::bit_width(v) - 1;
 }
 
 template <typename Tv>
