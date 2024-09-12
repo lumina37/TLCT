@@ -39,14 +39,15 @@ public:
     class Params
     {
     public:
-        static constexpr size_t SIMD_FETCH_SIZE = 256 / 8;
+        static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
+        static constexpr size_t CACHELINE_SIZE = 64;
 
         inline Params() noexcept = default;
         inline explicit Params(const TLayout& layout) noexcept
         {
             idiameter_ = _hp::iround(layout.getDiameter());
             const int row_step = _hp::align_to<SIMD_FETCH_SIZE>(idiameter_ * sizeof(float));
-            aligned_mat_size_ = row_step * idiameter_;
+            aligned_mat_size_ = _hp::align_to<CACHELINE_SIZE>(row_step * idiameter_);
             aligned_mi_size_ = WrapMI::CACHED_MAT_NUM * aligned_mat_size_;
             mi_max_cols_ = layout.getMIMaxCols();
             mi_num_ = mi_max_cols_ * layout.getMIRows();
@@ -107,7 +108,7 @@ template <typename TLayout>
 MIs<TLayout>::MIs(const TLayout& layout) : layout_(layout), params_(layout)
 {
     items_.resize(params_.mi_num_);
-    buffer_ = std::malloc(params_.buffer_size_ + Params::SIMD_FETCH_SIZE);
+    buffer_ = std::malloc(params_.buffer_size_ + Params::CACHELINE_SIZE);
 }
 
 template <typename TLayout>
@@ -121,11 +122,11 @@ template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
 MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
 {
-    cv::Mat Iu8;
+    cv::Mat Iu8, I_2_16u;
     cv::cvtColor(src, Iu8, cv::COLOR_BGR2GRAY);
 
     auto item_it = items_.begin();
-    auto* row_cursor = (uint8_t*)_hp::align_to<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
+    auto* row_cursor = (uint8_t*)_hp::align_to<Params::CACHELINE_SIZE>((size_t)buffer_);
     size_t row_step = params_.mi_max_cols_ * params_.aligned_mi_size_;
     for (const int irow : rgs::views::iota(0, layout_.getMIRows())) {
 
@@ -141,11 +142,10 @@ MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
             I_src.convertTo(I_dst, CV_32F);
             mat_cursor += params_.aligned_mat_size_;
 
-            cv::Mat I_2_src;
-            I_src.convertTo(I_2_src, CV_16U);
-            cv::multiply(I_2_src, I_2_src, I_2_src);
+            I_src.convertTo(I_2_16u, CV_16U);
+            cv::multiply(I_2_16u, I_2_16u, I_2_16u);
             cv::Mat I_2_dst = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, mat_cursor);
-            I_2_src.convertTo(I_2_dst, CV_32F);
+            I_2_16u.convertTo(I_2_dst, CV_32F);
             mat_cursor += params_.aligned_mat_size_;
 
             *item_it = {std::move(I_dst), std::move(I_2_dst)};
