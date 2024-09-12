@@ -7,12 +7,12 @@
 
 namespace tlct::cfg::raytrix {
 
-namespace _priv = tlct::_cfg::raytrix;
+namespace _ = _cfg::raytrix;
 
-using _priv::CalibConfig;
-using _priv::Layout;
-using _priv::LEN_TYPE_NUM;
-using _priv::ParamConfig;
-using _priv::SpecificConfig;
+using _::CalibConfig;
+using _::Layout;
+using _::LEN_TYPE_NUM;
+using _::ParamConfig;
+using _::SpecificConfig;
 
 } // namespace tlct::cfg::raytrix

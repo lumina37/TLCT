@@ -5,12 +5,12 @@
 
 namespace tlct::tspc {
 
-using tlct::cfg::tspc::CalibConfig;
-using tlct::cfg::tspc::Layout;
-using tlct::cfg::tspc::ParamConfig;
-using tlct::cfg::tspc::SpecificConfig;
+using cfg::tspc::CalibConfig;
+using cfg::tspc::Layout;
+using cfg::tspc::ParamConfig;
+using cfg::tspc::SpecificConfig;
 
-using tlct::cvt::tspc::Neighbors;
-using tlct::cvt::tspc::State;
+using cvt::tspc::Neighbors;
+using cvt::tspc::State;
 
 } // namespace tlct::tspc

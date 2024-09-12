@@ -10,12 +10,12 @@
 
 namespace tlct::cvt {
 
-namespace _priv = tlct::_cvt;
+namespace _ = _cvt;
 
-using _priv::Direction;
-using _priv::DIRECTION_NUM;
-using _priv::DIRECTIONS;
-using _priv::Inspector;
-using _priv::opposite;
+using _::Direction;
+using _::DIRECTION_NUM;
+using _::DIRECTIONS;
+using _::Inspector;
+using _::opposite;
 
 } // namespace tlct::cvt

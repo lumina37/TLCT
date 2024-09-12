@@ -7,9 +7,9 @@
 
 namespace tlct::cvt::raytrix {
 
-namespace _priv = tlct::_cvt::raytrix;
+namespace _ = _cvt::raytrix;
 
-using _priv::Neighbors;
-using _priv::State;
+using _::Neighbors;
+using _::State;
 
 } // namespace tlct::cvt::raytrix

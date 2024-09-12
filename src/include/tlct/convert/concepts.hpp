@@ -5,9 +5,9 @@
 
 namespace tlct::cvt::concepts {
 
-namespace _priv = tlct::_cvt::concepts;
+namespace _ = _cvt::concepts;
 
-using _priv::CNeighbors;
-using _priv::CState;
+using _::CNeighbors;
+using _::CState;
 
 } // namespace tlct::cvt::concepts

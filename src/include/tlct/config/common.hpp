@@ -7,10 +7,10 @@
 
 namespace tlct::cfg {
 
-namespace _priv = tlct::_cfg;
+namespace _ = _cfg;
 
-using _priv::ConfigMap;
-using _priv::GenericParamConfig;
-using _priv::PipelineType;
+using _::ConfigMap;
+using _::GenericParamConfig;
+using _::PipelineType;
 
 } // namespace tlct::cfg

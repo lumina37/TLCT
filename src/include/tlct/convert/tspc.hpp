@@ -7,9 +7,9 @@
 
 namespace tlct::cvt::tspc {
 
-namespace _priv = tlct::_cvt::tspc;
+namespace _ = _cvt::tspc;
 
-using _priv::Neighbors;
-using _priv::State;
+using _::Neighbors;
+using _::State;
 
 } // namespace tlct::cvt::tspc

@@ -6,10 +6,10 @@
 
 namespace tlct::cfg::concepts {
 
-namespace _priv = tlct::_cfg::concepts;
+namespace _ = _cfg::concepts;
 
-using _priv::CCalibConfig;
-using _priv::CLayout;
-using _priv::CSpecificConfig;
+using _::CCalibConfig;
+using _::CLayout;
+using _::CSpecificConfig;
 
 } // namespace tlct::cfg::concepts
