@@ -81,7 +81,7 @@ cv::Mat State::renderView(int view_row, int view_col) const
         view_image = std::move(resized_normed_image_u8);
     }
 
-    return std::move(view_image);
+    return view_image;
 }
 
 } // namespace tlct::_cvt::tspc

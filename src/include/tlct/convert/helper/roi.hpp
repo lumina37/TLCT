@@ -17,7 +17,7 @@ static inline cv::Rect getRoiByCenter(const cv::Point2d& center, const double wi
 static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2d& center, const double width) noexcept
 {
     cv::Mat roi = src(getRoiByCenter(center, width));
-    return std::move(roi);
+    return roi;
 }
 
 static inline cv::Rect getRoiByCenter(const cv::Point2d& center, const cv::Size2d size) noexcept
@@ -32,7 +32,7 @@ static inline cv::Rect getRoiByCenter(const cv::Point2d& center, const cv::Size2
 static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2d& center, const cv::Size2d size) noexcept
 {
     cv::Mat roi = src(getRoiByCenter(center, size));
-    return std::move(roi);
+    return roi;
 }
 
 static inline cv::Rect getRoiByCenter(const cv::Point& center, const int width) noexcept
@@ -45,7 +45,7 @@ static inline cv::Rect getRoiByCenter(const cv::Point& center, const int width) 
 static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point& center, const int width) noexcept
 {
     cv::Mat roi = src(getRoiByCenter(center, width));
-    return std::move(roi);
+    return roi;
 }
 
 static inline cv::Rect getRoiByCenter(const cv::Point& center, const cv::Size size) noexcept
@@ -60,7 +60,7 @@ static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point& c
     const int startx = center.x - (size.width + 1) / 2;
     const int starty = center.y - (size.height + 1) / 2;
     cv::Mat roi = src(getRoiByCenter(center, size));
-    return std::move(roi);
+    return roi;
 }
 
 static inline cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner,
@@ -68,13 +68,13 @@ static inline cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Po
 {
     const int width_i = (int)std::ceil(width);
     cv::Mat roi = src({corner.x, corner.y, width_i, width_i});
-    return std::move(roi);
+    return roi;
 }
 
 static inline cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner, const int width) noexcept
 {
     cv::Mat roi = src({corner.x, corner.y, width, width});
-    return std::move(roi);
+    return roi;
 }
 
 static inline cv::Mat circleWithFadeoutBorder(const int diameter, const int border_width)
@@ -95,7 +95,8 @@ static inline cv::Mat circleWithFadeoutBorder(const int diameter, const int bord
         cv::circle(rect, center, radius - i, color, 1, cv::LINE_8, bitshift);
         color += color_step;
     }
-    return std::move(rect);
+
+    return rect;
 }
 
 } // namespace tlct::_cvt

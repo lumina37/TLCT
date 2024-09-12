@@ -158,7 +158,7 @@ cv::Mat State::estimatePatchsizes()
         }
     }
 
-    return std::move(patchsizes_);
+    return patchsizes_;
 }
 
 } // namespace tlct::_cvt::raytrix

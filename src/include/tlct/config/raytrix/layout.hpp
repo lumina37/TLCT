@@ -201,7 +201,7 @@ cv::Mat Layout::procImg(const cv::Mat& src) const
 {
     cv::Mat dst;
     procImg_(src, dst);
-    return std::move(dst);
+    return dst;
 }
 
 } // namespace tlct::_cfg::raytrix
