@@ -52,7 +52,7 @@ static_assert(concepts::CCalibConfig<CalibConfig>);
 CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("RayCalibData");
-    if (data_node.empty()) {
+    if (data_node.empty()) [[unlikely]] {
         std::cerr << "Missing xml node `RayCalibData` when initializing raytrix::CalibConfig" << std::endl;
         return {};
     }
@@ -81,7 +81,7 @@ CalibConfig CalibConfig::fromXMLPath(std::string_view path)
 {
     pugi::xml_document doc;
     const auto ret = doc.load_file(path.data(), pugi::parse_minimal, pugi::encoding_utf8);
-    if (!ret) {
+    if (!ret) [[unlikely]] {
         std::cerr << "Failed to load `raytrix::CalibConfig` from `" << path << "`!" << std::endl;
         return {};
     }

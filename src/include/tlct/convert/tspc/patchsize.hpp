@@ -31,7 +31,7 @@ double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) 
     double total_weight = 0.0;
 
     for (const auto direction : DIRECTIONS) {
-        if (neighbors.hasNeighbor(direction)) {
+        if (neighbors.hasNeighbor(direction)) [[likely]] {
             const cv::Point2d anchor_shift = -neighbors.getUnitShift(direction) * pattern_shift_;
             const cv::Point2d match_step = neighbors.getUnitShift(direction);
             const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
@@ -72,7 +72,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
     std::vector<double> psizes, weights;
 
     for (const auto direction : DIRECTIONS) {
-        if (neighbors.hasNeighbor(direction)) {
+        if (neighbors.hasNeighbor(direction)) [[likely]] {
             const cv::Point2d anchor_shift = -neighbors.getUnitShift(direction) * pattern_shift_;
             const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, pattern_size_);
             wrap_anchor.updateRoi(anchor_roi);
@@ -141,9 +141,9 @@ int State::_estimatePatchsize(cv::Mat& psizes, const cv::Point index)
 
     const int psize = _estimatePatchsizeOverFullMatch(neighbors);
 
-    if (psize == INVALID_PSIZE) {
+    if (psize == INVALID_PSIZE) [[unlikely]] {
         return prev_psize;
-    } else {
+    } else [[likely]] {
         return psize;
     }
 }

@@ -51,25 +51,25 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
     std::map<std::string, std::string> cfg_map;
     std::string row;
     while (std::getline(ifs, row)) {
-        if (row.empty() || row.starts_with('=')) {
+        if (row.empty() || row.starts_with('=')) [[unlikely]] {
             break;
         }
 
         std::string::iterator key_end = row.begin();
         for (; key_end != row.end(); key_end++) {
-            if (has_delim(*key_end)) {
+            if (has_delim(*key_end)) [[unlikely]] {
                 break;
             }
         }
 
-        if (key_end == row.end()) {
+        if (key_end == row.end()) [[unlikely]] {
             // row without KV
             continue;
         }
 
         std::string::iterator value_start = key_end;
         for (; value_start != row.end(); value_start++) {
-            if (!has_delim(*value_start)) {
+            if (!has_delim(*value_start)) [[unlikely]] {
                 break;
             }
         }
@@ -85,7 +85,7 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
 ConfigMap ConfigMap::fromPath(std::string_view path)
 {
     std::ifstream ifs(path.data());
-    if (!ifs) {
+    if (!ifs) [[unlikely]] {
         std::cerr << "Failed to load `ConfigMap` from `" << path << "`!" << std::endl;
         return {};
     }

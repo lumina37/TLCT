@@ -95,11 +95,11 @@ Neighbors_<TLayout> Neighbors_<TLayout>::fromLayoutAndIndex(const TLayout& layou
     cv::Point2d downleft_pt{Neighbors_::DEFAULT_COORD, Neighbors_::DEFAULT_COORD};
     cv::Point2d downright_pt{Neighbors_::DEFAULT_COORD, Neighbors_::DEFAULT_COORD};
 
-    if (index.x > 0) {
+    if (index.x > 0) [[likely]] {
         left_idx = {index.x - 1, index.y};
         left_pt = layout.getMICenter(left_idx);
     }
-    if (index.x < (layout.getMICols(index.y) - 1)) {
+    if (index.x < (layout.getMICols(index.y) - 1)) [[likely]] {
         right_idx = {index.x + 1, index.y};
         right_pt = layout.getMICenter(right_idx);
     }
@@ -108,25 +108,25 @@ Neighbors_<TLayout> Neighbors_<TLayout>::fromLayoutAndIndex(const TLayout& layou
     const int udleft_xidx = index.x - is_left_row;                    // x index of the up/down-left MI
     const int udright_xidx = udleft_xidx + 1;                         // x index of the up/down-right MI
 
-    if (index.y > 0) {
+    if (index.y > 0) [[likely]] {
         const int yidx = index.y - 1;
-        if (udleft_xidx >= 0) {
+        if (udleft_xidx >= 0) [[likely]] {
             upleft_idx = {udleft_xidx, yidx};
             upleft_pt = layout.getMICenter(upleft_idx);
         }
-        if (udright_xidx < layout.getMICols(yidx)) {
+        if (udright_xidx < layout.getMICols(yidx)) [[likely]] {
             upright_idx = {udright_xidx, yidx};
             upright_pt = layout.getMICenter(upright_idx);
         }
     }
 
-    if (index.y < (layout.getMIRows() - 1)) {
+    if (index.y < (layout.getMIRows() - 1)) [[likely]] {
         const int yidx = index.y + 1;
-        if (udleft_xidx >= 0) {
+        if (udleft_xidx >= 0) [[likely]] {
             downleft_idx = {udleft_xidx, yidx};
             downleft_pt = layout.getMICenter(downleft_idx);
         }
-        if (udright_xidx < layout.getMICols(yidx)) {
+        if (udright_xidx < layout.getMICols(yidx)) [[likely]] {
             downright_idx = {udright_xidx, yidx};
             downright_pt = layout.getMICenter(downright_idx);
         }

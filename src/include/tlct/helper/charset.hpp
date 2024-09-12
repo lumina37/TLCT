@@ -13,7 +13,7 @@ namespace tlct::_hp {
 std::wstring utf8_to_wstring(const std::string& utf8_str)
 {
     int wchar_size = MultiByteToWideChar(CP_UTF8, 0, utf8_str.data(), -1, nullptr, 0);
-    if (wchar_size == 0) {
+    if (wchar_size == 0) [[unlikely]] {
         return {};
     }
     std::wstring wstr(wchar_size, 0);
@@ -24,7 +24,7 @@ std::wstring utf8_to_wstring(const std::string& utf8_str)
 std::string wstring_to_gbk(const std::wstring& wstr)
 {
     int gbk_size = WideCharToMultiByte(CP_ACP, 0, wstr.data(), -1, nullptr, 0, nullptr, nullptr);
-    if (gbk_size == 0) {
+    if (gbk_size == 0) [[unlikely]] {
         return {};
     }
     std::string gbk_str(gbk_size, 0);

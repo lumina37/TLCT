@@ -138,15 +138,16 @@ MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
         const int mi_cols = layout_.getMICols(irow);
         for (const int icol : rgs::views::iota(0, mi_cols)) {
             const auto mi_center = layout_.getMICenter(irow, icol);
+            const cv::Rect roi = getRoiByCenter(mi_center, layout_.getDiameter());
 
             uint8_t* mat_cursor = col_cursor;
 
-            const cv::Mat& I_src = getRoiImageByCenter(I_32f, mi_center, layout_.getDiameter());
+            const cv::Mat& I_src = I_32f(roi);
             cv::Mat I_dst = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, mat_cursor);
             I_src.copyTo(I_dst);
             mat_cursor += params_.aligned_mat_size_;
 
-            const cv::Mat& I_2_src = getRoiImageByCenter(I_2_32f, mi_center, layout_.getDiameter());
+            const cv::Mat& I_2_src = I_2_32f(roi);
             cv::Mat I_2_dst = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, mat_cursor);
             I_2_src.copyTo(I_2_dst);
             mat_cursor += params_.aligned_mat_size_;

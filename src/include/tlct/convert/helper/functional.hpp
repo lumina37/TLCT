@@ -7,7 +7,7 @@
 
 namespace tlct::_cvt {
 
-static inline double computeGrad(const cv::Mat& src)
+[[nodiscard]] static inline double computeGrad(const cv::Mat& src)
 {
     cv::Mat edges;
     double weight = 0.0;
@@ -22,7 +22,7 @@ static inline double computeGrad(const cv::Mat& src)
 }
 
 template <typename Tv>
-inline Tv stdvar(const std::vector<Tv>& vec)
+[[nodiscard]] inline Tv stdvar(const std::vector<Tv>& vec)
 {
     const Tv sum = std::reduce(vec.begin(), vec.end());
     const Tv avg = sum / (Tv)vec.size();
