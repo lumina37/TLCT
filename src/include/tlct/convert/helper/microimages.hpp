@@ -122,8 +122,12 @@ template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
 MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
 {
-    cv::Mat Iu8, I_2_16u;
-    cv::cvtColor(src, Iu8, cv::COLOR_BGR2GRAY);
+    cv::Mat I_8u, I_32f, I_2_32f;
+    cv::cvtColor(src, I_8u, cv::COLOR_BGR2GRAY);
+    I_8u.convertTo(I_32f, CV_32S);
+    cv::multiply(I_32f, I_32f, I_2_32f);
+    I_32f.convertTo(I_32f, CV_32F);
+    I_2_32f.convertTo(I_2_32f, CV_32F);
 
     auto item_it = items_.begin();
     auto* row_cursor = (uint8_t*)_hp::align_to<Params::CACHELINE_SIZE>((size_t)buffer_);
@@ -137,15 +141,14 @@ MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
 
             uint8_t* mat_cursor = col_cursor;
 
-            const cv::Mat& I_src = getRoiImageByCenter(Iu8, mi_center, layout_.getDiameter());
+            const cv::Mat& I_src = getRoiImageByCenter(I_32f, mi_center, layout_.getDiameter());
             cv::Mat I_dst = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, mat_cursor);
-            I_src.convertTo(I_dst, CV_32F);
+            I_src.copyTo(I_dst);
             mat_cursor += params_.aligned_mat_size_;
 
-            I_src.convertTo(I_2_16u, CV_16U);
-            cv::multiply(I_2_16u, I_2_16u, I_2_16u);
+            const cv::Mat& I_2_src = getRoiImageByCenter(I_2_32f, mi_center, layout_.getDiameter());
             cv::Mat I_2_dst = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, mat_cursor);
-            I_2_16u.convertTo(I_2_dst, CV_32F);
+            I_2_src.copyTo(I_2_dst);
             mat_cursor += params_.aligned_mat_size_;
 
             *item_it = {std::move(I_dst), std::move(I_2_dst)};

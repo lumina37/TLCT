@@ -112,7 +112,7 @@ void Inspector::saveMI(const cv::Mat& img, const cv::Point index) const
     const fs::path save_path = mi_dir / "mi.png";
 
     cv::Mat imgu8;
-    img.assignTo(imgu8, CV_8U);
+    img.convertTo(imgu8, CV_8U);
     cv::imwrite(save_path.string(), imgu8);
 }
 
@@ -125,7 +125,7 @@ void Inspector::saveAnchor(const cv::Mat& img, const cv::Point index, const int 
     const fs::path save_path = dir / "anchor.png";
 
     cv::Mat imgu8;
-    img.assignTo(imgu8, CV_8U);
+    img.convertTo(imgu8, CV_8U);
     cv::imwrite(save_path.string(), imgu8);
 }
 
@@ -141,7 +141,7 @@ void Inspector::saveCmpPattern(const cv::Mat& img, const cv::Point index, const 
     const fs::path save_path = dir / ss.str();
 
     cv::Mat imgu8;
-    img.assignTo(imgu8, CV_8U);
+    img.convertTo(imgu8, CV_8U);
     cv::imwrite(save_path.string(), imgu8);
 }
 
