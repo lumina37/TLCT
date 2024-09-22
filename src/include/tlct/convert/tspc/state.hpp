@@ -41,58 +41,10 @@ public:
 #ifdef TLCT_ENABLE_INSPECT
     inline void setInspector(Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
 #endif
-    TLCT_API inline void feed(const cv::Mat& newsrc);
-
-    // Iterator
-    class iterator
-    {
-    public:
-        // Typename alias
-        using value_type = cv::Mat;
-        using iterator_category = std::forward_iterator_tag;
-
-        // Constructor
-        TLCT_API inline iterator(const State& state, int views, int view_row, int view_col)
-            : state_(state), views_(views), view_row_(view_row), view_col_(view_col){};
-
-        // Initialize from
-        [[nodiscard]] TLCT_API static inline iterator fromStateAndView(const State& state, int views, int view_row,
-                                                                       int view_col) noexcept;
-
-        // Const methods
-        [[nodiscard]] TLCT_API inline value_type operator*() const { return state_.renderView(view_row_, view_col_); };
-        [[nodiscard]] TLCT_API inline bool operator==(const iterator& rhs) const noexcept
-        {
-            return view_col_ == rhs.view_col_ && view_row_ == rhs.view_row_;
-        }
-
-        // Non-const methods
-        TLCT_API inline iterator& operator++() noexcept
-        {
-            view_col_++;
-            if (view_col_ == views_) {
-                view_col_ = 0;
-                view_row_++;
-            }
-            return *this;
-        };
-
-    private:
-        const State& state_;
-        int views_;
-        int view_row_;
-        int view_col_;
-    };
-    friend class iterator;
-
-    [[nodiscard]] TLCT_API iterator begin() const noexcept { return iterator::fromStateAndView(*this, views_, 0, 0); }
-    [[nodiscard]] TLCT_API iterator end() const noexcept
-    {
-        return iterator::fromStateAndView(*this, views_, views_, 0);
-    }
+    TLCT_API inline void feed(const cv::Mat& src);
 
     [[nodiscard]] inline cv::Mat estimatePatchsizes();
-    [[nodiscard]] inline cv::Mat renderView(int view_row, int view_col) const;
+    inline void render_(cv::Mat& dst, int view_row, int view_col) const;
     [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, int psize) const;
     [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors);
     [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, cv::Point index);
@@ -180,20 +132,14 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
     return {layout, spec_cfg, views};
 }
 
-void State::feed(const cv::Mat& newsrc)
+void State::feed(const cv::Mat& src)
 {
-    cv::Mat proced_src;
-    layout_.procImg_(newsrc, proced_src);
-    proced_src.convertTo(src_32f_, CV_32FC3);
-    mis_.update(proced_src);
+    layout_.procImg_(src, src_32f_);
+    mis_.update(src_32f_);
+    src_32f_.convertTo(src_32f_, CV_32FC3);
 
     std::swap(prev_patchsizes_, patchsizes_);
     patchsizes_ = estimatePatchsizes();
-}
-
-State::iterator State::iterator::fromStateAndView(const State& state, int views, int view_row, int view_col) noexcept
-{
-    return {state, views, view_row, view_col};
 }
 
 } // namespace tlct::_cvt::tspc

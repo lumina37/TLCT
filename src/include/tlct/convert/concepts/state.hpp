@@ -21,14 +21,13 @@ concept CState = requires {
         { Self::fromParamCfg(param_cfg) } -> std::same_as<Self>;
     };
 } && requires {
-    // Non-const methods
-    requires requires(Self self, const cv::Mat& newsrc) { self.feed(newsrc); };
-} && requires {
-    // Iterator
-    requires requires(Self self) {
-        { *self.begin() } -> std::same_as<cv::Mat>;
-        { *self.end() } -> std::same_as<cv::Mat>;
+    // Const methods
+    requires requires(const Self self, cv::Mat& dst, int view_row, int view_col) {
+        self.render_(dst, view_row, view_col);
     };
+} && requires {
+    // Non-const methods
+    requires requires(Self self, const cv::Mat& src) { self.feed(src); };
 };
 
 } // namespace tlct::_cvt::concepts

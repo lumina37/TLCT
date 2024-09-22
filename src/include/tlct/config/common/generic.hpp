@@ -57,14 +57,14 @@ GenericParamConfig GenericParamConfig::fromConfigMap(const ConfigMap& cfg_map)
 
 fs::path GenericParamConfig::fmtSrcPath(int i) const noexcept
 {
-    char buffer[256];
+    char buffer[512];
     sprintf(buffer, getSrcPattern().c_str(), i);
     return {buffer};
 }
 
 fs::path GenericParamConfig::fmtDstPath(int i) const noexcept
 {
-    char buffer[256];
+    char buffer[512];
     sprintf(buffer, getDstPattern().c_str(), i);
     return {buffer};
 }

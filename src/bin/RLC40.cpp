@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <ranges>
 #include <sstream>
 
 #include <argparse/argparse.hpp>
@@ -7,6 +8,7 @@
 #include "tlct.hpp"
 
 namespace fs = std::filesystem;
+namespace rgs = std::ranges;
 namespace tn = tlct::tspc;
 
 template <typename TState>
@@ -23,16 +25,20 @@ static inline void render(const tlct::cfg::ConfigMap& cfg_map)
         const auto srcpath = generic_cfg.fmtSrcPath(i);
         state.feed(cv::imread(srcpath.string()));
 
-        int img_cnt = 1;
         const auto dstdir = generic_cfg.fmtDstPath(i);
         fs::create_directories(dstdir);
 
-        for (const auto& mv : state) {
-            std::stringstream filename_s;
-            filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
-            const fs::path saveto_path = dstdir / filename_s.str();
-            cv::imwrite(saveto_path.string(), mv);
-            img_cnt++;
+        int img_cnt = 1;
+        cv::Mat mv;
+        for (const int view_row : rgs::views::iota(0, generic_cfg.getViews())) {
+            for (const int view_col : rgs::views::iota(0, generic_cfg.getViews())) {
+                std::stringstream filename_s;
+                filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
+                const fs::path saveto_path = dstdir / filename_s.str();
+                state.render_(mv, view_row, view_col);
+                cv::imwrite(saveto_path.string(), mv);
+                img_cnt++;
+            }
         }
     }
 }

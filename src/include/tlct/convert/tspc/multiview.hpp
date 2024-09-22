@@ -12,7 +12,7 @@ namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
 
-cv::Mat State::renderView(int view_row, int view_col) const
+void State::render_(cv::Mat& dst, int view_row, int view_col) const
 {
     constexpr int CHANNELS = 3;
 
@@ -74,14 +74,11 @@ cv::Mat State::renderView(int view_row, int view_col) const
     normed_image.convertTo(normed_image_u8, CV_8UC3);
     cv::resize(normed_image_u8, resized_normed_image_u8, {final_width_, final_height_}, 0.0, 0.0, cv::INTER_CUBIC);
 
-    cv::Mat view_image;
     if (layout_.getRotation() > 1e-2) {
-        cv::transpose(resized_normed_image_u8, view_image);
+        cv::transpose(resized_normed_image_u8, dst);
     } else {
-        view_image = std::move(resized_normed_image_u8);
+        dst = std::move(resized_normed_image_u8);
     }
-
-    return view_image;
 }
 
 } // namespace tlct::_cvt::tspc
