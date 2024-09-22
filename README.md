@@ -12,18 +12,18 @@ RLC40 [param_file_path]
 
 ### Options
 
-+ `pipeline (int)` The image is captured by Raytrix (0) or TSPC (1).
-+ `Calibration_xml (str)` The path of the calibration file.
-+ `RawImage_Path (str)` The glob pattern of the input images in C-printf style, filled with the frame index.
-+ `Output_Path (str)` The glob pattern of the output images in C-printf style, filled with the frame index.
-+ `start_frame (int)` The index of the start frame, left contains.
-+ `end_frame (int)` The index of the end frame, right contains.
-+ `width (int)` The pixel width of input image.
-+ `height (int)` The pixel height of input image.
-+ `upsample (int)` The upsample factor.
-+ `patternSize (float)` The size of pattern correlated with MI diameter.
-+ `gradientBlendingWidth (float)` The size of gradient blending width correlated with MI diameter.
-+ `psizeShortcutThreshold (float)` The accept threshold, -1.0 will refuse all, while 0.0 will accept all.
++ `pipeline <int>` The image is captured by Raytrix (0) or TSPC (1).
++ `Calibration_xml <str>` The path of the calibration file.
++ `RawImage_Path <str>` The glob pattern of the input images in C-printf style, filled with the frame index.
++ `Output_Path <str>` The glob pattern of the output images in C-printf style, filled with the frame index.
++ `start_frame <int>` The index of the start frame, left contains.
++ `end_frame <int>` The index of the end frame, right contains.
++ `width <int>` The pixel width of input image.
++ `height <int>` The pixel height of input image.
++ `upsample <int>` The upsample factor.
++ `patternSize <float>` The size of pattern correlated with MI diameter.
++ `gradientBlendingWidth <float>` The size of gradient blending width correlated with MI diameter.
++ `psizeShortcutThreshold <float>` The accept threshold, -1.0 will refuse all, while 0.0 will accept all.
 
 ### Example
 
