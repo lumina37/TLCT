@@ -130,7 +130,7 @@ Layout Layout::fromParamConfig(const TParamConfig& cfg)
     micols[1] = (int)(((double)imgsize.width - mi_1_0_x - x_unit_shift / 2.0) / x_unit_shift) + 1;
     const int mirows = (int)(((double)imgsize.height - left_top.y - y_unit_shift / 2.0) / y_unit_shift) + 1;
 
-    TIdx2Type idx2type;
+    TIdx2Type idx2type{};
     const bool is_odd_yidx = center_mi_yidx % 2;
     for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
         const int ofs = calib_cfg.getLenOffsets()[type];

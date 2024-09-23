@@ -30,14 +30,14 @@ template <size_t to, typename T>
     requires std::is_integral_v<T> && (is_pow_of_2(to))
 constexpr T align_up(T v)
 {
-    return (v + (to - 1)) & -to;
+    return (v + (to - 1)) & ((~to) + 1);
 };
 
 template <size_t to, typename T>
     requires std::is_integral_v<T> && (is_pow_of_2(to))
 constexpr T align_down(T v)
 {
-    return v & -to;
+    return v & ((~to) + 1);
 };
 
 // true -> +1, false -> -1

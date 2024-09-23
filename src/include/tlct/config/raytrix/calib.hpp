@@ -64,7 +64,7 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
     const double diameter = data_node.child("diameter").text().as_double();
     const double rotation = data_node.child("rotation").text().as_double();
 
-    LenOffsets lofs;
+    LenOffsets lofs{};
     for (const auto ltype_node : data_node.children("lens_type")) {
         const auto loffset_node = ltype_node.child("offset"); // Len Type Offset
         const int lid = ltype_node.attribute("id").as_int();

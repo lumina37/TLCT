@@ -47,7 +47,7 @@ public:
     inline void render_(cv::Mat& dst, int view_row, int view_col) const;
     [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, int psize) const;
     [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors);
-    [[nodiscard]] inline int _estimatePatchsize(cv::Mat& psizes, cv::Point index);
+    [[nodiscard]] inline int _estimatePatchsize(cv::Point index);
 
 private:
 #ifdef TLCT_ENABLE_INSPECT

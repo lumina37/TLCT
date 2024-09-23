@@ -61,8 +61,6 @@ namespace tlct::_cvt {
 [[nodiscard]] static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point& center,
                                                         const cv::Size size) noexcept
 {
-    const int startx = center.x - (size.width + 1) / 2;
-    const int starty = center.y - (size.height + 1) / 2;
     cv::Mat roi = src(getRoiByCenter(center, size));
     return roi;
 }

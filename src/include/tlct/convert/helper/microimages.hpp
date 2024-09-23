@@ -46,7 +46,7 @@ public:
         inline explicit Params(const TLayout& layout) noexcept
         {
             idiameter_ = _hp::iround(layout.getDiameter());
-            const int row_step = _hp::align_up<SIMD_FETCH_SIZE>(idiameter_ * sizeof(float));
+            const size_t row_step = _hp::align_up<SIMD_FETCH_SIZE>(idiameter_ * sizeof(float));
             aligned_mat_size_ = _hp::align_up<CACHELINE_SIZE>(row_step * idiameter_);
             aligned_mi_size_ = WrapMI::CACHED_MAT_NUM * aligned_mat_size_;
             mi_max_cols_ = layout.getMIMaxCols();

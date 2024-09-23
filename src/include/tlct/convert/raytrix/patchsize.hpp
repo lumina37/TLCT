@@ -129,7 +129,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
     return final_psize;
 }
 
-int State::_estimatePatchsize(cv::Mat& psizes, const cv::Point index)
+int State::_estimatePatchsize(const cv::Point index)
 {
     const auto neighbors = Neighbors::fromLayoutAndIndex(layout_, index);
 
@@ -153,7 +153,7 @@ cv::Mat State::estimatePatchsizes()
     for (const int row : rgs::views::iota(0, layout_.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout_.getMICols(row))) {
             const cv::Point index{col, row};
-            const int psize = _estimatePatchsize(patchsizes_, index);
+            const int psize = _estimatePatchsize(index);
             patchsizes_.at<int>(index) = psize;
         }
     }
