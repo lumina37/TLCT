@@ -41,7 +41,7 @@ if (TLCT_VERBOSE_WARNING)
     if (MSVC)
         target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} /W4)
     else ()
-        target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} -Wall -Wextra)
+        target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} -Wall -Wextra -Wno-reorder)
     endif ()
 endif ()
 

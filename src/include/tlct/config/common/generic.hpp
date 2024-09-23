@@ -39,9 +39,9 @@ public:
     [[nodiscard]] TLCT_API inline fs::path fmtDstPath(int i) const noexcept;
 
 private:
-    cv::Range range_;
     std::string src_pattern_;
     std::string dst_pattern_;
+    cv::Range range_;
     int views_;
 };
 

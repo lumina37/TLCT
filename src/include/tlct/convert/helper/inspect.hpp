@@ -153,21 +153,21 @@ void Inspector::appendMetricReport(const cv::Point index, const std::vector<doub
 
     double total_psize = 0.0;
     double total_weight = std::numeric_limits<double>::epsilon();
-    for (int i = 0; i < psizes.size(); i++) {
+    for (size_t i = 0; i < psizes.size(); i++) {
         total_psize += psizes[i] * weights[i];
         total_weight += weights[i];
     }
     const double mean = total_psize / total_weight;
 
     double var = 0;
-    for (int i = 0; i < psizes.size(); i++) {
+    for (size_t i = 0; i < psizes.size(); i++) {
         const double psize = psizes[i];
         var += (psize - mean) * (psize - mean) * weights[i];
     }
     var /= total_weight;
     var = std::sqrt(var);
     fstream_ << index.y << ',' << index.x << ',' << var;
-    for (int i = 0; i < psizes.size(); i++) {
+    for (size_t i = 0; i < psizes.size(); i++) {
         fstream_ << ',' << psizes[i] << ',' << weights[i];
     }
     fstream_ << '\n';
