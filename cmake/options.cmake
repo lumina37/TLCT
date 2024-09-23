@@ -7,6 +7,7 @@ cmake_dependent_option(TLCT_BUILD_SHARED_LIBS "Specifies the type of TLCT to bui
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
         "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 option(TLCT_ENABLE_INSPECT "Enable inspector of rendering" OFF)
+option(TLCT_VERBOSE_WARNING "Show more verbose compiler warnings" OFF)
 
 if (MSVC)
     option(TLCT_WITH_STATIC_CRT "Link with STATIC CRT" OFF)

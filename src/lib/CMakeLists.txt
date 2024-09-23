@@ -37,6 +37,14 @@ target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         $<$<NOT:$<BOOL:${PUGIXML_HEADER_ONLY}>>:pugixml>
 )
 
+if (TLCT_VERBOSE_WARNING)
+    if (MSVC)
+        target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} /W4)
+    else ()
+        target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} -Wall -Wextra)
+    endif ()
+endif ()
+
 if (NOT TLCT_HEADER_ONLY)
     install_target(${TLCT_LIB_NAME})
 endif ()
