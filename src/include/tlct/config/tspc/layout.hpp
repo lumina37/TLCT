@@ -87,7 +87,7 @@ Layout Layout::fromParamConfig(const TParamConfig& cfg)
     cv::Point2d right_bottom = calib_cfg.getRightBottom();
     auto imgsize = cfg.getSpecificCfg().getImgSize();
 
-    if (calib_cfg.getRotation() > 1e-2) {
+    if (calib_cfg.getRotation() > std::numbers::pi / 4.0) {
         std::swap(left_top.x, left_top.y);
         std::swap(right_bottom.x, right_bottom.y);
         std::swap(right_top.x, right_top.y);
@@ -169,7 +169,7 @@ void Layout::procImg_(const cv::Mat& src, cv::Mat& dst) const
     dst = src;
 
     const double rotation = getRotation();
-    if (rotation > 1e-2) {
+    if (rotation > std::numbers::pi / 4.0) {
         cv::Mat transposed_src;
         cv::transpose(src, transposed_src);
         dst = std::move(transposed_src);
