@@ -27,7 +27,7 @@ else()
     set(TLCT_GIT_TAG "unknown")
 endif()
 
-set(TLCT_EPILOG "[${TLCT_GIT_TAG} by ${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}]")
+set(TLCT_EPILOG "{tag:${TLCT_GIT_TAG}} by [${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}]")
 set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")
 
 set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
