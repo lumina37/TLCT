@@ -46,8 +46,8 @@ public:
         inline explicit Params(const TLayout& layout) noexcept
         {
             idiameter_ = _hp::iround(layout.getDiameter());
-            const int row_step = _hp::align_to<SIMD_FETCH_SIZE>(idiameter_ * sizeof(float));
-            aligned_mat_size_ = _hp::align_to<CACHELINE_SIZE>(row_step * idiameter_);
+            const int row_step = _hp::align_up<SIMD_FETCH_SIZE>(idiameter_ * sizeof(float));
+            aligned_mat_size_ = _hp::align_up<CACHELINE_SIZE>(row_step * idiameter_);
             aligned_mi_size_ = WrapMI::CACHED_MAT_NUM * aligned_mat_size_;
             mi_max_cols_ = layout.getMIMaxCols();
             mi_num_ = mi_max_cols_ * layout.getMIRows();
@@ -130,7 +130,7 @@ MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
     I_2_32f.convertTo(I_2_32f, CV_32F);
 
     auto item_it = items_.begin();
-    auto* row_cursor = (uint8_t*)_hp::align_to<Params::CACHELINE_SIZE>((size_t)buffer_);
+    auto* row_cursor = (uint8_t*)_hp::align_up<Params::CACHELINE_SIZE>((size_t)buffer_);
     size_t row_step = params_.mi_max_cols_ * params_.aligned_mi_size_;
     for (const int irow : rgs::views::iota(0, layout_.getMIRows())) {
 

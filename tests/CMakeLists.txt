@@ -7,5 +7,6 @@ function(tlct_add_test name srcs)
     doctest_discover_tests(${name})
 endfunction()
 
+tlct_add_test(test_static_math "test_static_math.cpp")
 tlct_add_test(test_common_cfg "test_common_cfg.cpp")
 tlct_add_test(test_tspc_cfg "test_tspc_cfg.cpp")

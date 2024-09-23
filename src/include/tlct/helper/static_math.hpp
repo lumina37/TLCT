@@ -28,9 +28,16 @@ constexpr bool is_pow_of_2(const Tv v)
 
 template <size_t to, typename T>
     requires std::is_integral_v<T> && (is_pow_of_2(to))
-constexpr T align_to(T v)
+constexpr T align_up(T v)
 {
     return (v + (to - 1)) & -to;
+};
+
+template <size_t to, typename T>
+    requires std::is_integral_v<T> && (is_pow_of_2(to))
+constexpr T align_down(T v)
+{
+    return v & -to;
 };
 
 // true -> +1, false -> -1
