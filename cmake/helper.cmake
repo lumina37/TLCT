@@ -19,11 +19,12 @@ find_package(Git QUIET)
 if (GIT_FOUND)
     execute_process(
             COMMAND ${GIT_EXECUTABLE} describe --tags
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             OUTPUT_VARIABLE TLCT_GIT_TAG
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-else ()
+endif ()
+if (NOT TLCT_GIT_TAG)
     set(TLCT_GIT_TAG "unknown")
 endif ()
 
