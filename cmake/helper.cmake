@@ -16,16 +16,16 @@ function(install_target name)
 endfunction()
 
 find_package(Git QUIET)
-if(GIT_FOUND)
+if (GIT_FOUND)
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} describe --tags
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE TLCT_GIT_TAG
-        OUTPUT_STRIP_TRAILING_WHITESPACE
+            COMMAND ${GIT_EXECUTABLE} describe --tags
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE TLCT_GIT_TAG
+            OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-else()
+else ()
     set(TLCT_GIT_TAG "unknown")
-endif()
+endif ()
 
 set(TLCT_EPILOG "{tag:${TLCT_GIT_TAG}} by [${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}]")
 set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")
