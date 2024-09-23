@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 include(cmake/policies.cmake)
 
-project(TLCT VERSION 0.14.3 LANGUAGES CXX)
+project(TLCT
+        VERSION 0.14.3
+        LANGUAGES CXX
+)
 
 include(cmake/options.cmake)
 include(cmake/dependencies.cmake)

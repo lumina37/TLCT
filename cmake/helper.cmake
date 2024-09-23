@@ -15,6 +15,20 @@ function(install_target name)
     )
 endfunction()
 
-set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
+find_package(Git QUIET)
+if(GIT_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} describe --tags
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE TLCT_GIT_TAG
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+else()
+    set(TLCT_GIT_TAG "unknown")
+endif()
+
+set(TLCT_EPILOG "[${TLCT_GIT_TAG} by ${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}]")
 set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")
+
+set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
 configure_file("${TLCT_CONFIGURE_DIR}/cmake.h.in" "${TLCT_CONFIGURE_DIR}/cmake.h" @ONLY)

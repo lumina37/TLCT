@@ -45,8 +45,9 @@ static inline void render(const tlct::cfg::ConfigMap& cfg_map)
 
 int main(int argc, char* argv[])
 {
-    argparse::ArgumentParser program("TLCT", TLCT_VERSION, argparse::default_arguments::all);
+    argparse::ArgumentParser program("TLCT", TLCT_GIT_TAG, argparse::default_arguments::all);
     program.add_argument("param_file_path").help("the parameter file path").required();
+    program.add_epilog(TLCT_EPILOG);
 
     try {
         program.parse_args(argc, argv);
