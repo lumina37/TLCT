@@ -1,6 +1,7 @@
 #pragma once
 
-#include <iostream>
+#include <exception>
+#include <sstream>
 #include <string>
 
 #include <opencv2/core.hpp>
@@ -53,8 +54,7 @@ CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {
     const auto data_node = doc.child("TSPCCalibData");
     if (data_node.empty()) [[unlikely]] {
-        std::cerr << "Missing xml node `TSPCCalibData` when initializing tspc::CalibConfig" << std::endl;
-        return {};
+        throw std::runtime_error{"Missing xml node `TSPCCalibData` when initializing raytrix::CalibConfig"};
     }
 
     const double diameter = data_node.child("diameter").text().as_double();
@@ -90,8 +90,9 @@ CalibConfig CalibConfig::fromXMLPath(std::string_view path)
     pugi::xml_document doc;
     const auto ret = doc.load_file(path.data(), pugi::parse_minimal, pugi::encoding_utf8);
     if (!ret) [[unlikely]] {
-        std::cerr << "Failed to load `tspc::CalibConfig` from `" << path << "`!" << std::endl;
-        return {};
+        std::stringstream err;
+        err << "Failed to load `tspc::CalibConfig` from `" << path << "`!" << std::endl;
+        throw std::runtime_error{err.str()};
     }
     return CalibConfig::fromXMLDoc(doc);
 }

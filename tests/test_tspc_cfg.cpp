@@ -12,13 +12,11 @@ namespace tn = tlct::tspc;
 TEST_CASE("cfg::tspc")
 {
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
-    const fs::path param_cfg_path = testdata_dir / "config/TSPC/param.cfg";
-    const fs::path calib_cfg_path = testdata_dir / "config/TSPC/calib.xml";
+    fs::current_path(testdata_dir);
 
-    auto cfg_map = tlct::ConfigMap::fromPath(param_cfg_path.string());
+    auto cfg_map = tlct::ConfigMap::fromPath("config/TSPC/param.cfg");
     auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
-    auto calib_cfg = tn::CalibConfig::fromXMLPath(calib_cfg_path.string());
-    param_cfg.setCalibCfg(calib_cfg);
+    const auto& calib_cfg = param_cfg.getCalibCfg();
     auto layout = tn::Layout::fromParamConfig(param_cfg);
 
     SUBCASE("tspc::ParamConfig")

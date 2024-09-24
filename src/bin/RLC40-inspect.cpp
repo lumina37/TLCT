@@ -28,6 +28,9 @@ static inline void render(const tlct::cfg::ConfigMap& cfg_map)
         const auto srcpath = generic_cfg.fmtSrcPath(i);
         state.feed(cv::imread(srcpath.string()));
 
+        const auto dstdir = generic_cfg.fmtDstPath(i);
+        fs::create_directories(dstdir);
+
         int img_cnt = 1;
         cv::Mat mv;
         for (const int view_row : rgs::views::iota(0, generic_cfg.getViews())) {

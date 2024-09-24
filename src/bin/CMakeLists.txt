@@ -14,10 +14,13 @@ function(tlct_add_executable name srcs)
 endfunction()
 
 tlct_add_executable(RLC40 "RLC40.cpp")
-tlct_add_executable(RLC40-inspect "RLC40-inspect.cpp")
 
 tlct_add_executable(dbg_draw "dbg_draw.cpp")
 tlct_add_executable(dbg_psize "dbg_psize.cpp")
 tlct_add_executable(dbg_draw_raytrix "dbg_draw_raytrix.cpp")
 
 tlct_add_executable(get_center "get_center.cpp")
+
+if (TLCT_ENABLE_INSPECT)
+    tlct_add_executable(RLC40-inspect "RLC40-inspect.cpp")
+endif ()

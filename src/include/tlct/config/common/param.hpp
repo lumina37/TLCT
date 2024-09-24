@@ -43,15 +43,6 @@ public:
     [[nodiscard]] TLCT_API inline const TSpecificConfig& getSpecificCfg() const noexcept { return spec_cfg_; };
     [[nodiscard]] TLCT_API inline const TCalibConfig& getCalibCfg() const noexcept { return calib_cfg_; };
 
-    // Non-const methods
-    template <typename T>
-        requires std::is_same_v<std::remove_cvref_t<T>, TCalibConfig>
-    inline ParamConfig_& setCalibCfg(T&& cfg)
-    {
-        calib_cfg_ = std::forward<T>(cfg);
-        return *this;
-    };
-
 private:
     GenericParamConfig generic_cfg_;
     TSpecificConfig spec_cfg_;
@@ -66,7 +57,7 @@ ParamConfig_<TSpecificConfig, TCalibConfig>::fromConfigMap(const ConfigMap& cfg_
     const auto& map = cfg_map.getMap();
     auto generic_cfg = GenericParamConfig::fromConfigMap(cfg_map);
     auto spec_cfg = TSpecificConfig::fromConfigMap(cfg_map);
-    auto calib_cfg = TCalibConfig::fromXMLPath(map.at("Calibration_xml"));
+    auto calib_cfg = TCalibConfig::fromXMLPath(cfg_map.get<std::string>("Calibration_xml"));
     return {std::move(generic_cfg), std::move(spec_cfg), std::move(calib_cfg)};
 }
 

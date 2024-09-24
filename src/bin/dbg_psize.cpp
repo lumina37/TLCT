@@ -29,7 +29,7 @@ static inline void estimate(const tlct::cfg::ConfigMap& cfg_map)
 
 int main(int argc, char* argv[])
 {
-    argparse::ArgumentParser program("DebugPsize", TLCT_VERSION, argparse::default_arguments::all);
+    argparse::ArgumentParser program("DebugPsize", TLCT_GIT_TAG, argparse::default_arguments::all);
     program.add_argument("param_file_path").help("the parameter file path").required();
 
     try {

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <exception>
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
@@ -74,8 +74,8 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
             }
         }
 
-        const std::string_view key{row.begin(), key_end};
-        const std::string_view value{value_start, row.end()};
+        const std::string_view& key{row.begin(), key_end};
+        const std::string_view& value{value_start, row.end()};
         cfg_map.emplace(key, value);
     }
 
@@ -86,8 +86,9 @@ ConfigMap ConfigMap::fromPath(std::string_view path)
 {
     std::ifstream ifs(path.data());
     if (!ifs) [[unlikely]] {
-        std::cerr << "Failed to load `ConfigMap` from `" << path << "`!" << std::endl;
-        return {};
+        std::stringstream err;
+        err << "Failed to load `ConfigMap` from `" << path << "`!" << std::endl;
+        throw std::runtime_error{err.str()};
     }
 
     return fromFstream(std::move(ifs));
