@@ -61,15 +61,15 @@ private:
     cv::Mat src_32f_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
-    cv::Mat patch_fadeout_weight_;
-    double bound_;
+    cv::Mat grad_blending_weight_;
+    double grad_blending_bound_;
     double pattern_size_;
     double pattern_shift_;
     cv::Range canvas_crop_roi_[2];
     int views_;
     int patch_xshift_; // the extracted patch will be zoomed to this height
     int patch_yshift_;
-    int p_resize_;
+    int resized_patch_width_;
     int min_psize_;
     int view_interval_;
     int canvas_width_;
@@ -90,10 +90,10 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     patch_xshift_ = (int)std::ceil(patch_xshift_d);
     patch_yshift_ = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
 
-    bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_AMP;
+    grad_blending_bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_AMP;
     const double p_resize_d = patch_xshift_d * TSpecificConfig::PSIZE_AMP;
-    p_resize_ = (int)std::round(p_resize_d);
-    patch_fadeout_weight_ = circleWithFadeoutBorder(p_resize_, (int)std::round(bound_ / 2));
+    resized_patch_width_ = (int)std::round(p_resize_d);
+    grad_blending_weight_ = circleWithFadeoutBorder(resized_patch_width_, (int)std::round(grad_blending_bound_ / 2));
 
     pattern_size_ = layout.getDiameter() * spec_cfg.getPatternSize();
     const double radius = layout.getDiameter() / 2.0;
@@ -111,13 +111,13 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
         _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_AMP));
     view_interval_ = views > 1 ? move_range / (views - 1) : 0;
 
-    canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + p_resize_);
-    canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_ + p_resize_);
+    canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + resized_patch_width_);
+    canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_ + resized_patch_width_);
 
     const cv::Range col_range{(int)std::ceil(patch_xshift_ * 1.5),
-                              (int)(canvas_width_ - p_resize_ - patch_xshift_ / 2.0)};
+                              (int)(canvas_width_ - resized_patch_width_ - patch_xshift_ / 2.0)};
     const cv::Range row_range{(int)std::ceil(patch_xshift_ * 1.5),
-                              (int)(canvas_height_ - p_resize_ - patch_xshift_ / 2.0)};
+                              (int)(canvas_height_ - resized_patch_width_ - patch_xshift_ / 2.0)};
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 

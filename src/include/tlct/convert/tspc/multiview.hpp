@@ -41,11 +41,12 @@ void State::render_(cv::Mat& dst, int view_row, int view_col) const
             // Paste patch
             cv::rotate(patch, rotated_patch, cv::ROTATE_180);
 
-            cv::resize(rotated_patch, resized_patch, {p_resize_, p_resize_}, 0, 0, cv::INTER_CUBIC);
+            cv::resize(rotated_patch, resized_patch, {resized_patch_width_, resized_patch_width_}, 0, 0,
+                       cv::INTER_CUBIC);
 
             cv::split(resized_patch, resized_patch_channels);
             for (cv::Mat& resized_patch_channel : resized_patch_channels) {
-                cv::multiply(resized_patch_channel, patch_fadeout_weight_, resized_patch_channel);
+                cv::multiply(resized_patch_channel, grad_blending_weight_, resized_patch_channel);
             }
 
             cv::merge(resized_patch_channels, CHANNELS, weighted_patch);
@@ -53,9 +54,10 @@ void State::render_(cv::Mat& dst, int view_row, int view_col) const
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
             const int right_shift = ((i % 2) ^ (int)layout_.isOutShift()) * (patch_xshift_ / 2);
-            const cv::Rect roi{j * patch_xshift_ + right_shift, i * patch_yshift_, p_resize_, p_resize_};
+            const cv::Rect roi{j * patch_xshift_ + right_shift, i * patch_yshift_, resized_patch_width_,
+                               resized_patch_width_};
             render_canvas(roi) += weighted_patch;
-            weight_canvas(roi) += patch_fadeout_weight_;
+            weight_canvas(roi) += grad_blending_weight_;
         }
     }
 
