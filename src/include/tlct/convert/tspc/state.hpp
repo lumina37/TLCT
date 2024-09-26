@@ -26,6 +26,8 @@ public:
     using TLayout = tcfg::Layout;
     using TMIs = MIs<TLayout>;
 
+    static constexpr int INVALID_PSIZE = 0;
+
     // Constructor
     State() = delete;
     State(const State& rhs) = delete;
@@ -103,7 +105,7 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
 
     min_psize_ = (int)std::round(0.3 * pattern_size_);
     prev_patchsizes_ = cv::Mat(layout_.getMIRows(), layout_.getMIMaxCols(), CV_32SC1);
-    patchsizes_ = cv::Mat::ones(prev_patchsizes_.size(), CV_32SC1) * min_psize_;
+    patchsizes_ = cv::Mat::zeros(prev_patchsizes_.size(), CV_32SC1);
 
     const int move_range =
         _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_AMP));

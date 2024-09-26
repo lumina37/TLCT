@@ -19,8 +19,6 @@ namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
 
-constexpr int INVALID_PSIZE = -1;
-
 double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) const
 {
     const cv::Point2d mi_center{layout_.getRadius(), layout_.getRadius()};
@@ -69,7 +67,6 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
 
     double weighted_psize = 0.0;
     double total_weight = 0.0;
-    std::vector<double> psizes, weights;
 
     for (const auto direction : DIRECTIONS) {
         if (neighbors.hasNeighbor(direction)) [[likely]] {
@@ -110,20 +107,11 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
                 }
             }
 
-            const double weight = computeGrad(wrap_anchor.I_) * stdvar(metrics);
+            const double weight = computeGrad(wrap_anchor.I_) * stdvar(metrics) + std::numeric_limits<float>::epsilon();
             weighted_psize += weight * min_metric_psize;
             total_weight += weight;
-            psizes.push_back(min_metric_psize);
-            weights.push_back(weight);
         }
     };
-
-#ifdef TLCT_ENABLE_INSPECT
-    inspector_.appendMetricReport(neighbors.getSelfIdx(), psizes, weights);
-#endif
-
-    if (total_weight == 0.0)
-        return INVALID_PSIZE;
 
     const int final_psize = (int)std::round(weighted_psize / total_weight);
     return final_psize;
@@ -134,18 +122,15 @@ int State::_estimatePatchsize(const cv::Point index)
     const auto neighbors = Neighbors::fromLayoutAndIndex(layout_, index);
 
     const int prev_psize = prev_patchsizes_.at<int>(index);
-    const double prev_metric = _calcMetricWithPsize(neighbors, prev_psize);
-    if (prev_metric < spec_cfg_.getPsizeShortcutThreshold()) {
-        return prev_psize;
+    if (prev_psize != INVALID_PSIZE) [[likely]] {
+        const double prev_metric = _calcMetricWithPsize(neighbors, prev_psize);
+        if (prev_metric < spec_cfg_.getPsizeShortcutThreshold()) {
+            return prev_psize;
+        }
     }
 
     const int psize = _estimatePatchsizeOverFullMatch(neighbors);
-
-    if (psize == INVALID_PSIZE) [[unlikely]] {
-        return prev_psize;
-    } else [[likely]] {
-        return psize;
-    }
+    return psize;
 }
 
 void State::estimatePatchsizes()

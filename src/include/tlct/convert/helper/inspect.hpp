@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <filesystem>
-#include <fstream>
 #include <functional>
 #include <numeric>
 #include <sstream>
@@ -31,13 +30,12 @@ public:
     static constexpr auto ALWAYS_ENABLE = [](cv::Point) { return true; };
 
     // Constructor
-    inline Inspector() noexcept : dst_dir_(), fstream_(), enable_if_(ALWAYS_ENABLE) {};
+    inline Inspector() noexcept : dst_dir_(), enable_if_(ALWAYS_ENABLE) {};
     Inspector(const Inspector& rhs) noexcept = delete;
     Inspector& operator=(const Inspector& rhs) noexcept = delete;
     inline Inspector(Inspector&& rhs) noexcept = default;
     inline Inspector& operator=(Inspector&& rhs) noexcept = default;
-    inline Inspector(fs::path&& dst_dir, std::ofstream&& fstream)
-        : dst_dir_(std::move(dst_dir)), fstream_(std::move(fstream)), enable_if_(ALWAYS_ENABLE) {};
+    inline explicit Inspector(fs::path&& dst_dir) : dst_dir_(std::move(dst_dir)), enable_if_(ALWAYS_ENABLE) {};
 
     // Init from
     [[nodiscard]] static inline Inspector fromGenericCfg(const tcfg::GenericParamConfig& generic_cfg);
@@ -54,12 +52,9 @@ public:
 
     // Non-const methods
     inline void setEnableIf(const std::function<FnEnableIf>& enable_if) noexcept { enable_if_ = enable_if; };
-    inline void appendMetricReport(cv::Point index, const std::vector<double>& psizes,
-                                   const std::vector<double>& weights);
 
 private:
     fs::path dst_dir_;
-    std::ofstream fstream_;
     std::function<FnEnableIf> enable_if_;
 };
 
@@ -71,9 +66,8 @@ Inspector Inspector::fromGenericCfg(const tcfg::GenericParamConfig& generic_cfg)
     const fs::path dst_pattern{generic_cfg.getDstPattern()};
     fs::path dst_dir = dst_pattern.parent_path() / "inspect";
     fs::create_directories(dst_dir);
-    std::ofstream fstream{dst_dir / "report.csv"};
 
-    return {std::move(dst_dir), std::move(fstream)};
+    return Inspector{std::move(dst_dir)};
 }
 
 fs::path Inspector::getMIDir(const int row, const int col) const noexcept
@@ -143,34 +137,6 @@ void Inspector::saveCmpPattern(const cv::Mat& img, const cv::Point index, const 
     cv::Mat imgu8;
     img.convertTo(imgu8, CV_8U);
     cv::imwrite(save_path.string(), imgu8);
-}
-
-void Inspector::appendMetricReport(const cv::Point index, const std::vector<double>& psizes,
-                                   const std::vector<double>& weights)
-{
-    if (!enable_if_(index))
-        return;
-
-    double total_psize = 0.0;
-    double total_weight = std::numeric_limits<double>::epsilon();
-    for (size_t i = 0; i < psizes.size(); i++) {
-        total_psize += psizes[i] * weights[i];
-        total_weight += weights[i];
-    }
-    const double mean = total_psize / total_weight;
-
-    double var = 0;
-    for (size_t i = 0; i < psizes.size(); i++) {
-        const double psize = psizes[i];
-        var += (psize - mean) * (psize - mean) * weights[i];
-    }
-    var /= total_weight;
-    var = std::sqrt(var);
-    fstream_ << index.y << ',' << index.x << ',' << var;
-    for (size_t i = 0; i < psizes.size(); i++) {
-        fstream_ << ',' << psizes[i] << ',' << weights[i];
-    }
-    fstream_ << '\n';
 }
 
 } // namespace tlct::_cvt
