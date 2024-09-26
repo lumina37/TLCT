@@ -148,7 +148,7 @@ int State::_estimatePatchsize(const cv::Point index)
     }
 }
 
-cv::Mat State::estimatePatchsizes()
+void State::estimatePatchsizes()
 {
     for (const int row : rgs::views::iota(0, layout_.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout_.getMICols(row))) {
@@ -157,8 +157,6 @@ cv::Mat State::estimatePatchsizes()
             patchsizes_.at<int>(index) = psize;
         }
     }
-
-    return patchsizes_;
 }
 
 } // namespace tlct::_cvt::tspc

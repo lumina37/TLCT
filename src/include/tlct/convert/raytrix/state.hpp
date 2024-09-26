@@ -43,7 +43,7 @@ public:
 #endif
     TLCT_API inline void feed(const cv::Mat& src);
 
-    [[nodiscard]] inline cv::Mat estimatePatchsizes();
+    inline void estimatePatchsizes();
     inline void render_(cv::Mat& dst, int view_row, int view_col) const;
     [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, int psize) const;
     [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors);
@@ -139,7 +139,7 @@ void State::feed(const cv::Mat& src)
     src_32f_.convertTo(src_32f_, CV_32FC3);
 
     std::swap(prev_patchsizes_, patchsizes_);
-    patchsizes_ = estimatePatchsizes();
+    estimatePatchsizes();
 }
 
 } // namespace tlct::_cvt::raytrix
