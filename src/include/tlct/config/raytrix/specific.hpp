@@ -6,6 +6,7 @@
 
 #include "calib.hpp"
 #include "tlct/common/defines.h"
+#include "tlct/config/concepts.hpp"
 
 namespace tlct::_cfg::raytrix {
 
@@ -58,6 +59,8 @@ private:
     cv::Size imgsize_;
     int upsample_;
 };
+
+static_assert(concepts::CSpecificConfig<SpecificConfig>);
 
 SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
 {
