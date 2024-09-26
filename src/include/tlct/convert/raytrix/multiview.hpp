@@ -17,8 +17,8 @@ void State::render_(cv::Mat& dst, int view_row, int view_col) const
 {
     constexpr int CHANNELS = 3;
 
-    const int view_shift_x = (view_col - views_ / 2) * interval_;
-    const int view_shift_y = (view_row - views_ / 2) * interval_;
+    const int view_shift_x = (view_col - views_ / 2) * view_interval_;
+    const int view_shift_y = (view_row - views_ / 2) * view_interval_;
 
     const int canvas_height = canvas_height_;
     const int canvas_width = canvas_width_;
@@ -74,7 +74,7 @@ void State::render_(cv::Mat& dst, int view_row, int view_col) const
 
     cv::Mat resized_normed_image_u8, normed_image_u8;
     normed_image.convertTo(normed_image_u8, CV_8UC3);
-    cv::resize(normed_image_u8, resized_normed_image_u8, {final_width_, final_height_}, 0.0, 0.0, cv::INTER_CUBIC);
+    cv::resize(normed_image_u8, resized_normed_image_u8, {output_width_, output_height_}, 0.0, 0.0, cv::INTER_CUBIC);
 
     if (layout_.getRotation() > std::numbers::pi / 4.0) {
         cv::transpose(resized_normed_image_u8, dst);

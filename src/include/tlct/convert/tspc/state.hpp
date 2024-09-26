@@ -69,12 +69,11 @@ private:
     int patch_yshift_;
     int p_resize_;
     int min_psize_;
-    int move_range_;
-    int interval_;
+    int view_interval_;
     int canvas_width_;
     int canvas_height_;
-    int final_width_;
-    int final_height_;
+    int output_width_;
+    int output_height_;
 };
 
 static_assert(concepts::CState<State>);
@@ -106,9 +105,9 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     prev_patchsizes_ = cv::Mat(layout_.getMIRows(), layout_.getMIMaxCols(), CV_32SC1);
     patchsizes_ = cv::Mat::ones(prev_patchsizes_.size(), CV_32SC1) * min_psize_;
 
-    move_range_ =
-        (int)std::round(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_AMP));
-    interval_ = views > 1 ? move_range_ / (views - 1) : 0;
+    const int move_range =
+        _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_AMP));
+    view_interval_ = views > 1 ? move_range / (views - 1) : 0;
 
     canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + p_resize_);
     canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_ + p_resize_);
@@ -120,8 +119,8 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 
-    final_width_ = _hp::round_to<2>(_hp::iround((double)col_range.size() / upsample));
-    final_height_ = _hp::round_to<2>(_hp::iround((double)row_range.size() / upsample));
+    output_width_ = _hp::round_to<2>(_hp::iround((double)col_range.size() / upsample));
+    output_height_ = _hp::round_to<2>(_hp::iround((double)row_range.size() / upsample));
 }
 
 State State::fromParamCfg(const TParamConfig& param_cfg)
