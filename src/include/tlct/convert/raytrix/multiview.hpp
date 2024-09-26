@@ -15,15 +15,11 @@ namespace rgs = std::ranges;
 
 void State::render_(cv::Mat& dst, int view_row, int view_col) const
 {
-    constexpr int CHANNELS = 3;
-
     const int view_shift_x = (view_col - views_ / 2) * view_interval_;
     const int view_shift_y = (view_row - views_ / 2) * view_interval_;
 
-    const int canvas_height = canvas_height_;
-    const int canvas_width = canvas_width_;
-    cv::Mat render_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_32FC3);
-    cv::Mat weight_canvas = cv::Mat::zeros(canvas_height, canvas_width, CV_32FC1);
+    render_canvas_.setTo(0.0);
+    weight_canvas_.setTo(0.0);
 
     cv::Mat rotated_patch, resized_patch;
     cv::Mat resized_patch_channels[CHANNELS];
@@ -56,31 +52,29 @@ void State::render_(cv::Mat& dst, int view_row, int view_col) const
             const int right_shift = ((i % 2) ^ (int)layout_.isOutShift()) * (patch_xshift_ / 2);
             const cv::Rect roi{j * patch_xshift_ + right_shift, i * patch_yshift_, resized_patch_width_,
                                resized_patch_width_};
-            render_canvas(roi) += weighted_patch * grad_weight;
-            weight_canvas(roi) += grad_blending_weight_ * grad_weight;
+            render_canvas_(roi) += weighted_patch * grad_weight;
+            weight_canvas_(roi) += grad_blending_weight_ * grad_weight;
         }
     }
 
-    const cv::Mat cropped_rendered_image = render_canvas(canvas_crop_roi_);
-    cv::Mat cropped_weight_matrix = weight_canvas(canvas_crop_roi_);
+    cv::Mat cropped_rendered_image = render_canvas_(canvas_crop_roi_);
+    cv::Mat cropped_weight_matrix = weight_canvas_(canvas_crop_roi_);
     cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
 
-    cv::Mat cropped_rendered_image_channels[CHANNELS];
-    cv::split(cropped_rendered_image, cropped_rendered_image_channels);
-    for (cv::Mat& cropped_new_image_channel : cropped_rendered_image_channels) {
+    cv::split(cropped_rendered_image, cropped_rendered_image_channels_);
+    for (cv::Mat& cropped_new_image_channel : cropped_rendered_image_channels_) {
         cropped_new_image_channel /= cropped_weight_matrix;
     }
-    cv::Mat normed_image;
-    cv::merge(cropped_rendered_image_channels, CHANNELS, normed_image);
+    cv::Mat& normed_image = cropped_rendered_image;
+    cv::merge(cropped_rendered_image_channels_, CHANNELS, normed_image);
 
-    cv::Mat resized_normed_image_u8, normed_image_u8;
-    normed_image.convertTo(normed_image_u8, CV_8UC3);
-    cv::resize(normed_image_u8, resized_normed_image_u8, {output_width_, output_height_}, 0.0, 0.0, cv::INTER_CUBIC);
+    normed_image.convertTo(normed_image_u8_, CV_8UC3);
+    cv::resize(normed_image_u8_, resized_normed_image_u8_, {output_width_, output_height_}, 0.0, 0.0, cv::INTER_CUBIC);
 
     if (layout_.getRotation() > std::numbers::pi / 4.0) {
-        cv::transpose(resized_normed_image_u8, dst);
+        cv::transpose(resized_normed_image_u8_, dst);
     } else {
-        dst = std::move(resized_normed_image_u8);
+        dst = std::move(resized_normed_image_u8_);
     }
 }
 

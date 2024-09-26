@@ -27,6 +27,7 @@ public:
     using TMIs = MIs<TLayout>;
 
     static constexpr int INVALID_PSIZE = 0;
+    static constexpr int CHANNELS = 3;
 
     // Constructor
     State() = delete;
@@ -38,6 +39,9 @@ public:
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
+
+    // Const methods
+    [[nodiscard]] TLCT_API inline const cv::Mat& getPatchsizes() { return patchsizes_; };
 
     // Non-const methods
 #ifdef TLCT_ENABLE_INSPECT
@@ -61,6 +65,15 @@ private:
     cv::Mat src_32f_;
     cv::Mat prev_patchsizes_;
     cv::Mat patchsizes_;
+
+    // vvv cache vvv
+    mutable cv::Mat render_canvas_;
+    mutable cv::Mat weight_canvas_;
+    mutable cv::Mat cropped_rendered_image_channels_[CHANNELS];
+    mutable cv::Mat normed_image_u8_;
+    mutable cv::Mat resized_normed_image_u8_;
+    // ^^^ cache ^^^
+
     cv::Mat grad_blending_weight_;
     double grad_blending_bound_;
     double pattern_size_;
@@ -81,7 +94,7 @@ private:
 static_assert(concepts::CState<State>);
 
 State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
-    : layout_(layout), spec_cfg_(spec_cfg), views_(views), src_32f_()
+    : layout_(layout), spec_cfg_(spec_cfg), views_(views)
 {
     mis_ = TMIs::fromLayout(layout);
 
@@ -113,6 +126,8 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
 
     canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + resized_patch_width_);
     canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_ + resized_patch_width_);
+    render_canvas_ = cv::Mat(canvas_height_, canvas_width_, CV_32FC3);
+    weight_canvas_ = cv::Mat(canvas_height_, canvas_width_, CV_32FC1);
 
     const cv::Range col_range{(int)std::ceil(patch_xshift_ * 1.5),
                               (int)(canvas_width_ - resized_patch_width_ - patch_xshift_ / 2.0)};
