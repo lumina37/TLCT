@@ -13,5 +13,5 @@ include(cmake/helper.cmake)
 
 add_subdirectory(src)
 if (TLCT_BUILD_TESTS)
-    add_subdirectory(tests EXCLUDE_FROM_ALL)
+    add_subdirectory(tests)
 endif ()
