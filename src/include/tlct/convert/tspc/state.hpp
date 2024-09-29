@@ -103,8 +103,8 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     patch_xshift_ = (int)std::ceil(patch_xshift_d);
     patch_yshift_ = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
 
-    grad_blending_bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_AMP;
-    const double p_resize_d = patch_xshift_d * TSpecificConfig::PSIZE_AMP;
+    grad_blending_bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_INFLATE;
+    const double p_resize_d = patch_xshift_d * TSpecificConfig::PSIZE_INFLATE;
     resized_patch_width_ = (int)std::round(p_resize_d);
     grad_blending_weight_ = circleWithFadeoutBorder(resized_patch_width_, (int)std::round(grad_blending_bound_ / 2));
 
@@ -121,7 +121,7 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     patchsizes_ = cv::Mat::zeros(prev_patchsizes_.size(), CV_32SC1);
 
     const int move_range =
-        _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_AMP));
+        _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_INFLATE));
     view_interval_ = views > 1 ? move_range / (views - 1) : 0;
 
     canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + resized_patch_width_);

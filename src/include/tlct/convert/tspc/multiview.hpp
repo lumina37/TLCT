@@ -30,7 +30,7 @@ void State::render_(cv::Mat& dst, int view_row, int view_col) const
             const cv::Point2d center = layout_.getMICenter(i, j);
 
             // Extract patch
-            const double psize = TSpecificConfig::PSIZE_AMP * patchsizes_.at<int>(i, j);
+            const double psize = TSpecificConfig::PSIZE_INFLATE * patchsizes_.at<int>(i, j);
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
             const cv::Mat& patch = getRoiImageByCenter(src_32f_, patch_center, psize);
 
