@@ -7,6 +7,28 @@
 
 namespace tlct::_cvt {
 
+[[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const int border_width)
+{
+    cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
+    constexpr int bitshift = 4; // supports 1/16 pixel
+    constexpr int compensate = 1 << (bitshift - 1);
+    const int shifted_border_width = border_width << bitshift;
+    const int radius = ((diameter << bitshift) + compensate) / 2;
+    const cv::Point center{radius, radius};
+
+    constexpr double max_color = 1.0;
+    cv::circle(rect, center, radius - shifted_border_width, max_color, cv::FILLED, cv::LINE_8, bitshift);
+
+    const double color_step = max_color / (shifted_border_width + 1);
+    double color = color_step;
+    for (int i = 0; i < shifted_border_width; i++) {
+        cv::circle(rect, center, radius - i, color, 1, cv::LINE_8, bitshift);
+        color += color_step;
+    }
+
+    return rect;
+}
+
 [[nodiscard]] static inline double computeGrad(const cv::Mat& src)
 {
     cv::Mat edges;

@@ -16,10 +16,10 @@ public:
     static constexpr int DEFAULT_UPSAMPLE = 1;
     static constexpr double DEFAULT_MAX_PATCH_SIZE = 0.75;
     static constexpr double DEFAULT_PATTERN_SIZE = 0.325;
-    static constexpr double DEFAULT_GRADIENT_BLENDING_WIDTH = 0.45;
+    static constexpr double DEFAULT_GRADIENT_BLENDING_WIDTH = 0.9;
     static constexpr double DEFAULT_PSIZE_SHORTCUT_THRESHOLD = -0.875;
 
-    static constexpr double PSIZE_INFLATE = std::numbers::sqrt3;
+    static constexpr double PSIZE_INFLATE = std::numbers::sqrt3 * 1.5;
 
     // Constructor
     TLCT_API inline SpecificConfig() noexcept
