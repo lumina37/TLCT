@@ -4,7 +4,8 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "param.hpp"
+#include "calib.hpp"
+#include "specific.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 #include "tlct/helper/static_math.hpp"
@@ -15,7 +16,8 @@ class Layout
 {
 public:
     // Typename alias
-    using TParamConfig = ParamConfig;
+    using TCalibConfig = CalibConfig;
+    using TSpecificConfig = SpecificConfig;
     using TMiCols = std::array<int, 2>;
 
     // Constructor
@@ -35,7 +37,8 @@ public:
           upsample_(1){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromParamConfig(const TParamConfig& cfg);
+    [[nodiscard]] TLCT_API static inline Layout fromCalibAndSpecConfig(const TCalibConfig& calib_cfg,
+                                                                       const TSpecificConfig& spec_cfg);
 
     // Non-const methods
     TLCT_API inline Layout& upsample(const int factor) noexcept;
@@ -57,8 +60,7 @@ public:
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
     [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return _hp::sgn(isOutShift()); };
 
-    TLCT_API inline void procImg_(const cv::Mat& src, cv::Mat& dst) const;
-    [[nodiscard]] TLCT_API inline cv::Mat procImg(const cv::Mat& src) const;
+    TLCT_API inline void processInto(const cv::Mat& src, cv::Mat& dst) const;
 
 private:
     cv::Point2d left_top_;
@@ -77,15 +79,14 @@ private:
 
 static_assert(concepts::CLayout<Layout>);
 
-Layout Layout::fromParamConfig(const TParamConfig& cfg)
+Layout Layout::fromCalibAndSpecConfig(const TCalibConfig& calib_cfg, const TSpecificConfig& spec_cfg)
 {
-    const auto& calib_cfg = cfg.getCalibCfg();
     const double diameter = calib_cfg.getDiameter();
     cv::Point2d left_top = calib_cfg.getLeftTop();
     cv::Point2d right_top = calib_cfg.getRightTop();
     cv::Point2d left_bottom = calib_cfg.getLeftBottom();
     cv::Point2d right_bottom = calib_cfg.getRightBottom();
-    auto imgsize = cfg.getSpecificCfg().getImgSize();
+    auto imgsize = spec_cfg.getImgSize();
 
     if (calib_cfg.getRotation() > std::numbers::pi / 4.0) {
         std::swap(left_top.x, left_top.y);
@@ -164,7 +165,7 @@ cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
 
 cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-void Layout::procImg_(const cv::Mat& src, cv::Mat& dst) const
+void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
 {
     dst = src;
 
@@ -181,13 +182,6 @@ void Layout::procImg_(const cv::Mat& src, cv::Mat& dst) const
         cv::resize(dst, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
         dst = std::move(upsampled_src);
     }
-}
-
-cv::Mat Layout::procImg(const cv::Mat& src) const
-{
-    cv::Mat dst;
-    procImg_(src, dst);
-    return dst;
 }
 
 } // namespace tlct::_cfg::tspc

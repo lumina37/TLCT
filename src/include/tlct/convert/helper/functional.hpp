@@ -59,6 +59,6 @@ template <typename Tv>
     return stdvar;
 }
 
-static inline void blur_(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
+static inline void blurInto(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 
 } // namespace tlct::_cvt

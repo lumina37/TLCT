@@ -22,8 +22,8 @@ class State
 public:
     // Typename alias
     using TParamConfig = tcfg::ParamConfig;
-    using TSpecificConfig = TParamConfig::TSpecificConfig;
-    using TLayout = tcfg::Layout;
+    using TLayout = TParamConfig::TLayout;
+    using TSpecificConfig = TLayout::TSpecificConfig;
     using TMIs = MIs<TLayout>;
 
     static constexpr int INVALID_PSIZE = 0;
@@ -50,7 +50,7 @@ public:
     TLCT_API inline void feed(const cv::Mat& src);
 
     inline void estimatePatchsizes();
-    inline void render_(cv::Mat& dst, int view_row, int view_col) const;
+    inline void renderInto(cv::Mat& dst, int view_row, int view_col) const;
     [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, int psize) const;
     [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors);
     [[nodiscard]] inline int _estimatePatchsize(cv::Point index);
@@ -142,15 +142,16 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
 
 State State::fromParamCfg(const TParamConfig& param_cfg)
 {
+    const auto& calib_cfg = param_cfg.getCalibCfg();
     const auto& spec_cfg = param_cfg.getSpecificCfg();
-    const auto layout = TLayout::fromParamConfig(param_cfg).upsample(spec_cfg.getUpsample());
+    const auto layout = TLayout::fromCalibAndSpecConfig(calib_cfg, spec_cfg).upsample(spec_cfg.getUpsample());
     const int views = param_cfg.getGenericCfg().getViews();
     return {layout, spec_cfg, views};
 }
 
 void State::feed(const cv::Mat& src)
 {
-    layout_.procImg_(src, src_32f_);
+    layout_.processInto(src, src_32f_);
     mis_.update(src_32f_);
     src_32f_.convertTo(src_32f_, CV_32FC3);
 

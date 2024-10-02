@@ -9,21 +9,20 @@
 #include "generic.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
-#include "tlct/config/raytrix/calib.hpp"
-#include "tlct/config/raytrix/specific.hpp"
-#include "tlct/config/tspc/calib.hpp"
-#include "tlct/config/tspc/specific.hpp"
+#include "tlct/config/raytrix/layout.hpp"
+#include "tlct/config/tspc/layout.hpp"
 
 namespace tlct::_cfg {
 
-template <typename TSpecificConfig_, typename TCalibConfig_>
-    requires concepts::CSpecificConfig<TSpecificConfig_> && concepts::CCalibConfig<TCalibConfig_>
+template <typename TLayout_>
+    requires concepts::CLayout<TLayout_>
 class ParamConfig_
 {
 public:
     // Typename alias
-    using TSpecificConfig = TSpecificConfig_;
-    using TCalibConfig = TCalibConfig_;
+    using TLayout = TLayout_;
+    using TSpecificConfig = TLayout::TSpecificConfig;
+    using TCalibConfig = TLayout::TCalibConfig;
 
     // Constructor
     ParamConfig_() = delete;
@@ -49,10 +48,9 @@ private:
     TCalibConfig calib_cfg_;
 };
 
-template <typename TSpecificConfig, typename TCalibConfig>
-    requires concepts::CSpecificConfig<TSpecificConfig> && concepts::CCalibConfig<TCalibConfig>
-ParamConfig_<TSpecificConfig, TCalibConfig>
-ParamConfig_<TSpecificConfig, TCalibConfig>::fromConfigMap(const ConfigMap& cfg_map)
+template <typename TLayout>
+    requires concepts::CLayout<TLayout>
+ParamConfig_<TLayout> ParamConfig_<TLayout>::fromConfigMap(const ConfigMap& cfg_map)
 {
     auto generic_cfg = GenericParamConfig::fromConfigMap(cfg_map);
     auto spec_cfg = TSpecificConfig::fromConfigMap(cfg_map);
@@ -60,7 +58,7 @@ ParamConfig_<TSpecificConfig, TCalibConfig>::fromConfigMap(const ConfigMap& cfg_
     return {std::move(generic_cfg), std::move(spec_cfg), std::move(calib_cfg)};
 }
 
-template class ParamConfig_<tspc::SpecificConfig, tspc::CalibConfig>;
-template class ParamConfig_<raytrix::SpecificConfig, raytrix::CalibConfig>;
+template class ParamConfig_<tspc::Layout>;
+template class ParamConfig_<raytrix::Layout>;
 
 } // namespace tlct::_cfg

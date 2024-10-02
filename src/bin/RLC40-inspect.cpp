@@ -38,7 +38,7 @@ static inline void render(const tlct::cfg::ConfigMap& cfg_map)
                 std::stringstream filename_s;
                 filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
                 const fs::path saveto_path = dstdir / filename_s.str();
-                state.render_(mv, view_row, view_col);
+                state.renderInto(mv, view_row, view_col);
                 cv::imwrite(saveto_path.string(), mv);
                 img_cnt++;
             }

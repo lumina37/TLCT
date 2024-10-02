@@ -13,7 +13,7 @@ namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
 
-void State::render_(cv::Mat& dst, int view_row, int view_col) const
+void State::renderInto(cv::Mat& dst, int view_row, int view_col) const
 {
     const int view_shift_x = (view_col - views_ / 2) * view_interval_;
     const int view_shift_y = (view_row - views_ / 2) * view_interval_;

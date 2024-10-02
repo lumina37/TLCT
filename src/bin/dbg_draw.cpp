@@ -16,12 +16,12 @@ int main(int argc, char* argv[])
         namespace tn = tlct::tspc;
 
         const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
-        const auto layout = tn::Layout::fromParamConfig(param_cfg);
+        const auto layout = tn::Layout::fromCalibAndSpecConfig(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg());
         const auto& generic_cfg = param_cfg.getGenericCfg();
 
         const auto srcpath = generic_cfg.fmtSrcPath(generic_cfg.getRange().start);
         const cv::Mat src = cv::imread(srcpath.string());
-        layout.procImg_(src, resized_img);
+        layout.processInto(src, resized_img);
 
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
@@ -50,12 +50,12 @@ int main(int argc, char* argv[])
         namespace tn = tlct::raytrix;
 
         const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
-        const auto layout = tn::Layout::fromParamConfig(param_cfg);
+        const auto layout = tn::Layout::fromCalibAndSpecConfig(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg());
         const auto& generic_cfg = param_cfg.getGenericCfg();
 
         const auto srcpath = generic_cfg.fmtSrcPath(generic_cfg.getRange().start);
         const cv::Mat src = cv::imread(srcpath.string());
-        layout.procImg_(src, resized_img);
+        layout.processInto(src, resized_img);
 
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {

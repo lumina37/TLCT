@@ -5,6 +5,7 @@
 #include <opencv2/core.hpp>
 
 #include "calib.hpp"
+#include "specific.hpp"
 
 namespace tlct::_cfg::concepts {
 
@@ -12,9 +13,11 @@ template <typename Self>
 concept CLayout = std::is_trivially_copyable_v<Self> && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
-} && requires(const Self::TParamConfig& cfg) {
+} && requires(const Self::TCalibConfig& calib_cfg, const Self::TSpecificConfig& spec_cfg) {
     // Init from
-    { Self::fromParamConfig(cfg) } -> std::same_as<Self>;
+    requires CCalibConfig<typename Self::TCalibConfig>;
+    requires CSpecificConfig<typename Self::TSpecificConfig>;
+    { Self::fromCalibAndSpecConfig(calib_cfg, spec_cfg) } -> std::same_as<Self>;
 } && requires(Self self) {
     // Non-const methods
     requires requires(int factor) {
@@ -43,10 +46,7 @@ concept CLayout = std::is_trivially_copyable_v<Self> && requires {
     { self.isOutShift() } noexcept -> std::same_as<bool>;
     { self.isOutShiftSgn() } noexcept -> std::integral;
 
-    requires requires(const cv::Mat& src, cv::Mat& dst) { self.procImg_(src, dst); };
-    requires requires(const cv::Mat& src) {
-        { self.procImg(src) } -> std::same_as<cv::Mat>;
-    };
+    requires requires(const cv::Mat& src, cv::Mat& dst) { self.processInto(src, dst); };
 };
 
 } // namespace tlct::_cfg::concepts

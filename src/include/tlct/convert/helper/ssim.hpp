@@ -35,9 +35,9 @@ void WrapSSIM::updateRoi(cv::Rect roi) noexcept
 {
     mi_.I_(roi).copyTo(I_); // `BORDER_ISOLATED` has no effect, so we must copy here
     mi_.I_2_(roi).copyTo(I_2_);
-    blur_(I_, mu_);
+    blurInto(I_, mu_);
     cv::multiply(mu_, mu_, mu_2_);
-    blur_(I_2_, sigma_2_);
+    blurInto(I_2_, sigma_2_);
     cv::subtract(sigma_2_, mu_2_, sigma_2_);
 }
 
@@ -47,7 +47,7 @@ double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
 
     cv::multiply(I_, rhs.I_, I1_I2);
     cv::multiply(mu_, rhs.mu_, mu1_mu2);
-    blur_(I1_I2, I1_I2);
+    blurInto(I1_I2, I1_I2);
     cv::subtract(I1_I2, mu1_mu2, sigma12);
 
     // t3 = ((2*mu1_mu2 + C1).*(2*sigma12 + C2))

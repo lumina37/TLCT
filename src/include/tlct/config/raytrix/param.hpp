@@ -1,11 +1,10 @@
 #pragma once
 
-#include "calib.hpp"
-#include "specific.hpp"
+#include "layout.hpp"
 #include "tlct/config/common/param.hpp"
 
 namespace tlct::_cfg::raytrix {
 
-using ParamConfig = ParamConfig_<SpecificConfig, CalibConfig>;
+using ParamConfig = ParamConfig_<Layout>;
 
 }
