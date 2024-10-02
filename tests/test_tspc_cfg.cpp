@@ -17,7 +17,8 @@ TEST_CASE("cfg::tspc")
     auto cfg_map = tlct::ConfigMap::fromPath("config/TSPC/param.cfg");
     auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     const auto& calib_cfg = param_cfg.getCalibCfg();
-    auto layout = tn::Layout::fromParamConfig(param_cfg);
+    const auto& spec_cfg = param_cfg.getSpecificCfg();
+    auto layout = tn::Layout::fromCalibAndSpecConfig(calib_cfg, spec_cfg);
 
     SUBCASE("tspc::ParamConfig")
     {
