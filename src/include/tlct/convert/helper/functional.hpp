@@ -53,17 +53,18 @@ namespace rgs = std::ranges;
     constexpr int thumbnail_height = 8;
     constexpr int thumbnail_width = thumbnail_height + 1;
     constexpr int thumbnail_size = thumbnail_height * thumbnail_width;
-    std::array<uint8_t, thumbnail_size> thumbnail_buffer;
-    cv::Mat thumbnail(thumbnail_height, thumbnail_width, CV_8UC1, thumbnail_buffer.data());
+    std::array<float, thumbnail_size> thumbnail_buffer;
+    cv::Mat thumbnail(thumbnail_height, thumbnail_width, CV_32FC1, thumbnail_buffer.data());
     cv::resize(src, thumbnail, {thumbnail_width, thumbnail_height});
 
     uint64_t dhash = 0;
-    uint64_t mask = 1ull << (8 * sizeof(uint64_t) - 1);
+    const uint64_t u64max = std::numeric_limits<uint64_t>::max();
+    uint64_t mask = u64max ^ (u64max >> 1);
     for (const int row : rgs::views::iota(0, thumbnail_height)) {
-        const auto prow = thumbnail.ptr<uint8_t>(row);
+        const auto prow = thumbnail.ptr<float>(row);
         for (const int col : rgs::views::iota(0, thumbnail_width)) {
-            const auto flag = (uint64_t)(*(prow + 1) > *prow);
-            dhash |= (flag & mask);
+            const bool flag = *(prow + 1) > *prow;
+            dhash |= flag * mask;
             mask >>= 1;
         }
     }
