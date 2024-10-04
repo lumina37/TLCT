@@ -33,8 +33,8 @@ private:
 
 void WrapSSIM::updateRoi(cv::Rect roi) noexcept
 {
-    mi_.I_(roi).copyTo(I_); // `BORDER_ISOLATED` has no effect, so we must copy here
-    mi_.I_2_(roi).copyTo(I_2_);
+    mi_.I(roi).copyTo(I_); // `BORDER_ISOLATED` has no effect, so we must copy here
+    mi_.I_2(roi).copyTo(I_2_);
     blurInto(I_, mu_);
     cv::multiply(mu_, mu_, mu_2_);
     blurInto(I_2_, sigma_2_);

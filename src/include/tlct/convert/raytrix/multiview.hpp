@@ -32,7 +32,7 @@ void State::renderInto(cv::Mat& dst, int view_row, int view_col) const
             const cv::Point2d center = layout_.getMICenter(i, j);
 
             const auto& mi = mis_.getMI(i, j);
-            const double grad_weight = grad(mi.I_) + std::numeric_limits<float>::epsilon();
+            const double grad_weight = grad(mi.I) + std::numeric_limits<float>::epsilon();
 
             // Extract patch
             const double psize = TSpecificConfig::PSIZE_INFLATE * patchsizes_[offset].psize;

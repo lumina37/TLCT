@@ -13,17 +13,8 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-class WrapMI
-{
-public:
-    inline WrapMI() = default;
-    inline WrapMI(cv::Mat&& I, cv::Mat&& I_2) noexcept : I_(std::move(I)), I_2_(std::move(I_2)) {};
-    inline WrapMI& operator=(const WrapMI& rhs) = default;
-    inline WrapMI(const WrapMI& rhs) = default;
-    inline WrapMI& operator=(WrapMI&& rhs) noexcept = default;
-    inline WrapMI(WrapMI&& rhs) noexcept = default;
-
-    cv::Mat I_, I_2_;
+struct WrapMI {
+    cv::Mat I, I_2;
 };
 
 template <typename TLayout_>
@@ -34,13 +25,10 @@ public:
     // Typename alias
     using TLayout = TLayout_;
 
-    class Params
-    {
-    public:
+    struct Params {
         static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
         static constexpr size_t CACHELINE_SIZE = 64;
 
-        inline Params() noexcept = default;
         inline explicit Params(const TLayout& layout) noexcept
         {
             idiameter_ = _hp::iround(layout.getDiameter());
@@ -51,8 +39,6 @@ public:
             mi_num_ = mi_max_cols_ * layout.getMIRows();
             buffer_size_ = mi_num_ * aligned_mi_size_;
         };
-        inline Params& operator=(Params&& rhs) noexcept = default;
-        inline Params(Params&& rhs) noexcept = default;
 
         size_t aligned_mat_size_;
         size_t aligned_mi_size_;

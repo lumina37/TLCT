@@ -86,7 +86,7 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors, int offse
 PsizeCache State::_estimatePatchsize(const Neighbors& neighbors, int offset)
 {
     const auto& anchor_mi = mis_.getMI(offset);
-    const uint64_t hash = dhash(anchor_mi.I_);
+    const uint64_t hash = dhash(anchor_mi.I);
     const auto& prev_psize = prev_patchsizes_[offset];
 
     if (prev_psize.psize != INVALID_PSIZE) [[likely]] {
