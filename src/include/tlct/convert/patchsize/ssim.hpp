@@ -2,8 +2,8 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "functional.hpp"
-#include "microimages.hpp"
+#include "tlct/convert/helper/functional.hpp"
+#include "tlct/convert/helper/microimages.hpp"
 
 namespace tlct::_cvt {
 

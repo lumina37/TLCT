@@ -15,6 +15,8 @@ namespace tlct::_cfg::tspc {
 class Layout
 {
 public:
+    static constexpr bool IS_KEPLER = true;
+
     // Typename alias
     using TCalibConfig = CalibConfig;
     using TSpecificConfig = SpecificConfig;
@@ -51,12 +53,12 @@ public:
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline double getRotation() const noexcept { return rotation_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const int row, const int col) const noexcept;
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
     [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const int row, const int col) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
     [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return _hp::sgn(isOutShift()); };
 

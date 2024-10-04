@@ -19,7 +19,7 @@ struct WrapMI {
 
 template <typename TLayout_>
     requires tlct::cfg::concepts::CLayout<TLayout_>
-class MIs
+class MIs_
 {
 public:
     // Typename alias
@@ -52,11 +52,11 @@ public:
     };
 
     // Constructor
-    inline MIs() noexcept : layout_(), params_(), items_(), buffer_(nullptr) {};
-    inline explicit MIs(const TLayout& layout);
-    MIs& operator=(const MIs& rhs) = delete;
-    MIs(const MIs& rhs) = delete;
-    inline MIs& operator=(MIs&& rhs) noexcept
+    inline MIs_() noexcept : layout_(), params_(), items_(), buffer_(nullptr) {};
+    inline explicit MIs_(const TLayout& layout);
+    MIs_& operator=(const MIs_& rhs) = delete;
+    MIs_(const MIs_& rhs) = delete;
+    inline MIs_& operator=(MIs_&& rhs) noexcept
     {
         layout_ = std::move(rhs.layout_);
         params_ = std::move(rhs.params_);
@@ -64,13 +64,13 @@ public:
         buffer_ = std::exchange(rhs.buffer_, nullptr);
         return *this;
     };
-    inline MIs(MIs&& rhs) noexcept
+    inline MIs_(MIs_&& rhs) noexcept
         : layout_(std::move(rhs.layout_)), params_(std::move(rhs.params_)), items_(std::move(rhs.items_)),
           buffer_(std::exchange(rhs.buffer_, nullptr)) {};
-    inline ~MIs() { std::free(buffer_); }
+    inline ~MIs_() { std::free(buffer_); }
 
     // Initialize from
-    [[nodiscard]] static inline MIs fromLayout(const TLayout& layout);
+    [[nodiscard]] static inline MIs_ fromLayout(const TLayout& layout);
 
     // Const methods
     [[nodiscard]] inline const WrapMI& getMI(int row, int col) const noexcept
@@ -82,7 +82,7 @@ public:
     [[nodiscard]] inline const WrapMI& getMI(int offset) const noexcept { return items_.at(offset); };
 
     // Non-const methods
-    inline MIs& update(const cv::Mat& src);
+    inline MIs_& update(const cv::Mat& src);
 
 private:
     TLayout layout_;
@@ -93,7 +93,7 @@ private:
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-MIs<TLayout>::MIs(const TLayout& layout) : layout_(layout), params_(layout)
+MIs_<TLayout>::MIs_(const TLayout& layout) : layout_(layout), params_(layout)
 {
     items_.resize(params_.mi_num_);
     buffer_ = std::malloc(params_.buffer_size_ + Params::CACHELINE_SIZE);
@@ -101,14 +101,14 @@ MIs<TLayout>::MIs(const TLayout& layout) : layout_(layout), params_(layout)
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-MIs<TLayout> MIs<TLayout>::fromLayout(const TLayout& layout)
+MIs_<TLayout> MIs_<TLayout>::fromLayout(const TLayout& layout)
 {
-    return MIs(layout);
+    return MIs_(layout);
 }
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-MIs<TLayout>& MIs<TLayout>::update(const cv::Mat& src)
+MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
 {
     cv::Mat I_8u, I_32f, I_2_32f;
     cv::cvtColor(src, I_8u, cv::COLOR_BGR2GRAY);

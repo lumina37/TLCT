@@ -2,6 +2,7 @@
 
 #include "convert/concepts.hpp"
 #include "convert/helper.hpp"
+#include "convert/patchsize.hpp"
 #include "convert/raytrix.hpp"
 #include "convert/tspc.hpp"
 

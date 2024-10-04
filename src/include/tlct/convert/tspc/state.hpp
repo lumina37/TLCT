@@ -6,11 +6,11 @@
 
 #include <opencv2/core.hpp>
 
-#include "neighbors.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/patchsize.hpp"
 
 namespace tlct::_cvt::tspc {
 
@@ -24,7 +24,8 @@ public:
     using TParamConfig = tcfg::ParamConfig;
     using TLayout = TParamConfig::TLayout;
     using TSpecificConfig = TLayout::TSpecificConfig;
-    using TMIs = MIs<TLayout>;
+    using TPsizeParams = PsizeParams_<TLayout>;
+    using TMIs = MIs_<TLayout>;
 
     static constexpr int INVALID_PSIZE = 0;
     static constexpr int CHANNELS = 3;
@@ -46,10 +47,7 @@ public:
 #endif
     TLCT_API inline void update(const cv::Mat& src);
 
-    inline void estimatePatchsizes();
     inline void renderInto(cv::Mat& dst, int view_row, int view_col) const;
-    [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors, int offset);
-    [[nodiscard]] inline PsizeCache _estimatePatchsize(const Neighbors& neighbors, int offset);
 
 private:
 #ifdef TLCT_ENABLE_INSPECT
@@ -70,16 +68,14 @@ private:
     mutable cv::Mat resized_normed_image_u8_;
     // ^^^ cache ^^^
 
+    TPsizeParams psize_params_;
     cv::Mat grad_blending_weight_;
     double grad_blending_bound_;
-    double pattern_size_;
-    double pattern_shift_;
     cv::Range canvas_crop_roi_[2];
     int views_;
     int patch_xshift_; // the extracted patch will be zoomed to this height
     int patch_yshift_;
     int resized_patch_width_;
-    int min_psize_;
     int view_interval_;
     int canvas_width_;
     int canvas_height_;
@@ -94,6 +90,10 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
 {
     mis_ = TMIs::fromLayout(layout);
 
+    psize_params_ = TPsizeParams ::fromConfigs(layout, spec_cfg);
+    prev_patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols(), {});
+    patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols());
+
     const int upsample = layout.getUpsample();
     const double patch_xshift_d = 0.35 * layout.getDiameter();
     patch_xshift_ = (int)std::ceil(patch_xshift_d);
@@ -103,18 +103,6 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     const double p_resize_d = patch_xshift_d * TSpecificConfig::PSIZE_INFLATE;
     resized_patch_width_ = (int)std::round(p_resize_d);
     grad_blending_weight_ = circleWithFadeoutBorder(resized_patch_width_, (int)std::round(grad_blending_bound_ / 2));
-
-    pattern_size_ = layout.getDiameter() * spec_cfg.getPatternSize();
-    const double radius = layout.getDiameter() / 2.0;
-    const double half_pattern_size = pattern_size_ / 2.0;
-    const double max_pattern_shift =
-        std::sqrt((radius - half_pattern_size) * (radius + half_pattern_size)) - half_pattern_size;
-    const double candidate_pattern_shift = radius * spec_cfg.getMaxPatchSize();
-    pattern_shift_ = std::min(max_pattern_shift, candidate_pattern_shift);
-
-    min_psize_ = (int)std::round(0.3 * pattern_size_);
-    prev_patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols(), {});
-    patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols());
 
     const int move_range =
         _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_INFLATE));
@@ -152,7 +140,7 @@ void State::update(const cv::Mat& src)
     src_32f_.convertTo(src_32f_, CV_32FC3);
 
     std::swap(prev_patchsizes_, patchsizes_);
-    estimatePatchsizes();
+    estimatePatchsizes<TLayout>(layout_, spec_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);
 }
 
 } // namespace tlct::_cvt::tspc
