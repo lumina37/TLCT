@@ -26,7 +26,7 @@ concept CState = requires {
     };
 } && requires {
     // Non-const methods
-    requires requires(Self self, const cv::Mat& src) { self.feed(src); };
+    requires requires(Self self, const cv::Mat& src) { self.update(src); };
 };
 
 } // namespace tlct::_cvt::concepts

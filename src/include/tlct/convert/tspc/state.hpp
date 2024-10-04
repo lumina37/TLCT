@@ -47,7 +47,7 @@ public:
 #ifdef TLCT_ENABLE_INSPECT
     inline void setInspector(Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
 #endif
-    TLCT_API inline void feed(const cv::Mat& src);
+    TLCT_API inline void update(const cv::Mat& src);
 
     inline void estimatePatchsizes();
     inline void renderInto(cv::Mat& dst, int view_row, int view_col) const;
@@ -149,7 +149,7 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
     return {layout, spec_cfg, views};
 }
 
-void State::feed(const cv::Mat& src)
+void State::update(const cv::Mat& src)
 {
     layout_.processInto(src, src_32f_);
     mis_.update(src_32f_);

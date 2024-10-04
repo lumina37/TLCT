@@ -23,7 +23,7 @@ static inline void render(const tlct::cfg::ConfigMap& cfg_map)
     const cv::Range range = generic_cfg.getRange();
     for (int i = range.start; i <= range.end; i++) {
         const auto srcpath = generic_cfg.fmtSrcPath(i);
-        state.feed(cv::imread(srcpath.string()));
+        state.update(cv::imread(srcpath.string()));
 
         const auto dstdir = generic_cfg.fmtDstPath(i);
         fs::create_directories(dstdir);
