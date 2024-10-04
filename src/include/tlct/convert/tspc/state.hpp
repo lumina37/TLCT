@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <concepts>
 #include <ranges>
 #include <string>
 
@@ -20,6 +21,8 @@ namespace tcfg = tlct::cfg::tspc;
 class State
 {
 public:
+    static constexpr int CHANNELS = 3;
+
     // Typename alias
     using TParamConfig = tcfg::ParamConfig;
     using TLayout = TParamConfig::TLayout;
@@ -27,8 +30,7 @@ public:
     using TPsizeParams = PsizeParams_<TLayout>;
     using TMIs = MIs_<TLayout>;
 
-    static constexpr int INVALID_PSIZE = 0;
-    static constexpr int CHANNELS = 3;
+    static_assert(std::is_trivially_copyable_v<TPsizeParams>);
 
     // Constructor
     State() = delete;

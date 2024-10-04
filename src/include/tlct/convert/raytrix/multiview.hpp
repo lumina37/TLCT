@@ -72,7 +72,7 @@ void State::renderInto(cv::Mat& dst, int view_row, int view_col) const
     cv::merge(cropped_rendered_image_channels_, CHANNELS, normed_image);
 
     normed_image.convertTo(normed_image_u8_, CV_8UC3);
-    cv::resize(normed_image_u8_, resized_normed_image_u8_, {output_width_, output_height_}, 0.0, 0.0, cv::INTER_CUBIC);
+    cv::resize(normed_image_u8_, resized_normed_image_u8_, {output_width_, output_height_}, 0.0, 0.0);
 
     if (layout_.getRotation() > std::numbers::pi / 4.0) {
         cv::transpose(resized_normed_image_u8_, dst);
