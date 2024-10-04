@@ -70,15 +70,12 @@ private:
 
     TPsizeParams psize_params_;
     cv::Mat grad_blending_weight_;
-    double grad_blending_bound_;
     cv::Range canvas_crop_roi_[2];
     int views_;
     int patch_xshift_; // the extracted patch will be zoomed to this height
     int patch_yshift_;
     int resized_patch_width_;
     int view_interval_;
-    int canvas_width_;
-    int canvas_height_;
     int output_width_;
     int output_height_;
 };
@@ -99,24 +96,25 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     patch_xshift_ = (int)std::ceil(patch_xshift_d);
     patch_yshift_ = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
 
-    grad_blending_bound_ = spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_INFLATE;
+    const double grad_blending_bound =
+        spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_INFLATE;
     const double p_resize_d = patch_xshift_d * TSpecificConfig::PSIZE_INFLATE;
     resized_patch_width_ = (int)std::round(p_resize_d);
-    grad_blending_weight_ = circleWithFadeoutBorder(resized_patch_width_, (int)std::round(grad_blending_bound_ / 2));
+    grad_blending_weight_ = circleWithFadeoutBorder(resized_patch_width_, (int)std::round(grad_blending_bound / 2));
 
     const int move_range =
         _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_INFLATE));
     view_interval_ = views > 1 ? move_range / (views - 1) : 0;
 
-    canvas_width_ = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + resized_patch_width_);
-    canvas_height_ = (int)std::round(layout.getMIRows() * patch_yshift_ + resized_patch_width_);
-    render_canvas_ = cv::Mat(canvas_height_, canvas_width_, CV_32FC3);
-    weight_canvas_ = cv::Mat(canvas_height_, canvas_width_, CV_32FC1);
+    const int canvas_width = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + resized_patch_width_);
+    const int canvas_height = (int)std::round(layout.getMIRows() * patch_yshift_ + resized_patch_width_);
+    render_canvas_ = cv::Mat(canvas_height, canvas_width, CV_32FC3);
+    weight_canvas_ = cv::Mat(canvas_height, canvas_width, CV_32FC1);
 
     const cv::Range col_range{(int)std::ceil(patch_xshift_ * 1.5),
-                              (int)(canvas_width_ - resized_patch_width_ - patch_xshift_ / 2.0)};
+                              (int)(canvas_width - resized_patch_width_ - patch_xshift_ / 2.0)};
     const cv::Range row_range{(int)std::ceil(patch_xshift_ * 1.5),
-                              (int)(canvas_height_ - resized_patch_width_ - patch_xshift_ / 2.0)};
+                              (int)(canvas_height - resized_patch_width_ - patch_xshift_ / 2.0)};
     canvas_crop_roi_[0] = row_range;
     canvas_crop_roi_[1] = col_range;
 
