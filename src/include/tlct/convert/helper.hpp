@@ -1,5 +1,6 @@
 #pragma once
 
+#include "helper/cache.hpp"
 #include "helper/direction.hpp"
 #include "helper/functional.hpp"
 #include "helper/inspect.hpp"

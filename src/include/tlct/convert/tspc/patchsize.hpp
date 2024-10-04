@@ -19,44 +19,10 @@ namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
 
-double State::_calcMetricWithPsize(const Neighbors& neighbors, const int psize) const
+int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors, int offset)
 {
     const cv::Point2d mi_center{layout_.getRadius(), layout_.getRadius()};
-    const auto& anchor_mi = mis_.getMI(neighbors.getSelfIdx());
-    WrapSSIM wrap_anchor{anchor_mi};
-
-    double weighted_metric = 0.0;
-    double total_weight = 0.0;
-
-    for (const auto direction : DIRECTIONS) {
-        if (neighbors.hasNeighbor(direction)) [[likely]] {
-            const cv::Point2d anchor_shift = -neighbors.getUnitShift(direction) * pattern_shift_;
-            const cv::Point2d match_step = neighbors.getUnitShift(direction);
-            const cv::Point2d cmp_shift = anchor_shift + match_step * psize;
-
-            const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, pattern_size_);
-            wrap_anchor.updateRoi(anchor_roi);
-            const cv::Point neib_idx = neighbors.getNeighborIdx(direction);
-            const auto& neib_mi = mis_.getMI(neib_idx);
-            const cv::Rect neib_roi = getRoiByCenter(mi_center + cmp_shift, pattern_size_);
-            WrapSSIM wrap_neib{neib_mi};
-            wrap_neib.updateRoi(neib_roi);
-
-            const double metric = wrap_anchor.compare(wrap_neib);
-            const double weight = computeGrad(wrap_anchor.I_);
-            weighted_metric += metric * weight;
-            total_weight += weight;
-        }
-    };
-
-    const double final_metric = weighted_metric / total_weight;
-    return final_metric;
-}
-
-int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
-{
-    const cv::Point2d mi_center{layout_.getRadius(), layout_.getRadius()};
-    const auto& anchor_mi = mis_.getMI(neighbors.getSelfIdx());
+    const auto& anchor_mi = mis_.getMI(offset);
     WrapSSIM wrap_anchor{anchor_mi};
 
 #ifdef TLCT_ENABLE_INSPECT
@@ -107,40 +73,44 @@ int State::_estimatePatchsizeOverFullMatch(const Neighbors& neighbors)
                 }
             }
 
-            const double weight = computeGrad(wrap_anchor.I_) * stdvar(metrics) + std::numeric_limits<float>::epsilon();
+            const double weight = grad(wrap_anchor.I_) * stdvar(metrics) + std::numeric_limits<float>::epsilon();
             weighted_psize += weight * min_metric_psize;
             total_weight += weight;
         }
-    };
+    }
 
     const int final_psize = (int)std::round(weighted_psize / total_weight);
     return final_psize;
 }
 
-int State::_estimatePatchsize(const cv::Point index)
+PsizeCache State::_estimatePatchsize(const Neighbors& neighbors, int offset)
 {
-    const auto neighbors = Neighbors::fromLayoutAndIndex(layout_, index);
+    const auto& anchor_mi = mis_.getMI(offset);
+    const uint64_t hash = dhash(anchor_mi.I_);
+    const auto& prev_psize = prev_patchsizes_[offset];
 
-    const int prev_psize = prev_patchsizes_.at<int>(index);
-    if (prev_psize != INVALID_PSIZE) [[likely]] {
-        const double prev_metric = _calcMetricWithPsize(neighbors, prev_psize);
-        if (prev_metric < spec_cfg_.getPsizeShortcutThreshold()) {
-            return prev_psize;
+    if (prev_psize.psize != INVALID_PSIZE) [[likely]] {
+        const int hash_dist = L1_dist(prev_psize.hash, hash);
+        if (hash_dist < spec_cfg_.getPsizeShortcutThreshold()) {
+            return {prev_psize.psize, hash};
         }
     }
 
-    const int psize = _estimatePatchsizeOverFullMatch(neighbors);
-    return psize;
+    const int psize = _estimatePatchsizeOverFullMatch(neighbors, offset);
+    return {psize, hash};
 }
 
 void State::estimatePatchsizes()
 {
+    int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout_.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout_.getMICols(row))) {
-            const cv::Point index{col, row};
-            const int psize = _estimatePatchsize(index);
-            patchsizes_.at<int>(index) = psize;
+            const auto neighbors = Neighbors::fromLayoutAndIndex(layout_, {col, row});
+            const int offset = row_offset + col;
+            const auto& psize = _estimatePatchsize(neighbors, offset);
+            patchsizes_[offset] = psize;
         }
+        row_offset += layout_.getMIMaxCols();
     }
 }
 

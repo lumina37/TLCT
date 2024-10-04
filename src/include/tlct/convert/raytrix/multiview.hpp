@@ -25,15 +25,17 @@ void State::renderInto(cv::Mat& dst, int view_row, int view_col) const
     cv::Mat resized_patch_channels[CHANNELS];
     cv::Mat weighted_patch;
 
+    int row_offset = 0;
     for (const int i : rgs::views::iota(0, layout_.getMIRows())) {
         for (const int j : rgs::views::iota(0, layout_.getMICols(i))) {
+            const int offset = row_offset + j;
             const cv::Point2d center = layout_.getMICenter(i, j);
 
             const auto& mi = mis_.getMI(i, j);
-            const double grad_weight = computeGrad(mi.I_) + std::numeric_limits<float>::epsilon();
+            const double grad_weight = grad(mi.I_) + std::numeric_limits<float>::epsilon();
 
             // Extract patch
-            const double psize = TSpecificConfig::PSIZE_INFLATE * patchsizes_.at<int>(i, j);
+            const double psize = TSpecificConfig::PSIZE_INFLATE * patchsizes_[offset].psize;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
             const cv::Mat& patch = getRoiImageByCenter(src_32f_, patch_center, psize);
 
@@ -55,6 +57,7 @@ void State::renderInto(cv::Mat& dst, int view_row, int view_col) const
             render_canvas_(roi) += weighted_patch * grad_weight;
             weight_canvas_(roi) += grad_blending_weight_ * grad_weight;
         }
+        row_offset += layout_.getMIMaxCols();
     }
 
     cv::Mat cropped_rendered_image = render_canvas_(canvas_crop_roi_);

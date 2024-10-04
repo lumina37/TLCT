@@ -1,11 +1,16 @@
 #pragma once
 
+#include <array>
+#include <bit>
 #include <numeric>
+#include <ranges>
 #include <vector>
 
 #include <opencv2/imgproc.hpp>
 
 namespace tlct::_cvt {
+
+namespace rgs = std::ranges;
 
 [[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const int border_width)
 {
@@ -29,7 +34,7 @@ namespace tlct::_cvt {
     return rect;
 }
 
-[[nodiscard]] static inline double computeGrad(const cv::Mat& src)
+[[nodiscard]] static inline double grad(const cv::Mat& src)
 {
     cv::Mat edges;
     double weight = 0.0;
@@ -42,6 +47,31 @@ namespace tlct::_cvt {
     weight /= edges.size().area();
     return weight;
 }
+
+[[nodiscard]] static inline uint64_t dhash(const cv::Mat& src)
+{
+    constexpr int thumbnail_height = 8;
+    constexpr int thumbnail_width = thumbnail_height + 1;
+    constexpr int thumbnail_size = thumbnail_height * thumbnail_width;
+    std::array<uint8_t, thumbnail_size> thumbnail_buffer;
+    cv::Mat thumbnail(thumbnail_height, thumbnail_width, CV_8UC1, thumbnail_buffer.data());
+    cv::resize(src, thumbnail, {thumbnail_width, thumbnail_height});
+
+    uint64_t dhash = 0;
+    uint64_t mask = 1ull << (8 * sizeof(uint64_t) - 1);
+    for (const int row : rgs::views::iota(0, thumbnail_height)) {
+        const auto prow = thumbnail.ptr<uint8_t>(row);
+        for (const int col : rgs::views::iota(0, thumbnail_width)) {
+            const auto flag = (uint64_t)(*(prow + 1) > *prow);
+            dhash |= (flag & mask);
+            mask >>= 1;
+        }
+    }
+
+    return dhash;
+}
+
+[[nodiscard]] static inline int L1_dist(uint64_t lhs, uint64_t rhs) { return std::popcount(lhs ^ rhs); }
 
 template <typename Tv>
 [[nodiscard]] inline Tv stdvar(const std::vector<Tv>& vec)

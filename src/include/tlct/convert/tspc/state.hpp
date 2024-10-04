@@ -40,9 +40,6 @@ public:
     // Initialize from
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
 
-    // Const methods
-    [[nodiscard]] TLCT_API inline const cv::Mat& getPatchsizes() { return patchsizes_; };
-
     // Non-const methods
 #ifdef TLCT_ENABLE_INSPECT
     inline void setInspector(Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
@@ -51,9 +48,8 @@ public:
 
     inline void estimatePatchsizes();
     inline void renderInto(cv::Mat& dst, int view_row, int view_col) const;
-    [[nodiscard]] inline double _calcMetricWithPsize(const Neighbors& neighbors, int psize) const;
-    [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors);
-    [[nodiscard]] inline int _estimatePatchsize(cv::Point index);
+    [[nodiscard]] inline int _estimatePatchsizeOverFullMatch(const Neighbors& neighbors, int offset);
+    [[nodiscard]] inline PsizeCache _estimatePatchsize(const Neighbors& neighbors, int offset);
 
 private:
 #ifdef TLCT_ENABLE_INSPECT
@@ -63,8 +59,8 @@ private:
     TSpecificConfig spec_cfg_;
     TMIs mis_;
     cv::Mat src_32f_;
-    cv::Mat prev_patchsizes_;
-    cv::Mat patchsizes_;
+    std::vector<PsizeCache> prev_patchsizes_;
+    std::vector<PsizeCache> patchsizes_;
 
     // vvv cache vvv
     mutable cv::Mat render_canvas_;
@@ -117,8 +113,8 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
     pattern_shift_ = std::min(max_pattern_shift, candidate_pattern_shift);
 
     min_psize_ = (int)std::round(0.3 * pattern_size_);
-    prev_patchsizes_ = cv::Mat(layout_.getMIRows(), layout_.getMIMaxCols(), CV_32SC1);
-    patchsizes_ = cv::Mat::zeros(prev_patchsizes_.size(), CV_32SC1);
+    prev_patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols(), {});
+    patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols());
 
     const int move_range =
         _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_INFLATE));

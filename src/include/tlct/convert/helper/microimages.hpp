@@ -90,6 +90,7 @@ public:
         return items_.at(offset);
     };
     [[nodiscard]] inline const WrapMI& getMI(cv::Point index) const noexcept { return getMI(index.y, index.x); };
+    [[nodiscard]] inline const WrapMI& getMI(int offset) const noexcept { return items_.at(offset); };
 
     // Non-const methods
     inline MIs& update(const cv::Mat& src);
