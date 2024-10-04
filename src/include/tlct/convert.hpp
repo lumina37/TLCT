@@ -11,7 +11,6 @@ namespace tlct {
 using cvt::Direction;
 using cvt::DIRECTION_NUM;
 using cvt::DIRECTIONS;
-using cvt::Inspector;
 using cvt::opposite;
 
 } // namespace tlct

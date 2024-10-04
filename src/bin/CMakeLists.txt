@@ -16,7 +16,3 @@ endfunction()
 tlct_add_executable(RLC40 "RLC40.cpp")
 tlct_add_executable(dbg_draw "dbg_draw.cpp")
 tlct_add_executable(get_center "get_center.cpp")
-
-if (TLCT_ENABLE_INSPECT)
-    tlct_add_executable(RLC40-inspect "RLC40-inspect.cpp")
-endif ()

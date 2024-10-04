@@ -44,17 +44,11 @@ public:
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
 
     // Non-const methods
-#ifdef TLCT_ENABLE_INSPECT
-    inline void setInspector(Inspector&& inspector) noexcept { inspector_ = std::move(inspector); };
-#endif
     TLCT_API inline void update(const cv::Mat& src);
 
     inline void renderInto(cv::Mat& dst, int view_row, int view_col) const;
 
 private:
-#ifdef TLCT_ENABLE_INSPECT
-    Inspector inspector_;
-#endif
     TLayout layout_;
     TSpecificConfig spec_cfg_;
     TMIs mis_;
