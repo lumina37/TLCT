@@ -29,6 +29,7 @@ public:
         static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
         static constexpr size_t CACHELINE_SIZE = 64;
 
+        inline Params() = default;
         inline explicit Params(const TLayout& layout) noexcept
         {
             idiameter_ = _hp::iround(layout.getDiameter());
@@ -39,6 +40,8 @@ public:
             mi_num_ = mi_max_cols_ * layout.getMIRows();
             buffer_size_ = mi_num_ * aligned_mi_size_;
         };
+        inline Params& operator=(Params&& rhs) noexcept = default;
+        inline Params(Params&& rhs) noexcept = default;
 
         size_t aligned_mat_size_;
         size_t aligned_mi_size_;
