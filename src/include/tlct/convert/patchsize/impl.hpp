@@ -6,9 +6,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "cache.hpp"
 #include "neighbors.hpp"
 #include "params.hpp"
+#include "record.hpp"
 #include "ssim.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
@@ -20,10 +20,10 @@ namespace rgs = std::ranges;
 
 template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
-[[nodiscard]] static inline PsizeCache
+[[nodiscard]] static inline PsizeRecord
 estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig& spec_cfg,
                   const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
-                  const std::vector<PsizeCache>& prev_patchsizes, const Neighbors_<TLayout>& neighbors, int offset)
+                  const std::vector<PsizeRecord>& prev_patchsizes, const Neighbors_<TLayout>& neighbors, int offset)
 {
     const auto& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
@@ -90,15 +90,16 @@ template <typename TLayout>
     requires tlct::cfg::concepts::CLayout<TLayout>
 static inline void estimatePatchsizes(const TLayout& layout, const typename TLayout::TSpecificConfig& spec_cfg,
                                       const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
-                                      const std::vector<PsizeCache>& prev_patchsizes,
-                                      std::vector<PsizeCache>& patchsizes)
+                                      const std::vector<PsizeRecord>& prev_patchsizes,
+                                      std::vector<PsizeRecord>& patchsizes)
 {
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto neighbors = Neighbors_<TLayout>::fromLayoutAndIndex(layout, {col, row});
             const int offset = row_offset + col;
-            const auto& psize = estimatePatchsize<TLayout>(layout, spec_cfg, params, mis, prev_patchsizes, neighbors, offset);
+            const auto& psize =
+                estimatePatchsize<TLayout>(layout, spec_cfg, params, mis, prev_patchsizes, neighbors, offset);
             patchsizes[offset] = psize;
         }
         row_offset += layout.getMIMaxCols();

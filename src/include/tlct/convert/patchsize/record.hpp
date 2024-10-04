@@ -4,7 +4,7 @@
 
 namespace tlct::_cvt {
 
-struct PsizeCache {
+struct PsizeRecord {
     int psize;
     uint64_t hash;
 };

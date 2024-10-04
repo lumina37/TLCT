@@ -1,10 +1,10 @@
 #pragma once
 
-#include "patchsize/cache.hpp"
 #include "patchsize/direction.hpp"
 #include "patchsize/impl.hpp"
 #include "patchsize/neighbors.hpp"
 #include "patchsize/params.hpp"
+#include "patchsize/record.hpp"
 #include "patchsize/ssim.hpp"
 
 namespace tlct::cvt {

@@ -57,8 +57,8 @@ private:
     TSpecificConfig spec_cfg_;
     TMIs mis_;
     cv::Mat src_32f_;
-    std::vector<PsizeCache> prev_patchsizes_;
-    std::vector<PsizeCache> patchsizes_;
+    std::vector<PsizeRecord> prev_patchsizes_;
+    std::vector<PsizeRecord> patchsizes_;
 
     // vvv cache vvv
     mutable cv::Mat render_canvas_;
@@ -87,9 +87,9 @@ State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
 {
     mis_ = TMIs::fromLayout(layout);
 
-    psize_params_ = TPsizeParams ::fromConfigs(layout, spec_cfg);
-    prev_patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols(), {});
-    patchsizes_ = std::vector<PsizeCache>(layout_.getMIRows() * layout_.getMIMaxCols());
+    psize_params_ = TPsizeParams::fromConfigs(layout, spec_cfg);
+    prev_patchsizes_ = std::vector<PsizeRecord>(layout_.getMIRows() * layout_.getMIMaxCols(), {});
+    patchsizes_ = std::vector<PsizeRecord>(layout_.getMIRows() * layout_.getMIMaxCols());
 
     const int upsample = layout.getUpsample();
     const double patch_xshift_d = 0.35 * layout.getDiameter();
