@@ -61,11 +61,12 @@ namespace rgs = std::ranges;
     const uint64_t u64max = std::numeric_limits<uint64_t>::max();
     uint64_t mask = u64max ^ (u64max >> 1);
     for (const int row : rgs::views::iota(0, thumbnail_height)) {
-        const auto prow = thumbnail.ptr<float>(row);
-        for (const int col : rgs::views::iota(0, thumbnail_width)) {
+        auto prow = thumbnail.ptr<float>(row);
+        for ([[maybe_unused]] const int _ : rgs::views::iota(0, thumbnail_width)) {
             const bool flag = *(prow + 1) > *prow;
             dhash |= flag * mask;
             mask >>= 1;
+            prow++;
         }
     }
 

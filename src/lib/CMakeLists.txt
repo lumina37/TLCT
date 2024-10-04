@@ -26,10 +26,7 @@ set_target_properties(${TLCT_LIB_NAME} PROPERTIES
         RELEASE_POSTFIX "-${TLCT_VERSION}"
 )
 target_compile_features(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} cxx_std_20)
-target_compile_definitions(${TLCT_LIB_NAME} PRIVATE
-        ${TLCT_LIB_COMPILE_DEFS}
-        $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
-)
+target_compile_definitions(${TLCT_LIB_NAME} PRIVATE ${TLCT_LIB_COMPILE_DEFS})
 target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         "${PROJECT_SOURCE_DIR}/src/include"
         ${OpenCV_INCLUDE_DIRS}
