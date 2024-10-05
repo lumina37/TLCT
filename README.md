@@ -23,7 +23,7 @@ RLC40 [param_file_path]
 + `upsample <int>` The upsample factor.
 + `patternSize <float>` The size of pattern correlated with MI diameter.
 + `gradientBlendingWidth <float>` The size of gradient blending width correlated with MI diameter.
-+ `psizeShortcutThreshold <float>` The accept threshold, -1.0 will refuse all, while 0.0 will accept all.
++ `psizeShortcutThreshold <int>` The accept threshold, 0 will refuse all, while 64 will accept all.
 
 ### Example
 
@@ -39,12 +39,12 @@ width                   2048
 upsample                2
 patternSize             0.300
 gradientBlendingWidth   0.450
-psizeShortcutThreshold  -0.9
+psizeShortcutThreshold  2
 ```
 
 ### Charset
 
-Must be utf-8!
+Must be utf-8
 
 ## Compile Options
 
