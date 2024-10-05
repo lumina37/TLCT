@@ -40,10 +40,8 @@ public:
 
 MvCache MvCache::fromConfigs(const TSpecificConfig& spec_cfg, const MvParams& params)
 {
-    const double grad_blending_bound =
-        spec_cfg.getGradientBlendingWidth() * params.patch_xshift * MvParams::PSIZE_INFLATE;
     cv::Mat grad_blending_weight =
-        circleWithFadeoutBorder(params.resized_patch_width, (int)std::round(grad_blending_bound / 2));
+        circleWithFadeoutBorder(params.resized_patch_width, spec_cfg.getGradientBlendingWidth());
     cv::Mat render_canvas{cv::Size{params.canvas_width, params.canvas_height}, CV_32FC3};
     cv::Mat weight_canvas{cv::Size{params.canvas_width, params.canvas_height}, CV_32FC1};
     return {std::move(grad_blending_weight), std::move(render_canvas), std::move(weight_canvas)};

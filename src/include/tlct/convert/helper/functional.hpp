@@ -2,6 +2,7 @@
 
 #include <array>
 #include <bit>
+#include <cmath>
 #include <numeric>
 #include <ranges>
 #include <vector>
@@ -12,23 +13,22 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const int border_width)
+[[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const double border_width_factor)
 {
     cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
-    constexpr int bitshift = 4; // supports 1/16 pixel
-    constexpr int compensate = 1 << (bitshift - 1);
-    const int shifted_border_width = border_width << bitshift;
-    const int radius = ((diameter << bitshift) + compensate) / 2;
-    const cv::Point center{radius, radius};
+    const double radius = (double)diameter / 2.0;
+    const double slope = border_width_factor > 0.0 ? 1.0 / (1.0 - border_width_factor) : 0.0;
 
-    constexpr double max_color = 1.0;
-    cv::circle(rect, center, radius - shifted_border_width, max_color, cv::FILLED, cv::LINE_8, bitshift);
-
-    const double color_step = max_color / (shifted_border_width + 1);
-    double color = color_step;
-    for (int i = 0; i < shifted_border_width; i++) {
-        cv::circle(rect, center, radius - i, color, 1, cv::LINE_8, bitshift);
-        color += color_step;
+    for (const int row : rgs::views::iota(0, diameter)) {
+        auto prow = rect.ptr<float>(row);
+        for (const int col : rgs::views::iota(0, diameter)) {
+            const double xdist = radius - (double)row;
+            const double ydist = radius - (double)col;
+            const double dist = std::sqrt(xdist * xdist + ydist * ydist);
+            const double pix = std::max(0.0, std::min(1.0, (1.0 - dist / radius) * slope));
+            *prow = (float)pix;
+            prow++;
+        }
     }
 
     return rect;
