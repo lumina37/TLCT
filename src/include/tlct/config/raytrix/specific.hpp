@@ -47,10 +47,7 @@ public:
     [[nodiscard]] TLCT_API inline double getMaxPatchSize() const noexcept { return max_patch_size_; };
     [[nodiscard]] TLCT_API inline double getPatternSize() const noexcept { return pattern_size_; };
     [[nodiscard]] TLCT_API inline double getGradientBlendingWidth() const noexcept { return gradient_blending_width_; };
-    [[nodiscard]] TLCT_API inline double getPsizeShortcutThreshold() const noexcept
-    {
-        return psize_shortcut_threshold_;
-    };
+    [[nodiscard]] TLCT_API inline int getPsizeShortcutThreshold() const noexcept { return psize_shortcut_threshold_; };
 
 private:
     double max_patch_size_;
