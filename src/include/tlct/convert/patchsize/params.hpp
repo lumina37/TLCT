@@ -17,6 +17,7 @@ public:
     using TLayout = TLayout_;
     using TSpecificConfig = TLayout::TSpecificConfig;
 
+    // Initialize from
     [[nodiscard]] static inline PsizeParams_ fromConfigs(const TLayout& layout, const TSpecificConfig& spec_cfg);
 
     double pattern_size;

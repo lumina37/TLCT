@@ -7,6 +7,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "multiview.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/concepts.hpp"
@@ -38,7 +39,12 @@ public:
     State& operator=(const State& rhs) = delete;
     TLCT_API inline State(State&& rhs) noexcept = default;
     TLCT_API inline State& operator=(State&& rhs) noexcept = default;
-    TLCT_API inline State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views);
+    TLCT_API inline State(TLayout&& layout, TSpecificConfig&& spec_cfg, TMIs&& mis,
+                          std::vector<PsizeRecord>&& prev_patchsizes, std::vector<PsizeRecord>&& patchsizes,
+                          TPsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
+        : src_32f_(), layout_(std::move(layout)), spec_cfg_(std::move(spec_cfg)), mis_(std::move(mis)),
+          prev_patchsizes_(std::move(prev_patchsizes)), patchsizes_(std::move(patchsizes)),
+          psize_params_(std::move(psize_params)), mv_params_(std::move(mv_params)), mv_cache_(std::move(mv_cache)){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
@@ -46,86 +52,45 @@ public:
     // Non-const methods
     TLCT_API inline void update(const cv::Mat& src);
 
-    inline void renderInto(cv::Mat& dst, int view_row, int view_col) const;
+    inline void renderInto(cv::Mat& dst, int view_row, int view_col) const
+    {
+        render(src_32f_, dst, layout_, mis_, patchsizes_, mv_params_, mv_cache_, view_row, view_col);
+    };
 
 private:
+    cv::Mat src_32f_;
+
     TLayout layout_;
     TSpecificConfig spec_cfg_;
     TMIs mis_;
-    cv::Mat src_32f_;
     std::vector<PsizeRecord> prev_patchsizes_;
     std::vector<PsizeRecord> patchsizes_;
 
-    // vvv cache vvv
-    mutable cv::Mat render_canvas_;
-    mutable cv::Mat weight_canvas_;
-    mutable cv::Mat cropped_rendered_image_channels_[CHANNELS];
-    mutable cv::Mat normed_image_u8_;
-    mutable cv::Mat resized_normed_image_u8_;
-    // ^^^ cache ^^^
-
     TPsizeParams psize_params_;
-
-    cv::Mat grad_blending_weight_;
-    cv::Range canvas_crop_roi_[2];
-    int views_;
-    int patch_xshift_; // the extracted patch will be zoomed to this height
-    int patch_yshift_;
-    int resized_patch_width_;
-    int view_interval_;
-    int output_width_;
-    int output_height_;
+    MvParams mv_params_;
+    mutable MvCache mv_cache_;
 };
 
 static_assert(concepts::CState<State>);
 
-State::State(const TLayout& layout, const TSpecificConfig& spec_cfg, int views)
-    : layout_(layout), spec_cfg_(spec_cfg), views_(views)
-{
-    mis_ = TMIs::fromLayout(layout);
-
-    psize_params_ = TPsizeParams::fromConfigs(layout, spec_cfg);
-    prev_patchsizes_ = std::vector<PsizeRecord>(layout_.getMIRows() * layout_.getMIMaxCols(), {});
-    patchsizes_ = std::vector<PsizeRecord>(layout_.getMIRows() * layout_.getMIMaxCols());
-
-    const int upsample = layout.getUpsample();
-    const double patch_xshift_d = 0.35 * layout.getDiameter();
-    patch_xshift_ = (int)std::ceil(patch_xshift_d);
-    patch_yshift_ = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
-
-    const double grad_blending_bound =
-        spec_cfg_.getGradientBlendingWidth() * patch_xshift_ * TSpecificConfig::PSIZE_INFLATE;
-    const double p_resize_d = patch_xshift_d * TSpecificConfig::PSIZE_INFLATE;
-    resized_patch_width_ = (int)std::round(p_resize_d);
-    grad_blending_weight_ = circleWithFadeoutBorder(resized_patch_width_, (int)std::round(grad_blending_bound / 2));
-
-    const int move_range =
-        _hp::iround(layout.getDiameter() * (1.0 - spec_cfg.getMaxPatchSize() * TSpecificConfig::PSIZE_INFLATE));
-    view_interval_ = views > 1 ? move_range / (views - 1) : 0;
-
-    const int canvas_width = (int)std::round(layout.getMIMaxCols() * patch_xshift_ + resized_patch_width_);
-    const int canvas_height = (int)std::round(layout.getMIRows() * patch_yshift_ + resized_patch_width_);
-    render_canvas_ = cv::Mat(canvas_height, canvas_width, CV_32FC3);
-    weight_canvas_ = cv::Mat(canvas_height, canvas_width, CV_32FC1);
-
-    const cv::Range col_range{(int)std::ceil(patch_xshift_ * 1.5),
-                              (int)(canvas_width - resized_patch_width_ - patch_xshift_ / 2.0)};
-    const cv::Range row_range{(int)std::ceil(patch_xshift_ * 1.5),
-                              (int)(canvas_height - resized_patch_width_ - patch_xshift_ / 2.0)};
-    canvas_crop_roi_[0] = row_range;
-    canvas_crop_roi_[1] = col_range;
-
-    output_width_ = _hp::round_to<2>(_hp::iround((double)col_range.size() / upsample));
-    output_height_ = _hp::round_to<2>(_hp::iround((double)row_range.size() / upsample));
-}
-
 State State::fromParamCfg(const TParamConfig& param_cfg)
 {
     const auto& calib_cfg = param_cfg.getCalibCfg();
-    const auto& spec_cfg = param_cfg.getSpecificCfg();
-    const auto layout = TLayout::fromCalibAndSpecConfig(calib_cfg, spec_cfg).upsample(spec_cfg.getUpsample());
+    auto spec_cfg = param_cfg.getSpecificCfg();
+    auto layout = TLayout::fromCalibAndSpecConfig(calib_cfg, spec_cfg).upsample(spec_cfg.getUpsample());
+
+    auto mis = TMIs::fromLayout(layout);
+
+    auto prev_patchsizes = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols(), {});
+    auto patchsizes = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols());
+    auto psize_params = TPsizeParams::fromConfigs(layout, spec_cfg);
+
     const int views = param_cfg.getGenericCfg().getViews();
-    return {layout, spec_cfg, views};
+    auto mv_params = MvParams::fromConfigs(layout, spec_cfg, views);
+    auto mv_cache = MvCache::fromConfigs(spec_cfg, mv_params);
+
+    return {std::move(layout),     std::move(spec_cfg),     std::move(mis),       std::move(prev_patchsizes),
+            std::move(patchsizes), std::move(psize_params), std::move(mv_params), std::move(mv_cache)};
 }
 
 void State::update(const cv::Mat& src)
