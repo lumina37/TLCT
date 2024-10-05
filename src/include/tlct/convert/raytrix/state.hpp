@@ -65,6 +65,7 @@ private:
     // ^^^ cache ^^^
 
     TPsizeParams psize_params_;
+
     cv::Mat grad_blending_weight_;
     cv::Range canvas_crop_roi_[2];
     int views_;

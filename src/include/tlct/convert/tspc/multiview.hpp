@@ -26,10 +26,10 @@ void State::renderInto(cv::Mat& dst, int view_row, int view_col) const
     cv::Mat weighted_patch;
 
     int row_offset = 0;
-    for (const int i : rgs::views::iota(0, layout_.getMIRows())) {
-        for (const int j : rgs::views::iota(0, layout_.getMICols(i))) {
-            const int offset = row_offset + j;
-            const cv::Point2d center = layout_.getMICenter(i, j);
+    for (const int row : rgs::views::iota(0, layout_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, layout_.getMICols(row))) {
+            const int offset = row_offset + col;
+            const cv::Point2d center = layout_.getMICenter(row, col);
 
             // Extract patch
             const double psize = TSpecificConfig::PSIZE_INFLATE * patchsizes_[offset].psize;
@@ -51,8 +51,8 @@ void State::renderInto(cv::Mat& dst, int view_row, int view_col) const
 
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
-            const int right_shift = ((i % 2) ^ (int)layout_.isOutShift()) * (patch_xshift_ / 2);
-            const cv::Rect roi{j * patch_xshift_ + right_shift, i * patch_yshift_, resized_patch_width_,
+            const int right_shift = ((row % 2) ^ (int)layout_.isOutShift()) * (patch_xshift_ / 2);
+            const cv::Rect roi{col * patch_xshift_ + right_shift, row * patch_yshift_, resized_patch_width_,
                                resized_patch_width_};
             render_canvas_(roi) += weighted_patch;
             weight_canvas_(roi) += grad_blending_weight_;

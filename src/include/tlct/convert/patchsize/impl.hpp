@@ -25,13 +25,15 @@ estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig
                   const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
                   const std::vector<PsizeRecord>& prev_patchsizes, const Neighbors_<TLayout>& neighbors, int offset)
 {
+    using TPsizeParams = PsizeParams_<TLayout>;
+
     const auto& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
     const auto& prev_psize = prev_patchsizes[offset];
 
-    if (prev_psize.psize != 0) [[likely]] {
+    if (prev_psize.psize != TPsizeParams::INVALID_PSIZE) [[likely]] {
         const int hash_dist = L1_dist(prev_psize.hash, hash);
-        if (hash_dist < spec_cfg.getPsizeShortcutThreshold()) {
+        if (hash_dist <= spec_cfg.getPsizeShortcutThreshold()) {
             return {prev_psize.psize, hash};
         }
     }

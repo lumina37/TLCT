@@ -11,6 +11,8 @@ template <typename TLayout_>
 class PsizeParams_
 {
 public:
+    static constexpr int INVALID_PSIZE = 0;
+
     // Typename alias
     using TLayout = TLayout_;
     using TSpecificConfig = TLayout::TSpecificConfig;
