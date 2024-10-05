@@ -81,7 +81,7 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
 
     auto mis = TMIs::fromLayout(layout);
 
-    auto prev_patchsizes = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols(), {});
+    auto prev_patchsizes = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols(), PsizeRecord{});
     auto patchsizes = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols());
     auto psize_params = TPsizeParams::fromConfigs(layout, spec_cfg);
 
