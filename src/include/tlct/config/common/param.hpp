@@ -5,8 +5,8 @@
 
 #include <opencv2/core.hpp>
 
-#include "cfg_map.hpp"
 #include "generic.hpp"
+#include "map.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 #include "tlct/config/raytrix/layout.hpp"

@@ -2,7 +2,7 @@
 
 #include <concepts>
 
-#include "tlct/config/common/cfg_map.hpp"
+#include "tlct/config/common/map.hpp"
 
 namespace tlct::_cfg::concepts {
 

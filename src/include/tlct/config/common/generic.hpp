@@ -6,7 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "cfg_map.hpp"
+#include "map.hpp"
 #include "tlct/common/defines.h"
 
 namespace tlct::_cfg {
