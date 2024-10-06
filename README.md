@@ -21,8 +21,9 @@ RLC40 [param_file_path]
 + `width <int>` The pixel width of input image.
 + `height <int>` The pixel height of input image.
 + `upsample <int>` The upsample factor.
++ `psizeInflate <float>` The inflate factor of patch size.
++ `maxPsize <float>` The maximum patch size.
 + `patternSize <float>` The size of pattern correlated with MI diameter.
-+ `gradientBlendingWidth <float>` The size of gradient blending width correlated with MI diameter.
 + `psizeShortcutThreshold <int>` The accept threshold, 0 will refuse all, while 64 will accept all.
 
 ### Example
@@ -37,8 +38,9 @@ end_frame               300
 height                  2048
 width                   2048
 upsample                2
-patternSize             0.300
-gradientBlendingWidth   0.450
+psizeInflate            2.5
+maxPsize                0.5
+patternSize             0.3
 psizeShortcutThreshold  2
 ```
 

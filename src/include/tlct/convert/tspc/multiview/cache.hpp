@@ -28,7 +28,7 @@ public:
     MvCache& operator=(MvCache&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline MvCache fromConfigs(const TSpecificConfig& spec_cfg, const MvParams& params);
+    [[nodiscard]] TLCT_API static inline MvCache fromParams(const MvParams& params);
 
     cv::Mat grad_blending_weight;
     cv::Mat render_canvas;
@@ -38,10 +38,10 @@ public:
     cv::Mat resized_normed_image_u8;
 };
 
-MvCache MvCache::fromConfigs(const TSpecificConfig& spec_cfg, const MvParams& params)
+MvCache MvCache::fromParams(const MvParams& params)
 {
     cv::Mat grad_blending_weight =
-        circleWithFadeoutBorder(params.resized_patch_width, spec_cfg.getGradientBlendingWidth());
+        circleWithFadeoutBorder(params.resized_patch_width, TSpecificConfig::GRADIENT_BLENDING_WIDTH);
     cv::Mat render_canvas{cv::Size{params.canvas_width, params.canvas_height}, CV_32FC3};
     cv::Mat weight_canvas{cv::Size{params.canvas_width, params.canvas_height}, CV_32FC1};
     return {std::move(grad_blending_weight), std::move(render_canvas), std::move(weight_canvas)};

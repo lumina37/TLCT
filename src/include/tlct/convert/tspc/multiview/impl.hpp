@@ -36,7 +36,7 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
             const cv::Point2d center = layout.getMICenter(row, col);
 
             // Extract patch
-            const double psize = MvParams::PSIZE_INFLATE * patchsizes[offset].psize;
+            const double psize = params.psize_inflate * patchsizes[offset].psize;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
             const cv::Mat& patch = getRoiImageByCenter(src, patch_center, psize);
 

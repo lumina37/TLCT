@@ -87,7 +87,7 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
 
     const int views = param_cfg.getGenericCfg().getViews();
     auto mv_params = MvParams::fromConfigs(layout, spec_cfg, views);
-    auto mv_cache = MvCache::fromConfigs(spec_cfg, mv_params);
+    auto mv_cache = MvCache::fromParams(mv_params);
 
     return {std::move(layout),     std::move(spec_cfg),     std::move(mis),       std::move(prev_patchsizes),
             std::move(patchsizes), std::move(psize_params), std::move(mv_params), std::move(mv_cache)};
