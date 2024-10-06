@@ -43,7 +43,7 @@ public:
                                                                        const TSpecificConfig& spec_cfg);
 
     // Non-const methods
-    TLCT_API inline Layout& upsample(const int factor) noexcept;
+    TLCT_API inline Layout& upsample(int factor) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
@@ -57,8 +57,8 @@ public:
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
     [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const int row, const int col) const noexcept;
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(const cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
     [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return _hp::sgn(isOutShift()); };
 
@@ -138,7 +138,7 @@ Layout Layout::fromCalibAndSpecConfig(const TCalibConfig& calib_cfg, const TSpec
             mirows,   micols,    imgsize,      diameter,          calib_cfg.getRotation()};
 }
 
-Layout& Layout::upsample(const int factor) noexcept
+Layout& Layout::upsample(int factor) noexcept
 {
     left_top_ *= factor;
     right_top_ *= factor;
@@ -151,7 +151,7 @@ Layout& Layout::upsample(const int factor) noexcept
     return *this;
 }
 
-cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
+cv::Point2d Layout::getMICenter(int row, int col) const noexcept
 {
     cv::Point2d left = left_top_ + left_y_unit_shift_ * row;
     cv::Point2d right = right_top_ + right_y_unit_shift_ * row;
@@ -165,7 +165,7 @@ cv::Point2d Layout::getMICenter(const int row, const int col) const noexcept
     return center;
 }
 
-cv::Point2d Layout::getMICenter(const cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
+cv::Point2d Layout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
 void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
 {
