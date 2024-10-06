@@ -9,15 +9,11 @@
 
 #include "enums.hpp"
 #include "tlct/common/defines.h"
+#include "tlct/config/concepts/factory.hpp"
 #include "tlct/helper/charset.hpp"
 #include "tlct/helper/constexpr/string.hpp"
 
 namespace tlct::_cfg {
-
-template <typename Tf, typename Tv>
-concept is_factory_of = requires(Tf factory) {
-    { factory() } -> std::same_as<Tv>;
-};
 
 class ConfigMap
 {
@@ -50,7 +46,7 @@ public:
     [[nodiscard]] TLCT_API inline Tv get() const noexcept;
 
     template <typename Tf, _hp::cestring key, Tf default_factory, typename Tv>
-        requires is_factory_of<Tf, Tv>
+        requires concepts::is_factory_of<Tf, Tv>
     [[nodiscard]] TLCT_API inline Tv get() const noexcept;
 
     template <typename Tv>
@@ -61,7 +57,7 @@ public:
     [[nodiscard]] TLCT_API inline Tv get(const std::string& key, Tv default_val) const noexcept;
 
     template <typename Tf, Tf default_factory, typename Tv>
-        requires is_factory_of<Tf, Tv>
+        requires concepts::is_factory_of<Tf, Tv>
     [[nodiscard]] TLCT_API inline Tv get(const std::string& key) const noexcept;
 
 private:
@@ -148,7 +144,7 @@ Tv ConfigMap::get() const noexcept
 };
 
 template <typename Tf, _hp::cestring key, Tf default_factory, typename Tv>
-    requires is_factory_of<Tf, Tv>
+    requires concepts::is_factory_of<Tf, Tv>
 Tv ConfigMap::get() const noexcept
 {
     return this->get<Tf, default_factory>(key.string);
@@ -174,7 +170,7 @@ Tv ConfigMap::get(const std::string& key, Tv default_val) const noexcept
 };
 
 template <typename Tf, Tf default_factory, typename Tv>
-    requires is_factory_of<Tf, Tv>
+    requires concepts::is_factory_of<Tf, Tv>
 Tv ConfigMap::get(const std::string& key) const noexcept
 {
     const auto it = map_.find(key);
