@@ -15,3 +15,9 @@ using _::ParamConfig;
 using _::SpecificConfig;
 
 } // namespace tlct::cfg::tspc
+
+namespace tlct::_cfg {
+
+template class ParamConfig_<tlct::cfg::tspc::Layout>;
+
+}

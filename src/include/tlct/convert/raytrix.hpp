@@ -15,3 +15,9 @@ using Neighbors = _cvt::Neighbors_<tlct::cfg::raytrix::Layout>;
 static_assert(tlct::cvt::concepts::CNeighbors<Neighbors>);
 
 } // namespace tlct::cvt::raytrix
+
+namespace tlct::_cvt {
+
+template class Neighbors_<tlct::cfg::raytrix::Layout>;
+
+}

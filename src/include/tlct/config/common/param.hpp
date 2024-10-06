@@ -58,7 +58,4 @@ ParamConfig_<TLayout> ParamConfig_<TLayout>::fromConfigMap(const ConfigMap& cfg_
     return {std::move(generic_cfg), std::move(spec_cfg), std::move(calib_cfg)};
 }
 
-template class ParamConfig_<tspc::Layout>;
-template class ParamConfig_<raytrix::Layout>;
-
 } // namespace tlct::_cfg

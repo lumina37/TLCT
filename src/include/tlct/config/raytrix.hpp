@@ -16,3 +16,9 @@ using _::ParamConfig;
 using _::SpecificConfig;
 
 } // namespace tlct::cfg::raytrix
+
+namespace tlct::_cfg {
+
+template class ParamConfig_<tlct::cfg::raytrix::Layout>;
+
+}
