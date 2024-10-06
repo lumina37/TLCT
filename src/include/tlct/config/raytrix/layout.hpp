@@ -10,7 +10,7 @@
 #include "specific.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
-#include "tlct/helper/static_math.hpp"
+#include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cfg::raytrix {
 

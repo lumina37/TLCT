@@ -7,7 +7,7 @@
 
 #include "roi.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/helper/static_math.hpp"
+#include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cvt {
 

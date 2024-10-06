@@ -54,7 +54,7 @@ ParamConfig_<TLayout> ParamConfig_<TLayout>::fromConfigMap(const ConfigMap& cfg_
 {
     auto generic_cfg = GenericParamConfig::fromConfigMap(cfg_map);
     auto spec_cfg = TSpecificConfig::fromConfigMap(cfg_map);
-    auto calib_cfg = TCalibConfig::fromXMLPath(cfg_map.get<std::string>("Calibration_xml"));
+    auto calib_cfg = TCalibConfig::fromXMLPath(cfg_map.get<std::string, "Calibration_xml">());
     return {std::move(generic_cfg), std::move(spec_cfg), std::move(calib_cfg)};
 }
 
