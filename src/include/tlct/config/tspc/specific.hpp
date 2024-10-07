@@ -17,7 +17,7 @@ public:
     static constexpr double DEFAULT_PSIZE_INFLATE = std::numbers::sqrt3 * 1.5;
     static constexpr double DEFAULT_MAX_PSIZE = 0.5;
     static constexpr double DEFAULT_PATTERN_SIZE = 0.325;
-    static constexpr int DEFAULT_PSIZE_SHORTCUT_THRESHOLD = 16;
+    static constexpr int DEFAULT_PSIZE_SHORTCUT_THRESHOLD = 4;
 
     static constexpr double GRADIENT_BLENDING_WIDTH = 0.75;
 
