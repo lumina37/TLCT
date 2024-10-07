@@ -36,7 +36,6 @@ public:
     // Const methods
     [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
     [[nodiscard]] TLCT_API inline int getPipelineType() const noexcept;
-    [[nodiscard]] TLCT_API inline const TMap& getMap() const noexcept;
 
     template <typename Tv, _hp::cestring key>
     [[nodiscard]] TLCT_API inline Tv get() const;
@@ -181,7 +180,5 @@ Tv ConfigMap::get(const std::string& key) const noexcept
     const Tv nval = stox<Tv>(val);
     return nval;
 };
-
-const ConfigMap::TMap& ConfigMap::getMap() const noexcept { return map_; }
 
 } // namespace tlct::_cfg
