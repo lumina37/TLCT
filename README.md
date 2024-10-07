@@ -41,7 +41,7 @@ upsample                2
 psizeInflate            2.5
 maxPsize                0.5
 patternSize             0.3
-psizeShortcutThreshold  2
+psizeShortcutThreshold  16
 ```
 
 ### Charset
