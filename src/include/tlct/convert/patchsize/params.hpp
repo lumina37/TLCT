@@ -6,8 +6,7 @@
 
 namespace tlct::_cvt {
 
-template <typename TLayout_>
-    requires tlct::cfg::concepts::CLayout<TLayout_>
+template <tlct::cfg::concepts::CLayout TLayout_>
 class PsizeParams_
 {
 public:
@@ -25,8 +24,7 @@ public:
     int min_psize;
 };
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <tlct::cfg::concepts::CLayout TLayout>
 PsizeParams_<TLayout> PsizeParams_<TLayout>::fromConfigs(const TLayout& layout, const TSpecificConfig& spec_cfg)
 {
     const double pattern_size = layout.getDiameter() * spec_cfg.getPatternSize();

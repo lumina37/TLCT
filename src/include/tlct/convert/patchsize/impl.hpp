@@ -18,8 +18,7 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <tlct::cfg::concepts::CLayout TLayout>
 [[nodiscard]] static inline PsizeRecord
 estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig& spec_cfg,
                   const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
@@ -88,8 +87,7 @@ estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig
     return {final_psize, hash};
 }
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <tlct::cfg::concepts::CLayout TLayout>
 static inline void estimatePatchsizes(const TLayout& layout, const typename TLayout::TSpecificConfig& spec_cfg,
                                       const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
                                       const std::vector<PsizeRecord>& prev_patchsizes,

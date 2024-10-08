@@ -17,8 +17,7 @@ struct WrapMI {
     cv::Mat I, I_2;
 };
 
-template <typename TLayout_>
-    requires tlct::cfg::concepts::CLayout<TLayout_>
+template <tlct::cfg::concepts::CLayout TLayout_>
 class MIs_
 {
 public:
@@ -91,23 +90,20 @@ private:
     void* buffer_;
 };
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <tlct::cfg::concepts::CLayout TLayout>
 MIs_<TLayout>::MIs_(const TLayout& layout) : layout_(layout), params_(layout)
 {
     items_.resize(params_.mi_num_);
     buffer_ = std::malloc(params_.buffer_size_ + Params::CACHELINE_SIZE);
 }
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <tlct::cfg::concepts::CLayout TLayout>
 MIs_<TLayout> MIs_<TLayout>::fromLayout(const TLayout& layout)
 {
     return MIs_(layout);
 }
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <tlct::cfg::concepts::CLayout TLayout>
 MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
 {
     cv::Mat I_8u, I_32f, I_2_32f;

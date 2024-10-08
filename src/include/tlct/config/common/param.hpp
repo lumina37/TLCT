@@ -14,8 +14,7 @@
 
 namespace tlct::_cfg {
 
-template <typename TLayout_>
-    requires concepts::CLayout<TLayout_>
+template <concepts::CLayout TLayout_>
 class ParamConfig_
 {
 public:
@@ -48,8 +47,7 @@ private:
     TCalibConfig calib_cfg_;
 };
 
-template <typename TLayout>
-    requires concepts::CLayout<TLayout>
+template <concepts::CLayout TLayout>
 ParamConfig_<TLayout> ParamConfig_<TLayout>::fromConfigMap(const ConfigMap& cfg_map)
 {
     auto generic_cfg = GenericParamConfig::fromConfigMap(cfg_map);

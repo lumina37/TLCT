@@ -9,8 +9,7 @@
 
 namespace tlct::_cvt {
 
-template <typename TLayout_>
-    requires tlct::cfg::concepts::CLayout<TLayout_>
+template <tlct::cfg::concepts::CLayout TLayout_>
 class Neighbors_
 {
 public:
@@ -76,8 +75,7 @@ private:
     cv::Point self_idx_;
 };
 
-template <typename TLayout>
-    requires tlct::cfg::concepts::CLayout<TLayout>
+template <tlct::cfg::concepts::CLayout TLayout>
 Neighbors_<TLayout> Neighbors_<TLayout>::fromLayoutAndIndex(const TLayout& layout, cv::Point index) noexcept
 {
     cv::Point left_idx{Neighbors_::DEFAULT_INDEX, Neighbors_::DEFAULT_INDEX};
