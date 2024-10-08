@@ -5,7 +5,9 @@
 #include "raytrix/param.hpp"
 #include "raytrix/specific.hpp"
 
-namespace tlct::cfg::raytrix {
+namespace tlct {
+
+namespace cfg::raytrix {
 
 namespace _ = _cfg::raytrix;
 
@@ -15,10 +17,12 @@ using _::LEN_TYPE_NUM;
 using _::ParamConfig;
 using _::SpecificConfig;
 
-} // namespace tlct::cfg::raytrix
+} // namespace cfg::raytrix
 
-namespace tlct::_cfg {
+namespace _cfg {
 
 template class ParamConfig_<tlct::cfg::raytrix::Layout>;
 
 }
+
+} // namespace tlct

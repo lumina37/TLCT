@@ -5,7 +5,9 @@
 #include "tspc/param.hpp"
 #include "tspc/specific.hpp"
 
-namespace tlct::cfg::tspc {
+namespace tlct {
+
+namespace cfg::tspc {
 
 namespace _ = _cfg::tspc;
 
@@ -14,10 +16,12 @@ using _::Layout;
 using _::ParamConfig;
 using _::SpecificConfig;
 
-} // namespace tlct::cfg::tspc
+} // namespace cfg::tspc
 
-namespace tlct::_cfg {
+namespace _cfg {
 
 template class ParamConfig_<tlct::cfg::tspc::Layout>;
 
 }
+
+} // namespace tlct
