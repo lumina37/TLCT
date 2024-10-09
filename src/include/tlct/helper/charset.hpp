@@ -38,10 +38,6 @@ std::string cconv(const std::string& utf8_str)
     return wstring_to_gbk(wstr);
 }
 
-#else
-
-std::string cconv(const std::string& utf8_str) { return utf8_str; }
-
 #endif
 
 } // namespace tlct::_hp

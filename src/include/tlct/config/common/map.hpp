@@ -125,7 +125,11 @@ inline Tv stox(const std::string& str)
     } else if constexpr (std::is_floating_point_v<Tv>) {
         return (Tv)std::stod(str);
     } else {
+#ifdef _WIN32
         return _hp::cconv(str);
+#else
+        return str;
+#endif
     }
 };
 
