@@ -6,7 +6,6 @@ if (TLCT_HEADER_ONLY)
 else ()
     if (TLCT_BUILD_SHARED_LIBS)
         set(TLCT_LIB_TYPE "SHARED")
-        set(TLCT_LIB_COMPILE_DEFS "_TLCT_BUILD_LIBS")
     else ()
         set(TLCT_LIB_TYPE "STATIC")
     endif ()
@@ -26,10 +25,6 @@ set_target_properties(${TLCT_LIB_NAME} PROPERTIES
         RELEASE_POSTFIX "-${TLCT_VERSION}"
 )
 target_compile_features(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} cxx_std_20)
-target_compile_definitions(${TLCT_LIB_NAME} PRIVATE
-        ${TLCT_LIB_COMPILE_DEFS}
-        $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
-)
 target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         "${PROJECT_SOURCE_DIR}/src/include"
         ${OpenCV_INCLUDE_DIRS}
@@ -39,6 +34,13 @@ target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
         $<$<NOT:$<BOOL:${PUGIXML_HEADER_ONLY}>>:pugixml>
 )
+
+if (NOT TLCT_HEADER_ONLY AND TLCT_BUILD_SHARED_LIBS)
+    target_compile_definitions(${TLCT_LIB_NAME} PRIVATE
+            "_TLCT_BUILD_LIBS"
+            $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
+    )
+endif ()
 
 if (TLCT_VERBOSE_WARNING)
     if (MSVC)
