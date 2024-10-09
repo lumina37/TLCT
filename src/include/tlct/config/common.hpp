@@ -11,6 +11,7 @@ namespace _ = _cfg;
 
 using _::ConfigMap;
 using _::GenericParamConfig;
+using _::ParamConfig_;
 using _::PIPELINE_COUNT;
 using _::PipelineType;
 

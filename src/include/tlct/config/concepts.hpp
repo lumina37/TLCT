@@ -12,6 +12,5 @@ namespace _ = _cfg::concepts;
 using _::CCalibConfig;
 using _::CLayout;
 using _::CSpecificConfig;
-using _::is_factory_of;
 
 } // namespace tlct::cfg::concepts
