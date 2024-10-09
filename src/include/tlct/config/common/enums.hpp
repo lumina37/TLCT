@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace tlct::_cfg {
 
 enum PipelineType {
