@@ -2,7 +2,7 @@
 
 namespace tlct::_cfg {
 
-enum class PipelineType {
+enum PipelineType {
     RLC,
     TLCT,
     COUNT,

@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     const auto cfg_map = tlct::ConfigMap::fromPath(argv[1]);
     cv::Mat resized_img;
 
-    if ((tlct::PipelineType)cfg_map.getPipelineType() == tlct::PipelineType::TLCT) {
+    if (cfg_map.getPipelineType() == tlct::PipelineType::TLCT) {
         namespace tn = tlct::tspc;
 
         const auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
