@@ -35,7 +35,7 @@ All fine-tune options are optional
 | patternSize            | float | The size of matching pattern will be `patternSize*diameter`                                    | 0.25~0.4  | 0.3     |
 | psizeShortcutThreshold | int   | If the difference bit of dhash of MI is smaller than this value, then use the prev. patch size | 2~8       | 4       |
 
-### Example
+### Example of param.cfg
 
 ```
 pipeline                1
