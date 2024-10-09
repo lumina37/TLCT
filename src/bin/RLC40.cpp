@@ -1,3 +1,4 @@
+#include <array>
 #include <filesystem>
 #include <ranges>
 #include <sstream>
@@ -12,7 +13,7 @@ namespace rgs = std::ranges;
 namespace tn = tlct::tspc;
 
 template <tlct::cvt::concepts::CState TState>
-static inline void render(const tlct::cfg::ConfigMap& cfg_map)
+static inline void render(const tlct::ConfigMap& cfg_map)
 {
     const auto param_cfg = TState::TParamConfig::fromConfigMap(cfg_map);
     const auto& generic_cfg = param_cfg.getGenericCfg();
@@ -57,12 +58,12 @@ int main(int argc, char* argv[])
     }
 
     const auto& param_file_path = program.get<std::string>("param_file_path");
+    const auto cfg_map = tlct::ConfigMap::fromPath(param_file_path);
 
-    const auto cfg_map = tlct::cfg::ConfigMap::fromPath(param_file_path);
-
-    if (cfg_map.getPipelineType() == tlct::cfg::PipelineType::RLC) {
-        render<tlct::raytrix::State>(cfg_map);
-    } else {
-        render<tlct::tspc::State>(cfg_map);
-    }
+    constexpr std::array<void (*)(const tlct::ConfigMap&), tlct::PIPELINE_COUNT> handlers{
+        render<tlct::raytrix::State>,
+        render<tlct::tspc::State>,
+    };
+    const auto& handler = handlers[cfg_map.getPipelineType()];
+    handler(cfg_map);
 }
