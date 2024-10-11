@@ -65,5 +65,11 @@ int main(int argc, char* argv[])
         render<tlct::tspc::State>,
     };
     const auto& handler = handlers[cfg_map.getPipelineType()];
-    handler(cfg_map);
+
+    try {
+        handler(cfg_map);
+    } catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        std::exit(2);
+    }
 }
