@@ -15,6 +15,5 @@ using _::Direction;
 using _::DIRECTION_NUM;
 using _::DIRECTIONS;
 using _::Neighbors_;
-using _::opposite;
 
 } // namespace tlct::cvt

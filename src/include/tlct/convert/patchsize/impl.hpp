@@ -58,10 +58,8 @@ estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig
             const cv::Point2d match_step = _hp::sgn(TLayout::IS_KEPLER) * neighbors.getUnitShift(direction);
             cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
 
-            int min_metric_psize = 0;
-            double min_metric = std::numeric_limits<double>::max();
-            std::vector<double> metrics;
-            metrics.reserve(max_shift - params.min_psize);
+            int max_metric_psize = 0;
+            double max_metric = 0.0;
             for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
                 cmp_shift += match_step;
 
@@ -69,16 +67,14 @@ estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig
                 wrap_neib.updateRoi(cmp_roi);
 
                 const double metric = wrap_anchor.compare(wrap_neib);
-                metrics.push_back(metric);
-
-                if (metric < min_metric) {
-                    min_metric = metric;
-                    min_metric_psize = psize;
+                if (metric > max_metric) {
+                    max_metric = metric;
+                    max_metric_psize = psize;
                 }
             }
 
-            const double weight = grad(wrap_anchor.I_) * stdvar(metrics);
-            weighted_psize += weight * min_metric_psize;
+            const double weight = grad(wrap_anchor.I_);
+            weighted_psize += weight * max_metric_psize;
             total_weight += weight;
         }
     }

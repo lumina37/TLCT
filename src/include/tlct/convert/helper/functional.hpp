@@ -5,7 +5,6 @@
 #include <cmath>
 #include <numeric>
 #include <ranges>
-#include <vector>
 
 #include <opencv2/imgproc.hpp>
 
@@ -75,22 +74,6 @@ namespace rgs = std::ranges;
 }
 
 [[nodiscard]] static inline int L1_dist(uint64_t lhs, uint64_t rhs) { return std::popcount(lhs ^ rhs); }
-
-template <typename Tv>
-[[nodiscard]] inline Tv stdvar(const std::vector<Tv>& vec)
-{
-    const Tv sum = std::reduce(vec.begin(), vec.end());
-    const Tv avg = sum / (Tv)vec.size();
-
-    Tv var = 0.0;
-    for (const Tv elem : vec) {
-        const Tv diff = elem - avg;
-        var += diff * diff;
-    }
-    Tv stdvar = var / (Tv)vec.size();
-
-    return stdvar;
-}
 
 static inline void blurInto(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 

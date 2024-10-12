@@ -79,7 +79,7 @@ double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
     const auto ssim_scalar = cv::mean(t3);
     const double ssim = ssim_scalar[0];
 
-    return -ssim;
+    return ssim;
 }
 
 } // namespace tlct::_cvt
