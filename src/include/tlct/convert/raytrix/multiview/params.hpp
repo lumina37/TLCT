@@ -33,7 +33,7 @@ MvParams MvParams::fromConfigs(const TLayout& layout, const TSpecificConfig& spe
 {
     const double psize_inflate = spec_cfg.getPsizeInflate();
 
-    const double patch_xshift_d = 0.35 * layout.getDiameter();
+    const double patch_xshift_d = 0.435 * layout.getDiameter();
     const int patch_xshift = (int)std::ceil(patch_xshift_d);
     const int patch_yshift = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
 
