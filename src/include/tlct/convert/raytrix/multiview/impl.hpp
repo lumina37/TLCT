@@ -35,8 +35,15 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
             const int offset = row_offset + col;
             const cv::Point2d center = layout.getMICenter(row, col);
 
-            const auto& mi = mis.getMI(row, col);
-            const double grad_weight = grad(mi.I) + std::numeric_limits<float>::epsilon();
+            // const auto& mi = mis.getMI(row, col);
+            double grad_weight;
+            if (layout.getMIType(row, col) == 0) {
+                grad_weight = 0.0;
+            } else {
+                grad_weight = 1.0;
+            }
+
+            const double weight = grad_weight;
 
             // Extract patch
             const double psize = params.psize_inflate * patchsizes[offset].psize;
@@ -59,8 +66,8 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
             const int right_shift = ((row % 2) ^ (int)layout.isOutShift()) * (params.patch_xshift / 2);
             const cv::Rect roi{col * params.patch_xshift + right_shift, row * params.patch_yshift,
                                params.resized_patch_width, params.resized_patch_width};
-            cache.render_canvas(roi) += weighted_patch * grad_weight;
-            cache.weight_canvas(roi) += cache.grad_blending_weight * grad_weight;
+            cache.render_canvas(roi) += weighted_patch * weight;
+            cache.weight_canvas(roi) += cache.grad_blending_weight * weight;
         }
         row_offset += layout.getMIMaxCols();
     }
@@ -78,7 +85,7 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
 
     normed_image.convertTo(cache.normed_image_u8, CV_8UC3);
     cv::resize(cache.normed_image_u8, cache.resized_normed_image_u8, {params.output_width, params.output_height}, 0.0,
-               0.0);
+               0.0, cv::INTER_CUBIC);
 
     if (layout.getRotation() > std::numbers::pi / 4.0) {
         cv::transpose(cache.resized_normed_image_u8, dst);
