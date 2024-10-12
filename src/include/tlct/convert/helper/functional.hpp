@@ -17,7 +17,8 @@ namespace rgs = std::ranges;
 {
     cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
     const double radius = (double)diameter / 2.0;
-    const double slope = border_width_factor > 0.0 ? 1.0 / (1.0 - border_width_factor) : 0.0;
+    const double heap = border_width_factor > 0.0 ? 1.0 + 1.0 / border_width_factor * (1.0 - border_width_factor)
+                                                  : std::numeric_limits<double>::max();
 
     for (const int row : rgs::views::iota(0, diameter)) {
         auto prow = rect.ptr<float>(row);
@@ -25,7 +26,7 @@ namespace rgs = std::ranges;
             const double xdist = radius - (double)row;
             const double ydist = radius - (double)col;
             const double dist = std::sqrt(xdist * xdist + ydist * ydist);
-            const double pix = std::max(0.0, std::min(1.0, (1.0 - dist / radius) * slope));
+            const double pix = std::max(0.0, std::min(1.0, (1.0 - dist / radius) * heap));
             *prow = (float)pix;
             prow++;
         }
