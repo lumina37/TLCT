@@ -195,7 +195,7 @@ void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
     const int upsample = getUpsample();
     if (upsample != 1) [[likely]] {
         cv::Mat upsampled_src;
-        cv::resize(dst, upsampled_src, {}, upsample, upsample);
+        cv::resize(dst, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
         dst = std::move(upsampled_src);
     }
 }

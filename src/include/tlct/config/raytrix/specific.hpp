@@ -1,7 +1,5 @@
 #pragma once
 
-#include <numbers>
-
 #include <opencv2/core.hpp>
 
 #include "calib.hpp"
@@ -14,7 +12,7 @@ class SpecificConfig
 {
 public:
     static constexpr int DEFAULT_UPSAMPLE = 2;
-    static constexpr double DEFAULT_PSIZE_INFLATE = std::numbers::sqrt3 * 1.5;
+    static constexpr double DEFAULT_PSIZE_INFLATE = 2.15;
     static constexpr double DEFAULT_MAX_PSIZE = 0.5;
     static constexpr double DEFAULT_PATTERN_SIZE = 0.3;
     static constexpr int DEFAULT_PSIZE_SHORTCUT_THRESHOLD = 4;

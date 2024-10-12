@@ -43,7 +43,7 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
             // Paste patch
             cv::rotate(patch, rotated_patch, cv::ROTATE_180);
             cv::resize(rotated_patch, resized_patch, {params.resized_patch_width, params.resized_patch_width}, 0, 0,
-                       cv::INTER_CUBIC);
+                       cv::INTER_LINEAR);
 
             cv::split(resized_patch, resized_patch_channels);
             for (cv::Mat& resized_patch_channel : resized_patch_channels) {
@@ -76,7 +76,7 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
 
     normed_image.convertTo(cache.normed_image_u8, CV_8UC3);
     cv::resize(cache.normed_image_u8, cache.resized_normed_image_u8, {params.output_width, params.output_height}, 0.0,
-               0.0);
+               0.0, cv::INTER_AREA);
 
     if (layout.getRotation() > std::numbers::pi / 4.0) {
         cv::transpose(cache.resized_normed_image_u8, dst);

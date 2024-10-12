@@ -42,8 +42,8 @@ estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig
 
     const int max_shift = (int)(params.pattern_shift * 2);
 
-    double weighted_psize = 0.0;
-    double total_weight = 0.0;
+    double weighted_psize = std::numeric_limits<float>::epsilon();
+    double total_weight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : DIRECTIONS) {
         if (neighbors.hasNeighbor(direction)) [[likely]] {
@@ -77,7 +77,7 @@ estimatePatchsize(const TLayout& layout, const typename TLayout::TSpecificConfig
                 }
             }
 
-            const double weight = grad(wrap_anchor.I_) * stdvar(metrics) + std::numeric_limits<float>::epsilon();
+            const double weight = grad(wrap_anchor.I_) * stdvar(metrics);
             weighted_psize += weight * min_metric_psize;
             total_weight += weight;
         }
