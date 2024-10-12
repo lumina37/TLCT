@@ -47,6 +47,7 @@ int main(int argc, char* argv[])
 {
     argparse::ArgumentParser program("RLC40", "v4.0", argparse::default_arguments::all);
     program.add_argument("param_file_path").help("the parameter file path").required();
+    program.add_argument("psize").help("forced patch size").scan<'g', double>().required();
     program.add_epilog(TLCT_COMPILE_INFO);
 
     try {
@@ -58,6 +59,7 @@ int main(int argc, char* argv[])
     }
 
     const auto& param_file_path = program.get<std::string>("param_file_path");
+    PSIZE = program.get<double>("psize");
     const auto cfg_map = tlct::ConfigMap::fromPath(param_file_path);
 
     constexpr std::array<void (*)(const tlct::ConfigMap&), tlct::PIPELINE_COUNT> handlers{

@@ -10,6 +10,8 @@
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/patchsize.hpp"
 
+static double PSIZE;
+
 namespace tlct::_cvt::raytrix {
 
 namespace rgs = std::ranges;
@@ -37,7 +39,7 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
 
             // const auto& mi = mis.getMI(row, col);
             double grad_weight;
-            if (layout.getMIType(row, col) == 0) {
+            if (layout.getMIType(row, col) == 2) {
                 grad_weight = 0.0;
             } else {
                 grad_weight = 1.0;
@@ -46,7 +48,8 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
             const double weight = grad_weight;
 
             // Extract patch
-            const double psize = params.psize_inflate * patchsizes[offset].psize;
+            // const double psize = params.psize_inflate * patchsizes[offset].psize;
+            const double psize = PSIZE;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
             const cv::Mat& patch = getRoiImageByCenter(src, patch_center, psize);
 
