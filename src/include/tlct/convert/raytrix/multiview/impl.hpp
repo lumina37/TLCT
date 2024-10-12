@@ -40,9 +40,9 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
             // const auto& mi = mis.getMI(row, col);
             double grad_weight;
             if (layout.getMIType(row, col) == 2) {
-                grad_weight = 0.0;
-            } else {
                 grad_weight = 1.0;
+            } else {
+                grad_weight = 0.0;
             }
 
             const double weight = grad_weight;
