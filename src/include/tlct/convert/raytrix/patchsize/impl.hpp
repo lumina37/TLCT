@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <numeric>
 #include <ranges>
 #include <vector>
@@ -73,7 +72,7 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
                 }
             }
 
-            const double weight = grad(wrap_anchor.I_);
+            const double weight = texture_intensity(wrap_anchor.I_);
             near_weighted_psize += weight * best_psize;
             near_weighted_ssim_2 += weight * (max_ssim * max_ssim);
             near_total_weight += weight;
@@ -112,7 +111,7 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
                 }
             }
 
-            const double weight = grad(wrap_anchor.I_);
+            const double weight = texture_intensity(wrap_anchor.I_);
             far_weighted_psize += weight * best_psize / FarNeighbors::INFLATE;
             far_weighted_ssim_2 += weight * (max_ssim * max_ssim);
             far_total_weight += weight;

@@ -22,8 +22,8 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
 
-    cache.render_canvas.setTo(0.0);
-    cache.weight_canvas.setTo(0.0);
+    cache.render_canvas.setTo(std::numeric_limits<float>::epsilon());
+    cache.weight_canvas.setTo(std::numeric_limits<float>::epsilon());
 
     cv::Mat rotated_patch, resized_patch;
     cv::Mat resized_patch_channels[MvCache::CHANNELS];
@@ -65,7 +65,6 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
 
     cv::Mat cropped_rendered_image = cache.render_canvas(params.canvas_crop_roi);
     cv::Mat cropped_weight_matrix = cache.weight_canvas(params.canvas_crop_roi);
-    cropped_weight_matrix.setTo(1.0, cropped_weight_matrix == 0.0);
 
     cv::split(cropped_rendered_image, cache.cropped_rendered_image_channels);
     for (cv::Mat& cropped_new_image_channel : cache.cropped_rendered_image_channels) {

@@ -72,7 +72,7 @@ namespace tcfg = tlct::cfg::tspc;
                 }
             }
 
-            const double weight = grad(wrap_anchor.I_);
+            const double weight = texture_intensity(wrap_anchor.I_);
             weighted_psize += weight * best_psize;
             total_weight += weight;
         }
