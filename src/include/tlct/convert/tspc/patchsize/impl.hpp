@@ -78,7 +78,7 @@ namespace tcfg = tlct::cfg::tspc;
         }
     }
 
-    const int final_psize = (int)std::round(weighted_psize / total_weight);
+    const int final_psize = _hp::iround(weighted_psize / total_weight);
     return {final_psize, hash};
 }
 
