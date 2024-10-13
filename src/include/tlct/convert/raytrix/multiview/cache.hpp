@@ -2,9 +2,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/config/raytrix.hpp"
-
 #include "params.hpp"
+#include "tlct/config/raytrix.hpp"
+#include "tlct/convert/helper/functional.hpp"
 
 namespace tlct::_cvt::raytrix {
 

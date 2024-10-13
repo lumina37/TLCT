@@ -3,29 +3,30 @@
 #include <cmath>
 
 #include "tlct/config/concepts.hpp"
+#include "tlct/config/raytrix.hpp"
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::raytrix {
 
-template <tlct::cfg::concepts::CLayout TLayout_>
-class PsizeParams_
+namespace tcfg = tlct::cfg::raytrix;
+
+class PsizeParams
 {
 public:
     static constexpr int INVALID_PSIZE = 0;
 
     // Typename alias
-    using TLayout = TLayout_;
+    using TLayout = tcfg::Layout;
     using TSpecificConfig = TLayout::TSpecificConfig;
 
     // Initialize from
-    [[nodiscard]] static inline PsizeParams_ fromConfigs(const TLayout& layout, const TSpecificConfig& spec_cfg);
+    [[nodiscard]] static inline PsizeParams fromConfigs(const TLayout& layout, const TSpecificConfig& spec_cfg);
 
     double pattern_size;
     double pattern_shift;
     int min_psize;
 };
 
-template <tlct::cfg::concepts::CLayout TLayout>
-PsizeParams_<TLayout> PsizeParams_<TLayout>::fromConfigs(const TLayout& layout, const TSpecificConfig& spec_cfg)
+PsizeParams PsizeParams::fromConfigs(const TLayout& layout, const TSpecificConfig& spec_cfg)
 {
     const double pattern_size = layout.getDiameter() * spec_cfg.getPatternSize();
     const double radius = layout.getDiameter() / 2.0;
@@ -40,4 +41,4 @@ PsizeParams_<TLayout> PsizeParams_<TLayout>::fromConfigs(const TLayout& layout, 
     return {pattern_size, pattern_shift, min_psize};
 }
 
-} // namespace tlct::_cvt
+} // namespace tlct::_cvt::raytrix

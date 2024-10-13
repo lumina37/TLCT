@@ -36,13 +36,13 @@ int main(int argc, char* argv[])
 
         const cv::Scalar base_color{0, 255.0 / 6, 255.0 / 6};
         auto neighbors = tn::Neighbors::fromLayoutAndIndex(layout, {4, 3});
-        for (const auto direction : tlct::DIRECTIONS) {
+        for (const auto direction : tn::Neighbors::DIRECTIONS) {
             cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
                        base_color * (int)direction, 2, cv::LINE_AA);
         }
 
         neighbors = tn::Neighbors::fromLayoutAndIndex(layout, {4, 8});
-        for (const auto direction : tlct::DIRECTIONS) {
+        for (const auto direction : tn::Neighbors::DIRECTIONS) {
             cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
                        base_color * (int)direction, 2, cv::LINE_AA);
         }
@@ -70,15 +70,15 @@ int main(int argc, char* argv[])
         }
 
         const cv::Scalar base_color{0, 255.0 / 6, 255.0 / 6};
-        auto neighbors = tn::Neighbors::fromLayoutAndIndex(layout, {4, 3});
-        for (const auto direction : tlct::DIRECTIONS) {
+        auto neighbors = tn::NearNeighbors::fromLayoutAndIndex(layout, {4, 3});
+        for (const auto direction : tn::NearNeighbors::DIRECTIONS) {
             cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
                        base_color * (int)direction, 2, cv::LINE_AA);
         }
 
-        neighbors = tn::Neighbors::fromLayoutAndIndex(layout, {4, 8});
-        for (const auto direction : tlct::DIRECTIONS) {
-            cv::circle(resized_img, neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
+        auto far_neighbors = tn::FarNeighbors::fromLayoutAndIndex(layout, {4, 8});
+        for (const auto direction : tn::FarNeighbors::DIRECTIONS) {
+            cv::circle(resized_img, far_neighbors.getNeighborPt(direction), tlct::_hp::iround(layout.getRadius()),
                        base_color * (int)direction, 2, cv::LINE_AA);
         }
     }

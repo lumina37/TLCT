@@ -11,7 +11,8 @@ using cfg::raytrix::LEN_TYPE_NUM;
 using cfg::raytrix::ParamConfig;
 using cfg::raytrix::SpecificConfig;
 
-using cvt::raytrix::Neighbors;
+using cvt::raytrix::FarNeighbors;
+using cvt::raytrix::NearNeighbors;
 using cvt::raytrix::State;
 
 } // namespace tlct::raytrix

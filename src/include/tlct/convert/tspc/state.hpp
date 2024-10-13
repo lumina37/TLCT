@@ -8,11 +8,11 @@
 #include <opencv2/core.hpp>
 
 #include "multiview.hpp"
+#include "patchsize.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/patchsize.hpp"
 
 namespace tlct::_cvt::tspc {
 
@@ -28,10 +28,7 @@ public:
     using TParamConfig = tcfg::ParamConfig;
     using TLayout = TParamConfig::TLayout;
     using TSpecificConfig = TLayout::TSpecificConfig;
-    using TPsizeParams = PsizeParams_<TLayout>;
     using TMIs = MIs_<TLayout>;
-
-    static_assert(std::is_trivially_copyable_v<TPsizeParams>);
 
     // Constructor
     State() = delete;
@@ -41,7 +38,7 @@ public:
     TLCT_API inline State& operator=(State&& rhs) noexcept = default;
     TLCT_API inline State(TLayout&& layout, TSpecificConfig&& spec_cfg, TMIs&& mis,
                           std::vector<PsizeRecord>&& prev_patchsizes, std::vector<PsizeRecord>&& patchsizes,
-                          TPsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
+                          PsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
         : src_32f_(), layout_(std::move(layout)), spec_cfg_(std::move(spec_cfg)), mis_(std::move(mis)),
           prev_patchsizes_(std::move(prev_patchsizes)), patchsizes_(std::move(patchsizes)),
           psize_params_(std::move(psize_params)), mv_params_(std::move(mv_params)), mv_cache_(std::move(mv_cache)){};
@@ -66,7 +63,7 @@ private:
     std::vector<PsizeRecord> prev_patchsizes_;
     std::vector<PsizeRecord> patchsizes_;
 
-    TPsizeParams psize_params_;
+    PsizeParams psize_params_;
     MvParams mv_params_;
     mutable MvCache mv_cache_;
 };
@@ -83,7 +80,7 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
 
     auto prev_patchsizes = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols(), PsizeRecord{});
     auto patchsizes = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols());
-    auto psize_params = TPsizeParams::fromConfigs(layout, spec_cfg);
+    auto psize_params = PsizeParams::fromConfigs(layout, spec_cfg);
 
     const int views = param_cfg.getGenericCfg().getViews();
     auto mv_params = MvParams::fromConfigs(layout, spec_cfg, views);
@@ -100,7 +97,7 @@ void State::update(const cv::Mat& src)
     src_32f_.convertTo(src_32f_, CV_32FC3);
 
     std::swap(prev_patchsizes_, patchsizes_);
-    estimatePatchsizes<TLayout>(layout_, spec_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);
+    estimatePatchsizes(layout_, spec_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);
 }
 
 } // namespace tlct::_cvt::tspc

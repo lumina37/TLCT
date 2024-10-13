@@ -8,7 +8,7 @@
 
 #include "tlct/config/raytrix.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/patchsize.hpp"
+#include "tlct/convert/raytrix/patchsize/params.hpp"
 
 namespace tlct::_cvt::raytrix {
 

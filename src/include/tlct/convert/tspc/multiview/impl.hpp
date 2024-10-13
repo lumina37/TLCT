@@ -8,7 +8,7 @@
 
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/patchsize.hpp"
+#include "tlct/convert/tspc/patchsize/params.hpp"
 
 namespace tlct::_cvt::tspc {
 
