@@ -1,13 +1,16 @@
 #pragma once
 
+#include <array>
 #include <cmath>
 #include <numbers>
+#include <numeric>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
 
 #include "tlct/config/raytrix.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/raytrix/patchsize/neighbors.hpp"
 #include "tlct/convert/raytrix/patchsize/params.hpp"
 
 namespace tlct::_cvt::raytrix {
@@ -15,9 +18,27 @@ namespace tlct::_cvt::raytrix {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::raytrix;
 
+static inline void computeTextureIntensity(const MIs_<tcfg::Layout>& mis, const tcfg::Layout& layout, MvCache& cache)
+{
+    cache.texture_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
+
+    int row_offset = 0;
+    for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+        for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
+            const int offset = row_offset + col;
+
+            const auto& mi = mis.getMI(offset);
+            const auto ti = (float)textureIntensity(mi.I);
+
+            cache.texture_I.at<float>(row, col) = ti;
+        }
+        row_offset += layout.getMIMaxCols();
+    }
+}
+
 static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& layout,
-                              const MIs_<tcfg::Layout>& mis, const std::vector<PsizeRecord>& patchsizes,
-                              const MvParams& params, MvCache& cache, int view_row, int view_col)
+                              const std::vector<PsizeRecord>& patchsizes, const MvParams& params, MvCache& cache,
+                              int view_row, int view_col)
 {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
@@ -33,11 +54,26 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const int offset = row_offset + col;
-            const cv::Point2d center = layout.getMICenter(row, col);
+            const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
-            const auto& mi = mis.getMI(row, col);
-            const double grad_weight = textureIntensity(mi.I);
-            const double weight = std::pow(grad_weight, 5);
+            constexpr std::array<double, NearNeighbors::DIRECTION_NUM + 1> weights{
+                std::numeric_limits<float>::epsilon(), 1.0, 2.0, 3.0, 4.0, 5.0, 1e8};
+
+            const auto curr_I = cache.texture_I.at<float>(row, col);
+            int rank = 0;
+            for (const auto direction : NearNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+                    rank++;
+                    continue;
+                }
+                const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
+                if (curr_I > neib_I) {
+                    rank++;
+                }
+            }
+            const double weight = weights[rank];
+
+            const cv::Point2d center = layout.getMICenter(row, col);
 
             // Extract patch
             const double psize = params.psize_inflate * patchsizes[offset].psize;

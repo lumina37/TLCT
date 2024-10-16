@@ -36,7 +36,7 @@ public:
     cv::Mat cropped_rendered_image_channels[CHANNELS];
     cv::Mat normed_image_u8;
     cv::Mat resized_normed_image_u8;
-    cv::Mat grad_weights;
+    cv::Mat texture_I;
 };
 
 MvCache MvCache::fromParams(const MvParams& params)

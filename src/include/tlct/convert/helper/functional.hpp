@@ -36,9 +36,15 @@ namespace rgs = std::ranges;
 
 [[nodiscard]] static inline double textureIntensity(const cv::Mat& src)
 {
-    cv::Scalar mean, stddev;
-    cv::meanStdDev(src, mean, stddev);
-    double intensity = stddev[0];
+    cv::Mat edges;
+    double intensity = 0.0;
+    cv::Sobel(src, edges, CV_16S, 1, 0);
+    edges = cv::abs(edges);
+    intensity += cv::sum(edges)[0];
+    cv::Sobel(src, edges, CV_16S, 0, 1);
+    edges = cv::abs(edges);
+    intensity += cv::sum(edges)[0];
+    intensity /= edges.size().area();
     return intensity;
 }
 

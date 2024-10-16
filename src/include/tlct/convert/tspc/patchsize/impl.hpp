@@ -45,37 +45,39 @@ namespace tcfg = tlct::cfg::tspc;
     double total_weight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : Neighbors::DIRECTIONS) {
-        if (neighbors.hasNeighbor(direction)) [[likely]] {
-            const cv::Point2d anchor_shift =
-                -_hp::sgn(tcfg::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction) * params.pattern_shift;
-            const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
-            wrap_anchor.updateRoi(anchor_roi);
-
-            const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
-            WrapSSIM wrap_neib{neib_mi};
-
-            const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction);
-            cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
-
-            int best_psize = 0;
-            double max_ssim = 0.0;
-            for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
-                cmp_shift += match_step;
-
-                const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
-                wrap_neib.updateRoi(cmp_roi);
-
-                const double metric = wrap_anchor.compare(wrap_neib);
-                if (metric > max_ssim) {
-                    max_ssim = metric;
-                    best_psize = psize;
-                }
-            }
-
-            const double weight = textureIntensity(wrap_anchor.I_);
-            weighted_psize += weight * best_psize;
-            total_weight += weight;
+        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
         }
+
+        const cv::Point2d anchor_shift =
+            -_hp::sgn(tcfg::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction) * params.pattern_shift;
+        const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
+        wrap_anchor.updateRoi(anchor_roi);
+
+        const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
+        WrapSSIM wrap_neib{neib_mi};
+
+        const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction);
+        cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
+
+        int best_psize = 0;
+        double max_ssim = 0.0;
+        for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
+            cmp_shift += match_step;
+
+            const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
+            wrap_neib.updateRoi(cmp_roi);
+
+            const double metric = wrap_anchor.compare(wrap_neib);
+            if (metric > max_ssim) {
+                max_ssim = metric;
+                best_psize = psize;
+            }
+        }
+
+        const double weight = textureIntensity(wrap_anchor.I_);
+        weighted_psize += weight * best_psize;
+        total_weight += weight;
     }
 
     const int final_psize = _hp::iround(weighted_psize / total_weight);

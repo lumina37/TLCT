@@ -45,38 +45,40 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
     double near_total_weight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : NearNeighbors::DIRECTIONS) {
-        if (near_neighbors.hasNeighbor(direction)) [[likely]] {
-            const cv::Point2d anchor_shift =
-                -_hp::sgn(tcfg::Layout::IS_KEPLER) * NearNeighbors::getUnitShift(direction) * params.pattern_shift;
-            const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
-            wrap_anchor.updateRoi(anchor_roi);
-
-            const auto& neib_mi = mis.getMI(near_neighbors.getNeighborIdx(direction));
-            WrapSSIM wrap_neib{neib_mi};
-
-            const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * NearNeighbors::getUnitShift(direction);
-            cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
-
-            int best_psize = 0;
-            double max_ssim = 0.0;
-            for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
-                cmp_shift += match_step;
-
-                const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
-                wrap_neib.updateRoi(cmp_roi);
-
-                const double metric = wrap_anchor.compare(wrap_neib);
-                if (metric > max_ssim) {
-                    max_ssim = metric;
-                    best_psize = psize;
-                }
-            }
-
-            const double weight = textureIntensity(wrap_anchor.I_);
-            near_weighted_psize += weight * best_psize;
-            near_weighted_ssim_2 += weight * (max_ssim * max_ssim);
-            near_total_weight += weight;
+        if (!near_neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
         }
+
+        const cv::Point2d anchor_shift =
+            -_hp::sgn(tcfg::Layout::IS_KEPLER) * NearNeighbors::getUnitShift(direction) * params.pattern_shift;
+        const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
+        wrap_anchor.updateRoi(anchor_roi);
+
+        const auto& neib_mi = mis.getMI(near_neighbors.getNeighborIdx(direction));
+        WrapSSIM wrap_neib{neib_mi};
+
+        const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * NearNeighbors::getUnitShift(direction);
+        cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
+
+        int best_psize = 0;
+        double max_ssim = 0.0;
+        for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
+            cmp_shift += match_step;
+
+            const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
+            wrap_neib.updateRoi(cmp_roi);
+
+            const double metric = wrap_anchor.compare(wrap_neib);
+            if (metric > max_ssim) {
+                max_ssim = metric;
+                best_psize = psize;
+            }
+        }
+
+        const double weight = textureIntensity(wrap_anchor.I_);
+        near_weighted_psize += weight * best_psize;
+        near_weighted_ssim_2 += weight * (max_ssim * max_ssim);
+        near_total_weight += weight;
     }
 
     double far_weighted_psize = std::numeric_limits<float>::epsilon();
@@ -84,38 +86,40 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
     double far_total_weight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : FarNeighbors::DIRECTIONS) {
-        if (far_neighbors.hasNeighbor(direction)) [[likely]] {
-            const cv::Point2d anchor_shift =
-                -_hp::sgn(tcfg::Layout::IS_KEPLER) * FarNeighbors::getUnitShift(direction) * params.pattern_shift;
-            const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
-            wrap_anchor.updateRoi(anchor_roi);
-
-            const auto& neib_mi = mis.getMI(far_neighbors.getNeighborIdx(direction));
-            WrapSSIM wrap_neib{neib_mi};
-
-            const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * FarNeighbors::getUnitShift(direction);
-            cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
-
-            int best_psize = 0;
-            double max_ssim = 0.0;
-            for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
-                cmp_shift += match_step;
-
-                const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
-                wrap_neib.updateRoi(cmp_roi);
-
-                const double metric = wrap_anchor.compare(wrap_neib);
-                if (metric > max_ssim) {
-                    max_ssim = metric;
-                    best_psize = psize;
-                }
-            }
-
-            const double weight = textureIntensity(wrap_anchor.I_);
-            far_weighted_psize += weight * best_psize / FarNeighbors::INFLATE;
-            far_weighted_ssim_2 += weight * (max_ssim * max_ssim);
-            far_total_weight += weight;
+        if (!far_neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
         }
+
+        const cv::Point2d anchor_shift =
+            -_hp::sgn(tcfg::Layout::IS_KEPLER) * FarNeighbors::getUnitShift(direction) * params.pattern_shift;
+        const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
+        wrap_anchor.updateRoi(anchor_roi);
+
+        const auto& neib_mi = mis.getMI(far_neighbors.getNeighborIdx(direction));
+        WrapSSIM wrap_neib{neib_mi};
+
+        const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * FarNeighbors::getUnitShift(direction);
+        cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
+
+        int best_psize = 0;
+        double max_ssim = 0.0;
+        for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
+            cmp_shift += match_step;
+
+            const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
+            wrap_neib.updateRoi(cmp_roi);
+
+            const double metric = wrap_anchor.compare(wrap_neib);
+            if (metric > max_ssim) {
+                max_ssim = metric;
+                best_psize = psize;
+            }
+        }
+
+        const double weight = textureIntensity(wrap_anchor.I_);
+        far_weighted_psize += weight * best_psize / FarNeighbors::INFLATE;
+        far_weighted_ssim_2 += weight * (max_ssim * max_ssim);
+        far_total_weight += weight;
     }
 
     int final_psize;
