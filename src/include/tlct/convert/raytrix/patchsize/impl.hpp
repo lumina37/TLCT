@@ -29,7 +29,7 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
     const auto& prev_psize = prev_patchsizes[offset];
 
     if (prev_psize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        const int hash_dist = L1_dist(prev_psize.hash, hash);
+        const int hash_dist = L1Dist(prev_psize.hash, hash);
         if (hash_dist <= spec_cfg.getPsizeShortcutThreshold()) {
             return {prev_psize.psize, hash};
         }
@@ -72,7 +72,7 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
                 }
             }
 
-            const double weight = texture_intensity(wrap_anchor.I_);
+            const double weight = textureIntensity(wrap_anchor.I_);
             near_weighted_psize += weight * best_psize;
             near_weighted_ssim_2 += weight * (max_ssim * max_ssim);
             near_total_weight += weight;
@@ -111,7 +111,7 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
                 }
             }
 
-            const double weight = texture_intensity(wrap_anchor.I_);
+            const double weight = textureIntensity(wrap_anchor.I_);
             far_weighted_psize += weight * best_psize / FarNeighbors::INFLATE;
             far_weighted_ssim_2 += weight * (max_ssim * max_ssim);
             far_total_weight += weight;

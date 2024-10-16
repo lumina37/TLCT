@@ -15,9 +15,9 @@ namespace tlct::_cvt::raytrix {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::raytrix;
 
-static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& layout, const MIs_<tcfg::Layout>& mis,
-                          const std::vector<PsizeRecord>& patchsizes, const MvParams& params, MvCache& cache,
-                          int view_row, int view_col)
+static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& layout,
+                              const MIs_<tcfg::Layout>& mis, const std::vector<PsizeRecord>& patchsizes,
+                              const MvParams& params, MvCache& cache, int view_row, int view_col)
 {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
@@ -36,7 +36,7 @@ static inline void render(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& 
             const cv::Point2d center = layout.getMICenter(row, col);
 
             const auto& mi = mis.getMI(row, col);
-            const double grad_weight = texture_intensity(mi.I);
+            const double grad_weight = textureIntensity(mi.I);
             const double weight = std::pow(grad_weight, 5);
 
             // Extract patch

@@ -51,7 +51,7 @@ public:
 
     inline void renderInto(cv::Mat& dst, int view_row, int view_col) const
     {
-        render(src_32f_, dst, layout_, mis_, patchsizes_, mv_params_, mv_cache_, view_row, view_col);
+        renderView(src_32f_, dst, layout_, patchsizes_, mv_params_, mv_cache_, view_row, view_col);
     };
 
 private:

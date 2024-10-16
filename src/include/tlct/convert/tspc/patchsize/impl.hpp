@@ -30,7 +30,7 @@ namespace tcfg = tlct::cfg::tspc;
     const auto& prev_psize = prev_patchsizes[offset];
 
     if (prev_psize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        const int hash_dist = L1_dist(prev_psize.hash, hash);
+        const int hash_dist = L1Dist(prev_psize.hash, hash);
         if (hash_dist <= spec_cfg.getPsizeShortcutThreshold()) {
             return {prev_psize.psize, hash};
         }
@@ -72,7 +72,7 @@ namespace tcfg = tlct::cfg::tspc;
                 }
             }
 
-            const double weight = texture_intensity(wrap_anchor.I_);
+            const double weight = textureIntensity(wrap_anchor.I_);
             weighted_psize += weight * best_psize;
             total_weight += weight;
         }

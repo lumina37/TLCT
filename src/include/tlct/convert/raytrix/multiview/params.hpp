@@ -53,8 +53,8 @@ MvParams MvParams::fromConfigs(const TLayout& layout, const TSpecificConfig& spe
                               (int)(canvas_height - resized_patch_width - patch_xshift / 2.0)};
 
     const int upsample = layout.getUpsample();
-    const int output_width = _hp::round_to<2>(_hp::iround((double)col_range.size() / upsample));
-    const int output_height = _hp::round_to<2>(_hp::iround((double)row_range.size() / upsample));
+    const int output_width = _hp::roundTo<2>(_hp::iround((double)col_range.size() / upsample));
+    const int output_height = _hp::roundTo<2>(_hp::iround((double)row_range.size() / upsample));
 
     return {{row_range, col_range}, psize_inflate, views,         patch_xshift, patch_yshift, resized_patch_width,
             view_interval,          canvas_width,  canvas_height, output_width, output_height};

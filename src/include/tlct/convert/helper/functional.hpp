@@ -34,7 +34,7 @@ namespace rgs = std::ranges;
     return rect;
 }
 
-[[nodiscard]] static inline double texture_intensity(const cv::Mat& src)
+[[nodiscard]] static inline double textureIntensity(const cv::Mat& src)
 {
     cv::Scalar mean, stddev;
     cv::meanStdDev(src, mean, stddev);
@@ -67,7 +67,7 @@ namespace rgs = std::ranges;
     return dhash;
 }
 
-[[nodiscard]] static inline int L1_dist(uint64_t lhs, uint64_t rhs) { return std::popcount(lhs ^ rhs); }
+[[nodiscard]] static inline int L1Dist(uint64_t lhs, uint64_t rhs) { return std::popcount(lhs ^ rhs); }
 
 static inline void blurInto(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 
