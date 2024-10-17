@@ -56,8 +56,7 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
             const int offset = row_offset + col;
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
-            constexpr std::array<double, NearNeighbors::DIRECTION_NUM + 1> weights{
-                std::numeric_limits<float>::epsilon(), 1.0, 2.0, 3.0, 4.0, 5.0, 1e8};
+            constexpr auto weights = _hp::make_pow_array<double, NearNeighbors::DIRECTION_NUM + 1, 2>();
 
             const auto curr_I = cache.texture_I.at<float>(row, col);
             int rank = 0;

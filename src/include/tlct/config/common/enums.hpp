@@ -10,6 +10,6 @@ enum PipelineType {
     COUNT,
 };
 
-static constexpr size_t PIPELINE_COUNT = (size_t)PipelineType::COUNT;
+static constexpr int PIPELINE_COUNT = (int)PipelineType::COUNT;
 
 } // namespace tlct::_cfg

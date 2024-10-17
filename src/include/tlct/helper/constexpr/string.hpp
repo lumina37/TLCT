@@ -5,13 +5,13 @@
 
 namespace tlct::_hp {
 
-template <size_t size>
+template <size_t N>
 class cestring
 {
 public:
-    consteval inline cestring(const char (&str)[size]) noexcept { std::copy(str, str + size, string); }
+    consteval inline cestring(const char (&str)[N]) noexcept { std::copy(str, str + N, string); }
 
-    char string[size]{};
+    char string[N]{};
 };
 
 } // namespace tlct::_hp
