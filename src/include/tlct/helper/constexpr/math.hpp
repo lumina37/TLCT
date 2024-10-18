@@ -20,33 +20,21 @@ concept CMultiplicable = requires {
     { v*(Tv)1 == v };
 };
 
-template <CMultiplicable Tv, Tv Base, size_t Expo>
-struct Pow {
-    static constexpr Tv value = Base * Pow<Tv, Base, Expo - 1>::value;
-};
-
-template <CMultiplicable Tv, Tv Base>
-struct Pow<Tv, Base, 0> {
-    static constexpr auto value = (Tv)1;
-};
-
-template <CMultiplicable Tv, size_t Expo, size_t... Seq>
-[[nodiscard]] constexpr inline auto _make_pow_array(std::index_sequence<Seq...>) noexcept
+template <CMultiplicable Tv, std::integral Te>
+[[nodiscard]] static consteval inline Tv pow(Tv base, Te expo) noexcept
 {
-    return std::array<Tv, sizeof...(Seq)>{Pow<Tv, (Tv)Seq, Expo>::value...};
+    auto res = (Tv)1;
+    for (auto i = 0; i < expo; i++) {
+        res *= base;
+    }
+    return res;
 }
 
-template <CMultiplicable Tv, size_t N, size_t Expo>
-[[nodiscard]] constexpr inline auto make_pow_array() noexcept
-{
-    return _make_pow_array<Tv, Expo>(std::make_index_sequence<N>{});
-}
-
-template <size_t to, std::integral T>
+template <size_t to, std::integral Tv>
     requires(to % 2 == 0)
-[[nodiscard]] static constexpr inline T roundTo(T v) noexcept
+[[nodiscard]] static constexpr inline Tv roundTo(Tv v) noexcept
 {
-    constexpr T half_to = to >> 1;
+    constexpr Tv half_to = to >> 1;
     return (v + half_to) / to * to;
 }
 
