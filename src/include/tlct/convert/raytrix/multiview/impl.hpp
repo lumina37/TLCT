@@ -36,18 +36,6 @@ static inline void computeTextureIntensity(const MIs_<tcfg::Layout>& mis, const 
     }
 }
 
-template <_hp::CMultiplicable Tv, size_t Expo, size_t... Seq>
-[[nodiscard]] static consteval inline auto _make_pow_array(std::index_sequence<Seq...>) noexcept
-{
-    return std::array<Tv, sizeof...(Seq)>{_hp::pow(Seq + 1, Expo)...};
-}
-
-template <_hp::CMultiplicable Tv, size_t N, size_t Expo>
-[[nodiscard]] static consteval inline auto make_pow_array() noexcept
-{
-    return _make_pow_array<Tv, Expo>(std::make_index_sequence<N>{});
-}
-
 static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& layout,
                               const std::vector<PsizeRecord>& patchsizes, const MvParams& params, MvCache& cache,
                               int view_row, int view_col)
@@ -62,8 +50,8 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
     cv::Mat resized_patch_channels[MvCache::CHANNELS];
     cv::Mat weighted_patch;
 
-    constexpr size_t expo = 2;
-    constexpr auto weights = make_pow_array<double, NearNeighbors::DIRECTION_NUM + 1, expo>();
+    constexpr std::array<double, NearNeighbors::DIRECTION_NUM + 1> weights{
+        std::numeric_limits<float>::epsilon(), 1., 1., 1., 1., 2., 4.};
 
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
@@ -83,8 +71,7 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
                     rank++;
                 }
             }
-            const double iweight = curr_I * curr_I;
-            const double weight = weights[rank] * iweight;
+            const double weight = weights[rank] * curr_I;
 
             const cv::Point2d center = layout.getMICenter(row, col);
 
