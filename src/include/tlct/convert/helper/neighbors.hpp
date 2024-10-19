@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <numbers>
 
 #include <opencv2/core.hpp>
@@ -22,12 +23,7 @@ public:
         DOWNRIGHT,
         COUNT,
     };
-
     static constexpr int DIRECTION_NUM = (int)Direction::COUNT;
-    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
-        Direction::UPLEFT, Direction::UPRIGHT,  Direction::LEFT,
-        Direction::RIGHT,  Direction::DOWNLEFT, Direction::DOWNRIGHT,
-    };
 
     static constexpr double INFLATE = 1.0;
     static constexpr int DEFAULT_INDEX = -1;
@@ -94,6 +90,17 @@ private:
     cv::Point2d self_pt_;
     TIndices indices_;
     cv::Point self_idx_;
+
+private:
+    template <size_t... Idx>
+    [[nodiscard]] static consteval auto make_directions(std::index_sequence<Idx...>)
+    {
+        return std::array<Direction, sizeof...(Idx)>{(Direction)Idx...};
+    }
+
+public:
+    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
+        make_directions(std::make_index_sequence<DIRECTION_NUM>{})};
 };
 
 template <tlct::cfg::concepts::CLayout TLayout>
@@ -170,12 +177,7 @@ public:
         DOWN,
         COUNT,
     };
-
     static constexpr int DIRECTION_NUM = (int)Direction::COUNT;
-    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
-        Direction::UP,       Direction::UPLEFT,    Direction::UPRIGHT,
-        Direction::DOWNLEFT, Direction::DOWNRIGHT, Direction::DOWN,
-    };
 
     static constexpr double INFLATE = std::numbers::sqrt3;
     static constexpr int DEFAULT_INDEX = -1;
@@ -241,6 +243,17 @@ private:
     cv::Point2d self_pt_;
     TIndices indices_;
     cv::Point self_idx_;
+
+private:
+    template <size_t... Idx>
+    [[nodiscard]] static consteval auto make_directions(std::index_sequence<Idx...>)
+    {
+        return std::array<Direction, sizeof...(Idx)>{(Direction)Idx...};
+    }
+
+public:
+    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
+        make_directions(std::make_index_sequence<DIRECTION_NUM>{})};
 };
 
 template <tlct::cfg::concepts::CLayout TLayout>
