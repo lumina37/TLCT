@@ -14,19 +14,20 @@ class NearNeighbors_
 {
 public:
     enum class Direction {
-        LEFT,
         UPLEFT,
         UPRIGHT,
+        LEFT,
         RIGHT,
-        DOWNRIGHT,
         DOWNLEFT,
+        DOWNRIGHT,
         COUNT,
     };
 
     static constexpr int DIRECTION_NUM = (int)Direction::COUNT;
-    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{Direction::LEFT,      Direction::UPLEFT,
-                                                                     Direction::UPRIGHT,   Direction::RIGHT,
-                                                                     Direction::DOWNRIGHT, Direction::DOWNLEFT};
+    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
+        Direction::UPLEFT, Direction::UPRIGHT,  Direction::LEFT,
+        Direction::RIGHT,  Direction::DOWNLEFT, Direction::DOWNRIGHT,
+    };
 
     static constexpr double INFLATE = 1.0;
     static constexpr int DEFAULT_INDEX = -1;
@@ -42,12 +43,14 @@ public:
     static constexpr double X_UNIT_STEP = 0.5 * SCALAR_UNIT_SHIFT;
     static constexpr double Y_UNIT_STEP = std::numbers::sqrt3 / 2.0 * SCALAR_UNIT_SHIFT;
 
-    static constexpr TUnitShifts UNIT_SHIFTS{{{-SCALAR_UNIT_SHIFT, 0.0},
-                                              {-X_UNIT_STEP, -Y_UNIT_STEP},
-                                              {X_UNIT_STEP, -Y_UNIT_STEP},
-                                              {SCALAR_UNIT_SHIFT, 0.0},
-                                              {X_UNIT_STEP, Y_UNIT_STEP},
-                                              {-X_UNIT_STEP, Y_UNIT_STEP}}};
+    static constexpr TUnitShifts UNIT_SHIFTS{{
+        {-X_UNIT_STEP, -Y_UNIT_STEP},
+        {X_UNIT_STEP, -Y_UNIT_STEP},
+        {-SCALAR_UNIT_SHIFT, 0.0},
+        {SCALAR_UNIT_SHIFT, 0.0},
+        {-X_UNIT_STEP, Y_UNIT_STEP},
+        {X_UNIT_STEP, Y_UNIT_STEP},
+    }};
 
     // Constructor
     NearNeighbors_() = delete;
@@ -148,8 +151,8 @@ NearNeighbors_<TLayout> NearNeighbors_<TLayout>::fromLayoutAndIndex(const TLayou
         }
     }
 
-    const TIndices indices{left_idx, upleft_idx, upright_idx, right_idx, downright_idx, downleft_idx};
-    const TPoints points{left_pt, upleft_pt, upright_pt, right_pt, downright_pt, downleft_pt};
+    const TIndices indices{upleft_idx, upright_idx, left_idx, right_idx, downleft_idx, downright_idx};
+    const TPoints points{upleft_pt, upright_pt, left_pt, right_pt, downleft_pt, downright_pt};
 
     return {index, indices, self_pt, points};
 }
@@ -159,19 +162,20 @@ class FarNeighbors_
 {
 public:
     enum class Direction {
-        UPLEFT,
         UP,
+        UPLEFT,
         UPRIGHT,
+        DOWNLEFT,
         DOWNRIGHT,
         DOWN,
-        DOWNLEFT,
         COUNT,
     };
 
     static constexpr int DIRECTION_NUM = (int)Direction::COUNT;
-    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{Direction::UPLEFT,  Direction::UP,
-                                                                     Direction::UPRIGHT, Direction::DOWNRIGHT,
-                                                                     Direction::DOWN,    Direction::DOWNLEFT};
+    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
+        Direction::UP,       Direction::UPLEFT,    Direction::UPRIGHT,
+        Direction::DOWNLEFT, Direction::DOWNRIGHT, Direction::DOWN,
+    };
 
     static constexpr double INFLATE = std::numbers::sqrt3;
     static constexpr int DEFAULT_INDEX = -1;
@@ -187,12 +191,14 @@ public:
     static constexpr double X_UNIT_STEP = std::numbers::sqrt3 / 2.0 * SCALAR_UNIT_SHIFT;
     static constexpr double Y_UNIT_STEP = 0.5 * SCALAR_UNIT_SHIFT;
 
-    static constexpr TUnitShifts UNIT_SHIFTS{{{-X_UNIT_STEP, -Y_UNIT_STEP},
-                                              {0.0, -SCALAR_UNIT_SHIFT},
-                                              {X_UNIT_STEP, -Y_UNIT_STEP},
-                                              {X_UNIT_STEP, Y_UNIT_STEP},
-                                              {0.0, SCALAR_UNIT_SHIFT},
-                                              {-X_UNIT_STEP, Y_UNIT_STEP}}};
+    static constexpr TUnitShifts UNIT_SHIFTS{{
+        {0.0, -SCALAR_UNIT_SHIFT},
+        {-X_UNIT_STEP, -Y_UNIT_STEP},
+        {X_UNIT_STEP, -Y_UNIT_STEP},
+        {-X_UNIT_STEP, Y_UNIT_STEP},
+        {X_UNIT_STEP, Y_UNIT_STEP},
+        {0.0, SCALAR_UNIT_SHIFT},
+    }};
 
     // Constructor
     FarNeighbors_() = delete;
@@ -293,8 +299,8 @@ FarNeighbors_<TLayout> FarNeighbors_<TLayout>::fromLayoutAndIndex(const TLayout&
         }
     }
 
-    const TIndices indices{upleft_idx, up_idx, upright_idx, downright_idx, down_idx, downleft_idx};
-    const TPoints points{upleft_pt, up_pt, upright_pt, downright_pt, down_pt, downleft_pt};
+    const TIndices indices{up_idx, upleft_idx, upright_idx, downleft_idx, downright_idx, down_idx};
+    const TPoints points{up_pt, upleft_pt, upright_pt, downleft_pt, downright_pt, down_pt};
 
     return {index, indices, self_pt, points};
 }
