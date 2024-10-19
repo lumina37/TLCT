@@ -10,8 +10,6 @@
 #include "params.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/helper/record.hpp"
-#include "tlct/convert/helper/ssim.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cvt::tspc {
