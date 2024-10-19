@@ -50,32 +50,41 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
     cv::Mat resized_patch_channels[MvCache::CHANNELS];
     cv::Mat weighted_patch;
 
-    constexpr std::array<double, NearNeighbors::DIRECTION_NUM + 1> weights{
-        std::numeric_limits<float>::epsilon(), 1., 1., 1., 1., 2., 4.};
-
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const int offset = row_offset + col;
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
-            const auto curr_I = cache.texture_I.at<float>(row, col);
-            int rank = 0;
+            double mean_I = 0.0;
+            double var_I = 0.0;
+            int neib_count = 1;
             for (const auto direction : NearNeighbors::DIRECTIONS) {
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-                    rank++;
                     continue;
                 }
                 const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
-                if (curr_I > neib_I) {
-                    rank++;
-                }
+                const double prev_mean_I = mean_I;
+                mean_I += (neib_I - prev_mean_I) / neib_count;
+                var_I += (neib_I - mean_I) * (neib_I - prev_mean_I);
+                neib_count++;
             }
-            const double weight = weights[rank] * curr_I;
+            var_I /= (neib_count - 1);
+            const double stdvar_I = std::sqrt(var_I);
 
-            const cv::Point2d center = layout.getMICenter(row, col);
+            constexpr std::array<double, 3> NORM_DIST{1.0 - 0.9973, 1.0 - 0.9544, 1.0 - 0.6827};
+            constexpr std::array<double, NearNeighbors::DIRECTION_NUM + 1> WEIGHTS{
+                NORM_DIST[1], NORM_DIST[2], 1.0, 1.0, 1.0, 1. / NORM_DIST[2], 1. / NORM_DIST[1]};
+            constexpr int HALF_DIRECTION_NUM = NearNeighbors::DIRECTION_NUM / 2;
+
+            const auto curr_I = cache.texture_I.at<float>(row, col);
+            const double shift = (curr_I - mean_I) / stdvar_I;
+            const int index =
+                HALF_DIRECTION_NUM + _hp::clip(_hp::iround(shift), -HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
+            const double weight = WEIGHTS[index];
 
             // Extract patch
+            const cv::Point2d center = layout.getMICenter(row, col);
             const double psize = params.psize_inflate * patchsizes[offset].psize;
             const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
             const cv::Mat& patch = getRoiImageByCenter(src, patch_center, psize);

@@ -5,29 +5,16 @@
 
 namespace tlct::_hp {
 
-template <std::floating_point T>
-[[nodiscard]] static constexpr inline int iround(T v) noexcept
+template <std::floating_point Tv>
+[[nodiscard]] static constexpr inline int iround(Tv v) noexcept
 {
     return int(v + 0.5);
 }
 
-template <typename Tv>
-concept CMultiplicable = requires {
-    { std::declval<Tv>() * std::declval<Tv>() } -> std::same_as<Tv>;
-} && requires {
-    { std::declval<Tv>() * (Tv)0 == (Tv)0 };
-} && requires(Tv v) {
-    { v*(Tv)1 == v };
-};
-
-template <CMultiplicable Tv, std::integral Te>
-[[nodiscard]] static consteval inline Tv pow(Tv base, Te expo) noexcept
+template <std::totally_ordered Tv>
+[[nodiscard]] static constexpr inline Tv clip(Tv v, Tv lo, Tv hi) noexcept
 {
-    auto res = (Tv)1;
-    for (auto i = 0; i < expo; i++) {
-        res *= base;
-    }
-    return res;
+    return std::min(std::max(v, lo), hi);
 }
 
 template <size_t to, std::integral Tv>
