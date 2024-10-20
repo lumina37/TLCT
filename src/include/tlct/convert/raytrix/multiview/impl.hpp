@@ -72,16 +72,11 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
             var_I /= (neib_count - 1);
             const double stdvar_I = std::sqrt(var_I);
 
-            constexpr std::array<double, 3> NORM_DIST{1.0 - 0.9973, 1.0 - 0.9544, 1.0 - 0.6827};
-            constexpr std::array<double, NearNeighbors::DIRECTION_NUM + 1> WEIGHTS{
-                NORM_DIST[1], NORM_DIST[2], 1.0, 1.0, 1.0, 1. / NORM_DIST[2], 1. / NORM_DIST[1]};
-            constexpr int HALF_DIRECTION_NUM = NearNeighbors::DIRECTION_NUM / 2;
+            constexpr auto HALF_DIRECTION_NUM = (double)(NearNeighbors::DIRECTION_NUM >> 1);
 
             const auto curr_I = cache.texture_I.at<float>(row, col);
-            const double shift = (curr_I - mean_I) / stdvar_I;
-            const int index =
-                HALF_DIRECTION_NUM + _hp::clip(_hp::iround(shift), -HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
-            const double weight = WEIGHTS[index];
+            const auto shift = _hp::clip((curr_I - mean_I) / stdvar_I, -HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
+            const double weight = std::exp(shift);
 
             // Extract patch
             const cv::Point2d center = layout.getMICenter(row, col);
