@@ -98,7 +98,7 @@ void State::update(const cv::Mat& src)
 
     std::swap(prev_patchsizes_, patchsizes_);
     estimatePatchsizes(layout_, spec_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);
-    computeTextureIntensity(mis_, layout_, mv_cache_);
+    computeWeights(mis_, layout_, mv_cache_);
 }
 
 } // namespace tlct::_cvt::raytrix

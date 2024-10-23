@@ -18,10 +18,13 @@ namespace tlct::_cvt::raytrix {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::raytrix;
 
-static inline void computeTextureIntensity(const MIs_<tcfg::Layout>& mis, const tcfg::Layout& layout, MvCache& cache)
+static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Layout& layout, MvCache& cache)
 {
     cache.texture_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
+    cache.rank.create(layout.getMIRows(), layout.getMIMaxCols(), CV_8U);
+    cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
 
+    // 1-pass: obtain texture intensity
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
@@ -33,6 +36,67 @@ static inline void computeTextureIntensity(const MIs_<tcfg::Layout>& mis, const 
             cache.texture_I.at<float>(row, col) = ti;
         }
         row_offset += layout.getMIMaxCols();
+    }
+
+    // 2-pass: draft weight and rank
+    for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+        for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
+            const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
+
+            double mean_I = 0.0;
+            double var_I = 0.0;
+            int neib_count = 1;
+            uint8_t rank = NearNeighbors::DIRECTION_NUM;
+            const double curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
+            for (const auto direction : NearNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+                    continue;
+                }
+
+                const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
+
+                if (curr_I > neib_I) {
+                    rank--;
+                }
+
+                const double prev_mean_I = mean_I;
+                mean_I += (neib_I - prev_mean_I) / neib_count;
+                var_I += (neib_I - mean_I) * (neib_I - prev_mean_I);
+
+                neib_count++;
+            }
+
+            var_I /= (neib_count - 1);
+            const double stdvar_I = std::sqrt(var_I);
+            constexpr auto D_DIRECTION_NUM = (double)NearNeighbors::DIRECTION_NUM;
+            const auto shift = _hp::clip((curr_I - mean_I) / stdvar_I, -D_DIRECTION_NUM, D_DIRECTION_NUM);
+            constexpr double eliminate = 0.5;
+            const auto weight = (float)std::exp(shift * eliminate);
+
+            cache.weights.at<float>(row, col) = weight;
+            cache.rank.at<uint8_t>(row, col) = rank;
+        }
+    }
+
+    // 3-pass: adjust weight with neighbor ranks
+    for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+        for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
+            const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
+
+            int hiwgt_neib_count = 0;
+            for (const auto direction : NearNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+                    continue;
+                }
+                const auto neib_rank = cache.rank.at<uint8_t>(neighbors.getNeighborIdx(direction));
+                if (neib_rank == 0) {
+                    hiwgt_neib_count++;
+                }
+            }
+            if (hiwgt_neib_count >= (NearNeighbors::DIRECTION_NUM >> 1)) {
+                cache.weights.at<float>(neighbors.getSelfIdx()) = std::numeric_limits<float>::epsilon();
+            }
+        }
     }
 }
 
@@ -54,29 +118,7 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const int offset = row_offset + col;
-            const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
-
-            double mean_I = 0.0;
-            double var_I = 0.0;
-            int neib_count = 1;
-            for (const auto direction : NearNeighbors::DIRECTIONS) {
-                if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-                    continue;
-                }
-                const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
-                const double prev_mean_I = mean_I;
-                mean_I += (neib_I - prev_mean_I) / neib_count;
-                var_I += (neib_I - mean_I) * (neib_I - prev_mean_I);
-                neib_count++;
-            }
-            var_I /= (neib_count - 1);
-            const double stdvar_I = std::sqrt(var_I);
-
-            constexpr auto HALF_DIRECTION_NUM = (double)(NearNeighbors::DIRECTION_NUM >> 1);
-
-            const auto curr_I = cache.texture_I.at<float>(row, col);
-            const auto shift = _hp::clip((curr_I - mean_I) / stdvar_I, -HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
-            const double weight = std::exp(shift);
+            const float weight = cache.weights.at<float>(row, col);
 
             // Extract patch
             const cv::Point2d center = layout.getMICenter(row, col);

@@ -37,6 +37,8 @@ public:
     cv::Mat normed_image_u8;
     cv::Mat resized_normed_image_u8;
     cv::Mat texture_I;
+    cv::Mat rank;
+    cv::Mat weights;
 };
 
 MvCache MvCache::fromParams(const MvParams& params)
