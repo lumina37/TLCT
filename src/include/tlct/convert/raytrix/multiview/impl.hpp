@@ -43,39 +43,19 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
-            double mean_I = 0.0;
-            double var_I = 0.0;
-            int neib_count = 1;
             const double curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
-            for (const auto direction : NearNeighbors::DIRECTIONS) {
-                if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-                    continue;
-                }
-
-                const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
-
-                const double prev_mean_I = mean_I;
-                mean_I += (neib_I - prev_mean_I) / neib_count;
-                var_I += (neib_I - mean_I) * (neib_I - prev_mean_I);
-
-                neib_count++;
-            }
-
-            var_I /= (neib_count - 1);
-            const double stdvar_I = std::sqrt(var_I);
-
             int rank = NearNeighbors::DIRECTION_NUM;
             for (const auto direction : NearNeighbors::DIRECTIONS) {
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
                     continue;
                 }
                 const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
-                if (curr_I > (neib_I + 2 * stdvar_I)) {
+                if (curr_I > neib_I) {
                     rank--;
                 }
             }
 
-            cache.weights.at<float>(row, col) = curr_I * curr_I;
+            cache.weights.at<float>(row, col) = (float)std::pow(curr_I, 3);
             cache.rank.at<uint8_t>(row, col) = rank;
         }
     }
@@ -96,7 +76,7 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
                     hiwgt_neib_count++;
                 }
             }
-            if (hiwgt_neib_count == (NearNeighbors::DIRECTION_NUM >> 1)) {
+            if (hiwgt_neib_count == (NearNeighbors::DIRECTION_NUM / 2)) {
                 cache.weights.at<float>(neighbors.getSelfIdx()) = std::numeric_limits<float>::epsilon();
                 continue;
             }
@@ -112,7 +92,7 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
                     hiwgt_neib_count++;
                 }
             }
-            if (hiwgt_neib_count == (NearNeighbors::DIRECTION_NUM >> 1)) {
+            if (hiwgt_neib_count == (NearNeighbors::DIRECTION_NUM / 2)) {
                 cache.weights.at<float>(neighbors.getSelfIdx()) = std::numeric_limits<float>::epsilon();
             }
         }
