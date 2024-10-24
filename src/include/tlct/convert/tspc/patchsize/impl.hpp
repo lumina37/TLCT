@@ -41,6 +41,7 @@ namespace tcfg = tlct::cfg::tspc;
 
     double weighted_psize = std::numeric_limits<float>::epsilon();
     double total_weight = std::numeric_limits<float>::epsilon();
+    std::vector<double> ssims(max_shift - params.min_psize);
 
     for (const auto direction : Neighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -67,13 +68,15 @@ namespace tcfg = tlct::cfg::tspc;
             wrap_neib.updateRoi(cmp_roi);
 
             const double ssim = wrap_anchor.compare(wrap_neib);
+            ssims[psize - params.min_psize] = ssim;
+
             if (ssim > max_ssim) {
                 max_ssim = ssim;
                 best_psize = psize;
             }
         }
 
-        const double weight = textureIntensity(wrap_anchor.I_);
+        const double weight = textureIntensity(wrap_anchor.I_) * _hp::stdvar(ssims);
         weighted_psize += weight * best_psize;
         total_weight += weight;
     }

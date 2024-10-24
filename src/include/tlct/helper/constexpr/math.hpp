@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <cstddef>
+#include <numeric>
 
 namespace tlct::_hp {
 
@@ -47,5 +48,21 @@ template <size_t to, std::integral T>
 
 // true -> +1, false -> -1
 [[nodiscard]] static constexpr inline int sgn(bool v) noexcept { return ((int)v) * 2 - 1; }
+
+template <typename Tv>
+[[nodiscard]] static constexpr inline Tv stdvar(const std::vector<Tv>& vec)
+{
+    const Tv sum = std::reduce(vec.begin(), vec.end());
+    const Tv avg = sum / (Tv)vec.size();
+
+    Tv var = 0.0;
+    for (const Tv elem : vec) {
+        const Tv diff = elem - avg;
+        var += diff * diff;
+    }
+    Tv stdvar = var / (Tv)vec.size();
+
+    return stdvar;
+}
 
 } // namespace tlct::_hp

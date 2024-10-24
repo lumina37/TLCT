@@ -41,6 +41,7 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
     double near_weighted_psize = std::numeric_limits<float>::epsilon();
     double near_weighted_ssim_2 = std::numeric_limits<float>::epsilon();
     double near_total_weight = std::numeric_limits<float>::epsilon();
+    std::vector<double> ssims(max_shift - params.min_psize);
 
     for (const auto direction : NearNeighbors::DIRECTIONS) {
         if (!near_neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -60,20 +61,23 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
 
         int best_psize = 0;
         double max_ssim = 0.0;
+
         for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
             cmp_shift += match_step;
 
             const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
             wrap_neib.updateRoi(cmp_roi);
 
-            const double metric = wrap_anchor.compare(wrap_neib);
-            if (metric > max_ssim) {
-                max_ssim = metric;
+            const double ssim = wrap_anchor.compare(wrap_neib);
+            ssims[psize - params.min_psize] = ssim;
+
+            if (ssim > max_ssim) {
+                max_ssim = ssim;
                 best_psize = psize;
             }
         }
 
-        const double weight = textureIntensity(wrap_anchor.I_);
+        const double weight = textureIntensity(wrap_anchor.I_) * _hp::stdvar(ssims);
         near_weighted_psize += weight * best_psize;
         near_weighted_ssim_2 += weight * (max_ssim * max_ssim);
         near_total_weight += weight;
@@ -108,13 +112,15 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
             wrap_neib.updateRoi(cmp_roi);
 
             const double ssim = wrap_anchor.compare(wrap_neib);
+            ssims[psize - params.min_psize] = ssim;
+
             if (ssim > max_ssim) {
                 max_ssim = ssim;
                 best_psize = psize;
             }
         }
 
-        const double weight = textureIntensity(wrap_anchor.I_);
+        const double weight = textureIntensity(wrap_anchor.I_) * _hp::stdvar(ssims);
         far_weighted_psize += weight * best_psize / FarNeighbors::INFLATE;
         far_weighted_ssim_2 += weight * (max_ssim * max_ssim);
         far_total_weight += weight;
