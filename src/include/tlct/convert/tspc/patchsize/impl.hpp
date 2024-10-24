@@ -66,9 +66,9 @@ namespace tcfg = tlct::cfg::tspc;
             const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
             wrap_neib.updateRoi(cmp_roi);
 
-            const double metric = wrap_anchor.compare(wrap_neib);
-            if (metric > max_ssim) {
-                max_ssim = metric;
+            const double ssim = wrap_anchor.compare(wrap_neib);
+            if (ssim > max_ssim) {
+                max_ssim = ssim;
                 best_psize = psize;
             }
         }
