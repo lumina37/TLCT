@@ -47,6 +47,7 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
             float avg_I = 0.0;
+            float var_I = 0.0;
             int neib_count = 0;
             const float curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
             for (const auto direction : NearNeighbors::DIRECTIONS) {
@@ -57,8 +58,12 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
                 const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
 
                 neib_count++;
-                avg_I += (neib_I - avg_I) / (float)neib_count;
+                const float prev_avg_I = avg_I;
+                avg_I += (neib_I - prev_avg_I) / (float)neib_count;
+                var_I += (neib_I - avg_I) * (neib_I - prev_avg_I);
             }
+            var_I /= (float)neib_count;
+            const float stdvar_I = std::sqrtf(var_I);
 
             int rank = NearNeighbors::DIRECTION_NUM;
             for (const auto direction : NearNeighbors::DIRECTIONS) {
@@ -72,9 +77,10 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
             }
 
             constexpr auto HALF_DIRECTION_NUM = (float)(NearNeighbors::DIRECTION_NUM >> 1);
-            float expo = _hp::clip(curr_I - avg_I, HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
+            const float expo = (curr_I - avg_I) / stdvar_I;
+            const float clipped_expo = _hp::clip(expo, HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
 
-            cache.weights.at<float>(row, col) = std::expf(expo);
+            cache.weights.at<float>(row, col) = std::expf(clipped_expo);
             cache.rank.at<uint8_t>(row, col) = rank;
         }
     }

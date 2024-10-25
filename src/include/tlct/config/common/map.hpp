@@ -70,10 +70,6 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
     std::map<std::string, std::string> cfg_map;
     std::string row;
     while (std::getline(ifs, row)) {
-        if (row.empty() || row.starts_with('=')) [[unlikely]] {
-            break;
-        }
-
         std::string::iterator key_end = row.begin();
         for (; key_end != row.end(); key_end++) {
             if (has_delim(*key_end)) [[unlikely]] {

@@ -36,7 +36,7 @@ PsizeParams PsizeParams::fromConfigs(const TLayout& layout, const TSpecificConfi
     const double candidate_pattern_shift = radius * spec_cfg.getMaxPsize();
     const double pattern_shift = std::min(max_pattern_shift, candidate_pattern_shift);
 
-    const int min_psize = (int)std::round(0.3 * pattern_size);
+    const int min_psize = (int)std::round(0.75 * pattern_size);
 
     return {pattern_size, pattern_shift, min_psize};
 }
