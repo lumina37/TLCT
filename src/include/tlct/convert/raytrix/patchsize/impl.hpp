@@ -72,10 +72,11 @@ template <concepts::CNeighbors TNeighbors>
     return {psize, metric};
 }
 
-[[nodiscard]] static inline PsizeRecord
-estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfig& spec_cfg, const PsizeParams& params,
-                  const MIs_<tcfg::Layout>& mis, const std::vector<PsizeRecord>& prev_patchsizes,
-                  const NearNeighbors& near_neighbors, const FarNeighbors& far_neighbors, int offset)
+[[nodiscard]] static inline PsizeRecord estimatePatchsize(const tcfg::Layout& layout,
+                                                          const typename tcfg::SpecificConfig& spec_cfg,
+                                                          const PsizeParams& params, const MIs_<tcfg::Layout>& mis,
+                                                          const std::vector<PsizeRecord>& prev_patchsizes,
+                                                          cv::Point index, int offset)
 {
     const auto& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
@@ -89,6 +90,8 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
     }
 
     WrapSSIM wrap_anchor{anchor_mi};
+    const auto near_neighbors = NearNeighbors::fromLayoutAndIndex(layout, index);
+    const auto far_neighbors = FarNeighbors::fromLayoutAndIndex(layout, index);
     const auto near_psize_metric = estimateWithNeighbor(layout, params, mis, near_neighbors, wrap_anchor);
     const auto far_psize_metric = estimateWithNeighbor(layout, params, mis, far_neighbors, wrap_anchor);
 
@@ -110,11 +113,9 @@ static inline void estimatePatchsizes(const tcfg::Layout& layout, const typename
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const auto near_neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
-            const auto far_neighbors = FarNeighbors::fromLayoutAndIndex(layout, {col, row});
             const int offset = row_offset + col;
-            const auto& psize = estimatePatchsize(layout, spec_cfg, params, mis, prev_patchsizes, near_neighbors,
-                                                  far_neighbors, offset);
+            const cv::Point index{col, row};
+            const auto& psize = estimatePatchsize(layout, spec_cfg, params, mis, prev_patchsizes, index, offset);
             patchsizes[offset] = psize;
         }
         row_offset += layout.getMIMaxCols();

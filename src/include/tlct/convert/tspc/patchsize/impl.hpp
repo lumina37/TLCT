@@ -76,7 +76,7 @@ template <concepts::CNeighbors TNeighbors>
                                                           const typename tcfg::SpecificConfig& spec_cfg,
                                                           const PsizeParams& params, const MIs_<tcfg::Layout>& mis,
                                                           const std::vector<PsizeRecord>& prev_patchsizes,
-                                                          const Neighbors& neighbors, int offset)
+                                                          cv::Point index, int offset)
 {
     const auto& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
@@ -90,6 +90,7 @@ template <concepts::CNeighbors TNeighbors>
     }
 
     WrapSSIM wrap_anchor{anchor_mi};
+    const auto neighbors = Neighbors::fromLayoutAndIndex(layout, index);
     const auto psize_metric = estimateWithNeighbor(layout, params, mis, neighbors, wrap_anchor);
 
     return {psize_metric.psize, hash};
@@ -103,9 +104,9 @@ static inline void estimatePatchsizes(const tcfg::Layout& layout, const typename
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const auto neighbors = Neighbors::fromLayoutAndIndex(layout, {col, row});
             const int offset = row_offset + col;
-            const auto& psize = estimatePatchsize(layout, spec_cfg, params, mis, prev_patchsizes, neighbors, offset);
+            const cv::Point index{col, row};
+            const auto& psize = estimatePatchsize(layout, spec_cfg, params, mis, prev_patchsizes, index, offset);
             patchsizes[offset] = psize;
         }
         row_offset += layout.getMIMaxCols();
