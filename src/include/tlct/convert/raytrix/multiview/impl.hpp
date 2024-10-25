@@ -63,7 +63,7 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
                 var_I += (neib_I - avg_I) * (neib_I - prev_avg_I);
             }
             var_I /= (float)neib_count;
-            const float stdvar_I = std::sqrtf(var_I);
+            const float stdvar_I = sqrtf(var_I);
 
             int rank = NearNeighbors::DIRECTION_NUM;
             for (const auto direction : NearNeighbors::DIRECTIONS) {
@@ -80,7 +80,7 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
             const float expo = (curr_I - avg_I) / stdvar_I;
             const float clipped_expo = _hp::clip(expo, HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
 
-            cache.weights.at<float>(row, col) = std::expf(clipped_expo);
+            cache.weights.at<float>(row, col) = expf(clipped_expo);
             cache.rank.at<uint8_t>(row, col) = rank;
         }
     }
