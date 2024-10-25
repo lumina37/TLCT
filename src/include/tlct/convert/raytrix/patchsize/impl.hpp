@@ -23,6 +23,7 @@ template <concepts::CNeighbors TNeighbors>
                                                              WrapSSIM& wrap_anchor)
 {
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
+    const int max_shift = (int)(params.pattern_shift * 2);
 
     double weighted_psize = std::numeric_limits<float>::epsilon();
     double weighted_metric = std::numeric_limits<float>::epsilon();
@@ -44,7 +45,6 @@ template <concepts::CNeighbors TNeighbors>
         const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * TNeighbors::getUnitShift(direction);
         cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
 
-        const int max_shift = (int)(params.pattern_shift * 2);
         int best_psize = 0;
         double max_ssim = 0.0;
         for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
@@ -66,7 +66,7 @@ template <concepts::CNeighbors TNeighbors>
         total_weight += weight;
     }
 
-    const int psize = _hp::iround(weighted_psize / total_weight);
+    const int psize = _hp::iround(weighted_psize / total_weight / TNeighbors::INFLATE);
     const double metric = weighted_metric / total_weight;
 
     return {psize, metric};
