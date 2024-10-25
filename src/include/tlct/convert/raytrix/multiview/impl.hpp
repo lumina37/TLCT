@@ -24,14 +24,17 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
     cache.rank.create(layout.getMIRows(), layout.getMIMaxCols(), CV_8U);
     cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
 
+    const cv::Point mi_center{_hp::iround(layout.getRadius()), _hp::iround(layout.getRadius())};
+    const int mi_width = _hp::iround(layout.getRadius() / std::numbers::sqrt2);
+
     // 1-pass: obtain texture intensity
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const int offset = row_offset + col;
 
-            const auto& mi = mis.getMI(offset);
-            const auto ti = (float)textureIntensity(mi.I);
+            const auto& mi = getRoiImageByCenter(mis.getMI(offset).I, mi_center, mi_width);
+            const auto ti = (float)textureIntensity(mi);
 
             cache.texture_I.at<float>(row, col) = ti;
         }
@@ -43,7 +46,20 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
-            const double curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
+            float avg_I = 0.0;
+            int neib_count = 0;
+            const float curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
+            for (const auto direction : NearNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+                    continue;
+                }
+
+                const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
+
+                neib_count++;
+                avg_I += (neib_I - avg_I) / (float)neib_count;
+            }
+
             int rank = NearNeighbors::DIRECTION_NUM;
             for (const auto direction : NearNeighbors::DIRECTIONS) {
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -55,7 +71,10 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
                 }
             }
 
-            cache.weights.at<float>(row, col) = (float)std::pow(curr_I, 3);
+            constexpr auto HALF_DIRECTION_NUM = (float)(NearNeighbors::DIRECTION_NUM >> 1);
+            float expo = _hp::clip(curr_I - avg_I, HALF_DIRECTION_NUM, HALF_DIRECTION_NUM);
+
+            cache.weights.at<float>(row, col) = std::expf(expo);
             cache.rank.at<uint8_t>(row, col) = rank;
         }
     }
@@ -66,8 +85,11 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
             int hiwgt_neib_count = 0;
-            for (const auto direction : {NearNeighbors::Direction::UPLEFT, NearNeighbors::Direction::RIGHT,
-                                         NearNeighbors::Direction::DOWNLEFT}) {
+            for (const auto direction : {
+                     NearNeighbors::Direction::UPLEFT,
+                     NearNeighbors::Direction::RIGHT,
+                     NearNeighbors::Direction::DOWNLEFT,
+                 }) {
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
                     continue;
                 }
@@ -82,8 +104,11 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
             }
 
             hiwgt_neib_count = 0;
-            for (const auto direction : {NearNeighbors::Direction::UPRIGHT, NearNeighbors::Direction::LEFT,
-                                         NearNeighbors::Direction::DOWNRIGHT}) {
+            for (const auto direction : {
+                     NearNeighbors::Direction::UPRIGHT,
+                     NearNeighbors::Direction::LEFT,
+                     NearNeighbors::Direction::DOWNRIGHT,
+                 }) {
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
                     continue;
                 }
