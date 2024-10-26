@@ -161,12 +161,13 @@ static inline void estimatePatchsizes(const tcfg::Layout& layout, const typename
 {
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+        int offset = row_offset;
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const int offset = row_offset + col;
             const cv::Point index{col, row};
             const auto& psize =
                 estimatePatchsize(layout, spec_cfg, params, mis, patchsizes, prev_patchsizes, index, offset);
             patchsizes[offset] = psize;
+            offset++;
         }
         row_offset += layout.getMIMaxCols();
     }

@@ -22,7 +22,6 @@ namespace tcfg = tlct::cfg::raytrix;
                                                       WrapSSIM& wrap_anchor, const int psize)
 {
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
-    const auto& anchor_mi = mis.getMI(neighbors.getSelfIdx());
 
     double weighted_metric = 0.0;
     double total_weight = std::numeric_limits<float>::epsilon();
@@ -169,12 +168,13 @@ static inline void estimatePatchsizes(const tcfg::Layout& layout, const typename
 {
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+        int offset = row_offset;
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const int offset = row_offset + col;
             const cv::Point index{col, row};
             const auto& psize =
                 estimatePatchsize(layout, spec_cfg, params, mis, patchsizes, prev_patchsizes, index, offset);
             patchsizes[offset] = psize;
+            offset++;
         }
         row_offset += layout.getMIMaxCols();
     }

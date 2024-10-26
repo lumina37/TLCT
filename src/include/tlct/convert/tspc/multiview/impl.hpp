@@ -31,8 +31,9 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
 
     int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+
+        int offset = row_offset;
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const int offset = row_offset + col;
             const cv::Point2d center = layout.getMICenter(row, col);
 
             // Extract patch
@@ -59,7 +60,10 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
                                params.resized_patch_width, params.resized_patch_width};
             cache.render_canvas(roi) += weighted_patch;
             cache.weight_canvas(roi) += cache.grad_blending_weight;
+
+            offset++;
         }
+
         row_offset += layout.getMIMaxCols();
     }
 

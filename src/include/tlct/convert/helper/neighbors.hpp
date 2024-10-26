@@ -83,7 +83,6 @@ public:
         const auto unit_shift = UNIT_SHIFTS[(int)direction];
         return {unit_shift[0], unit_shift[1]};
     };
-    [[nodiscard]] TLCT_API static inline double getInflate(const Direction direction) noexcept { return 1.0; };
 
 private:
     TPoints points_;
