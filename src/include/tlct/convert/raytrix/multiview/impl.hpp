@@ -20,12 +20,13 @@ namespace tcfg = tlct::cfg::raytrix;
 
 static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Layout& layout, MvCache& cache)
 {
+    cache.texture_lap_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
     cache.texture_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
     cache.rank.create(layout.getMIRows(), layout.getMIMaxCols(), CV_8U);
     cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
 
-    const cv::Point mi_center{_hp::iround(layout.getRadius()), _hp::iround(layout.getRadius())};
-    const int mi_width = _hp::iround(layout.getRadius() / std::numbers::sqrt2 * 0.75);
+    const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
+    const double mi_width = layout.getRadius();
     const auto& roi = getRoiByCenter(mi_center, mi_width);
 
     // 1-pass: compute texture intensity
@@ -34,31 +35,39 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
         int offset = row_offset;
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto& mi = mis.getMI(offset).I;
-            const auto ti = (float)textureIntensity(mi(roi));
-            cache.texture_I.at<float>(row, col) = ti;
+            const auto curr_lap_I = (float)textureIntensityLaplacian(mi(roi));
+            cache.texture_lap_I.at<float>(row, col) = curr_lap_I;
+            const auto curr_I = (float)textureIntensity(mi(roi));
+            cache.texture_I.at<float>(row, col) = curr_I;
             offset++;
         }
         row_offset += layout.getMIMaxCols();
     }
 
     // 2-pass: draft weight and rank
+    cv::Scalar mean, stddev;
+    cv::meanStdDev(cache.texture_I, mean, stddev);
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
-            const float curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
+
+            const float curr_lap_I = cache.texture_lap_I.at<float>(neighbors.getSelfIdx());
             int rank = NearNeighbors::DIRECTION_NUM;
             for (const auto direction : NearNeighbors::DIRECTIONS) {
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
                     continue;
                 }
-                const auto neib_I = cache.texture_I.at<float>(neighbors.getNeighborIdx(direction));
-                if (curr_I > neib_I) {
+                const auto neib_lap_I = cache.texture_lap_I.at<float>(neighbors.getNeighborIdx(direction));
+                if (curr_lap_I > neib_lap_I) {
                     rank--;
                 }
             }
 
             cache.rank.at<uint8_t>(row, col) = rank;
-            cache.weights.at<float>(row, col) = curr_I * curr_I;
+
+            const float curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
+            const double normed_I = ((double)curr_I - mean[0]) / stddev[0];
+            cache.weights.at<float>(row, col) = (float)_hp::sigmoid(normed_I);
         }
     }
 
@@ -102,6 +111,7 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
             }
             if (hiwgt_neib_count == (NearNeighbors::DIRECTION_NUM / 2)) {
                 cache.weights.at<float>(neighbors.getSelfIdx()) = std::numeric_limits<float>::epsilon();
+                continue;
             }
         }
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <numeric>
@@ -10,12 +11,6 @@ template <std::floating_point Tv>
 [[nodiscard]] static constexpr inline int iround(Tv v) noexcept
 {
     return int(v + 0.5);
-}
-
-template <std::totally_ordered Tv>
-[[nodiscard]] static constexpr inline Tv clip(Tv v, Tv lo, Tv hi) noexcept
-{
-    return std::min(std::max(v, lo), hi);
 }
 
 template <size_t to, std::integral Tv>
@@ -32,16 +27,16 @@ template <std::unsigned_integral Tv>
     return (v & (v - 1)) == 0;
 }
 
-template <size_t to, std::integral T>
+template <size_t to, std::integral Tv>
     requires(isPowOf2(to))
-[[nodiscard]] static constexpr inline T alignUp(T v) noexcept
+[[nodiscard]] static constexpr inline Tv alignUp(Tv v) noexcept
 {
     return (v + (to - 1)) & ((~to) + 1);
 };
 
-template <size_t to, std::integral T>
+template <size_t to, std::integral Tv>
     requires(isPowOf2(to))
-[[nodiscard]] static constexpr inline T alignDown(T v) noexcept
+[[nodiscard]] static constexpr inline Tv alignDown(Tv v) noexcept
 {
     return v & ((~to) + 1);
 };
@@ -49,20 +44,10 @@ template <size_t to, std::integral T>
 // true -> +1, false -> -1
 [[nodiscard]] static constexpr inline int sgn(bool v) noexcept { return ((int)v) * 2 - 1; }
 
-template <typename Tv>
-[[nodiscard]] static constexpr inline Tv stdvar(const std::vector<Tv>& vec)
+template <std::floating_point Tv>
+[[nodiscard]] static constexpr inline Tv sigmoid(Tv v)
 {
-    const Tv sum = std::reduce(vec.begin(), vec.end());
-    const Tv avg = sum / (Tv)vec.size();
-
-    Tv var = 0.0;
-    for (const Tv elem : vec) {
-        const Tv diff = elem - avg;
-        var += diff * diff;
-    }
-    Tv stdvar = var / (Tv)vec.size();
-
-    return stdvar;
+    return 1. / (1. + exp(-v));
 }
 
 } // namespace tlct::_hp

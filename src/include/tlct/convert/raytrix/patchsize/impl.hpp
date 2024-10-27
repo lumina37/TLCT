@@ -23,8 +23,8 @@ namespace tcfg = tlct::cfg::raytrix;
 {
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
 
-    double weighted_metric = 0.0;
-    double total_weight = std::numeric_limits<float>::epsilon();
+    double sum_metric = 0.0;
+    double sum_metric_weight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : NearNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -46,11 +46,11 @@ namespace tcfg = tlct::cfg::raytrix;
 
         const double ssim = wrap_anchor.compare(wrap_neib);
         const double weight = textureIntensity(wrap_anchor.I_);
-        weighted_metric += weight * (ssim * ssim);
-        total_weight += weight;
+        sum_metric += weight * (ssim * ssim);
+        sum_metric_weight += weight;
     };
 
-    const double metric = weighted_metric / total_weight;
+    const double metric = sum_metric / sum_metric_weight;
     return {psize, metric};
 }
 
@@ -62,9 +62,10 @@ template <concepts::CNeighbors TNeighbors>
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
     const int max_shift = (int)(params.pattern_shift * 2);
 
-    double weighted_psize = 0.0;
-    double weighted_metric = 0.0;
-    double total_weight = std::numeric_limits<float>::epsilon();
+    double sum_psize = 0.0;
+    double sum_metric = 0.0;
+    double sum_psize_weight = std::numeric_limits<float>::epsilon();
+    double sum_metric_weight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -98,13 +99,16 @@ template <concepts::CNeighbors TNeighbors>
         }
 
         const double weight = textureIntensity(wrap_anchor.I_);
-        weighted_psize += weight * best_psize;
-        weighted_metric += weight * (max_ssim * max_ssim);
-        total_weight += weight;
+        const double metric = max_ssim * max_ssim;
+        const double weighted_metric = weight * metric;
+        sum_psize += best_psize * weighted_metric;
+        sum_psize_weight += weighted_metric;
+        sum_metric += weighted_metric;
+        sum_metric_weight += weight;
     }
 
-    const int psize = _hp::iround(weighted_psize / total_weight / TNeighbors::INFLATE);
-    const double metric = weighted_metric / total_weight;
+    const int psize = _hp::iround(sum_psize / sum_psize_weight / TNeighbors::INFLATE);
+    const double metric = sum_metric / sum_metric_weight;
 
     return {psize, metric};
 }
@@ -112,7 +116,7 @@ template <concepts::CNeighbors TNeighbors>
 [[nodiscard]] static inline PsizeRecord
 estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfig& spec_cfg, const PsizeParams& params,
                   const MIs_<tcfg::Layout>& mis, const std::vector<PsizeRecord>& patchsizes,
-                  const std::vector<PsizeRecord>& prev_patchsizes, cv::Point index, int offset)
+                  const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index, const int offset)
 {
     const auto& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
