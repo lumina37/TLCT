@@ -12,6 +12,8 @@
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/raytrix/patchsize/neighbors.hpp"
 #include "tlct/convert/raytrix/patchsize/params.hpp"
+#include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/math.hpp"
 
 namespace tlct::_cvt::raytrix {
 
@@ -20,10 +22,10 @@ namespace tcfg = tlct::cfg::raytrix;
 
 static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Layout& layout, MvCache& cache)
 {
-    cache.texture_lap_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
-    cache.texture_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
-    cache.rank.create(layout.getMIRows(), layout.getMIMaxCols(), CV_8U);
-    cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32F);
+    cache.texture_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC2); // [sobel, lap]
+    cache.rank.create(layout.getMIRows(), layout.getMIMaxCols(), CV_8UC2);       // [0 is_hi, 0 is_lo]
+    cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
+    _hp::MeanStddev ti_meanstddev{};
 
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
     const double mi_width = layout.getRadius();
@@ -35,38 +37,54 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
         int offset = row_offset;
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto& mi = mis.getMI(offset).I;
-            const auto curr_lap_I = (float)textureIntensityLaplacian(mi(roi));
-            cache.texture_lap_I.at<float>(row, col) = curr_lap_I;
+
             const auto curr_I = (float)textureIntensity(mi(roi));
-            cache.texture_I.at<float>(row, col) = curr_I;
+            const auto curr_lap_I = (float)textureIntensityLaplacian(mi(roi));
+
+            cache.texture_I.at<cv::Vec2f>(row, col) = {curr_I, curr_lap_I};
+            ti_meanstddev.update(curr_I);
+
             offset++;
         }
         row_offset += layout.getMIMaxCols();
     }
 
     // 2-pass: draft weight and rank
-    cv::Scalar mean, stddev;
-    cv::meanStdDev(cache.texture_I, mean, stddev);
+    const double ti_mean = ti_meanstddev.getMean();
+    const double ti_stddev = ti_meanstddev.getStddev();
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const auto neighbors = NearNeighbors::fromLayoutAndIndex(layout, {col, row});
 
-            const float curr_lap_I = cache.texture_lap_I.at<float>(neighbors.getSelfIdx());
-            int rank = NearNeighbors::DIRECTION_NUM;
+            _hp::MeanStddev neib_meanstddev{};
             for (const auto direction : NearNeighbors::DIRECTIONS) {
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
                     continue;
                 }
-                const auto neib_lap_I = cache.texture_lap_I.at<float>(neighbors.getNeighborIdx(direction));
-                if (curr_lap_I > neib_lap_I) {
-                    rank--;
+                const auto neib_ti = cache.texture_I.at<cv::Vec2f>(neighbors.getNeighborIdx(direction));
+                neib_meanstddev.update(neib_ti[1]);
+            }
+            const double neib_stddev = neib_meanstddev.getStddev();
+
+            const auto& curr_ti = cache.texture_I.at<cv::Vec2f>(neighbors.getSelfIdx());
+            uint8_t rank_is_hi = NearNeighbors::DIRECTION_NUM;
+            uint8_t rank_is_lo = NearNeighbors::DIRECTION_NUM;
+            for (const auto direction : NearNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+                    continue;
+                }
+                const auto neib_ti = cache.texture_I.at<cv::Vec2f>(neighbors.getNeighborIdx(direction));
+                if (curr_ti[1] > (neib_ti[1] + neib_stddev)) {
+                    rank_is_hi--;
+                }
+                if (curr_ti[1] < (neib_ti[1] - neib_stddev)) {
+                    rank_is_lo--;
                 }
             }
 
-            cache.rank.at<uint8_t>(row, col) = rank;
+            cache.rank.at<cv::Vec2b>(row, col) = {rank_is_hi, rank_is_lo};
 
-            const float curr_I = cache.texture_I.at<float>(neighbors.getSelfIdx());
-            const double normed_I = ((double)curr_I - mean[0]) / stddev[0];
+            const double normed_I = (curr_ti[0] - ti_mean) / ti_stddev;
             cache.weights.at<float>(row, col) = (float)_hp::sigmoid(normed_I);
         }
     }
@@ -85,8 +103,8 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
                     continue;
                 }
-                const auto neib_rank = cache.rank.at<uint8_t>(neighbors.getNeighborIdx(direction));
-                if (neib_rank == 0) {
+                const auto neib_rank = cache.rank.at<cv::Vec2b>(neighbors.getNeighborIdx(direction));
+                if (neib_rank[0] == 0) {
                     hiwgt_neib_count++;
                 }
             }
@@ -104,8 +122,8 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
                 if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
                     continue;
                 }
-                const auto neib_rank = cache.rank.at<uint8_t>(neighbors.getNeighborIdx(direction));
-                if (neib_rank == 0) {
+                const auto neib_rank = cache.rank.at<cv::Vec2b>(neighbors.getNeighborIdx(direction));
+                if (neib_rank[0] == 0) {
                     hiwgt_neib_count++;
                 }
             }

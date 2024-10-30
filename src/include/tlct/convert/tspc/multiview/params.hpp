@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tlct/config/tspc.hpp"
+#include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cvt::tspc {
 
