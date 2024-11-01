@@ -107,7 +107,9 @@ template <concepts::CNeighbors TNeighbors>
         sum_metric_weight += weight;
     }
 
-    const int psize = _hp::iround(sum_psize / sum_psize_weight / TNeighbors::INFLATE);
+    const double cliped_sum_psize =
+        _hp::clip(sum_psize / sum_psize_weight, (double)params.min_psize, (double)max_shift);
+    const int psize = _hp::iround(cliped_sum_psize / TNeighbors::INFLATE);
     const double metric = sum_metric / sum_metric_weight;
 
     return {psize, metric};

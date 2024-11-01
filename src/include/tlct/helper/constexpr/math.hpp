@@ -50,4 +50,10 @@ template <std::floating_point Tv>
     return 1. / (1. + exp(-v));
 }
 
+template <std::totally_ordered Tv>
+[[nodiscard]] static constexpr inline Tv clip(Tv v, Tv lo, Tv hi) noexcept
+{
+    return std::min(std::max(v, lo), hi);
+}
+
 } // namespace tlct::_hp
