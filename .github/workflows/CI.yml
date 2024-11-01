@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  schedule:
+    - cron: "42 6 * * *"
+  pull_request:
+    branches: [master]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/CI.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install libopencv-dev
+
+      - name: Build
+        run: |
+          cmake -S . -B build -DTLCT_BUILD_TESTS=ON
+          cd build
+          cmake --build . --config Debug --parallel
+
+      - name: Run tests
+        run: ctest
