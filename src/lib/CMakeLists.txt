@@ -1,4 +1,4 @@
-set(TLCT_LIB_NAME tlct)
+set(TLCT_LIB_NAME tlc)
 
 if (TLCT_HEADER_ONLY)
     set(TLCT_LIB_TYPE "INTERFACE")
@@ -18,9 +18,10 @@ else ()
 endif ()
 
 add_library(${TLCT_LIB_NAME} ${TLCT_LIB_TYPE} ${TLCT_LIB_SRCS})
+add_library(tlct::lib ALIAS ${TLCT_LIB_NAME})
 set_target_properties(${TLCT_LIB_NAME} PROPERTIES
         VERSION ${TLCT_VERSION}
-        SOVERSION ${TLCT_VERSION}
+        SOVERSION ${TLCT_VERSION_MAJOR}.${TLCT_VERSION_MINOR}
         DEBUG_POSTFIX "-${TLCT_VERSION}d"
         RELEASE_POSTFIX "-${TLCT_VERSION}"
 )

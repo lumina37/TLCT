@@ -5,7 +5,7 @@ The official implementation of *Tsinghua Lenslet Conversion Tool*.
 ## Usage
 
 ```shell
-RLC40 /path/to/param.cfg
+tlct /path/to/param.cfg
 ```
 
 ## Configuration File Format

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 include(cmake/policies.cmake)
 
 project(TLCT
-        VERSION 0.15.1.38
+        VERSION 0.15.1.39
         LANGUAGES CXX
 )
 
