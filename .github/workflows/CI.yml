@@ -16,31 +16,24 @@ jobs:
     name: Test
     runs-on: ubuntu-24.04
 
+    env:
+      OCV_VERSION: 4.10.0
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache OpenCV
-        id: cache-ocv
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/libopencv*
-            /usr/local/include/opencv4/*
-            /usr/local/lib/cmake/opencv4/*
-          key: ${{ hashFiles('.devcontainer/Dockerfile') }}
-
       - name: Install OpenCV
-        if: steps.cache-ocv.outputs.cache-hit != 'true'
         run: |
-          chmod +x .devcontainer/install-opencv.sh
-          .devcontainer/install-opencv.sh
+          sudo apt update
+          sudo apt install libopencv-dev
 
       - name: Build
         run: |
           cmake -S . -B build -DTLCT_BUILD_TESTS=ON
-          cd build
-          cmake --build . --config Debug --parallel
+          cmake --build build --config Debug --parallel
 
       - name: Run tests
-        run: ctest
+        run: |
+          cd build
+          ctest

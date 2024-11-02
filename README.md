@@ -63,9 +63,9 @@ See `cmake/options.cmake`
 
 ## Tested Complier Version
 
-+ gcc v11
++ gcc v13
 + clang v18
-+ msvc v19.26
++ msvc v19.39
 
 ## Related Document
 

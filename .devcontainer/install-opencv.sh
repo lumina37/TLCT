@@ -1,4 +1,5 @@
-OCV_VERSION=4.10.0
+OCV_VERSION=$1
+
 wget -qO opencv.tar.gz https://github.com/opencv/opencv/archive/refs/tags/$OCV_VERSION.tar.gz && \
     tar -xf opencv.tar.gz && \
     cd opencv-$OCV_VERSION && \
