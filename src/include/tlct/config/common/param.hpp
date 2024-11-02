@@ -5,9 +5,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "generic.hpp"
-#include "map.hpp"
 #include "tlct/common/defines.h"
+#include "tlct/config/common/generic.hpp"
+#include "tlct/config/common/map.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/config/raytrix/layout.hpp"
 #include "tlct/config/tspc/layout.hpp"

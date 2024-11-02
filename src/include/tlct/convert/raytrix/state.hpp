@@ -7,12 +7,12 @@
 
 #include <opencv2/core.hpp>
 
-#include "multiview.hpp"
-#include "patchsize.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/raytrix.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/raytrix/multiview.hpp"
+#include "tlct/convert/raytrix/patchsize.hpp"
 
 namespace tlct::_cvt::raytrix {
 

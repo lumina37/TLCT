@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cmake.h"
+#include "tlct/common/cmake.h"
 
 #ifdef TLCT_HEADER_ONLY
 #    define TLCT_API

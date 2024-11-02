@@ -7,11 +7,10 @@
 #include <sstream>
 #include <string>
 
-#include "enums.hpp"
 #include "tlct/common/defines.h"
+#include "tlct/config/common/enums.hpp"
 #include "tlct/config/concepts/factory.hpp"
-#include "tlct/helper/charset.hpp"
-#include "tlct/helper/constexpr/string.hpp"
+#include "tlct/helper.hpp"
 
 namespace tlct::_cfg {
 

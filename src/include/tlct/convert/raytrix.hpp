@@ -1,9 +1,9 @@
 #pragma once
 
-#include "concepts.hpp"
-#include "raytrix/multiview.hpp"
-#include "raytrix/patchsize.hpp"
-#include "raytrix/state.hpp"
+#include "tlct/convert/concepts.hpp"
+#include "tlct/convert/raytrix/multiview.hpp"
+#include "tlct/convert/raytrix/patchsize.hpp"
+#include "tlct/convert/raytrix/state.hpp"
 
 namespace tlct::cvt::raytrix {
 

@@ -1,5 +1,5 @@
 #pragma once
 
-#include "namespace/concepts.hpp"
-#include "namespace/raytrix.hpp"
-#include "namespace/tspc.hpp"
+#include "tlct/namespace/concepts.hpp"
+#include "tlct/namespace/raytrix.hpp"
+#include "tlct/namespace/tspc.hpp"

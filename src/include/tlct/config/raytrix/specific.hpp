@@ -2,9 +2,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "calib.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
+#include "tlct/config/raytrix/calib.hpp"
 
 namespace tlct::_cfg::raytrix {
 

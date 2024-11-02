@@ -1,9 +1,9 @@
 #pragma once
 
-#include "config/common.hpp"
-#include "config/concepts.hpp"
-#include "config/raytrix.hpp"
-#include "config/tspc.hpp"
+#include "tlct/config/common.hpp"
+#include "tlct/config/concepts.hpp"
+#include "tlct/config/raytrix.hpp"
+#include "tlct/config/tspc.hpp"
 
 namespace tlct {
 

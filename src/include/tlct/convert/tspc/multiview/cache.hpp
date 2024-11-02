@@ -2,9 +2,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "params.hpp"
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/helper/functional.hpp"
+#include "tlct/convert/tspc/multiview/params.hpp"
 
 namespace tlct::_cvt::tspc {
 

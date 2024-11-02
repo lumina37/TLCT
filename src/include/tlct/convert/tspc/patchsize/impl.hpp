@@ -6,10 +6,10 @@
 
 #include <opencv2/core.hpp>
 
-#include "neighbors.hpp"
-#include "params.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/tspc/patchsize/neighbors.hpp"
+#include "tlct/convert/tspc/patchsize/params.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cvt::tspc {

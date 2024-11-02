@@ -6,10 +6,10 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "calib.hpp"
-#include "specific.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
+#include "tlct/config/raytrix/calib.hpp"
+#include "tlct/config/raytrix/specific.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cfg::raytrix {

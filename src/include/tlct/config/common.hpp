@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common/enums.hpp"
-#include "common/generic.hpp"
-#include "common/map.hpp"
-#include "common/param.hpp"
+#include "tlct/config/common/enums.hpp"
+#include "tlct/config/common/generic.hpp"
+#include "tlct/config/common/map.hpp"
+#include "tlct/config/common/param.hpp"
 
 namespace tlct::cfg {
 

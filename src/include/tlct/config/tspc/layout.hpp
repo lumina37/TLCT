@@ -4,10 +4,10 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "calib.hpp"
-#include "specific.hpp"
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
+#include "tlct/config/tspc/calib.hpp"
+#include "tlct/config/tspc/specific.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cfg::tspc {

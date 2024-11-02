@@ -1,9 +1,9 @@
 #pragma once
 
-#include "concepts/calib.hpp"
-#include "concepts/factory.hpp"
-#include "concepts/layout.hpp"
-#include "concepts/specific.hpp"
+#include "tlct/config/concepts/calib.hpp"
+#include "tlct/config/concepts/factory.hpp"
+#include "tlct/config/concepts/layout.hpp"
+#include "tlct/config/concepts/specific.hpp"
 
 namespace tlct::cfg::concepts {
 

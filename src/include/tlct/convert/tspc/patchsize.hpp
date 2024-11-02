@@ -1,5 +1,5 @@
 #pragma once
 
-#include "patchsize/impl.hpp"
-#include "patchsize/neighbors.hpp"
-#include "patchsize/params.hpp"
+#include "tlct/convert/tspc/patchsize/impl.hpp"
+#include "tlct/convert/tspc/patchsize/neighbors.hpp"
+#include "tlct/convert/tspc/patchsize/params.hpp"

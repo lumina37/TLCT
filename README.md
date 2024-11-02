@@ -61,6 +61,12 @@ Must be utf-8
 
 See `cmake/options.cmake`
 
+## Tested Complier Version
+
++ gcc v11
++ clang v18
++ msvc v19.26
+
 ## Related Document
 
 [(m67487) Multiview Rendering for Tsinghua Single-focused Plenoptic Videos](https://dms.mpeg.expert/doc_end_user/current_document.php?id=92666)

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "concepts.hpp"
-#include "tspc/multiview.hpp"
-#include "tspc/patchsize.hpp"
-#include "tspc/state.hpp"
+#include "tlct/convert/concepts.hpp"
+#include "tlct/convert/tspc/multiview.hpp"
+#include "tlct/convert/tspc/patchsize.hpp"
+#include "tlct/convert/tspc/state.hpp"
 
 namespace tlct::cvt::tspc {
 

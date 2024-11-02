@@ -1,8 +1,8 @@
 #pragma once
 
-#include "helper/functional.hpp"
-#include "helper/microimages.hpp"
-#include "helper/record.hpp"
-#include "helper/roi.hpp"
-#include "helper/ssim.hpp"
-#include "helper/neighbors.hpp"
+#include "tlct/convert/helper/functional.hpp"
+#include "tlct/convert/helper/microimages.hpp"
+#include "tlct/convert/helper/neighbors.hpp"
+#include "tlct/convert/helper/record.hpp"
+#include "tlct/convert/helper/roi.hpp"
+#include "tlct/convert/helper/ssim.hpp"
