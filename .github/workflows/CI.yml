@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: "42 6 * * *"
   pull_request:
-    branches: [master]
+    branches: [ master ]
     paths:
       - "src/**"
       - "tests/**"
@@ -20,10 +20,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Cache OpenCV
+        id: cache-ocv
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/lib/libopencv*
+            /usr/local/include/opencv4/*
+            /usr/local/lib/cmake/opencv4/*
+          key: ${{ hashFiles('.devcontainer/Dockerfile') }}
+
+      - name: Install OpenCV
+        if: steps.cache-ocv.outputs.cache-hit != 'true'
         run: |
-          sudo apt update
-          sudo apt install libopencv-dev
+          chmod +x .devcontainer/install-opencv.sh
+          .devcontainer/install-opencv.sh
 
       - name: Build
         run: |
