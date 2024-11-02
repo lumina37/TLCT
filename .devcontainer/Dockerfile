@@ -1,10 +1,5 @@
 FROM mcr.microsoft.com/devcontainers/cpp
 
-RUN sed -i 's|deb.debian.org|mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list.d/debian.sources
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends make cmake unzip ca-certificates git wget tar && \
-    apt-get clean
-
 ARG OPENCV_VERSION=4.10.0
 
 # OpenCV
