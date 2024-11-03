@@ -63,10 +63,10 @@ See `cmake/options.cmake`
 
 ## Tested Complier Version
 
-+ gcc v13
-+ clang v18
-+ msvc v19.39
++ gcc v12.1 ([\_\_has_trivial\_{copy/assign} behavior differs from documentation {gcc bug 59426}](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59426) fixed)
++ clang v18 ([Inconsistencies with non-type template parameters {C++20/P1907R1}](https://wg21.link/P1907R1) implemented)
++ msvc v19.26* (hard to test different version of msvc)
 
 ## Related Document
 
-[(m67487) Multiview Rendering for Tsinghua Single-focused Plenoptic Videos](https://dms.mpeg.expert/doc_end_user/current_document.php?id=92666)
+[{m67487} Multiview Rendering for Tsinghua Single-focused Plenoptic Videos](https://dms.mpeg.expert/doc_end_user/current_document.php?id=92666)
