@@ -115,12 +115,14 @@ Layout Layout::fromCalibAndSpecConfig(const TCalibConfig& calib_cfg, const TSpec
     TMiCols micols{top_cols, top_cols};
     if (is_out_shift) {
         // Now the second row have one more intact MI than the first row
-        if (left_top.x + top_x_unit_shift.x * top_cols < imgsize.width) {
+        const double mi_1_0_x = left_top.x - top_x_unit_shift.x / 2.0;
+        if (mi_1_0_x + top_x_unit_shift.x * top_cols < imgsize.width) {
             micols[1]++;
         }
     } else {
         // Now the second row have one less intact MI than the first row
-        if (left_top.x + top_x_unit_shift.x * top_cols >= imgsize.width) {
+        const double mi_1_0_x = left_top.x + top_x_unit_shift.x / 2.0;
+        if (mi_1_0_x + top_x_unit_shift.x * top_cols >= imgsize.width) {
             micols[1]--;
         }
     }
