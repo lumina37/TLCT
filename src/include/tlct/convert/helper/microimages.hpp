@@ -27,14 +27,12 @@ public:
 
     struct Params {
         static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
-        static constexpr size_t CACHELINE_SIZE = 64;
 
         inline Params() = default;
         inline explicit Params(const TLayout& layout) noexcept
         {
             idiameter_ = _hp::iround(layout.getDiameter());
-            const size_t row_step = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * sizeof(float));
-            aligned_mat_size_ = _hp::alignUp<CACHELINE_SIZE>(row_step * idiameter_);
+            aligned_mat_size_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * sizeof(float));
             aligned_mi_size_ = (sizeof(WrapMI) / sizeof(cv::Mat)) * aligned_mat_size_;
             mi_max_cols_ = layout.getMIMaxCols();
             mi_num_ = mi_max_cols_ * layout.getMIRows();
@@ -95,7 +93,7 @@ template <tlct::cfg::concepts::CLayout TLayout>
 MIs_<TLayout>::MIs_(const TLayout& layout) : layout_(layout), params_(layout)
 {
     items_.resize(params_.mi_num_);
-    buffer_ = std::malloc(params_.buffer_size_ + Params::CACHELINE_SIZE);
+    buffer_ = std::malloc(params_.buffer_size_ + Params::SIMD_FETCH_SIZE);
 }
 
 template <tlct::cfg::concepts::CLayout TLayout>
@@ -114,7 +112,7 @@ MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
     I_2_32f.convertTo(I_2_32f, CV_32F);
 
     auto item_it = items_.begin();
-    auto* row_cursor = (uint8_t*)_hp::alignUp<Params::CACHELINE_SIZE>((size_t)buffer_);
+    auto* row_cursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
     size_t row_step = params_.mi_max_cols_ * params_.aligned_mi_size_;
     for (const int irow : rgs::views::iota(0, layout_.getMIRows())) {
 
