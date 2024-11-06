@@ -14,8 +14,7 @@ function(tlct_add_executable name srcs)
     copy_dlls_if_needed(${name})
 endfunction()
 
-tlct_add_executable(dbg_draw "dbg_draw.cpp")
-tlct_add_executable(get_center "get_center.cpp")
-
 tlct_add_executable(tlct "main.cpp")
 add_executable(tlct::bin ALIAS tlct)
+
+# tlct_add_executable(dbg_draw "dbg_draw.cpp")
