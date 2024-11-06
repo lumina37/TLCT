@@ -8,7 +8,7 @@
 
 namespace tlct {
 
-namespace _io::yuvp {
+namespace _io::yuv {
 
 namespace fs = std::filesystem;
 
@@ -35,8 +35,13 @@ public:
     {
         this->alloc();
     }
-    TLCT_API explicit inline YuvFrame_(size_t ywidth, size_t yheight)
-        : ywidth_(ywidth), yheight_(yheight), ysize_(ywidth * yheight)
+    TLCT_API inline YuvFrame_(size_t ywidth, size_t yheight)
+        : ywidth_(ywidth), yheight_(yheight), ysize_(ywidth_ * yheight_)
+    {
+        this->alloc();
+    }
+    TLCT_API explicit inline YuvFrame_(const cv::Size& size)
+        : ywidth_(size.width), yheight_(size.height), ysize_(ywidth_ * yheight_)
     {
         this->alloc();
     }
@@ -79,9 +84,13 @@ public:
         const size_t total_size = ysize_ + getUSize() + getVSize();
         return total_size;
     };
+
     [[nodiscard]] TLCT_API inline const cv::Mat& getY() const noexcept { return y_; }
     [[nodiscard]] TLCT_API inline const cv::Mat& getU() const noexcept { return u_; }
     [[nodiscard]] TLCT_API inline const cv::Mat& getV() const noexcept { return v_; }
+    [[nodiscard]] TLCT_API inline cv::Mat& getY() noexcept { return y_; }
+    [[nodiscard]] TLCT_API inline cv::Mat& getU() noexcept { return u_; }
+    [[nodiscard]] TLCT_API inline cv::Mat& getV() noexcept { return v_; }
 
 private:
     inline void alloc();
@@ -131,23 +140,23 @@ void YuvFrame_<TElem, Ushift_, Vshift_>::alloc()
         uptr_ = (TElem*)((size_t)yptr_ + aligned_ysize);
         vptr_ = (TElem*)((size_t)uptr_ + aligned_usize);
 
-        y_ = cv::Mat(getYHeight(), getYWidth(), cv::DataType<TElem>::type, (void*)yptr_);
-        u_ = cv::Mat(getUHeight(), getUWidth(), cv::DataType<TElem>::type, (void*)uptr_);
-        v_ = cv::Mat(getVHeight(), getVWidth(), cv::DataType<TElem>::type, (void*)vptr_);
+        y_ = cv::Mat((int)getYHeight(), (int)getYWidth(), cv::DataType<TElem>::type, (void*)yptr_);
+        u_ = cv::Mat((int)getUHeight(), (int)getUWidth(), cv::DataType<TElem>::type, (void*)uptr_);
+        v_ = cv::Mat((int)getVHeight(), (int)getVWidth(), cv::DataType<TElem>::type, (void*)vptr_);
     }
 }
 
 using Yuv420pFrame = YuvFrame_<uint8_t, 1, 1>;
 template class YuvFrame_<uint8_t, 1, 1>;
 
-} // namespace _io::yuvp
+} // namespace _io::yuv
 
-namespace io::yuvp {
+namespace io::yuv {
 
-namespace _ = _io::yuvp;
+namespace _ = _io::yuv;
 
 using _::Yuv420pFrame;
 
-} // namespace io::yuvp
+} // namespace io::yuv
 
 } // namespace tlct

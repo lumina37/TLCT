@@ -22,12 +22,6 @@ template <size_t to, std::integral Tv>
 }
 
 template <std::unsigned_integral Tv>
-[[nodiscard]] static constexpr inline Tv log2(const Tv v)
-{
-    return std::bit_width(v) - 1;
-}
-
-template <std::unsigned_integral Tv>
 [[nodiscard]] static inline constexpr bool isPowOf2(const Tv v) noexcept
 {
     return (v & (v - 1)) == 0;
@@ -37,7 +31,7 @@ template <size_t base, std::integral T>
     requires(isPowOf2(base))
 [[nodiscard]] static constexpr inline bool isMulOf(T v)
 {
-    return (v & (1 << log2(base))) == 0;
+    return (v & (base - 1)) == 0;
 };
 
 template <size_t to, std::integral Tv>

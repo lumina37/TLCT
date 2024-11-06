@@ -13,6 +13,7 @@
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/raytrix/multiview.hpp"
 #include "tlct/convert/raytrix/patchsize.hpp"
+#include "tlct/io.hpp"
 
 namespace tlct::_cvt::raytrix {
 
@@ -46,16 +47,27 @@ public:
     // Initialize from
     [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
 
-    // Non-const methods
-    TLCT_API inline void update(const cv::Mat& src);
+    // Const methods
+    [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept
+    {
+        if (layout_.getRotation() > std::numbers::pi / 4.0) {
+            return {mv_params_.output_height, mv_params_.output_width};
+        } else {
+            return {mv_params_.output_width, mv_params_.output_height};
+        }
+    };
 
-    inline void renderInto(cv::Mat& dst, int view_row, int view_col) const
+    // Non-const methods
+    TLCT_API inline void update(const io::yuv::Yuv420pFrame& src);
+
+    inline void renderInto(io::yuv::Yuv420pFrame& dst, int view_row, int view_col) const
     {
         renderView(src_32f_, dst, layout_, patchsizes_, mv_params_, mv_cache_, view_row, view_col);
     };
 
 private:
     cv::Mat src_32f_;
+    cv::Mat src_channels_[CHANNELS];
 
     TLayout layout_;
     TSpecificConfig spec_cfg_;
@@ -90,11 +102,19 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
             std::move(patchsizes), std::move(psize_params), std::move(mv_params), std::move(mv_cache)};
 }
 
-void State::update(const cv::Mat& src)
+void State::update(const io::yuv::Yuv420pFrame& src)
 {
-    layout_.processInto(src, src_32f_);
-    mis_.update(src_32f_);
-    src_32f_.convertTo(src_32f_, CV_32FC3);
+    layout_.processInto(src.getY(), src_channels_[0]);
+    layout_.processInto(src.getU(), src_channels_[1]);
+    layout_.processInto(src.getV(), src_channels_[2]);
+    const auto ch0_size = src_channels_[0].size();
+    cv::resize(src_channels_[1], src_channels_[1], ch0_size, 0.0, 0.0, cv::INTER_CUBIC);
+    cv::resize(src_channels_[2], src_channels_[2], ch0_size, 0.0, 0.0, cv::INTER_CUBIC);
+    cv::Mat merged;
+    cv::merge(src_channels_, CHANNELS, merged);
+    mis_.update(src_channels_[0]);
+
+    merged.convertTo(src_32f_, CV_32FC3);
 
     std::swap(prev_patchsizes_, patchsizes_);
     estimatePatchsizes(layout_, spec_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);

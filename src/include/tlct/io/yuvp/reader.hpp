@@ -9,7 +9,7 @@
 
 namespace tlct {
 
-namespace _io::yuvp {
+namespace _io::yuv {
 
 namespace fs = std::filesystem;
 
@@ -81,14 +81,14 @@ void YuvpReader_<TFrame>::poll_into(TFrame& frame)
 using Yuv420pReader = YuvpReader_<Yuv420pFrame>;
 template class YuvpReader_<Yuv420pFrame>;
 
-} // namespace _io::yuvp
+} // namespace _io::yuv
 
-namespace io::yuvp {
+namespace io::yuv {
 
-namespace _ = _io::yuvp;
+namespace _ = _io::yuv;
 
 using _::Yuv420pReader;
 
-} // namespace io::yuvp
+} // namespace io::yuv
 
 } // namespace tlct

@@ -9,7 +9,7 @@
 
 namespace tlct {
 
-namespace _io::yuvp {
+namespace _io::yuv {
 
 namespace fs = std::filesystem;
 
@@ -19,7 +19,7 @@ class YuvpWriter_
 public:
     using TFrame = TFrame_;
 
-    TLCT_API inline YuvpWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
+    TLCT_API inline explicit YuvpWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
     TLCT_API static inline YuvpWriter_ fromPath(const fs::path& fpath)
     {
         std::ofstream ofs{fpath, std::ios::binary};
@@ -43,14 +43,14 @@ void YuvpWriter_<TFrame>::write(TFrame& frame)
 using Yuv420pWriter = YuvpWriter_<Yuv420pFrame>;
 template class YuvpWriter_<Yuv420pFrame>;
 
-} // namespace _io::yuvp
+} // namespace _io::yuv
 
-namespace io::yuvp {
+namespace io::yuv {
 
-namespace _ = _io::yuvp;
+namespace _ = _io::yuv;
 
 using _::Yuv420pWriter;
 
-} // namespace io::yuvp
+} // namespace io::yuv
 
 } // namespace tlct

@@ -6,6 +6,7 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/config/concepts.hpp"
+#include "tlct/io.hpp"
 
 namespace tlct::_cvt::concepts {
 
@@ -21,12 +22,17 @@ concept CState = requires {
     };
 } && requires {
     // Const methods
-    requires requires(const Self self, cv::Mat& dst, int view_row, int view_col) {
+    requires requires(const Self self, io::yuv::Yuv420pFrame& dst, int view_row, int view_col) {
         self.renderInto(dst, view_row, view_col);
     };
 } && requires {
+    // Const methods
+    requires requires(Self self) {
+        { self.getOutputSize() } -> std::same_as<cv::Size>;
+    };
+} && requires {
     // Non-const methods
-    requires requires(Self self, const cv::Mat& src) { self.update(src); };
+    requires requires(Self self, const io::yuv::Yuv420pFrame& src) { self.update(src); };
 };
 
 } // namespace tlct::_cvt::concepts

@@ -107,9 +107,8 @@ MIs_<TLayout> MIs_<TLayout>::fromLayout(const TLayout& layout)
 template <tlct::cfg::concepts::CLayout TLayout>
 MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
 {
-    cv::Mat I_8u, I_32f, I_2_32f;
-    cv::cvtColor(src, I_8u, cv::COLOR_BGR2GRAY);
-    I_8u.convertTo(I_32f, CV_32S);
+    cv::Mat I_32f, I_2_32f;
+    src.convertTo(I_32f, CV_32S);
     cv::multiply(I_32f, I_32f, I_2_32f);
     I_32f.convertTo(I_32f, CV_32F);
     I_2_32f.convertTo(I_2_32f, CV_32F);

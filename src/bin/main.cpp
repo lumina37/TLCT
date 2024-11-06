@@ -17,27 +17,43 @@ static inline void render(const tlct::ConfigMap& cfg_map)
 {
     const auto param_cfg = TState::TParamConfig::fromConfigMap(cfg_map);
     const auto& generic_cfg = param_cfg.getGenericCfg();
+    const auto& spec_cfg = param_cfg.getSpecificCfg();
 
     auto state = TState::fromParamCfg(param_cfg);
 
+    const auto src_size = spec_cfg.getImgSize();
+    const auto output_size = state.getOutputSize();
+    auto yuv_reader = tlct::io::yuv::Yuv420pReader::fromPath(generic_cfg.getSrcPath(), src_size.width, src_size.height);
+
+    const fs::path& dstdir = generic_cfg.getDstPath();
+    fs::create_directories(dstdir);
+    std::vector<tlct::io::yuv::Yuv420pWriter> yuv_writers;
+    const int total_writers = generic_cfg.getViews() * generic_cfg.getViews();
+    yuv_writers.reserve(total_writers);
+    for (const auto i : rgs::views::iota(0, total_writers)) {
+        std::stringstream filename_s;
+        filename_s << "view#" << std::setw(3) << std::setfill('0') << i << '-' << output_size.width << 'x'
+                   << output_size.height << ".yuv";
+        fs::path saveto_path = dstdir / filename_s.str();
+        yuv_writers.emplace_back(tlct::io::yuv::Yuv420pWriter::fromPath(saveto_path));
+    }
+
     const cv::Range range = generic_cfg.getRange();
-    for (int i = range.start; i <= range.end; i++) {
-        const auto srcpath = generic_cfg.fmtSrcPath(i);
-        state.update(cv::imread(srcpath.string()));
+    yuv_reader.skip(range.start);
 
-        const auto dstdir = generic_cfg.fmtDstPath(i);
-        fs::create_directories(dstdir);
+    auto frame = tlct::io::yuv::Yuv420pFrame{src_size};
+    auto mv = tlct::io::yuv::Yuv420pFrame{output_size};
+    for (int fid = range.start; fid < range.end; fid++) {
+        yuv_reader.poll_into(frame);
+        state.update(frame);
 
-        int img_cnt = 1;
-        cv::Mat mv;
+        int view = 0;
         for (const int view_row : rgs::views::iota(0, generic_cfg.getViews())) {
             for (const int view_col : rgs::views::iota(0, generic_cfg.getViews())) {
-                std::stringstream filename_s;
-                filename_s << "image_" << std::setw(3) << std::setfill('0') << img_cnt << ".png";
-                const fs::path saveto_path = dstdir / filename_s.str();
+                auto& yuv_writer = yuv_writers[view];
                 state.renderInto(mv, view_row, view_col);
-                cv::imwrite(saveto_path.string(), mv);
-                img_cnt++;
+                yuv_writer.write(mv);
+                view++;
             }
         }
     }

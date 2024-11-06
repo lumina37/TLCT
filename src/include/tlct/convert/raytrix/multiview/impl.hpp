@@ -14,6 +14,7 @@
 #include "tlct/convert/raytrix/patchsize/params.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/math.hpp"
+#include "tlct/io.hpp"
 
 namespace tlct::_cvt::raytrix {
 
@@ -135,7 +136,7 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
     }
 }
 
-static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& layout,
+static inline void renderView(const cv::Mat& src, io::yuv::Yuv420pFrame& dst, const tcfg::Layout& layout,
                               const std::vector<PsizeRecord>& patchsizes, const MvParams& params, MvCache& cache,
                               int view_row, int view_col)
 {
@@ -198,10 +199,17 @@ static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layo
                0.0, cv::INTER_AREA);
 
     if (layout.getRotation() > std::numbers::pi / 4.0) {
-        cv::transpose(cache.resized_normed_image_u8, dst);
+        cv::transpose(cache.resized_normed_image_u8, cache.output_image_u8);
     } else {
-        dst = std::move(cache.resized_normed_image_u8);
+        cache.output_image_u8 = cache.resized_normed_image_u8;
     }
+
+    cv::split(cache.output_image_u8, cache.output_image_u8_channels);
+    cache.output_image_u8_channels[0].copyTo(dst.getY());
+    cv::Size y_output_size = cache.output_image_u8_channels[0].size();
+    cv::Size uv_output_size{y_output_size.width / 2, y_output_size.height / 2};
+    cv::resize(cache.output_image_u8_channels[1], dst.getU(), uv_output_size, 0.0, 0.0, cv::INTER_AREA);
+    cv::resize(cache.output_image_u8_channels[2], dst.getV(), uv_output_size, 0.0, 0.0, cv::INTER_AREA);
 }
 
 } // namespace tlct::_cvt::raytrix

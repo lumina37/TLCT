@@ -19,6 +19,10 @@ TEST_CASE("static_math")
     CHECK(hp::isPowOf2(14u) == false);
     CHECK(hp::isPowOf2(16u) == true);
 
+    // is multiple of
+    CHECK(hp::isMulOf<4>(16u) == true);
+    CHECK(hp::isMulOf<4>(9u) == false);
+
     // align up
     CHECK(hp::alignUp<64>(125) == 128);
     CHECK(hp::alignUp<64>(128) == 128);
