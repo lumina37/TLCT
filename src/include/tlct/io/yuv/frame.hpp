@@ -12,12 +12,12 @@ namespace _io::yuv {
 
 namespace fs = std::filesystem;
 
-constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
-
 template <typename TElem_, size_t Ushift_, size_t Vshift_>
 class YuvFrame_
 {
 public:
+    static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
+
     using TElem = TElem_;
     static constexpr size_t Ushift = Ushift_;
     static constexpr size_t Vshift = Vshift_;
