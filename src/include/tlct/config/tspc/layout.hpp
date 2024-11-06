@@ -5,7 +5,6 @@
 #include <opencv2/imgproc.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/concepts.hpp"
 #include "tlct/config/tspc/calib.hpp"
 #include "tlct/config/tspc/specific.hpp"
 #include "tlct/helper/constexpr/math.hpp"
@@ -78,8 +77,6 @@ private:
     int upsample_;
     bool is_out_shift_;
 };
-
-static_assert(concepts::CLayout<Layout>);
 
 Layout Layout::fromCalibAndSpecConfig(const TCalibConfig& calib_cfg, const TSpecificConfig& spec_cfg)
 {

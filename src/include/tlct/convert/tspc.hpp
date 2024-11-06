@@ -9,9 +9,10 @@ namespace tlct::cvt::tspc {
 
 namespace _ = _cvt::tspc;
 
-using _::Neighbors;
 using _::State;
+static_assert(concepts::CState<State>);
 
+using _::Neighbors;
 static_assert(tlct::cvt::concepts::CNeighbors<Neighbors>);
 
 } // namespace tlct::cvt::tspc

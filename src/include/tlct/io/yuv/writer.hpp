@@ -7,9 +7,7 @@
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/io/yuv/frame.hpp"
 
-namespace tlct {
-
-namespace _io::yuv {
+namespace tlct::_io::yuv {
 
 namespace fs = std::filesystem;
 
@@ -40,17 +38,4 @@ void YuvWriter_<TFrame>::write(TFrame& frame)
     ofs_.write((char*)frame.getV().data, frame.getVSize());
 }
 
-using Yuv420pWriter = YuvWriter_<Yuv420pFrame>;
-template class YuvWriter_<Yuv420pFrame>;
-
-} // namespace _io::yuv
-
-namespace io::yuv {
-
-namespace _ = _io::yuv;
-
-using _::Yuv420pWriter;
-
-} // namespace io::yuv
-
-} // namespace tlct
+} // namespace tlct::_io::yuv

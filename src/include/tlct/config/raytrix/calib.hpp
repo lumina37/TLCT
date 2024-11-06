@@ -10,7 +10,6 @@
 #include <pugixml.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/concepts.hpp"
 
 namespace tlct::_cfg::raytrix {
 
@@ -47,8 +46,6 @@ private:
     double rotation_;
     LenOffsets lofs_;
 };
-
-static_assert(concepts::CCalibConfig<CalibConfig>);
 
 CalibConfig CalibConfig::fromXMLDoc(const pugi::xml_document& doc)
 {

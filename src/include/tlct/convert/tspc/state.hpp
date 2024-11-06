@@ -9,7 +9,6 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
-#include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/tspc/multiview.hpp"
 #include "tlct/convert/tspc/patchsize.hpp"
@@ -86,8 +85,6 @@ private:
     MvParams mv_params_;
     mutable MvCache mv_cache_;
 };
-
-static_assert(concepts::CState<State>);
 
 State State::fromParamCfg(const TParamConfig& param_cfg)
 {

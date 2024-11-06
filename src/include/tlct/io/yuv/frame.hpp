@@ -6,9 +6,7 @@
 #include "tlct/common/defines.h"
 #include "tlct/helper/constexpr/math.hpp"
 
-namespace tlct {
-
-namespace _io::yuv {
+namespace tlct::_io::yuv {
 
 namespace fs = std::filesystem;
 
@@ -38,6 +36,7 @@ public:
         this->alloc();
     }
 
+    YuvFrame_() = delete;
     YuvFrame_(const YuvFrame_& rhs) = delete;
     YuvFrame_ operator=(const YuvFrame_& rhs) = delete;
     TLCT_API inline YuvFrame_(YuvFrame_&& rhs) noexcept
@@ -76,6 +75,7 @@ public:
     [[nodiscard]] TLCT_API inline const cv::Mat& getY() const noexcept { return y_; }
     [[nodiscard]] TLCT_API inline const cv::Mat& getU() const noexcept { return u_; }
     [[nodiscard]] TLCT_API inline const cv::Mat& getV() const noexcept { return v_; }
+
     [[nodiscard]] TLCT_API inline cv::Mat& getY() noexcept { return y_; }
     [[nodiscard]] TLCT_API inline cv::Mat& getU() noexcept { return u_; }
     [[nodiscard]] TLCT_API inline cv::Mat& getV() noexcept { return v_; }
@@ -131,17 +131,4 @@ void YuvFrame_<TElem, Ushift_, Vshift_>::alloc()
     }
 }
 
-using Yuv420pFrame = YuvFrame_<uint8_t, 1, 1>;
-template class YuvFrame_<uint8_t, 1, 1>;
-
-} // namespace _io::yuv
-
-namespace io::yuv {
-
-namespace _ = _io::yuv;
-
-using _::Yuv420pFrame;
-
-} // namespace io::yuv
-
-} // namespace tlct
+} // namespace tlct::_io::yuv

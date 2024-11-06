@@ -7,9 +7,7 @@
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/io/yuv/frame.hpp"
 
-namespace tlct {
-
-namespace _io::yuv {
+namespace tlct::_io::yuv {
 
 namespace fs = std::filesystem;
 
@@ -78,17 +76,4 @@ void YuvReader_<TFrame>::read_into(TFrame& frame)
     ifs_.read((char*)frame.getV().data, getVSize());
 }
 
-using Yuv420pReader = YuvReader_<Yuv420pFrame>;
-template class YuvReader_<Yuv420pFrame>;
-
-} // namespace _io::yuv
-
-namespace io::yuv {
-
-namespace _ = _io::yuv;
-
-using _::Yuv420pReader;
-
-} // namespace io::yuv
-
-} // namespace tlct
+} // namespace tlct::_io::yuv
