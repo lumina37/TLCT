@@ -5,13 +5,13 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/helper/constexpr/math.hpp"
-#include "tlct/io/yuv/frame.hpp"
+#include "tlct/io/concepts/frame.hpp"
 
 namespace tlct::_io::yuv {
 
 namespace fs = std::filesystem;
 
-template <typename TFrame_>
+template <concepts::CFrame TFrame_>
 class YuvReader_
 {
 public:
@@ -51,14 +51,14 @@ private:
     size_t ysize_;
 };
 
-template <typename TFrame>
+template <concepts::CFrame TFrame>
 YuvReader_<TFrame>& YuvReader_<TFrame>::skip(int n)
 {
     ifs_.seekg(n * getTotalSize());
     return *this;
 }
 
-template <typename TFrame>
+template <concepts::CFrame TFrame>
 TFrame YuvReader_<TFrame>::read()
 {
     TFrame frame{getYWidth(), getYHeight()};
@@ -68,7 +68,7 @@ TFrame YuvReader_<TFrame>::read()
     return frame;
 }
 
-template <typename TFrame>
+template <concepts::CFrame TFrame>
 void YuvReader_<TFrame>::read_into(TFrame& frame)
 {
     ifs_.read((char*)frame.getY().data, getYSize());

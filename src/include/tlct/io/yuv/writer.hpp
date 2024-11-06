@@ -5,13 +5,13 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/helper/constexpr/math.hpp"
-#include "tlct/io/yuv/frame.hpp"
+#include "tlct/io/concepts/frame.hpp"
 
 namespace tlct::_io::yuv {
 
 namespace fs = std::filesystem;
 
-template <typename TFrame_>
+template <concepts::CFrame TFrame_>
 class YuvWriter_
 {
 public:
@@ -30,7 +30,7 @@ private:
     std::ofstream ofs_;
 };
 
-template <typename TFrame>
+template <concepts::CFrame TFrame>
 void YuvWriter_<TFrame>::write(TFrame& frame)
 {
     ofs_.write((char*)frame.getY().data, frame.getYSize());
