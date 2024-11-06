@@ -43,11 +43,11 @@ private:
 
 GenericParamConfig GenericParamConfig::fromConfigMap(const ConfigMap& cfg_map)
 {
-    const auto views = cfg_map.get<int, "viewNum", 5>();
-    const auto start = cfg_map.get<int, "start_frame">();
-    const auto end = cfg_map.get<int, "end_frame">();
-    auto src_path = cfg_map.get<std::string, "RawImage_Path">();
-    auto dst_path = cfg_map.get<std::string, "Output_Path">();
+    const auto views = cfg_map.get<int, "views", 5>();
+    const auto start = cfg_map.get<int, "frameBegin">();
+    const auto end = cfg_map.get<int, "frameEnd">();
+    auto src_path = cfg_map.get<std::string, "inYuv">();
+    auto dst_path = cfg_map.get<std::string, "outDir">();
     return {views, {start, end}, std::move(src_path), std::move(dst_path)};
 }
 
