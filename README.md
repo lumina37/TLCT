@@ -12,16 +12,16 @@ tlct /path/to/param.cfg
 
 ### Generic Options
 
-| option          | type   | description                                                                                  |
-|-----------------|--------|----------------------------------------------------------------------------------------------|
-| pipeline        | int    | (Optional) The image is captured by Raytrix (0) or TSPC (1), defaults to 0                   |
-| Calibration_xml | string | The path of the calibration file                                                             |
-| RawImage_Path   | string | The glob pattern of the input images in C-printf style, will be filled with the frame index  |
-| Output_Path     | string | The glob pattern of the output images in C-printf style, will be filled with the frame index |
-| start_frame     | int    | The index of the start frame, left contains                                                  |
-| end_frame       | int    | The index of the end frame, right contains                                                   |
-| width           | int    | The pixel width of input image                                                               |
-| height          | int    | The pixel height of input image                                                              |
+| option          | type   | description                                                                                                       |
+|-----------------|--------|-------------------------------------------------------------------------------------------------------------------|
+| pipeline        | int    | (Optional) The image is captured by Raytrix (0) or TSPC (1), defaults to 0                                        |
+| Calibration_xml | string | The path of the calibration file                                                                                  |
+| RawImage_Path   | string | The path of the input yuv420 planar file                                                                          |
+| Output_Path     | string | The path of the output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv) |
+| start_frame     | int    | The index of the start frame, left contains, starts from zero                                                     |
+| end_frame       | int    | The index of the end frame, right NOT contains                                                                    |
+| width           | int    | The pixel width of input image                                                                                    |
+| height          | int    | The pixel height of input image                                                                                   |
 
 ### Fine-tune Options
 
@@ -42,7 +42,7 @@ pipeline                1
 Calibration_xml         Boys.xml
 RawImage_Path           Boys/src/Image%03d.png
 Output_Path             Boys/dst/frame%03d
-start_frame             1
+start_frame             0
 end_frame               300
 height                  2048
 width                   2048
@@ -63,9 +63,9 @@ See `cmake/options.cmake`
 
 ## Tested Complier Version
 
-+ gcc v12.1 ([\_\_has_trivial\_{copy/assign} behavior differs from documentation {gcc bug 59426}](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59426) fixed)
-+ clang v18 ([Inconsistencies with non-type template parameters {C++20/P1907R1}](https://wg21.link/P1907R1) implemented)
-+ msvc v19.26* (hard to test different version of msvc)
++ gcc v13
++ clang v18
++ msvc v19.29* (*hard to test different version of msvc)
 
 ## Related Document
 
