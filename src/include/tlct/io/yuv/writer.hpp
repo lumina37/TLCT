@@ -5,7 +5,7 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/helper/constexpr/math.hpp"
-#include "tlct/io/yuvp/frame.hpp"
+#include "tlct/io/yuv/frame.hpp"
 
 namespace tlct {
 

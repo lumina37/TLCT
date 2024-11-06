@@ -62,7 +62,14 @@ public:
 
     inline void renderInto(io::yuv::Yuv420pFrame& dst, int view_row, int view_col) const
     {
-        renderView(src_32f_, dst, layout_, patchsizes_, mv_params_, mv_cache_, view_row, view_col);
+        renderView(src_32f_, mv_cache_.output_image_u8, layout_, patchsizes_, mv_params_, mv_cache_, view_row,
+                   view_col);
+        cv::split(mv_cache_.output_image_u8, mv_cache_.output_image_u8_channels);
+        mv_cache_.output_image_u8_channels[0].copyTo(dst.getY());
+        cv::resize(mv_cache_.output_image_u8_channels[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
+                   0.0, 0.0, cv::INTER_AREA);
+        cv::resize(mv_cache_.output_image_u8_channels[2], dst.getV(), {(int)dst.getVWidth(), (int)dst.getVHeight()},
+                   0.0, 0.0, cv::INTER_AREA);
     };
 
 private:
@@ -107,8 +114,14 @@ void State::update(const io::yuv::Yuv420pFrame& src)
     layout_.processInto(src.getY(), src_channels_[0]);
     layout_.processInto(src.getU(), src_channels_[1]);
     layout_.processInto(src.getV(), src_channels_[2]);
-    cv::resize(src_channels_[1], src_channels_[1], {}, 2.0, 2.0, cv::INTER_CUBIC);
-    cv::resize(src_channels_[2], src_channels_[2], {}, 2.0, 2.0, cv::INTER_CUBIC);
+    if constexpr (io::yuv::Yuv420pFrame::Ushift != 0) {
+        constexpr int upsample = 1 << io::yuv::Yuv420pFrame::Ushift;
+        cv::resize(src_channels_[1], src_channels_[1], {}, upsample, upsample, cv::INTER_CUBIC);
+    }
+    if constexpr (io::yuv::Yuv420pFrame::Vshift != 0) {
+        constexpr int upsample = 1 << io::yuv::Yuv420pFrame::Vshift;
+        cv::resize(src_channels_[2], src_channels_[2], {}, upsample, upsample, cv::INTER_CUBIC);
+    };
     cv::Mat merged;
     cv::merge(src_channels_, CHANNELS, merged);
     mis_.update(src_channels_[0]);

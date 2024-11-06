@@ -1,3 +1,3 @@
 #pragma once
 
-#include "tlct/io/yuvp.hpp"
+#include "tlct/io/yuv.hpp"

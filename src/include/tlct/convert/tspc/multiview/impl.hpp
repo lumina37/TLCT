@@ -15,7 +15,7 @@ namespace tlct::_cvt::tspc {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::tspc;
 
-static inline void renderView(const cv::Mat& src, io::yuv::Yuv420pFrame& dst, const tcfg::Layout& layout,
+static inline void renderView(const cv::Mat& src, cv::Mat& dst, const tcfg::Layout& layout,
                               const std::vector<PsizeRecord>& patchsizes, const MvParams& params, MvCache& cache,
                               int view_row, int view_col)
 {
@@ -82,15 +82,10 @@ static inline void renderView(const cv::Mat& src, io::yuv::Yuv420pFrame& dst, co
                0.0, cv::INTER_AREA);
 
     if (layout.getRotation() > std::numbers::pi / 4.0) {
-        cv::transpose(cache.resized_normed_image_u8, cache.output_image_u8);
+        cv::transpose(cache.resized_normed_image_u8, dst);
     } else {
-        cache.output_image_u8 = cache.resized_normed_image_u8;
+        dst = cache.resized_normed_image_u8;
     }
-
-    cv::split(cache.output_image_u8, cache.output_image_u8_channels);
-    cache.output_image_u8_channels[0].copyTo(dst.getY());
-    cv::resize(cache.output_image_u8_channels[1], dst.getU(), {}, 0.5, 0.5, cv::INTER_AREA);
-    cv::resize(cache.output_image_u8_channels[2], dst.getV(), {}, 0.5, 0.5, cv::INTER_AREA);
 }
 
 } // namespace tlct::_cvt::tspc
