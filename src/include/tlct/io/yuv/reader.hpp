@@ -14,14 +14,14 @@ namespace _io::yuv {
 namespace fs = std::filesystem;
 
 template <typename TFrame_>
-class YuvpReader_
+class YuvReader_
 {
 public:
     using TFrame = TFrame_;
 
-    TLCT_API inline YuvpReader_(std::ifstream&& ifs, size_t ywidth, size_t yheight)
+    TLCT_API inline YuvReader_(std::ifstream&& ifs, size_t ywidth, size_t yheight)
         : ifs_(std::move(ifs)), ywidth_(ywidth), yheight_(yheight), ysize_(ywidth * yheight){};
-    TLCT_API static inline YuvpReader_ fromPath(const fs::path& fpath, size_t ywidth, size_t yheight)
+    TLCT_API static inline YuvReader_ fromPath(const fs::path& fpath, size_t ywidth, size_t yheight)
     {
         std::ifstream ifs{fpath, std::ios::binary};
         return {std::move(ifs), ywidth, yheight};
@@ -42,7 +42,7 @@ public:
         return total_size;
     };
 
-    TLCT_API inline YuvpReader_& skip(int n);
+    TLCT_API inline YuvReader_& skip(int n);
     TLCT_API inline TFrame read();
     TLCT_API inline void read_into(TFrame& frame);
 
@@ -54,14 +54,14 @@ private:
 };
 
 template <typename TFrame>
-YuvpReader_<TFrame>& YuvpReader_<TFrame>::skip(int n)
+YuvReader_<TFrame>& YuvReader_<TFrame>::skip(int n)
 {
     ifs_.seekg(n * getTotalSize());
     return *this;
 }
 
 template <typename TFrame>
-TFrame YuvpReader_<TFrame>::read()
+TFrame YuvReader_<TFrame>::read()
 {
     TFrame frame{getYWidth(), getYHeight()};
     ifs_.read((char*)frame.yptr_, getYSize());
@@ -71,15 +71,15 @@ TFrame YuvpReader_<TFrame>::read()
 }
 
 template <typename TFrame>
-void YuvpReader_<TFrame>::read_into(TFrame& frame)
+void YuvReader_<TFrame>::read_into(TFrame& frame)
 {
     ifs_.read((char*)frame.yptr_, getYSize());
     ifs_.read((char*)frame.uptr_, getUSize());
     ifs_.read((char*)frame.vptr_, getVSize());
 }
 
-using Yuv420pReader = YuvpReader_<Yuv420pFrame>;
-template class YuvpReader_<Yuv420pFrame>;
+using Yuv420pReader = YuvReader_<Yuv420pFrame>;
+template class YuvReader_<Yuv420pFrame>;
 
 } // namespace _io::yuv
 

@@ -15,16 +15,16 @@ namespace fs = std::filesystem;
 constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
 
 template <typename TFrame>
-class YuvpReader_;
+class YuvReader_;
 template <typename TFrame>
-class YuvpWriter_;
+class YuvWriter_;
 
 template <typename TElem_, size_t Ushift_, size_t Vshift_>
 class YuvFrame_
 {
 public:
-    friend class YuvpReader_<YuvFrame_>;
-    friend class YuvpWriter_<YuvFrame_>;
+    friend class YuvReader_<YuvFrame_>;
+    friend class YuvWriter_<YuvFrame_>;
 
     using TElem = TElem_;
     static constexpr size_t Ushift = Ushift_;

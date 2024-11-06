@@ -14,16 +14,16 @@ namespace _io::yuv {
 namespace fs = std::filesystem;
 
 template <typename TFrame_>
-class YuvpWriter_
+class YuvWriter_
 {
 public:
     using TFrame = TFrame_;
 
-    TLCT_API inline explicit YuvpWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
-    TLCT_API static inline YuvpWriter_ fromPath(const fs::path& fpath)
+    TLCT_API inline explicit YuvWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
+    TLCT_API static inline YuvWriter_ fromPath(const fs::path& fpath)
     {
         std::ofstream ofs{fpath, std::ios::binary};
-        return YuvpWriter_{std::move(ofs)};
+        return YuvWriter_{std::move(ofs)};
     }
 
     TLCT_API inline void write(TFrame& frame);
@@ -33,15 +33,15 @@ private:
 };
 
 template <typename TFrame>
-void YuvpWriter_<TFrame>::write(TFrame& frame)
+void YuvWriter_<TFrame>::write(TFrame& frame)
 {
     ofs_.write((char*)frame.yptr_, frame.getYSize());
     ofs_.write((char*)frame.uptr_, frame.getUSize());
     ofs_.write((char*)frame.vptr_, frame.getVSize());
 }
 
-using Yuv420pWriter = YuvpWriter_<Yuv420pFrame>;
-template class YuvpWriter_<Yuv420pFrame>;
+using Yuv420pWriter = YuvWriter_<Yuv420pFrame>;
+template class YuvWriter_<Yuv420pFrame>;
 
 } // namespace _io::yuv
 
