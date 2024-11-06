@@ -1,7 +1,7 @@
 include(FetchContent)
 
 # OpenCV
-find_package(OpenCV REQUIRED COMPONENTS imgcodecs imgproc)
+find_package(OpenCV REQUIRED COMPONENTS imgproc OPTIONAL_COMPONENTS imgcodecs)
 
 # pugixml
 set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml/archive/refs/tags/v1.14.tar.gz" CACHE STRING

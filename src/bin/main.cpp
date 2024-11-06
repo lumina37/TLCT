@@ -4,7 +4,6 @@
 #include <sstream>
 
 #include <argparse/argparse.hpp>
-#include <opencv2/imgcodecs.hpp>
 
 #include "tlct.hpp"
 
@@ -32,7 +31,7 @@ static inline void render(const tlct::ConfigMap& cfg_map)
     yuv_writers.reserve(total_writers);
     for (const auto i : rgs::views::iota(0, total_writers)) {
         std::stringstream filename_s;
-        filename_s << "view#" << std::setw(3) << std::setfill('0') << i << '-' << output_size.width << 'x'
+        filename_s << 'v' << std::setw(3) << std::setfill('0') << i << '-' << output_size.width << 'x'
                    << output_size.height << ".yuv";
         fs::path saveto_path = dstdir / filename_s.str();
         yuv_writers.emplace_back(tlct::io::yuv::Yuv420pWriter::fromPath(saveto_path));
