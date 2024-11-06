@@ -35,9 +35,9 @@ private:
 template <typename TFrame>
 void YuvWriter_<TFrame>::write(TFrame& frame)
 {
-    ofs_.write((char*)frame.yptr_, frame.getYSize());
-    ofs_.write((char*)frame.uptr_, frame.getUSize());
-    ofs_.write((char*)frame.vptr_, frame.getVSize());
+    ofs_.write((char*)frame.getY().data, frame.getYSize());
+    ofs_.write((char*)frame.getU().data, frame.getUSize());
+    ofs_.write((char*)frame.getV().data, frame.getVSize());
 }
 
 using Yuv420pWriter = YuvWriter_<Yuv420pFrame>;

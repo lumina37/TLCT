@@ -12,9 +12,6 @@ else ()
     set(TLCT_LIB_DEP_SCOPE "PUBLIC")
 
     set(TLCT_LIB_SRCS "lib.cpp")
-    if (PUGIXML_HEADER_ONLY)
-        list(APPEND TLCT_LIB_SRCS "${pugixml_SOURCE_DIR}/src/pugixml.cpp")
-    endif ()
 endif ()
 
 add_library(${TLCT_LIB_NAME} ${TLCT_LIB_TYPE} ${TLCT_LIB_SRCS})

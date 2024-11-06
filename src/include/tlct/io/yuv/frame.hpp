@@ -14,18 +14,10 @@ namespace fs = std::filesystem;
 
 constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
 
-template <typename TFrame>
-class YuvReader_;
-template <typename TFrame>
-class YuvWriter_;
-
 template <typename TElem_, size_t Ushift_, size_t Vshift_>
 class YuvFrame_
 {
 public:
-    friend class YuvReader_<YuvFrame_>;
-    friend class YuvWriter_<YuvFrame_>;
-
     using TElem = TElem_;
     static constexpr size_t Ushift = Ushift_;
     static constexpr size_t Vshift = Vshift_;
@@ -50,18 +42,14 @@ public:
     YuvFrame_ operator=(const YuvFrame_& rhs) = delete;
     TLCT_API inline YuvFrame_(YuvFrame_&& rhs) noexcept
         : ywidth_(rhs.ywidth_), yheight_(rhs.yheight_), ysize_(rhs.ysize_),
-          buffer_(std::exchange(rhs.buffer_, nullptr)), yptr_(std::exchange(rhs.yptr_, nullptr)),
-          uptr_(std::exchange(rhs.uptr_, nullptr)), vptr_(std::exchange(rhs.vptr_, nullptr)), y_(std::move(rhs.y_)),
-          u_(std::move(rhs.u_)), v_(std::move(rhs.v_)){};
+          buffer_(std::exchange(rhs.buffer_, nullptr)), y_(std::move(rhs.y_)), u_(std::move(rhs.u_)),
+          v_(std::move(rhs.v_)){};
     TLCT_API inline YuvFrame_& operator=(YuvFrame_&& rhs) noexcept
     {
         ywidth_ = rhs.ywidth_;
         yheight_ = rhs.yheight_;
         ysize_ = rhs.ysize_;
         buffer_ = std::exchange(rhs.buffer_, nullptr);
-        yptr_ = std::exchange(rhs.yptr_, nullptr);
-        uptr_ = std::exchange(rhs.uptr_, nullptr);
-        vptr_ = std::exchange(rhs.vptr_, nullptr);
         y_ = std::move(rhs.y_);
         u_ = std::move(rhs.u_);
         v_ = std::move(rhs.v_);
@@ -99,9 +87,6 @@ private:
     size_t yheight_;
     size_t ysize_;
     void* buffer_;
-    TElem* yptr_;
-    TElem* uptr_;
-    TElem* vptr_;
     cv::Mat y_;
     cv::Mat u_;
     cv::Mat v_;
@@ -136,13 +121,13 @@ void YuvFrame_<TElem, Ushift_, Vshift_>::alloc()
         const size_t total_size = aligned_ysize + aligned_usize + aligned_vsize + SIMD_FETCH_SIZE;
         buffer_ = std::malloc(total_size);
 
-        yptr_ = (TElem*)_hp::roundTo<SIMD_FETCH_SIZE>((size_t)buffer_);
-        uptr_ = (TElem*)((size_t)yptr_ + aligned_ysize);
-        vptr_ = (TElem*)((size_t)uptr_ + aligned_usize);
+        auto* yptr = (TElem*)_hp::roundTo<SIMD_FETCH_SIZE>((size_t)buffer_);
+        auto* uptr = (TElem*)((size_t)yptr + aligned_ysize);
+        auto* vptr = (TElem*)((size_t)uptr + aligned_usize);
 
-        y_ = cv::Mat((int)getYHeight(), (int)getYWidth(), cv::DataType<TElem>::type, (void*)yptr_);
-        u_ = cv::Mat((int)getUHeight(), (int)getUWidth(), cv::DataType<TElem>::type, (void*)uptr_);
-        v_ = cv::Mat((int)getVHeight(), (int)getVWidth(), cv::DataType<TElem>::type, (void*)vptr_);
+        y_ = cv::Mat((int)getYHeight(), (int)getYWidth(), cv::DataType<TElem>::type, (void*)yptr);
+        u_ = cv::Mat((int)getUHeight(), (int)getUWidth(), cv::DataType<TElem>::type, (void*)uptr);
+        v_ = cv::Mat((int)getVHeight(), (int)getVWidth(), cv::DataType<TElem>::type, (void*)vptr);
     }
 }
 

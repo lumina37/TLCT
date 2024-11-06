@@ -64,18 +64,18 @@ template <typename TFrame>
 TFrame YuvReader_<TFrame>::read()
 {
     TFrame frame{getYWidth(), getYHeight()};
-    ifs_.read((char*)frame.yptr_, getYSize());
-    ifs_.read((char*)frame.uptr_, getUSize());
-    ifs_.read((char*)frame.vptr_, getVSize());
+    ifs_.read((char*)frame.getY().data, getYSize());
+    ifs_.read((char*)frame.getU().data, getUSize());
+    ifs_.read((char*)frame.getV().data, getVSize());
     return frame;
 }
 
 template <typename TFrame>
 void YuvReader_<TFrame>::read_into(TFrame& frame)
 {
-    ifs_.read((char*)frame.yptr_, getYSize());
-    ifs_.read((char*)frame.uptr_, getUSize());
-    ifs_.read((char*)frame.vptr_, getVSize());
+    ifs_.read((char*)frame.getY().data, getYSize());
+    ifs_.read((char*)frame.getU().data, getUSize());
+    ifs_.read((char*)frame.getV().data, getVSize());
 }
 
 using Yuv420pReader = YuvReader_<Yuv420pFrame>;
