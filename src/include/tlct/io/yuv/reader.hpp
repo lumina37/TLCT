@@ -43,8 +43,8 @@ public:
     };
 
     TLCT_API inline YuvpReader_& skip(int n);
-    TLCT_API inline TFrame poll();
-    TLCT_API inline void poll_into(TFrame& frame);
+    TLCT_API inline TFrame read();
+    TLCT_API inline void read_into(TFrame& frame);
 
 private:
     std::ifstream ifs_;
@@ -61,7 +61,7 @@ YuvpReader_<TFrame>& YuvpReader_<TFrame>::skip(int n)
 }
 
 template <typename TFrame>
-TFrame YuvpReader_<TFrame>::poll()
+TFrame YuvpReader_<TFrame>::read()
 {
     TFrame frame{getYWidth(), getYHeight()};
     ifs_.read((char*)frame.yptr_, getYSize());
@@ -71,7 +71,7 @@ TFrame YuvpReader_<TFrame>::poll()
 }
 
 template <typename TFrame>
-void YuvpReader_<TFrame>::poll_into(TFrame& frame)
+void YuvpReader_<TFrame>::read_into(TFrame& frame)
 {
     ifs_.read((char*)frame.yptr_, getYSize());
     ifs_.read((char*)frame.uptr_, getUSize());

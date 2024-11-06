@@ -43,7 +43,7 @@ static inline void render(const tlct::ConfigMap& cfg_map)
     auto frame = tlct::io::yuv::Yuv420pFrame{src_size};
     auto mv = tlct::io::yuv::Yuv420pFrame{output_size};
     for (int fid = range.start; fid < range.end; fid++) {
-        yuv_reader.poll_into(frame);
+        yuv_reader.read_into(frame);
         state.update(frame);
 
         int view = 0;
