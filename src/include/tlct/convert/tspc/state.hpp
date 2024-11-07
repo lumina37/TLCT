@@ -118,11 +118,15 @@ void State_<TFrame>::update(const TFrame& src)
     if constexpr (TFrame::Ushift != 0) {
         constexpr int upsample = 1 << TFrame::Ushift;
         cv::resize(mv_cache_.rotated_srcs_[1], mv_cache_.srcs_[1], {}, upsample, upsample, cv::INTER_CUBIC);
+    } else {
+        mv_cache_.srcs_[1] = mv_cache_.rotated_srcs_[1];
     }
     if constexpr (TFrame::Vshift != 0) {
         constexpr int upsample = 1 << TFrame::Vshift;
         cv::resize(mv_cache_.rotated_srcs_[2], mv_cache_.srcs_[2], {}, upsample, upsample, cv::INTER_CUBIC);
-    };
+    } else {
+        mv_cache_.srcs_[2] = mv_cache_.rotated_srcs_[2];
+    }
 
     for (int i = 0; i < MvCache::CHANNELS; i++) {
         mv_cache_.srcs_[i].convertTo(mv_cache_.srcs_32f_[i], CV_32FC1);
