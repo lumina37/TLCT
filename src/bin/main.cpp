@@ -21,11 +21,14 @@ static inline void render(const tlct::ConfigMap& cfg_map)
 
     const auto src_size = spec_cfg.getImgSize();
     const auto output_size = state.getOutputSize();
-    auto yuv_reader = tlct::io::yuv::Yuv420pReader::fromPath(generic_cfg.getSrcPath(), src_size.width, src_size.height);
+
+    using TYuvReader = tlct::io::YuvReader_<typename TState::TFrame>;
+    using TYuvWriter = tlct::io::YuvWriter_<typename TState::TFrame>;
+    auto yuv_reader = TYuvReader::fromPath(generic_cfg.getSrcPath(), src_size.width, src_size.height);
 
     const fs::path& dstdir = generic_cfg.getDstPath();
     fs::create_directories(dstdir);
-    std::vector<tlct::io::yuv::Yuv420pWriter> yuv_writers;
+    std::vector<TYuvWriter> yuv_writers;
     const int total_writers = generic_cfg.getViews() * generic_cfg.getViews();
     yuv_writers.reserve(total_writers);
     for (const auto i : rgs::views::iota(0, total_writers)) {
@@ -33,14 +36,14 @@ static inline void render(const tlct::ConfigMap& cfg_map)
         filename_s << 'v' << std::setw(3) << std::setfill('0') << i << '-' << output_size.width << 'x'
                    << output_size.height << ".yuv";
         fs::path saveto_path = dstdir / filename_s.str();
-        yuv_writers.emplace_back(tlct::io::yuv::Yuv420pWriter::fromPath(saveto_path));
+        yuv_writers.emplace_back(TYuvWriter::fromPath(saveto_path));
     }
 
     const cv::Range range = generic_cfg.getRange();
     yuv_reader.skip(range.start);
 
-    auto frame = tlct::io::yuv::Yuv420pFrame{src_size};
-    auto mv = tlct::io::yuv::Yuv420pFrame{output_size};
+    auto frame = typename TState::TFrame{src_size};
+    auto mv = typename TState::TFrame{output_size};
     for (int fid = range.start; fid < range.end; fid++) {
         yuv_reader.read_into(frame);
         state.update(frame);
@@ -75,8 +78,8 @@ int main(int argc, char* argv[])
     const auto cfg_map = tlct::ConfigMap::fromPath(param_file_path);
 
     constexpr std::array<void (*)(const tlct::ConfigMap&), tlct::PIPELINE_COUNT> handlers{
-        render<tlct::raytrix::State>,
-        render<tlct::tspc::State>,
+        render<tlct::raytrix::StateYuv420>,
+        render<tlct::tspc::StateYuv420>,
     };
     const auto& handler = handlers[cfg_map.getPipelineType()];
 

@@ -146,7 +146,7 @@ static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels
     cv::Mat resized_patch;
     cv::Mat weighted_patch;
 
-    for (const int chan_id : rgs::views::iota(0, MvCache::CHANNELS)) {
+    for (const int chan_id : rgs::views::iota(0, (int)srcs.size())) {
         cache.render_canvas.setTo(std::numeric_limits<float>::epsilon());
         cache.weight_canvas.setTo(std::numeric_limits<float>::epsilon());
 

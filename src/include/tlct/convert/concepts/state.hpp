@@ -22,7 +22,8 @@ concept CState = requires {
     };
 } && requires {
     // Const methods
-    requires requires(const Self self, io::yuv::Yuv420pFrame& dst, int view_row, int view_col) {
+    requires io::concepts::CFrame<typename Self::TFrame>;
+    requires requires(const Self self, typename Self::TFrame& dst, int view_row, int view_col) {
         self.renderInto(dst, view_row, view_col);
     };
 } && requires {
@@ -32,7 +33,7 @@ concept CState = requires {
     };
 } && requires {
     // Non-const methods
-    requires requires(Self self, const io::yuv::Yuv420pFrame& src) { self.update(src); };
+    requires requires(Self self, const typename Self::TFrame& src) { self.update(src); };
 };
 
 } // namespace tlct::_cvt::concepts

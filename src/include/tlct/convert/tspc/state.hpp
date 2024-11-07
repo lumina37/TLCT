@@ -19,32 +19,34 @@ namespace tlct::_cvt::tspc {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::tspc;
 
-class State
+template <io::concepts::CFrame TFrame_>
+class State_
 {
 public:
     static constexpr int CHANNELS = 3;
 
     // Typename alias
+    using TFrame = TFrame_;
     using TParamConfig = tcfg::ParamConfig;
     using TLayout = TParamConfig::TLayout;
     using TSpecificConfig = TLayout::TSpecificConfig;
     using TMIs = MIs_<TLayout>;
 
     // Constructor
-    State() = delete;
-    State(const State& rhs) = delete;
-    State& operator=(const State& rhs) = delete;
-    TLCT_API inline State(State&& rhs) noexcept = default;
-    TLCT_API inline State& operator=(State&& rhs) noexcept = default;
-    TLCT_API inline State(TLayout&& layout, TSpecificConfig&& spec_cfg, TMIs&& mis,
-                          std::vector<PsizeRecord>&& prev_patchsizes, std::vector<PsizeRecord>&& patchsizes,
-                          PsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
+    State_() = delete;
+    State_(const State_& rhs) = delete;
+    State_& operator=(const State_& rhs) = delete;
+    TLCT_API inline State_(State_&& rhs) noexcept = default;
+    TLCT_API inline State_& operator=(State_&& rhs) noexcept = default;
+    TLCT_API inline State_(TLayout&& layout, TSpecificConfig&& spec_cfg, TMIs&& mis,
+                           std::vector<PsizeRecord>&& prev_patchsizes, std::vector<PsizeRecord>&& patchsizes,
+                           PsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
         : layout_(std::move(layout)), spec_cfg_(std::move(spec_cfg)), mis_(std::move(mis)),
           prev_patchsizes_(std::move(prev_patchsizes)), patchsizes_(std::move(patchsizes)),
           psize_params_(std::move(psize_params)), mv_params_(std::move(mv_params)), mv_cache_(std::move(mv_cache)){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
+    [[nodiscard]] TLCT_API static inline State_ fromParamCfg(const TParamConfig& param_cfg);
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept
@@ -57,9 +59,9 @@ public:
     };
 
     // Non-const methods
-    TLCT_API inline void update(const io::yuv::Yuv420pFrame& src);
+    TLCT_API inline void update(const TFrame& src);
 
-    inline void renderInto(io::yuv::Yuv420pFrame& dst, int view_row, int view_col) const
+    inline void renderInto(TFrame& dst, int view_row, int view_col) const
     {
         // mv_cache_.output_image_channels_u8[0]=dst.getY();
         renderView(mv_cache_.srcs_32f_, mv_cache_.output_image_channels_u8, layout_, patchsizes_, mv_params_, mv_cache_,
@@ -84,7 +86,8 @@ private:
     mutable MvCache mv_cache_;
 };
 
-State State::fromParamCfg(const TParamConfig& param_cfg)
+template <io::concepts::CFrame TFrame>
+State_<TFrame> State_<TFrame>::fromParamCfg(const TParamConfig& param_cfg)
 {
     const auto& calib_cfg = param_cfg.getCalibCfg();
     auto spec_cfg = param_cfg.getSpecificCfg();
@@ -104,19 +107,20 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
             std::move(patchsizes), std::move(psize_params), std::move(mv_params), std::move(mv_cache)};
 }
 
-void State::update(const io::yuv::Yuv420pFrame& src)
+template <io::concepts::CFrame TFrame>
+void State_<TFrame>::update(const TFrame& src)
 {
     layout_.processInto(src.getY(), mv_cache_.rotated_srcs_[0]);
     layout_.processInto(src.getU(), mv_cache_.rotated_srcs_[1]);
     layout_.processInto(src.getV(), mv_cache_.rotated_srcs_[2]);
 
     mv_cache_.srcs_[0] = mv_cache_.rotated_srcs_[0];
-    if constexpr (io::yuv::Yuv420pFrame::Ushift != 0) {
-        constexpr int upsample = 1 << io::yuv::Yuv420pFrame::Ushift;
+    if constexpr (TFrame::Ushift != 0) {
+        constexpr int upsample = 1 << TFrame::Ushift;
         cv::resize(mv_cache_.rotated_srcs_[1], mv_cache_.srcs_[1], {}, upsample, upsample, cv::INTER_CUBIC);
     }
-    if constexpr (io::yuv::Yuv420pFrame::Vshift != 0) {
-        constexpr int upsample = 1 << io::yuv::Yuv420pFrame::Vshift;
+    if constexpr (TFrame::Vshift != 0) {
+        constexpr int upsample = 1 << TFrame::Vshift;
         cv::resize(mv_cache_.rotated_srcs_[2], mv_cache_.srcs_[2], {}, upsample, upsample, cv::INTER_CUBIC);
     };
 
