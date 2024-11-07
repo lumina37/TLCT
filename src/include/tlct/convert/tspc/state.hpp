@@ -39,7 +39,7 @@ public:
     TLCT_API inline State(TLayout&& layout, TSpecificConfig&& spec_cfg, TMIs&& mis,
                           std::vector<PsizeRecord>&& prev_patchsizes, std::vector<PsizeRecord>&& patchsizes,
                           PsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
-        : src_32f_(), layout_(std::move(layout)), spec_cfg_(std::move(spec_cfg)), mis_(std::move(mis)),
+        : layout_(std::move(layout)), spec_cfg_(std::move(spec_cfg)), mis_(std::move(mis)),
           prev_patchsizes_(std::move(prev_patchsizes)), patchsizes_(std::move(patchsizes)),
           psize_params_(std::move(psize_params)), mv_params_(std::move(mv_params)), mv_cache_(std::move(mv_cache)){};
 
@@ -61,20 +61,18 @@ public:
 
     inline void renderInto(io::yuv::Yuv420pFrame& dst, int view_row, int view_col) const
     {
-        renderView(src_32f_, mv_cache_.output_image_u8, layout_, patchsizes_, mv_params_, mv_cache_, view_row,
-                   view_col);
-        cv::split(mv_cache_.output_image_u8, mv_cache_.output_image_u8_channels);
-        mv_cache_.output_image_u8_channels[0].copyTo(dst.getY());
-        cv::resize(mv_cache_.output_image_u8_channels[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
+        // mv_cache_.output_image_channels_u8[0]=dst.getY();
+        renderView(mv_cache_.srcs_32f_, mv_cache_.output_image_channels_u8, layout_, patchsizes_, mv_params_, mv_cache_,
+                   view_row, view_col);
+
+        mv_cache_.output_image_channels_u8[0].copyTo(dst.getY());
+        cv::resize(mv_cache_.output_image_channels_u8[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
                    0.0, 0.0, cv::INTER_AREA);
-        cv::resize(mv_cache_.output_image_u8_channels[2], dst.getV(), {(int)dst.getVWidth(), (int)dst.getVHeight()},
+        cv::resize(mv_cache_.output_image_channels_u8[2], dst.getV(), {(int)dst.getVWidth(), (int)dst.getVHeight()},
                    0.0, 0.0, cv::INTER_AREA);
     };
 
 private:
-    cv::Mat src_32f_;
-    cv::Mat src_channels_[CHANNELS];
-
     TLayout layout_;
     TSpecificConfig spec_cfg_;
     TMIs mis_;
@@ -108,20 +106,25 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
 
 void State::update(const io::yuv::Yuv420pFrame& src)
 {
-    layout_.processInto(src.getY(), src_channels_[0]);
-    layout_.processInto(src.getU(), src_channels_[1]);
-    layout_.processInto(src.getV(), src_channels_[2]);
+    layout_.processInto(src.getY(), mv_cache_.rotated_srcs_[0]);
+    layout_.processInto(src.getU(), mv_cache_.rotated_srcs_[1]);
+    layout_.processInto(src.getV(), mv_cache_.rotated_srcs_[2]);
+
+    mv_cache_.srcs_[0] = mv_cache_.rotated_srcs_[0];
     if constexpr (io::yuv::Yuv420pFrame::Ushift != 0) {
         constexpr int upsample = 1 << io::yuv::Yuv420pFrame::Ushift;
-        cv::resize(src_channels_[1], src_channels_[1], {}, upsample, upsample, cv::INTER_CUBIC);
+        cv::resize(mv_cache_.rotated_srcs_[1], mv_cache_.srcs_[1], {}, upsample, upsample, cv::INTER_CUBIC);
     }
     if constexpr (io::yuv::Yuv420pFrame::Vshift != 0) {
         constexpr int upsample = 1 << io::yuv::Yuv420pFrame::Vshift;
-        cv::resize(src_channels_[2], src_channels_[2], {}, upsample, upsample, cv::INTER_CUBIC);
+        cv::resize(mv_cache_.rotated_srcs_[2], mv_cache_.srcs_[2], {}, upsample, upsample, cv::INTER_CUBIC);
     };
-    cv::Mat merged;
-    cv::merge(src_channels_, CHANNELS, merged);
-    mis_.update(src_channels_[0]);
+
+    for (int i = 0; i < MvCache::CHANNELS; i++) {
+        mv_cache_.srcs_[i].convertTo(mv_cache_.srcs_32f_[i], CV_32FC1);
+    }
+
+    mis_.update(mv_cache_.srcs_32f_[0]);
 
     std::swap(prev_patchsizes_, patchsizes_);
     estimatePatchsizes(layout_, spec_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);

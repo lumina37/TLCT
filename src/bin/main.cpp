@@ -9,7 +9,6 @@
 
 namespace fs = std::filesystem;
 namespace rgs = std::ranges;
-namespace tn = tlct::tspc;
 
 template <tlct::concepts::CState TState>
 static inline void render(const tlct::ConfigMap& cfg_map)

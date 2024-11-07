@@ -105,11 +105,9 @@ MIs_<TLayout> MIs_<TLayout>::fromLayout(const TLayout& layout)
 template <tlct::cfg::concepts::CLayout TLayout>
 MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
 {
-    cv::Mat I_32f, I_2_32f;
-    src.convertTo(I_32f, CV_32S);
+    cv::Mat I_2_32f;
+    const cv::Mat& I_32f = src;
     cv::multiply(I_32f, I_32f, I_2_32f);
-    I_32f.convertTo(I_32f, CV_32F);
-    I_2_32f.convertTo(I_2_32f, CV_32F);
 
     auto item_it = items_.begin();
     auto* row_cursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
