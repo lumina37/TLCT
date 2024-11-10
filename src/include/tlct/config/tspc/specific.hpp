@@ -5,7 +5,6 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/concepts.hpp"
 #include "tlct/config/tspc/calib.hpp"
 
 namespace tlct::_cfg::tspc {
@@ -56,8 +55,6 @@ private:
     cv::Size imgsize_;
     int upsample_;
 };
-
-static_assert(concepts::CSpecificConfig<SpecificConfig>);
 
 SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
 {

@@ -1,7 +1,7 @@
 include(FetchContent)
 
 # OpenCV
-find_package(OpenCV REQUIRED COMPONENTS imgcodecs imgproc)
+find_package(OpenCV REQUIRED COMPONENTS imgproc OPTIONAL_COMPONENTS imgcodecs)
 
 # pugixml
 set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml/archive/refs/tags/v1.14.tar.gz" CACHE STRING
@@ -43,7 +43,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/lumina37/TLCT-test-data.git
-            GIT_TAG c00658e7fd16e174c8a0ff31abc76ac7e5cecd02
+            GIT_TAG b40166aaf38c5b0c42c19ea44ecc0a0339abbe1e
     )
     FetchContent_MakeAvailable(tlct-test-data)
 endif ()

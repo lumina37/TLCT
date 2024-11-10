@@ -13,6 +13,7 @@ using cfg::raytrix::SpecificConfig;
 
 using cvt::raytrix::FarNeighbors;
 using cvt::raytrix::NearNeighbors;
-using cvt::raytrix::State;
+using cvt::raytrix::State_;
+using cvt::raytrix::StateYuv420;
 
 } // namespace tlct::raytrix

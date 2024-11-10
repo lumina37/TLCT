@@ -9,54 +9,72 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/tspc.hpp"
-#include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/tspc/multiview.hpp"
 #include "tlct/convert/tspc/patchsize.hpp"
+#include "tlct/io.hpp"
 
 namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg::tspc;
 
-class State
+template <io::concepts::CFrame TFrame_>
+class State_
 {
 public:
     static constexpr int CHANNELS = 3;
 
     // Typename alias
+    using TFrame = TFrame_;
     using TParamConfig = tcfg::ParamConfig;
     using TLayout = TParamConfig::TLayout;
     using TSpecificConfig = TLayout::TSpecificConfig;
     using TMIs = MIs_<TLayout>;
 
     // Constructor
-    State() = delete;
-    State(const State& rhs) = delete;
-    State& operator=(const State& rhs) = delete;
-    TLCT_API inline State(State&& rhs) noexcept = default;
-    TLCT_API inline State& operator=(State&& rhs) noexcept = default;
-    TLCT_API inline State(TLayout&& layout, TSpecificConfig&& spec_cfg, TMIs&& mis,
-                          std::vector<PsizeRecord>&& prev_patchsizes, std::vector<PsizeRecord>&& patchsizes,
-                          PsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
-        : src_32f_(), layout_(std::move(layout)), spec_cfg_(std::move(spec_cfg)), mis_(std::move(mis)),
+    State_() = delete;
+    State_(const State_& rhs) = delete;
+    State_& operator=(const State_& rhs) = delete;
+    TLCT_API inline State_(State_&& rhs) noexcept = default;
+    TLCT_API inline State_& operator=(State_&& rhs) noexcept = default;
+    TLCT_API inline State_(TLayout&& layout, TSpecificConfig&& spec_cfg, TMIs&& mis,
+                           std::vector<PsizeRecord>&& prev_patchsizes, std::vector<PsizeRecord>&& patchsizes,
+                           PsizeParams&& psize_params, MvParams&& mv_params, MvCache&& mv_cache)
+        : layout_(std::move(layout)), spec_cfg_(std::move(spec_cfg)), mis_(std::move(mis)),
           prev_patchsizes_(std::move(prev_patchsizes)), patchsizes_(std::move(patchsizes)),
           psize_params_(std::move(psize_params)), mv_params_(std::move(mv_params)), mv_cache_(std::move(mv_cache)){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline State fromParamCfg(const TParamConfig& param_cfg);
+    [[nodiscard]] TLCT_API static inline State_ fromParamCfg(const TParamConfig& param_cfg);
+
+    // Const methods
+    [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept
+    {
+        if (layout_.getRotation() > std::numbers::pi / 4.0) {
+            return {mv_params_.output_height, mv_params_.output_width};
+        } else {
+            return {mv_params_.output_width, mv_params_.output_height};
+        }
+    };
 
     // Non-const methods
-    TLCT_API inline void update(const cv::Mat& src);
+    TLCT_API inline void update(const TFrame& src);
 
-    inline void renderInto(cv::Mat& dst, int view_row, int view_col) const
+    inline void renderInto(TFrame& dst, int view_row, int view_col) const
     {
-        renderView(src_32f_, dst, layout_, patchsizes_, mv_params_, mv_cache_, view_row, view_col);
+        // mv_cache_.output_image_channels_u8[0]=dst.getY();
+        renderView(mv_cache_.srcs_32f_, mv_cache_.output_image_channels_u8, layout_, patchsizes_, mv_params_, mv_cache_,
+                   view_row, view_col);
+
+        mv_cache_.output_image_channels_u8[0].copyTo(dst.getY());
+        cv::resize(mv_cache_.output_image_channels_u8[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
+                   0.0, 0.0, cv::INTER_AREA);
+        cv::resize(mv_cache_.output_image_channels_u8[2], dst.getV(), {(int)dst.getVWidth(), (int)dst.getVHeight()},
+                   0.0, 0.0, cv::INTER_AREA);
     };
 
 private:
-    cv::Mat src_32f_;
-
     TLayout layout_;
     TSpecificConfig spec_cfg_;
     TMIs mis_;
@@ -68,9 +86,8 @@ private:
     mutable MvCache mv_cache_;
 };
 
-static_assert(concepts::CState<State>);
-
-State State::fromParamCfg(const TParamConfig& param_cfg)
+template <io::concepts::CFrame TFrame>
+State_<TFrame> State_<TFrame>::fromParamCfg(const TParamConfig& param_cfg)
 {
     const auto& calib_cfg = param_cfg.getCalibCfg();
     auto spec_cfg = param_cfg.getSpecificCfg();
@@ -90,11 +107,32 @@ State State::fromParamCfg(const TParamConfig& param_cfg)
             std::move(patchsizes), std::move(psize_params), std::move(mv_params), std::move(mv_cache)};
 }
 
-void State::update(const cv::Mat& src)
+template <io::concepts::CFrame TFrame>
+void State_<TFrame>::update(const TFrame& src)
 {
-    layout_.processInto(src, src_32f_);
-    mis_.update(src_32f_);
-    src_32f_.convertTo(src_32f_, CV_32FC3);
+    layout_.processInto(src.getY(), mv_cache_.rotated_srcs_[0]);
+    layout_.processInto(src.getU(), mv_cache_.rotated_srcs_[1]);
+    layout_.processInto(src.getV(), mv_cache_.rotated_srcs_[2]);
+
+    mv_cache_.srcs_[0] = mv_cache_.rotated_srcs_[0];
+    if constexpr (TFrame::Ushift != 0) {
+        constexpr int upsample = 1 << TFrame::Ushift;
+        cv::resize(mv_cache_.rotated_srcs_[1], mv_cache_.srcs_[1], {}, upsample, upsample, cv::INTER_CUBIC);
+    } else {
+        mv_cache_.srcs_[1] = mv_cache_.rotated_srcs_[1];
+    }
+    if constexpr (TFrame::Vshift != 0) {
+        constexpr int upsample = 1 << TFrame::Vshift;
+        cv::resize(mv_cache_.rotated_srcs_[2], mv_cache_.srcs_[2], {}, upsample, upsample, cv::INTER_CUBIC);
+    } else {
+        mv_cache_.srcs_[2] = mv_cache_.rotated_srcs_[2];
+    }
+
+    for (int i = 0; i < MvCache::CHANNELS; i++) {
+        mv_cache_.srcs_[i].convertTo(mv_cache_.srcs_32f_[i], CV_32FC1);
+    }
+
+    mis_.update(mv_cache_.srcs_32f_[0]);
 
     std::swap(prev_patchsizes_, patchsizes_);
     estimatePatchsizes(layout_, spec_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);

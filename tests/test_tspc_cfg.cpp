@@ -17,27 +17,39 @@ TEST_CASE("cfg::tspc")
     auto cfg_map = tlct::ConfigMap::fromPath("config/TSPC/param.cfg");
     auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     const auto& calib_cfg = param_cfg.getCalibCfg();
+    const auto& generic_cfg = param_cfg.getGenericCfg();
     const auto& spec_cfg = param_cfg.getSpecificCfg();
     auto layout = tn::Layout::fromCalibAndSpecConfig(calib_cfg, spec_cfg);
 
-    SUBCASE("tspc::ParamConfig")
+    SUBCASE("tspc::GenericCfg")
     {
-        CHECK(param_cfg.getGenericCfg().getViews() == 5);
-        CHECK(param_cfg.getGenericCfg().getRange() == cv::Range(1, 2));
-        CHECK(param_cfg.getSpecificCfg().getImgSize() == cv::Size(4080, 3068));
-        const auto fmt_src = param_cfg.getGenericCfg().fmtSrcPath(25);
-        CHECK(fmt_src.string().c_str() == "./Cars/src/frame025.png");
-        const auto fmt_dst = param_cfg.getGenericCfg().fmtDstPath(25);
-        CHECK(fmt_dst.string().c_str() == "./Cars/dst/frame025");
+        CHECK(generic_cfg.getViews() == 5);
+        CHECK(generic_cfg.getRange() == cv::Range(1, 2));
+        const auto& src_path = generic_cfg.getSrcPath();
+        CHECK(src_path.string().c_str() == "./Cars/src.yuv");
+        const auto& dst_path = generic_cfg.getDstPath();
+        CHECK(dst_path.string().c_str() == "./Cars/dst");
+    }
+
+    SUBCASE("tspc::SpecificConfig")
+    {
+        constexpr double eps = 1e-3;
+
+        CHECK(spec_cfg.getUpsample() == 2);
+        CHECK(spec_cfg.getPsizeInflate() == doctest::Approx(2.0).epsilon(eps));
+        CHECK(spec_cfg.getMaxPsize() == doctest::Approx(0.5).epsilon(eps));
+        CHECK(spec_cfg.getPatternSize() == doctest::Approx(0.3).epsilon(eps));
+        CHECK(spec_cfg.getPsizeShortcutThreshold() == 4);
     }
 
     SUBCASE("tspc::Layout")
     {
+        constexpr double eps = 0.1;
+
         CHECK(layout.getImgWidth() == 3068);
         CHECK(layout.getImgHeight() == 4080);
         CHECK(layout.getImgSize() == cv::Size(3068, 4080));
 
-        constexpr double eps = 0.1;
         CHECK(layout.getDiameter() == doctest::Approx(70.).epsilon(eps));
         CHECK(layout.getRadius() == doctest::Approx(35.).epsilon(eps));
         CHECK(layout.getRotation() == doctest::Approx(1.57079632679).epsilon(eps));
@@ -57,6 +69,6 @@ TEST_CASE("cfg::tspc")
         CHECK(layout.getMICenter({0, 1}) == center_1_0);
 
         CHECK(layout.getMIRows() == 66);
-        CHECK(layout.getMIMinCols() == 43);
+        CHECK(layout.getMIMinCols() == 42);
     }
 }

@@ -27,6 +27,13 @@ template <std::unsigned_integral Tv>
     return (v & (v - 1)) == 0;
 }
 
+template <size_t base, std::integral T>
+    requires(isPowOf2(base))
+[[nodiscard]] static constexpr inline bool isMulOf(T v)
+{
+    return (v & (base - 1)) == 0;
+};
+
 template <size_t to, std::integral Tv>
     requires(isPowOf2(to))
 [[nodiscard]] static inline constexpr Tv alignUp(Tv v) noexcept
