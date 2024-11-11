@@ -46,7 +46,7 @@ GenericParamConfig GenericParamConfig::fromConfigMap(const ConfigMap& cfg_map)
     const auto views = cfg_map.get<int, "views", 5>();
     const auto start = cfg_map.get<int, "frameBegin">();
     const auto end = cfg_map.get<int, "frameEnd">();
-    auto src_path = cfg_map.get<std::string, "inYuv">();
+    auto src_path = cfg_map.get<std::string, "inFile">();
     auto dst_path = cfg_map.get<std::string, "outDir">();
     return {views, {start, end}, std::move(src_path), std::move(dst_path)};
 }

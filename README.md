@@ -17,7 +17,7 @@ tlct /path/to/param.cfg
 | pipeline   | int    | (Optional) The image is captured by Raytrix (0) or TSPC (1), defaults to 0                                        |
 | views      | int    | (Optional) The viewpoint number, defaults to 5                                                                    |
 | calibFile  | string | The path of the calibration file                                                                                  |
-| inYuv      | string | The path of the input yuv420 planar file                                                                          |
+| inFile     | string | The path of the input yuv420 planar file                                                                          |
 | outDir     | string | The path of the output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv) |
 | frameBegin | int    | The index of the start frame, left contains, starts from zero                                                     |
 | frameEnd   | int    | The index of the end frame, right NOT contains                                                                    |
@@ -42,7 +42,7 @@ All fine-tune options are optional
 pipeline                1
 views                   5
 calibFile               Boys.xml
-inYuv                   Boys/src/Image%03d.png
+inFile                  Boys/src/Image%03d.png
 outDir                  Boys/dst/frame%03d
 frameBegin              0
 frameEnd                300
