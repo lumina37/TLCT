@@ -42,8 +42,8 @@ All fine-tune options are optional
 pipeline                1
 views                   5
 calibFile               Boys.xml
-inFile                  Boys/src/Image%03d.png
-outDir                  Boys/dst/frame%03d
+inFile                  Boys/src.yuv
+outDir                  Boys/dst
 frameBegin              0
 frameEnd                300
 height                  2048
