@@ -59,10 +59,6 @@ psizeShortcutThreshold  4
 
 Must be utf-8
 
-## Compile Options
-
-See `cmake/options.cmake`
-
 ## Tested Complier Version
 
 + gcc v13
