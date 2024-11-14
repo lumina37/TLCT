@@ -24,6 +24,11 @@ set_target_properties(${TLCT_LIB_NAME} PROPERTIES
         RELEASE_POSTFIX "-${PROJECT_VERSION}"
 )
 target_compile_features(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} cxx_std_20)
+if (MSVC)
+    target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} /arch:AVX2)
+else ()
+    target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} -mavx2)
+endif ()
 target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
         $<INSTALL_INTERFACE:include>
