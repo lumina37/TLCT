@@ -14,7 +14,7 @@ TEST_CASE("cfg::tspc")
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
 
-    auto cfg_map = tlct::ConfigMap::fromPath("config/TSPC/param.cfg");
+    auto cfg_map = tlct::ConfigMap::fromPath("test/param.cfg");
     auto param_cfg = tn::ParamConfig::fromConfigMap(cfg_map);
     const auto& calib_cfg = param_cfg.getCalibCfg();
     const auto& generic_cfg = param_cfg.getGenericCfg();

@@ -11,7 +11,7 @@ TEST_CASE("CommonParamConfig")
 {
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
-    const auto config = tlct::ConfigMap::fromPath("config/TSPC/param.cfg");
+    const auto config = tlct::ConfigMap::fromPath("test/param.cfg");
 
     CHECK(config.isEmpty() == false);
     CHECK(config.getPipelineType() == tlct::PipelineType::TLCT);
