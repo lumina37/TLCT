@@ -55,16 +55,16 @@ patternSize             0.3
 psizeShortcutThreshold  4
 ```
 
+### Recommended Configs
+
+See [here](https://github.com/lumina37/TLCT-test-data/tree/master/recommend)
+
 ### Charset
 
-Must be utf-8
+The charset of the configuration file must be **utf-8**.
 
 ## Tested Complier Version
 
 + gcc v13
 + clang v18
 + msvc v19.29* (*hard to test different version of msvc)
-
-## Related Document
-
-[{m67487} Multiview Rendering for Tsinghua Single-focused Plenoptic Videos](https://dms.mpeg.expert/doc_end_user/current_document.php?id=92666)
