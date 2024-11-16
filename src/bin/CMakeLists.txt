@@ -22,4 +22,4 @@ set_target_properties(tlct-bin PROPERTIES
 )
 add_executable(tlct::bin ALIAS tlct-bin)
 
-# tlct_add_executable(dbg_draw "dbg_draw.cpp")
+tlct_add_executable(dbg_draw "dbg_draw.cpp")
