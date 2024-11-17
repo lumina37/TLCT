@@ -28,7 +28,7 @@ jobs:
       - name: Build
         run: |
           cmake -S . -B build -DTLCT_BUILD_TESTS=ON
-          cmake --build build --config Debug --parallel
+          cmake --build build --parallel
 
       - name: Run tests
         run: |
