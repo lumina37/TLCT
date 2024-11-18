@@ -49,15 +49,6 @@ namespace rgs = std::ranges;
     return intensity;
 }
 
-[[nodiscard]] static inline double textureIntensityLaplacian(const cv::Mat& src)
-{
-    cv::Mat edges;
-    cv::Laplacian(src, edges, -1);
-    edges = cv::abs(edges);
-    const double intensity = cv::sum(edges)[0] / edges.size().area();
-    return intensity;
-}
-
 [[nodiscard]] static inline uint64_t dhash(const cv::Mat& src)
 {
     constexpr int thumbnail_height = 8;

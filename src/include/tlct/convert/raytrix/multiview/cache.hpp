@@ -45,7 +45,6 @@ public:
     cv::Mat resized_normed_image_u8;
     TChannels output_image_channels_u8;
     cv::Mat texture_I;
-    cv::Mat rank;
     cv::Mat weights;
 };
 
