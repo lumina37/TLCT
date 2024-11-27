@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cmath>
+#include <limits>
 #include <numbers>
-#include <numeric>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>

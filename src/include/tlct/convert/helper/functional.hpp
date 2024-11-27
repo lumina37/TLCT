@@ -4,7 +4,7 @@
 #include <bit>
 #include <cmath>
 #include <cstdint>
-#include <numeric>
+#include <limits>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
