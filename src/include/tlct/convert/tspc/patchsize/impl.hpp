@@ -121,41 +121,13 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
                   const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index, const int offset)
 {
     const auto& anchor_mi = mis.getMI(offset);
-    const uint64_t hash = dhash(anchor_mi.I);
-    const auto& prev_psize = prev_patchsizes[offset];
-
-    if (prev_psize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        const int hash_dist = L1Dist(prev_psize.hash, hash);
-        if (hash_dist <= spec_cfg.getPsizeShortcutThreshold()) {
-            return {prev_psize.psize, hash};
-        }
-    }
+    const uint64_t hash = 0;
 
     WrapSSIM wrap_anchor{anchor_mi};
     const auto neighbors = Neighbors::fromLayoutAndIndex(layout, index);
     const auto psize_metric = estimateWithNeighbor(layout, params, mis, neighbors, wrap_anchor);
     double max_matric = psize_metric.metric;
     int best_psize = psize_metric.psize;
-
-    for (const auto direction : {
-             Neighbors::Direction::UPLEFT,
-             Neighbors::Direction::UPRIGHT,
-             Neighbors::Direction::LEFT,
-         }) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const auto ref_idx = neighbors.getNeighborIdx(direction);
-        const int ref_offset = ref_idx.y * layout.getMIMaxCols() + ref_idx.x;
-        const int ref_psize = patchsizes[ref_offset].psize;
-        const auto ref_psize_metric = evaluatePsize(layout, params, mis, neighbors, wrap_anchor, ref_psize);
-
-        if (ref_psize_metric.metric > max_matric) {
-            max_matric = ref_psize_metric.metric;
-            best_psize = ref_psize_metric.psize;
-        }
-    }
 
     return {best_psize, hash};
 }
