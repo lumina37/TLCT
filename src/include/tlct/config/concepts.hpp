@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tlct/config/concepts/calib.hpp"
-#include "tlct/config/concepts/factory.hpp"
 #include "tlct/config/concepts/layout.hpp"
 #include "tlct/config/concepts/specific.hpp"
 

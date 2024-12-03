@@ -21,8 +21,7 @@ public:
     TLCT_API inline GenericParamConfig& operator=(const GenericParamConfig& rhs) = default;
     TLCT_API inline GenericParamConfig(GenericParamConfig&& rhs) noexcept = default;
     TLCT_API inline GenericParamConfig& operator=(GenericParamConfig&& rhs) noexcept = default;
-    TLCT_API inline GenericParamConfig(int views, cv::Range range, std::string&& src_path,
-                                       std::string&& dst_path) noexcept
+    TLCT_API inline GenericParamConfig(int views, cv::Range range, fs::path&& src_path, fs::path&& dst_path) noexcept
         : views_(views), range_(range), src_path_(std::move(src_path)), dst_path_(std::move(dst_path)){};
 
     // Initialize from
@@ -43,12 +42,12 @@ private:
 
 GenericParamConfig GenericParamConfig::fromConfigMap(const ConfigMap& cfg_map)
 {
-    const auto views = cfg_map.get<int, "views", 5>();
-    const auto start = cfg_map.get<int, "frameBegin">();
-    const auto end = cfg_map.get<int, "frameEnd">();
-    auto src_path = cfg_map.get<std::string, "inFile">();
-    auto dst_path = cfg_map.get<std::string, "outDir">();
-    return {views, {start, end}, std::move(src_path), std::move(dst_path)};
+    const auto views = cfg_map.get<"views">(5);
+    const auto start = cfg_map.get<"frameBegin", int>();
+    const auto end = cfg_map.get<"frameEnd", int>();
+    auto src_path = cfg_map.get<"inFile", std::string_view>();
+    auto dst_path = cfg_map.get<"outDir", std::string_view>();
+    return {views, {start, end}, src_path, dst_path};
 }
 
 } // namespace tlct::_cfg

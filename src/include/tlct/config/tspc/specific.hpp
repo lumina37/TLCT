@@ -58,14 +58,13 @@ private:
 
 SpecificConfig SpecificConfig::fromConfigMap(const ConfigMap& cfg_map)
 {
-    const auto width = cfg_map.get<int, "width">();
-    const auto height = cfg_map.get<int, "height">();
-    const auto upsample = cfg_map.get<int, "upsample", DEFAULT_UPSAMPLE>();
-    const auto psize_inflate = cfg_map.get<double, "psizeInflate", DEFAULT_PSIZE_INFLATE>();
-    const auto max_psize = cfg_map.get<double, "maxPsize", DEFAULT_MAX_PSIZE>();
-    const auto pattern_size = cfg_map.get<double, "patternSize", DEFAULT_PATTERN_SIZE>();
-    const auto psize_shortcut_threshold =
-        cfg_map.get<int, "psizeShortcutThreshold", DEFAULT_PSIZE_SHORTCUT_THRESHOLD>();
+    const auto width = cfg_map.get<"width", int>();
+    const auto height = cfg_map.get<"height", int>();
+    const auto upsample = cfg_map.get<"upsample">(DEFAULT_UPSAMPLE);
+    const auto psize_inflate = cfg_map.get<"psizeInflate">(DEFAULT_PSIZE_INFLATE);
+    const auto max_psize = cfg_map.get<"maxPsize">(DEFAULT_MAX_PSIZE);
+    const auto pattern_size = cfg_map.get<"patternSize">(DEFAULT_PATTERN_SIZE);
+    const auto psize_shortcut_threshold = cfg_map.get<"psizeShortcutThreshold">(DEFAULT_PSIZE_SHORTCUT_THRESHOLD);
     return {{width, height}, upsample, psize_inflate, max_psize, pattern_size, psize_shortcut_threshold};
 }
 

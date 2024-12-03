@@ -9,7 +9,7 @@
 namespace fs = std::filesystem;
 namespace tn = tlct::tspc;
 
-TEST_CASE("cfg::tspc")
+TEST_CASE("tlct::cfg::tspc")
 {
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
@@ -21,7 +21,7 @@ TEST_CASE("cfg::tspc")
     const auto& spec_cfg = param_cfg.getSpecificCfg();
     auto layout = tn::Layout::fromCalibAndSpecConfig(calib_cfg, spec_cfg);
 
-    SUBCASE("tspc::GenericCfg")
+    SUBCASE("GenericCfg")
     {
         CHECK(generic_cfg.getViews() == 5);
         CHECK(generic_cfg.getRange() == cv::Range(1, 2));
@@ -31,7 +31,7 @@ TEST_CASE("cfg::tspc")
         CHECK(dst_path.string().c_str() == "./Cars/dst");
     }
 
-    SUBCASE("tspc::SpecificConfig")
+    SUBCASE("SpecificConfig")
     {
         constexpr double eps = 1e-3;
 
@@ -42,7 +42,7 @@ TEST_CASE("cfg::tspc")
         CHECK(spec_cfg.getPsizeShortcutThreshold() == 4);
     }
 
-    SUBCASE("tspc::Layout")
+    SUBCASE("Layout")
     {
         constexpr double eps = 0.1;
 

@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 0.16.0.4
+        VERSION 0.16.0.5
         LANGUAGES CXX
 )
 
@@ -34,7 +34,6 @@ find_package(OpenCV REQUIRED COMPONENTS imgproc OPTIONAL_COMPONENTS imgcodecs)
 set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml/archive/refs/tags/v1.14.tar.gz" CACHE STRING
         "Specifies the path of pugixml")
 set(PUGIXML_NO_XPATH ON CACHE BOOL "")
-set(PUGIXML_NO_EXCEPTIONS ON CACHE BOOL "")
 set(PUGIXML_NO_STL ON CACHE BOOL "")
 
 FetchContent_Declare(
