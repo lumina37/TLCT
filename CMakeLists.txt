@@ -103,30 +103,32 @@ if (TLCT_BUILD_TESTS)
 endif ()
 
 # Install
-include(CMakePackageConfigHelpers)
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    include(CMakePackageConfigHelpers)
 
-write_basic_package_version_file(
-        "${PROJECT_NAME}-config-version.cmake"
-        VERSION ${PROJECT_VERSION}
-        COMPATIBILITY ExactVersion
-)
+    write_basic_package_version_file(
+            "${PROJECT_NAME}-config-version.cmake"
+            VERSION ${PROJECT_VERSION}
+            COMPATIBILITY ExactVersion
+    )
 
-configure_package_config_file(
-        "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in"
-        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-        INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
-)
+    configure_package_config_file(
+            "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in"
+            "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+            INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+    )
 
-install(TARGETS ${PROJECT_NAME}-lib ${PROJECT_NAME}-bin
-        EXPORT ${PROJECT_NAME}Targets
-)
-install(EXPORT ${PROJECT_NAME}Targets
-        FILE ${PROJECT_NAME}Targets.cmake
-        NAMESPACE tlct::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
-install(FILES
-        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
+    install(TARGETS ${PROJECT_NAME}-lib ${PROJECT_NAME}-bin
+            EXPORT ${PROJECT_NAME}Targets
+    )
+    install(EXPORT ${PROJECT_NAME}Targets
+            FILE ${PROJECT_NAME}Targets.cmake
+            NAMESPACE tlct::
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    )
+    install(FILES
+            "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+            "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    )
+endif ()
