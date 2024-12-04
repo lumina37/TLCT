@@ -68,7 +68,7 @@ namespace tlct::_cvt {
 [[nodiscard]] static inline cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner,
                                                               const double width) noexcept
 {
-    const int width_i = (int)std::ceil(width);
+    const int width_i = (int)std::round(width);
     cv::Mat roi = src({corner.x, corner.y, width_i, width_i});
     return roi;
 }
