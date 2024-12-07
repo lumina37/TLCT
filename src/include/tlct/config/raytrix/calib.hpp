@@ -80,7 +80,8 @@ CalibConfig CalibConfig::fromXMLPath(std::string_view path)
     const auto ret = doc.load_file(path.data(), pugi::parse_minimal, pugi::encoding_utf8);
     if (!ret) [[unlikely]] {
         std::stringstream err;
-        err << "Failed to load `raytrix::CalibConfig` from `" << path << "`!" << std::endl;
+        err << "Failed to load `raytrix::CalibConfig` from `" << path << "`! Reason: " << ret.description()
+            << ", at offset " << ret.offset << '.';
         throw std::runtime_error{err.str()};
     }
     return CalibConfig::fromXMLDoc(doc);

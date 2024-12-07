@@ -75,15 +75,15 @@ int main(int argc, char* argv[])
     }
 
     const auto& param_file_path = program.get<std::string>("param_file_path");
-    const auto cfg_map = tlct::ConfigMap::fromPath(param_file_path);
 
     constexpr std::array<void (*)(const tlct::ConfigMap&), tlct::PIPELINE_COUNT> handlers{
         render<tlct::raytrix::StateYuv420>,
         render<tlct::tspc::StateYuv420>,
     };
-    const auto& handler = handlers[cfg_map.getPipelineType()];
 
     try {
+        const auto cfg_map = tlct::ConfigMap::fromPath(param_file_path);
+        const auto& handler = handlers[cfg_map.getPipelineType()];
         handler(cfg_map);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
