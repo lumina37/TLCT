@@ -15,10 +15,10 @@
 namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
-namespace tcfg = tlct::cfg::tspc;
+namespace tcfg = tlct::cfg;
 
-[[nodiscard]] static inline PsizeMetric evaluatePsize(const tcfg::Layout& layout, const PsizeParams& params,
-                                                      const MIs_<tcfg::Layout>& mis, const Neighbors& neighbors,
+[[nodiscard]] static inline PsizeMetric evaluatePsize(const tcfg::tspc::Layout& layout, const PsizeParams& params,
+                                                      const MIs_<tcfg::tspc::Layout>& mis, const Neighbors& neighbors,
                                                       WrapSSIM& wrap_anchor, const int psize)
 {
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
@@ -32,14 +32,14 @@ namespace tcfg = tlct::cfg::tspc;
         }
 
         const cv::Point2d anchor_shift =
-            -_hp::sgn(tcfg::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction) * params.pattern_shift;
+            -_hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction) * params.pattern_shift;
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
 
         const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
-        const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction);
+        const cv::Point2d match_step = _hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction);
         cv::Point2d cmp_shift = anchor_shift + match_step * psize;
         const cv::Rect neib_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
         wrap_neib.updateRoi(neib_roi);
@@ -55,9 +55,9 @@ namespace tcfg = tlct::cfg::tspc;
 }
 
 template <concepts::CNeighbors TNeighbors>
-[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const tcfg::Layout& layout, const PsizeParams& params,
-                                                             const MIs_<tcfg::Layout>& mis, const TNeighbors& neighbors,
-                                                             WrapSSIM& wrap_anchor)
+[[nodiscard]] static inline PsizeMetric
+estimateWithNeighbor(const tcfg::tspc::Layout& layout, const PsizeParams& params, const MIs_<tcfg::tspc::Layout>& mis,
+                     const TNeighbors& neighbors, WrapSSIM& wrap_anchor)
 {
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
     const int max_shift = (int)(params.pattern_shift * 2);
@@ -73,14 +73,14 @@ template <concepts::CNeighbors TNeighbors>
         }
 
         const cv::Point2d anchor_shift =
-            -_hp::sgn(tcfg::Layout::IS_KEPLER) * TNeighbors::getUnitShift(direction) * params.pattern_shift;
+            -_hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * TNeighbors::getUnitShift(direction) * params.pattern_shift;
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
 
         const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
-        const cv::Point2d match_step = _hp::sgn(tcfg::Layout::IS_KEPLER) * TNeighbors::getUnitShift(direction);
+        const cv::Point2d match_step = _hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * TNeighbors::getUnitShift(direction);
         cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
 
         int best_psize = 0;
@@ -116,9 +116,10 @@ template <concepts::CNeighbors TNeighbors>
 }
 
 [[nodiscard]] static inline PsizeRecord
-estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfig& spec_cfg, const PsizeParams& params,
-                  const MIs_<tcfg::Layout>& mis, const std::vector<PsizeRecord>& patchsizes,
-                  const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index, const int offset)
+estimatePatchsize(const tcfg::tspc::Layout& layout, const tcfg::CommonConfig::Convert& cvt_cfg,
+                  const PsizeParams& params, const MIs_<tcfg::tspc::Layout>& mis,
+                  const std::vector<PsizeRecord>& patchsizes, const std::vector<PsizeRecord>& prev_patchsizes,
+                  const cv::Point index, const int offset)
 {
     const auto& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
@@ -126,7 +127,7 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
 
     if (prev_psize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
         const int hash_dist = L1Dist(prev_psize.hash, hash);
-        if (hash_dist <= spec_cfg.getPsizeShortcutThreshold()) {
+        if (hash_dist <= cvt_cfg.psize_shortcut_threshold) {
             return {prev_psize.psize, hash};
         }
     }
@@ -160,8 +161,8 @@ estimatePatchsize(const tcfg::Layout& layout, const typename tcfg::SpecificConfi
     return {best_psize, hash};
 }
 
-static inline void estimatePatchsizes(const tcfg::Layout& layout, const typename tcfg::SpecificConfig& spec_cfg,
-                                      const PsizeParams& params, const MIs_<tcfg::Layout>& mis,
+static inline void estimatePatchsizes(const tcfg::tspc::Layout& layout, const tcfg::CommonConfig::Convert& cvt_cfg,
+                                      const PsizeParams& params, const MIs_<tcfg::tspc::Layout>& mis,
                                       const std::vector<PsizeRecord>& prev_patchsizes,
                                       std::vector<PsizeRecord>& patchsizes)
 {
@@ -171,7 +172,7 @@ static inline void estimatePatchsizes(const tcfg::Layout& layout, const typename
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const cv::Point index{col, row};
             const auto& psize =
-                estimatePatchsize(layout, spec_cfg, params, mis, patchsizes, prev_patchsizes, index, offset);
+                estimatePatchsize(layout, cvt_cfg, params, mis, patchsizes, prev_patchsizes, index, offset);
             patchsizes[offset] = psize;
             offset++;
         }

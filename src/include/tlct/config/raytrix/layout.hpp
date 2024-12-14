@@ -5,15 +5,16 @@
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
+#include <toml++/toml.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/config/raytrix/calib.hpp"
-#include "tlct/config/raytrix/specific.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cfg::raytrix {
 
 namespace rgs = std::ranges;
+
+static constexpr int LEN_TYPE_NUM = 3;
 
 class Layout
 {
@@ -21,29 +22,21 @@ public:
     static constexpr bool IS_KEPLER = false;
 
     // Typename alias
-    using TCalibConfig = CalibConfig;
-    using TSpecificConfig = SpecificConfig;
     using TIdx2Type = std::array<std::array<int, LEN_TYPE_NUM>, 2>;
     using TMiCols = std::array<int, 2>;
 
     // Constructor
     TLCT_API inline Layout() noexcept
-        : left_top_(), is_out_shift_(), x_unit_shift_(), y_unit_shift_(), imgsize_(), mirows_(), micols_(), idx2type_(),
-          diameter_(), radius_(), rotation_(), upsample_(1){};
+        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), transpose_(), left_top_(), is_out_shift_(),
+          x_unit_shift_(), y_unit_shift_(), mirows_(), micols_(), idx2type_(), upsample_(1){};
     TLCT_API inline Layout(const Layout& rhs) noexcept = default;
     TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
     TLCT_API inline Layout(Layout&& rhs) noexcept = default;
     TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
-    TLCT_API inline Layout(cv::Point2d left_top, bool is_out_shift, double x_unit_shift, double y_unit_shift,
-                           cv::Size imgsize, int mirows, TMiCols micols, TIdx2Type idx2type, double diameter,
-                           double rotation) noexcept
-        : left_top_(left_top), is_out_shift_(is_out_shift), x_unit_shift_(x_unit_shift), y_unit_shift_(y_unit_shift),
-          imgsize_(imgsize), mirows_(mirows), micols_(micols), idx2type_(idx2type), diameter_(diameter),
-          radius_(diameter / 2.0), rotation_(rotation), upsample_(1){};
+    TLCT_API inline Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromCalibAndSpecConfig(const TCalibConfig& calib_cfg,
-                                                                       const TSpecificConfig& spec_cfg);
+    [[nodiscard]] TLCT_API static inline Layout fromToml(const toml::table& table);
 
     // Non-const methods
     TLCT_API inline Layout& upsample(int factor) noexcept;
@@ -52,11 +45,12 @@ public:
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
     [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
+    [[nodiscard]] TLCT_API inline cv::Size getRawImgSize() const noexcept { return raw_imgsize_; };
     [[nodiscard]] TLCT_API inline int getMIType(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API inline int getMIType(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
-    [[nodiscard]] TLCT_API inline double getRotation() const noexcept { return rotation_; };
+    [[nodiscard]] TLCT_API inline bool isTranspose() const noexcept { return transpose_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
@@ -70,13 +64,14 @@ public:
     TLCT_API inline void processInto(const cv::Mat& src, cv::Mat& dst) const;
 
 private:
+    cv::Size imgsize_;
+    cv::Size raw_imgsize_;
+    double diameter_;
+    double radius_;
+    bool transpose_;
     cv::Point2d left_top_;
     double x_unit_shift_;
     double y_unit_shift_;
-    double diameter_;
-    double radius_;
-    double rotation_;
-    cv::Size imgsize_;
     int mirows_;
     TMiCols micols_;
     TIdx2Type idx2type_;
@@ -84,67 +79,18 @@ private:
     bool is_out_shift_;
 };
 
-Layout Layout::fromCalibAndSpecConfig(const TCalibConfig& calib_cfg, const TSpecificConfig& spec_cfg)
+Layout Layout::fromToml(const toml::table& table)
 {
-    const double diameter = calib_cfg.getDiameter();
-    const auto offset = calib_cfg.getOffset();
-    auto imgsize = spec_cfg.getImgSize();
+    const auto node2point = [](toml::node_view<const toml::node> node) {
+        return cv::Point2d{node[0].value<double>().value(), node[1].value<double>().value()};
+    };
 
-    cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};
+    cv::Size imgsize{table["width"].value<int>().value(), table["height"].value<int>().value()};
+    const double diameter = table["diameter"].value<double>().value();
+    const bool transpose = table["transpose"].value_or(false);
+    cv::Point2d offset = node2point(table["offset"]);
 
-    if (calib_cfg.getRotation() > std::numbers::pi / 4.0) {
-        std::swap(imgsize.height, imgsize.width);
-        std::swap(center_mi.x, center_mi.y);
-    }
-
-    const double x_unit_shift = diameter;
-    const double y_unit_shift = diameter * std::numbers::sqrt3 / 2.0;
-    const double radius = diameter / 2.0;
-    const int center_mi_xidx = (int)((center_mi.x - radius) / x_unit_shift);
-    const int center_mi_yidx = (int)((center_mi.y - radius) / y_unit_shift);
-
-    bool is_out_shift;
-    cv::Point2d left_top;
-    const double left_x = center_mi.x - x_unit_shift * center_mi_xidx;
-    if (center_mi_yidx % 2 == 0) {
-        left_top.x = left_x;
-        if (left_top.x > diameter) {
-            is_out_shift = true;
-        } else {
-            is_out_shift = false;
-        }
-    } else {
-        if (left_x > diameter) {
-            left_top.x = left_x - radius;
-            is_out_shift = false;
-        } else {
-            left_top.x = left_x + radius;
-            is_out_shift = true;
-        }
-    }
-    left_top.y = center_mi.y - std::floor((center_mi.y - y_unit_shift / 2.0) / y_unit_shift) * y_unit_shift;
-
-    TMiCols micols;
-    const double mi_1_0_x = left_top.x - x_unit_shift / 2.0 * _hp::sgn(is_out_shift);
-    micols[0] = (int)(((double)imgsize.width - left_top.x - x_unit_shift / 2.0) / x_unit_shift) + 1;
-    micols[1] = (int)(((double)imgsize.width - mi_1_0_x - x_unit_shift / 2.0) / x_unit_shift) + 1;
-    const int mirows = (int)(((double)imgsize.height - left_top.y - y_unit_shift / 2.0) / y_unit_shift) + 1;
-
-    TIdx2Type idx2type{};
-    const bool is_odd_yidx = center_mi_yidx % 2;
-    for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
-        const int ofs = calib_cfg.getLenOffsets()[type];
-        const int idx = (center_mi_xidx + ofs + LEN_TYPE_NUM) % LEN_TYPE_NUM;
-        idx2type[is_odd_yidx][idx] = type;
-    }
-    const bool is_another_row_on_left = is_odd_yidx ^ is_out_shift;
-    for (const int idx : rgs::views::iota(0, LEN_TYPE_NUM)) {
-        const int type = idx2type[is_odd_yidx][(idx + 2 - is_another_row_on_left) % 3];
-        idx2type[!is_odd_yidx][idx] = type;
-    }
-
-    return {left_top, is_out_shift, x_unit_shift, y_unit_shift, imgsize,
-            mirows,   micols,       idx2type,     diameter,     calib_cfg.getRotation()};
+    return {imgsize, diameter, transpose, offset};
 }
 
 Layout& Layout::upsample(int factor) noexcept
@@ -182,8 +128,7 @@ void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
 {
     dst = src;
 
-    const double rotation = getRotation();
-    if (rotation > std::numbers::pi / 4.0) {
+    if (isTranspose()) {
         cv::Mat transposed_src;
         cv::transpose(src, transposed_src);
         dst = std::move(transposed_src);
@@ -194,6 +139,57 @@ void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
         cv::Mat upsampled_src;
         cv::resize(dst, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
         dst = std::move(upsampled_src);
+    }
+}
+
+Layout::Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept
+    : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), transpose_(transpose), upsample_(1)
+{
+    cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};
+
+    if (isTranspose()) {
+        std::swap(imgsize.height, imgsize.width);
+        std::swap(center_mi.x, center_mi.y);
+    }
+    imgsize_ = imgsize;
+
+    x_unit_shift_ = diameter;
+    y_unit_shift_ = diameter * std::numbers::sqrt3 / 2.0;
+    const int center_mi_xidx = (int)((center_mi.x - radius_) / x_unit_shift_);
+    const int center_mi_yidx = (int)((center_mi.y - radius_) / y_unit_shift_);
+
+    const double left_x = center_mi.x - x_unit_shift_ * center_mi_xidx;
+    if (center_mi_yidx % 2 == 0) {
+        left_top_.x = left_x;
+        if (left_top_.x > diameter) {
+            is_out_shift_ = true;
+        } else {
+            is_out_shift_ = false;
+        }
+    } else {
+        if (left_x > diameter) {
+            left_top_.x = left_x - radius_;
+            is_out_shift_ = false;
+        } else {
+            left_top_.x = left_x + radius_;
+            is_out_shift_ = true;
+        }
+    }
+    left_top_.y = center_mi.y - std::floor((center_mi.y - y_unit_shift_ / 2.0) / y_unit_shift_) * y_unit_shift_;
+
+    const double mi_1_0_x = left_top_.x - x_unit_shift_ / 2.0 * _hp::sgn(is_out_shift_);
+    micols_[0] = (int)(((double)imgsize.width - left_top_.x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
+    micols_[1] = (int)(((double)imgsize.width - mi_1_0_x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
+    mirows_ = (int)(((double)imgsize.height - left_top_.y - y_unit_shift_ / 2.0) / y_unit_shift_) + 1;
+
+    const bool is_odd_yidx = center_mi_yidx % 2;
+    for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
+        idx2type_[is_odd_yidx][type] = type;
+    }
+    const bool is_another_row_on_left = is_odd_yidx ^ is_out_shift_;
+    for (const int idx : rgs::views::iota(0, LEN_TYPE_NUM)) {
+        const int type = idx2type_[is_odd_yidx][(idx + 2 - is_another_row_on_left) % 3];
+        idx2type_[!is_odd_yidx][idx] = type;
     }
 }
 

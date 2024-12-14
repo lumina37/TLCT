@@ -9,16 +9,17 @@
 
 #include "tlct/config/tspc.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/tspc/patchsize/neighbors.hpp"
 #include "tlct/convert/tspc/patchsize/params.hpp"
 
 namespace tlct::_cvt::tspc {
 
 namespace rgs = std::ranges;
-namespace tcfg = tlct::cfg::tspc;
+namespace tcfg = tlct::cfg;
 
-static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels& dsts, const tcfg::Layout& layout,
-                              const std::vector<PsizeRecord>& patchsizes, const MvParams& params, MvCache& cache,
-                              int view_row, int view_col)
+static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels& dsts,
+                              const tcfg::tspc::Layout& layout, const std::vector<PsizeRecord>& patchsizes,
+                              const MvParams& params, MvCache& cache, int view_row, int view_col)
 {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
@@ -67,7 +68,7 @@ static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels
         cv::resize(cache.normed_image_u8, cache.resized_normed_image_u8, {params.output_width, params.output_height},
                    0.0, 0.0, cv::INTER_AREA);
 
-        if (layout.getRotation() > std::numbers::pi / 4.0) {
+        if (layout.isTranspose()) {
             cv::transpose(cache.resized_normed_image_u8, dsts[chan_id]);
         } else {
             cache.resized_normed_image_u8.copyTo(dsts[chan_id]);

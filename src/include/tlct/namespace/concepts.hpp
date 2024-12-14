@@ -5,9 +5,7 @@
 
 namespace tlct::concepts {
 
-using cfg::concepts::CCalibConfig;
 using cfg::concepts::CLayout;
-using cfg::concepts::CSpecificConfig;
 
 using cvt::concepts::CNeighbors;
 using cvt::concepts::CState;

@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <argparse/argparse.hpp>
+#include <toml++/toml.hpp>
 
 #include "tlct.hpp"
 
@@ -11,25 +12,27 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CState TState>
-static inline void render(const tlct::ConfigMap& cfg_map)
+static inline void render(const argparse::ArgumentParser& parser)
 {
-    const auto param_cfg = TState::TParamConfig::fromConfigMap(cfg_map);
-    const auto& generic_cfg = param_cfg.getGenericCfg();
-    const auto& spec_cfg = param_cfg.getSpecificCfg();
+    const auto& common_cfg = tlct::CommonConfig::fromParser(parser);
 
-    auto state = TState::fromParamCfg(param_cfg);
+    const auto& calib_file_path = parser.get<std::string>("calib_file");
+    auto calib_table = toml::parse_file(calib_file_path);
+    const auto layout = TState::TLayout::fromToml(calib_table).upsample(common_cfg.convert.upsample);
 
-    const auto src_size = spec_cfg.getImgSize();
+    auto state = TState::fromConfigs(layout, common_cfg.convert);
+
+    const auto src_size = layout.getRawImgSize();
     const auto output_size = state.getOutputSize();
 
     using TYuvReader = tlct::io::YuvReader_<typename TState::TFrame>;
     using TYuvWriter = tlct::io::YuvWriter_<typename TState::TFrame>;
-    auto yuv_reader = TYuvReader::fromPath(generic_cfg.getSrcPath(), src_size.width, src_size.height);
+    auto yuv_reader = TYuvReader::fromPath(common_cfg.path.src, src_size.width, src_size.height);
 
-    const fs::path& dstdir = generic_cfg.getDstPath();
+    const fs::path& dstdir = common_cfg.path.dst;
     fs::create_directories(dstdir);
     std::vector<TYuvWriter> yuv_writers;
-    const int total_writers = generic_cfg.getViews() * generic_cfg.getViews();
+    const int total_writers = common_cfg.convert.views * common_cfg.convert.views;
     yuv_writers.reserve(total_writers);
     for (const auto i : rgs::views::iota(0, total_writers)) {
         std::stringstream filename_s;
@@ -39,18 +42,17 @@ static inline void render(const tlct::ConfigMap& cfg_map)
         yuv_writers.emplace_back(TYuvWriter::fromPath(saveto_path));
     }
 
-    const cv::Range range = generic_cfg.getRange();
-    yuv_reader.skip(range.start);
+    yuv_reader.skip(common_cfg.range.begin);
 
     auto frame = typename TState::TFrame{src_size};
     auto mv = typename TState::TFrame{output_size};
-    for (int fid = range.start; fid < range.end; fid++) {
+    for (int fid = common_cfg.range.begin; fid < common_cfg.range.end; fid++) {
         yuv_reader.read_into(frame);
         state.update(frame);
 
         int view = 0;
-        for (const int view_row : rgs::views::iota(0, generic_cfg.getViews())) {
-            for (const int view_col : rgs::views::iota(0, generic_cfg.getViews())) {
+        for (const int view_row : rgs::views::iota(0, common_cfg.convert.views)) {
+            for (const int view_col : rgs::views::iota(0, common_cfg.convert.views)) {
                 auto& yuv_writer = yuv_writers[view];
                 state.renderInto(mv, view_row, view_col);
                 yuv_writer.write(mv);
@@ -60,31 +62,34 @@ static inline void render(const tlct::ConfigMap& cfg_map)
     }
 }
 
+static inline int getPipeline(const argparse::ArgumentParser& parser)
+{
+    return (parser.get<bool>("--isKepler") << 1) | (int)parser.get<bool>("--multiFocus");
+}
+
 int main(int argc, char* argv[])
 {
-    argparse::ArgumentParser program("TLCT", "v" tlct_VERSION, argparse::default_arguments::all);
-    program.add_argument("param_file_path").help("the parameter file path").required();
-    program.add_epilog(TLCT_COMPILE_INFO);
+    auto parser = tlct::newParser();
 
     try {
-        program.parse_args(argc, argv);
+        parser->parse_args(argc, argv);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
-        std::cerr << program;
+        std::cerr << parser;
         std::exit(1);
     }
 
-    const auto& param_file_path = program.get<std::string>("param_file_path");
-
-    constexpr std::array<void (*)(const tlct::ConfigMap&), tlct::PIPELINE_COUNT> handlers{
+    constexpr std::array<void (*)(const argparse::ArgumentParser&), 4> handlers{
+        nullptr,
         render<tlct::raytrix::StateYuv420>,
         render<tlct::tspc::StateYuv420>,
+        nullptr,
     };
+    const int pipeline = getPipeline(*parser);
 
     try {
-        const auto cfg_map = tlct::ConfigMap::fromPath(param_file_path);
-        const auto& handler = handlers[cfg_map.getPipelineType()];
-        handler(cfg_map);
+        const auto& handler = handlers[pipeline];
+        handler(*parser);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
         std::exit(2);

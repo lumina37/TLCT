@@ -10,5 +10,4 @@ function(tlct_add_test name srcs)
 endfunction()
 
 tlct_add_test(test_constexpr_math "test_constexpr_math.cpp")
-tlct_add_test(test_config_map "test_config_map.cpp")
 tlct_add_test(test_tspc_config "test_tspc_config.cpp")

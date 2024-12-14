@@ -8,13 +8,7 @@
 
 namespace tlct {
 
-using cfg::ConfigMap;
-using cfg::GenericParamConfig;
-using cfg::PIPELINE_COUNT;
-using cfg::PipelineType;
+using cfg::CommonConfig;
+using cfg::newParser;
 
 } // namespace tlct
-
-#ifdef PUGIXML_HEADER_ONLY
-#    include "pugixml.cpp"
-#endif

@@ -16,9 +16,9 @@ namespace tcfg = tlct::cfg;
 template <typename Self>
 concept CState = requires {
     // Initialize from
-    requires requires(const Self::TParamConfig& param_cfg) {
+    requires requires(const typename Self::TLayout& layout, const tcfg::CommonConfig::Convert& cvt_cfg) {
         requires tcfg::concepts::CLayout<typename Self::TLayout>;
-        { Self::fromParamCfg(param_cfg) } -> std::same_as<Self>;
+        { Self::fromConfigs(layout, cvt_cfg) } -> std::same_as<Self>;
     };
 } && requires {
     // Const methods

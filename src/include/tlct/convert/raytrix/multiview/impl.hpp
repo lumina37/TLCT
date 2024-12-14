@@ -14,14 +14,14 @@
 #include "tlct/convert/raytrix/patchsize/params.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/math.hpp"
-#include "tlct/io.hpp"
 
 namespace tlct::_cvt::raytrix {
 
 namespace rgs = std::ranges;
-namespace tcfg = tlct::cfg::raytrix;
+namespace tcfg = tlct::cfg;
 
-static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Layout& layout, MvCache& cache)
+static inline void computeWeights(const MIs_<tcfg::raytrix::Layout>& mis, const tcfg::raytrix::Layout& layout,
+                                  MvCache& cache)
 {
     cache.texture_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
     cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
@@ -59,9 +59,9 @@ static inline void computeWeights(const MIs_<tcfg::Layout>& mis, const tcfg::Lay
     }
 }
 
-static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels& dsts, const tcfg::Layout& layout,
-                              const std::vector<PsizeRecord>& patchsizes, const MvParams& params, MvCache& cache,
-                              int view_row, int view_col)
+static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels& dsts,
+                              const tcfg::raytrix::Layout& layout, const std::vector<PsizeRecord>& patchsizes,
+                              const MvParams& params, MvCache& cache, int view_row, int view_col)
 {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
@@ -110,7 +110,7 @@ static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels
         cv::resize(cache.normed_image_u8, cache.resized_normed_image_u8, {params.output_width, params.output_height},
                    0.0, 0.0, cv::INTER_AREA);
 
-        if (layout.getRotation() > std::numbers::pi / 4.0) {
+        if (layout.isTranspose()) {
             cv::transpose(cache.resized_normed_image_u8, dsts[chan_id]);
         } else {
             cache.resized_normed_image_u8.copyTo(dsts[chan_id]);

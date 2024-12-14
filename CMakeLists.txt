@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 0.16.0.6
+        VERSION 0.16.0.7
         LANGUAGES CXX
 )
 
@@ -31,28 +31,26 @@ include(FetchContent)
 
 find_package(OpenCV REQUIRED COMPONENTS imgproc OPTIONAL_COMPONENTS imgcodecs)
 
-set(TLCT_PUGIXML_PATH "https://github.com/zeux/pugixml/archive/refs/tags/v1.14.tar.gz" CACHE STRING
-        "Specifies the path of pugixml")
-set(PUGIXML_NO_XPATH ON CACHE BOOL "")
-set(PUGIXML_NO_STL ON CACHE BOOL "")
+set(TLCT_TOMLPP_PATH "https://github.com/marzer/tomlplusplus/archive/refs/tags/v3.4.0.tar.gz" CACHE STRING
+        "Specifies the path of tomlplusplus")
+set(TOML_ENABLE_FORMATTERS OFF CACHE BOOL "")
 
 FetchContent_Declare(
-        pugixml
+        tomlplusplus
         DOWNLOAD_EXTRACT_TIMESTAMP ON
-        URL ${TLCT_PUGIXML_PATH}
+        URL ${TLCT_TOMLPP_PATH}
 )
-FetchContent_MakeAvailable(pugixml)
+FetchContent_MakeAvailable(tomlplusplus)
 
-if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
-            "Specifies the path of argparse")
-    FetchContent_Declare(
-            argparse
-            DOWNLOAD_EXTRACT_TIMESTAMP ON
-            URL ${TLCT_ARGPARSE_PATH}
-    )
-    FetchContent_MakeAvailable(argparse)
-endif ()
+set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
+        "Specifies the path of argparse")
+
+FetchContent_Declare(
+        argparse
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
+        URL ${TLCT_ARGPARSE_PATH}
+)
+FetchContent_MakeAvailable(argparse)
 
 if (TLCT_BUILD_TESTS)
     include(CTest)
@@ -68,6 +66,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/lumina37/TLCT-test-data.git
+            GIT_TAG 0d1cc1b7f8fb73b2cabd3f21e1a9522873cb1950
     )
     FetchContent_MakeAvailable(tlct-test-data)
 endif ()
@@ -118,7 +117,11 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
             INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
     )
 
-    install(TARGETS ${PROJECT_NAME}-lib ${PROJECT_NAME}-bin
+    install(TARGETS
+            ${PROJECT_NAME}-lib
+            ${PROJECT_NAME}-bin
+            tomlplusplus_tomlplusplus
+            argparse
             EXPORT ${PROJECT_NAME}Targets
     )
     install(EXPORT ${PROJECT_NAME}Targets

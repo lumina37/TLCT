@@ -33,11 +33,11 @@ target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${pugixml_SOURCE_DIR}/src>
 )
 target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
-        $<$<NOT:$<BOOL:${PUGIXML_HEADER_ONLY}>>:pugixml>
+        tomlplusplus::tomlplusplus
+        argparse
 )
 
 if (NOT TLCT_HEADER_ONLY AND TLCT_BUILD_SHARED_LIBS)
@@ -51,7 +51,7 @@ if (TLCT_VERBOSE_WARNING)
     if (MSVC)
         target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} /W4)
     else ()
-        target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} -Wall -Wextra -Wno-reorder)
+        target_compile_options(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE} -Wall -Wextra)
     endif ()
 endif ()
 
