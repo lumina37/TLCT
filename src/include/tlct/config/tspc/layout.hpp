@@ -21,8 +21,8 @@ public:
 
     // Constructor
     TLCT_API inline Layout() noexcept
-        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), transpose_(), left_top_(), right_top_(), is_out_shift_(),
-          left_y_unit_shift_(), right_y_unit_shift_(), mirows_(), micols_(), upsample_(1){};
+        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), transpose_(), left_top_(), right_top_(),
+          left_y_unit_shift_(), right_y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
     TLCT_API inline Layout(const Layout& rhs) noexcept = default;
     TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
     TLCT_API inline Layout(Layout&& rhs) noexcept = default;
@@ -44,7 +44,6 @@ public:
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool isTranspose() const noexcept { return transpose_; };
-    [[nodiscard]] TLCT_API static consteval inline bool isKepler() noexcept { return IS_KEPLER; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
@@ -67,8 +66,8 @@ private:
     cv::Point2d right_top_;
     cv::Point2d left_y_unit_shift_;
     cv::Point2d right_y_unit_shift_;
-    TMiCols micols_{};
     int mirows_;
+    TMiCols micols_;
     int upsample_;
     bool is_out_shift_;
 };

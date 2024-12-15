@@ -54,8 +54,8 @@ public:
     TLCT_API inline NearNeighbors_& operator=(const NearNeighbors_& rhs) noexcept = default;
     TLCT_API inline NearNeighbors_(NearNeighbors_&& rhs) noexcept = default;
     TLCT_API inline NearNeighbors_& operator=(NearNeighbors_&& rhs) noexcept = default;
-    TLCT_API inline NearNeighbors_(cv::Point self_idx, TIndices indices, cv::Point2d self_pt, TPoints points) noexcept
-        : self_idx_(self_idx), indices_(indices), self_pt_(self_pt), points_(points){};
+    TLCT_API inline NearNeighbors_(TIndices indices, cv::Point self_idx, TPoints points, cv::Point2d self_pt) noexcept
+        : indices_(indices), self_idx_(self_idx), points_(points), self_pt_(self_pt){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline NearNeighbors_ fromLayoutAndIndex(const TLayout& layout,
@@ -85,10 +85,10 @@ public:
     };
 
 private:
-    TPoints points_;
-    cv::Point2d self_pt_;
     TIndices indices_;
     cv::Point self_idx_;
+    TPoints points_;
+    cv::Point2d self_pt_;
 
 private:
     template <size_t... Idx>
@@ -160,7 +160,7 @@ NearNeighbors_<TLayout> NearNeighbors_<TLayout>::fromLayoutAndIndex(const TLayou
     const TIndices indices{upleft_idx, upright_idx, left_idx, right_idx, downleft_idx, downright_idx};
     const TPoints points{upleft_pt, upright_pt, left_pt, right_pt, downleft_pt, downright_pt};
 
-    return {index, indices, self_pt, points};
+    return {indices, index, points, self_pt};
 }
 
 template <tlct::cfg::concepts::CLayout TLayout_>
@@ -207,8 +207,8 @@ public:
     TLCT_API inline FarNeighbors_& operator=(const FarNeighbors_& rhs) noexcept = default;
     TLCT_API inline FarNeighbors_(FarNeighbors_&& rhs) noexcept = default;
     TLCT_API inline FarNeighbors_& operator=(FarNeighbors_&& rhs) noexcept = default;
-    TLCT_API inline FarNeighbors_(cv::Point self_idx, TIndices indices, cv::Point2d self_pt, TPoints points) noexcept
-        : self_idx_(self_idx), indices_(indices), self_pt_(self_pt), points_(points){};
+    TLCT_API inline FarNeighbors_(TIndices indices, cv::Point self_idx, TPoints points, cv::Point2d self_pt) noexcept
+        : indices_(indices), self_idx_(self_idx), points_(points), self_pt_(self_pt){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline FarNeighbors_ fromLayoutAndIndex(const TLayout& layout,
@@ -238,10 +238,10 @@ public:
     };
 
 private:
-    TPoints points_;
-    cv::Point2d self_pt_;
     TIndices indices_;
     cv::Point self_idx_;
+    TPoints points_;
+    cv::Point2d self_pt_;
 
 private:
     template <size_t... Idx>
@@ -314,7 +314,7 @@ FarNeighbors_<TLayout> FarNeighbors_<TLayout>::fromLayoutAndIndex(const TLayout&
     const TIndices indices{up_idx, upleft_idx, upright_idx, downleft_idx, downright_idx, down_idx};
     const TPoints points{up_pt, upleft_pt, upright_pt, downleft_pt, downright_pt, down_pt};
 
-    return {index, indices, self_pt, points};
+    return {indices, index, points, self_pt};
 }
 
 } // namespace tlct::_cvt

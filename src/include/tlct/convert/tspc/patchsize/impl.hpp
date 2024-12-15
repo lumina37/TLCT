@@ -32,14 +32,14 @@ namespace tcfg = tlct::cfg;
         }
 
         const cv::Point2d anchor_shift =
-            -_hp::sgn(layout.isKepler()) * Neighbors::getUnitShift(direction) * params.pattern_shift;
+            -_hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction) * params.pattern_shift;
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
 
         const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
-        const cv::Point2d match_step = _hp::sgn(layout.isKepler()) * Neighbors::getUnitShift(direction);
+        const cv::Point2d match_step = _hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * Neighbors::getUnitShift(direction);
         cv::Point2d cmp_shift = anchor_shift + match_step * psize;
         const cv::Rect neib_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
         wrap_neib.updateRoi(neib_roi);
@@ -73,14 +73,14 @@ estimateWithNeighbor(const tcfg::tspc::Layout& layout, const PsizeParams& params
         }
 
         const cv::Point2d anchor_shift =
-            -_hp::sgn(layout.isKepler()) * TNeighbors::getUnitShift(direction) * params.pattern_shift;
+            -_hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * TNeighbors::getUnitShift(direction) * params.pattern_shift;
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
 
         const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
-        const cv::Point2d match_step = _hp::sgn(layout.isKepler()) * TNeighbors::getUnitShift(direction);
+        const cv::Point2d match_step = _hp::sgn(tcfg::tspc::Layout::IS_KEPLER) * TNeighbors::getUnitShift(direction);
         cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
 
         int best_psize = 0;
