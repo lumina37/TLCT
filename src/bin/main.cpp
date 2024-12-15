@@ -12,13 +12,10 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CState TState>
-static inline void render(const argparse::ArgumentParser& parser)
+static inline void render(const argparse::ArgumentParser& parser, const toml::table& table)
 {
     const auto& common_cfg = tlct::CommonConfig::fromParser(parser);
-
-    const auto& calib_file_path = parser.get<std::string>("calib_file");
-    auto calib_table = toml::parse_file(calib_file_path);
-    const auto layout = TState::TLayout::fromToml(calib_table).upsample(common_cfg.convert.upsample);
+    const auto layout = TState::TLayout::fromToml(table).upsample(common_cfg.convert.upsample);
 
     auto state = TState::fromConfigs(layout, common_cfg.convert);
 
@@ -62,14 +59,6 @@ static inline void render(const argparse::ArgumentParser& parser)
     }
 }
 
-static inline int getPipelineIdx(const argparse::ArgumentParser& parser)
-{
-    const int is_kepler = parser.get<bool>("--isKepler");
-    const int is_mf = parser.get<bool>("--multiFocus");
-    const int idx = ((is_kepler << 1) | is_mf) - 1;
-    return idx;
-}
-
 int main(int argc, char* argv[])
 {
     auto parser = tlct::newParser();
@@ -82,17 +71,23 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
-    constexpr std::array<void (*)(const argparse::ArgumentParser&), 2> handlers{
+    constexpr std::array<void (*)(const argparse::ArgumentParser&, const toml::table&), 2> handlers{
         render<tlct::raytrix::StateYuv420>,
         render<tlct::tspc::StateYuv420>,
     };
-    const int pipeline = getPipelineIdx(*parser);
 
     try {
+        const auto& calib_file_path = parser->get<std::string>("calib_file");
+        const auto& table = toml::parse_file(calib_file_path);
+        const int pipeline = tlct::getPipeline(table);
         const auto& handler = handlers[pipeline];
-        handler(*parser);
+        handler(*parser, table);
+    } catch (const toml::parse_error& err) {
+        std::cerr << err << std::endl;
+        std::exit(2);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
-        std::exit(2);
+        std::cerr << *parser;
+        std::exit(3);
     }
 }

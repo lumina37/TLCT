@@ -44,13 +44,14 @@ public:
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool isTranspose() const noexcept { return transpose_; };
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API static consteval inline bool isKepler() noexcept { return IS_KEPLER; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
     [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
     [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return _hp::sgn(isOutShift()); };
 
@@ -81,10 +82,10 @@ Layout Layout::fromToml(const toml::table& table)
     cv::Size imgsize{table["width"].value<int>().value(), table["height"].value<int>().value()};
     const double diameter = table["diameter"].value<double>().value();
     const bool transpose = table["transpose"].value_or(false);
-    cv::Point2d left_top = node2point(table["ltop"]);
-    cv::Point2d right_top = node2point(table["rtop"]);
-    cv::Point2d left_bottom = node2point(table["lbot"]);
-    cv::Point2d right_bottom = node2point(table["rbot"]);
+    const cv::Point2d left_top = node2point(table["ltop"]);
+    const cv::Point2d right_top = node2point(table["rtop"]);
+    const cv::Point2d left_bottom = node2point(table["lbot"]);
+    const cv::Point2d right_bottom = node2point(table["rbot"]);
 
     return {imgsize, diameter, transpose, left_top, right_top, left_bottom, right_bottom};
 }

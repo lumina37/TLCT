@@ -9,14 +9,6 @@
 namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
-static inline int getPipelineIdx(const argparse::ArgumentParser& parser)
-{
-    const int is_kepler = parser.get<bool>("--isKepler");
-    const int is_mf = parser.get<bool>("--multiFocus");
-    const int idx = ((is_kepler << 1) | is_mf) - 1;
-    return idx;
-}
-
 static inline cv::Mat convertToRGB(const tlct::io::Yuv420Frame& frame)
 {
     cv::Mat u, v, yuv, rgb;
@@ -38,8 +30,6 @@ int main(int argc, char* argv[])
     parser.add_argument("-o", "--dst")
         .help("Output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv)")
         .required();
-    parser.add_argument("--multiFocus").help("Is MFPC").flag();
-    parser.add_argument("--isKepler").help("Is the main image real").flag();
 
     try {
         parser.parse_args(argc, argv);
@@ -49,10 +39,9 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
-    const int pipeline = getPipelineIdx(parser);
-
     const auto& calib_file_path = parser.get<std::string>("calib_file");
-    auto calib_table = toml::parse_file(calib_file_path);
+    const auto& calib_table = toml::parse_file(calib_file_path);
+    const int pipeline = tlct::getPipeline(calib_table);
 
     cv::Mat canvas;
 

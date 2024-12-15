@@ -51,6 +51,7 @@ public:
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool isTranspose() const noexcept { return transpose_; };
+    [[nodiscard]] TLCT_API static consteval inline bool isKepler() noexcept { return IS_KEPLER; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
@@ -88,19 +89,20 @@ Layout Layout::fromToml(const toml::table& table)
     cv::Size imgsize{table["width"].value<int>().value(), table["height"].value<int>().value()};
     const double diameter = table["diameter"].value<double>().value();
     const bool transpose = table["transpose"].value_or(false);
-    cv::Point2d offset = node2point(table["offset"]);
+    const cv::Point2d offset = node2point(table["offset"]);
 
     return {imgsize, diameter, transpose, offset};
 }
 
 Layout& Layout::upsample(int factor) noexcept
 {
-    left_top_ *= factor;
-    x_unit_shift_ *= factor;
-    y_unit_shift_ *= factor;
+
     imgsize_ *= factor;
     diameter_ *= factor;
     radius_ *= factor;
+    left_top_ *= factor;
+    x_unit_shift_ *= factor;
+    y_unit_shift_ *= factor;
     upsample_ = factor;
     return *this;
 }

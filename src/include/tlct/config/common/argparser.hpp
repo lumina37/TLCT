@@ -29,9 +29,6 @@ namespace tlct::_cfg {
         .help("The index of the end frame, right NOT contains")
         .scan<'i', int>()
         .default_value(1);
-    parser->add_group("Camera Specification");
-    parser->add_argument("--multiFocus").help("Is MFPC").flag();
-    parser->add_argument("--isKepler").help("Is the main image real").flag();
     parser->add_group("Conversion");
     parser->add_argument("--views").help("Viewpoint number").scan<'i', int>().default_value(1);
     parser->add_argument("--upsample")

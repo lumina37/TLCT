@@ -23,11 +23,6 @@ struct CommonConfig {
         int end;
     };
 
-    struct Spec {
-        bool multi_focus;
-        bool is_kepler;
-    };
-
     struct Convert {
         inline Convert(int views, int upsample, double psize_inflate, double max_psize, double pattern_size,
                        int psize_shortcut_threshold) noexcept
@@ -45,7 +40,6 @@ struct CommonConfig {
 
     Path path;
     Range range;
-    Spec spec;
     Convert convert;
 
     // Initialize from
@@ -56,12 +50,11 @@ CommonConfig CommonConfig::fromParser(const argparse::ArgumentParser& parser)
 {
     auto path = CommonConfig::Path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
     auto range = CommonConfig::Range{parser.get<int>("--begin"), parser.get<int>("--end")};
-    auto spec = CommonConfig::Spec{parser.get<bool>("--multiFocus"), parser.get<bool>("--isKepler")};
     auto convert = CommonConfig::Convert{parser.get<int>("--views"),           parser.get<int>("--upsample"),
                                          parser.get<double>("--psizeInflate"), parser.get<double>("--maxPsize"),
                                          parser.get<double>("--patternSize"),  parser.get<int>("--psizeShortcutThre")};
 
-    return {std::move(path), std::move(range), std::move(spec), std::move(convert)};
+    return {std::move(path), std::move(range), std::move(convert)};
 }
 
 } // namespace tlct::_cfg
