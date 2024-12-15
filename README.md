@@ -5,7 +5,7 @@ The official implementation of *Tsinghua Lenslet Conversion Tool*.
 ## Usage
 
 ```
-Usage: TLCT [--help] [--version]
+Usage: tlct [--help] [--version]
             calib_file
 
 I/O:

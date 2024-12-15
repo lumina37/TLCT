@@ -31,7 +31,7 @@ static inline cv::Mat convertToRGB(const tlct::io::Yuv420Frame& frame)
 
 int main(int argc, char* argv[])
 {
-    argparse::ArgumentParser parser{"DbgDraw", "v" tlct_VERSION, argparse::default_arguments::all};
+    argparse::ArgumentParser parser{"Viz", "v" tlct_VERSION, argparse::default_arguments::all};
 
     parser.add_argument("calib_file").help("Path of the `calibration.toml`").required();
     parser.add_argument("-i", "--src").help("Input yuv420 planar file").required();

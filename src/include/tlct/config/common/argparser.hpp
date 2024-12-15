@@ -11,7 +11,7 @@ namespace tlct::_cfg {
 [[nodiscard]] TLCT_API inline std::unique_ptr<argparse::ArgumentParser> newParser() noexcept
 {
     auto parser =
-        std::make_unique<argparse::ArgumentParser>("TLCT", "v" tlct_VERSION, argparse::default_arguments::all);
+        std::make_unique<argparse::ArgumentParser>("tlct", "v" tlct_VERSION, argparse::default_arguments::all);
 
     parser->set_usage_max_line_width(120);
     parser->add_argument("calib_file").help("Path of the `calibration.toml`").required();
