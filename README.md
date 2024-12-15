@@ -4,64 +4,54 @@ The official implementation of *Tsinghua Lenslet Conversion Tool*.
 
 ## Usage
 
-```shell
-tlct /path/to/param.cfg
+```
+Usage: TLCT [--help] [--version]
+            calib_file
+
+I/O:
+            --src VAR --dst VAR
+
+Frame Range:
+            [--begin VAR] [--end VAR]
+
+Camera Specification:
+            [--multiFocus] [--isKepler]
+
+Conversion:
+            [--views VAR] [--upsample VAR] [--psizeInflate VAR] [--maxPsize VAR] [--patternSize VAR]
+            [--psizeShortcutThre VAR]
+
+Positional arguments:
+  calib_file           Path of the `calibration.toml` [required]
+
+Optional arguments:
+  -h, --help           shows help message and exits 
+  -v, --version        prints version information and exits 
+
+I/O (detailed usage):
+  -i, --src            Input yuv420 planar file [required]
+  -o, --dst            Output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv) [required]
+
+Frame Range (detailed usage):
+  -b, --begin          The index of the start frame, left contains, starts from zero [nargs=0..1] [default: 0]
+  -e, --end            The index of the end frame, right NOT contains [nargs=0..1] [default: 1]
+
+Camera Specification (detailed usage):
+  --multiFocus         Is MFPC 
+  --isKepler           Is the main image real 
+
+Conversion (detailed usage):
+  --views              Viewpoint number [nargs=0..1] [default: 1]
+  --upsample           The input image will be upsampled by this scale [nargs=0..1] [default: 1]
+  --psizeInflate       The extracted patch will be inflated by this scale [nargs=0..1] [default: 2.15]
+  --maxPsize           Patch size will never be larger than `maxPsize*diameter` [nargs=0..1] [default: 0.5]
+  --patternSize        The size of matching pattern will be `patternSize*diameter` [nargs=0..1] [default: 0.3]
+  --psizeShortcutThre  If the difference bit of dhash of MI is smaller than this value, then use the prev. patch size [nargs=0..1] [default: 4]
 ```
 
-## Configuration File Format
-
-### Generic Options
-
-| option     | type   | description                                                                                                       |
-|------------|--------|-------------------------------------------------------------------------------------------------------------------|
-| pipeline   | int    | (Optional) The image is captured by Raytrix (0) or TSPC (1), defaults to 0                                        |
-| views      | int    | (Optional) The viewpoint number, defaults to 5                                                                    |
-| calibFile  | string | The path of the calibration file                                                                                  |
-| inFile     | string | The path of the input yuv420 planar file                                                                          |
-| outDir     | string | The path of the output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv) |
-| frameBegin | int    | The index of the start frame, left contains, starts from zero                                                     |
-| frameEnd   | int    | The index of the end frame, right NOT contains                                                                    |
-| height     | int    | The pixel height of input image                                                                                   |
-| width      | int    | The pixel width of input image                                                                                    |
-
-### Fine-tune Options
-
-All fine-tune options are optional
-
-| option            | type  | description                                                                                    | recommend | default |
-|-------------------|-------|------------------------------------------------------------------------------------------------|-----------|---------|
-| upsample          | int   | The input image will be upsampled by this scale                                                | 2~4       | 2       |
-| psizeInflate      | float | The extracted patch will be inflated by this scale                                             | 1.5~3     | 2.15    |
-| maxPsize          | float | Patch size will never be larger than `maxPsize*diameter`                                       | 0.3~1.0   | 0.5     |
-| patternSize       | float | The size of matching pattern will be `patternSize*diameter`                                    | 0.25~0.4  | 0.3     |
-| psizeShortcutThre | int   | If the difference bit of dhash of MI is smaller than this value, then use the prev. patch size | 2~8       | 4       |
-
-### Example of param.cfg
-
-```
-pipeline                1
-views                   5
-calibFile               Boys.xml
-inFile                  Boys/src.yuv
-outDir                  Boys/dst
-frameBegin              0
-frameEnd                300
-height                  2048
-width                   2048
-upsample                2
-psizeInflate            2.0
-maxPsize                0.5
-patternSize             0.3
-psizeShortcutThre  4
-```
-
-### Recommended Configs
+## Official Calibration Tomls
 
 See [here](https://github.com/lumina37/TLCT-test-data/tree/master/recommend)
-
-### Charset
-
-The charset of the configuration file must be **utf-8**.
 
 ## Tested Complier Version
 

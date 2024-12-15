@@ -13,11 +13,14 @@ namespace tlct::_cfg {
     auto parser =
         std::make_unique<argparse::ArgumentParser>("TLCT", "v" tlct_VERSION, argparse::default_arguments::all);
 
+    parser->set_usage_max_line_width(120);
     parser->add_argument("calib_file").help("Path of the `calibration.toml`").required();
+    parser->add_group("I/O");
     parser->add_argument("-i", "--src").help("Input yuv420 planar file").required();
     parser->add_argument("-o", "--dst")
         .help("Output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv)")
         .required();
+    parser->add_group("Frame Range");
     parser->add_argument("-b", "--begin")
         .help("The index of the start frame, left contains, starts from zero")
         .scan<'i', int>()
@@ -26,8 +29,10 @@ namespace tlct::_cfg {
         .help("The index of the end frame, right NOT contains")
         .scan<'i', int>()
         .default_value(1);
+    parser->add_group("Camera Specification");
     parser->add_argument("--multiFocus").help("Is MFPC").flag();
     parser->add_argument("--isKepler").help("Is the main image real").flag();
+    parser->add_group("Conversion");
     parser->add_argument("--views").help("Viewpoint number").scan<'i', int>().default_value(1);
     parser->add_argument("--upsample")
         .help("The input image will be upsampled by this scale")

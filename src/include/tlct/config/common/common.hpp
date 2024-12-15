@@ -12,33 +12,23 @@ namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
 
-class CommonConfig
-{
-public:
-    class Path
-    {
-    public:
+struct CommonConfig {
+    struct Path {
         fs::path src;
         fs::path dst;
     };
 
-    class Range
-    {
-    public:
+    struct Range {
         int begin;
         int end;
     };
 
-    class Spec
-    {
-    public:
+    struct Spec {
         bool multi_focus;
         bool is_kepler;
     };
 
-    class Convert
-    {
-    public:
+    struct Convert {
         inline Convert(int views, int upsample, double psize_inflate, double max_psize, double pattern_size,
                        int psize_shortcut_threshold) noexcept
             : views(views), upsample(upsample), psize_inflate(psize_inflate),

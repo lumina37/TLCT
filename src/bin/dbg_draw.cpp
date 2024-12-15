@@ -1,4 +1,5 @@
 #include <ranges>
+#include <vector>
 
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -8,39 +9,64 @@
 namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
+static inline int getPipelineIdx(const argparse::ArgumentParser& parser)
+{
+    const int is_kepler = parser.get<bool>("--isKepler");
+    const int is_mf = parser.get<bool>("--multiFocus");
+    const int idx = ((is_kepler << 1) | is_mf) - 1;
+    return idx;
+}
+
+static inline cv::Mat convertToRGB(const tlct::io::Yuv420Frame& frame)
+{
+    cv::Mat u, v, yuv, rgb;
+    const auto& ysize = frame.getY().size();
+    cv::resize(frame.getU(), u, ysize, 0., 0., cv::INTER_CUBIC);
+    cv::resize(frame.getV(), v, ysize, 0., 0., cv::INTER_CUBIC);
+    std::vector<cv::Mat> yuv_channels = {frame.getY(), u, v};
+    cv::merge(yuv_channels, yuv);
+    cv::cvtColor(yuv, rgb, cv::COLOR_YUV2BGR);
+    return rgb;
+}
+
 int main(int argc, char* argv[])
 {
-    const fs::path case_root{argv[1]};
-    const auto cfgpath = case_root / "param.cfg";
-    const auto cfgmap = tlct::ConfigMap::fromPath(cfgpath.string());
-    cv::Mat resized_img;
+    argparse::ArgumentParser parser{"DbgDraw", "v" tlct_VERSION, argparse::default_arguments::all};
 
-    if (cfgmap.getPipelineType() == tlct::PipelineType::TLCT) {
-        namespace tn = tlct::tspc;
+    parser.add_argument("calib_file").help("Path of the `calibration.toml`").required();
+    parser.add_argument("-i", "--src").help("Input yuv420 planar file").required();
+    parser.add_argument("-o", "--dst")
+        .help("Output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv)")
+        .required();
+    parser.add_argument("--multiFocus").help("Is MFPC").flag();
+    parser.add_argument("--isKepler").help("Is the main image real").flag();
 
-        const auto param_cfg = tn::ParamConfig::fromConfigMap(cfgmap);
-        const auto layout = tn::Layout::fromCalibAndSpecConfig(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg());
+    try {
+        parser.parse_args(argc, argv);
+    } catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << parser;
+        std::exit(1);
+    }
 
-        const auto srcpath = case_root / "example.png";
-        const cv::Mat src = cv::imread(srcpath.string());
-        layout.processInto(src, resized_img);
+    const int pipeline = getPipelineIdx(parser);
 
-        for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-            for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-                const auto center = layout.getMICenter(row, col);
-                resized_img.at<cv::Vec3b>(center) = {0, 0, 255};
-                cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
-            }
-        }
-    } else {
+    const auto& calib_file_path = parser.get<std::string>("calib_file");
+    auto calib_table = toml::parse_file(calib_file_path);
+
+    cv::Mat canvas;
+
+    if (pipeline == 0) {
         namespace tn = tlct::raytrix;
 
-        const auto param_cfg = tn::ParamConfig::fromConfigMap(cfgmap);
-        const auto layout = tn::Layout::fromCalibAndSpecConfig(param_cfg.getCalibCfg(), param_cfg.getSpecificCfg());
+        const auto& layout = tn::Layout::fromToml(calib_table);
+        const auto& raw_size = layout.getRawImgSize();
+        auto yuv_reader =
+            tlct::io::Yuv420Reader::fromPath(parser.get<std::string>("--src"), raw_size.width, raw_size.height);
 
-        const auto srcpath = case_root / "example.png";
-        const cv::Mat src = cv::imread(srcpath.string());
-        layout.processInto(src, resized_img);
+        const auto& frame = yuv_reader.read();
+        cv::Mat rgb = convertToRGB(frame);
+        layout.processInto(rgb, canvas);
 
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
@@ -49,13 +75,32 @@ int main(int argc, char* argv[])
                 const bool r = mitype == 0;
                 const bool g = mitype == 1;
                 const bool b = mitype == 2;
-                cv::circle(resized_img, center, tlct::_hp::iround(layout.getRadius()),
-                           {255.0 * b, 255.0 * g, 255.0 * r}, 1, cv::LINE_AA);
-                resized_img.at<cv::Vec3b>(center) = {(uint8_t)(255 * b), (uint8_t)(255 * g), (uint8_t)(255 * r)};
+                cv::circle(canvas, center, tlct::_hp::iround(layout.getRadius()), {255.0 * b, 255.0 * g, 255.0 * r}, 1,
+                           cv::LINE_AA);
+                canvas.at<cv::Vec3b>(center) = {(uint8_t)(255 * b), (uint8_t)(255 * g), (uint8_t)(255 * r)};
+            }
+        }
+    } else {
+        namespace tn = tlct::tspc;
+
+        const auto& layout = tn::Layout::fromToml(calib_table);
+        const auto& raw_size = layout.getRawImgSize();
+        auto yuv_reader =
+            tlct::io::Yuv420Reader::fromPath(parser.get<std::string>("--src"), raw_size.width, raw_size.height);
+
+        const auto& frame = yuv_reader.read();
+        cv::Mat rgb = convertToRGB(frame);
+        layout.processInto(rgb, canvas);
+
+        for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+            for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
+                const auto center = layout.getMICenter(row, col);
+                canvas.at<cv::Vec3b>(center) = {0, 0, 255};
+                cv::circle(canvas, center, tlct::_hp::iround(layout.getRadius()), {255, 0, 0}, 1, cv::LINE_AA);
             }
         }
     }
 
-    const auto dstpath = case_root / "center.png";
-    cv::imwrite(dstpath.string(), resized_img);
+    const fs::path dstpath{parser.get<std::string>("--dst")};
+    cv::imwrite(dstpath.string(), canvas);
 }

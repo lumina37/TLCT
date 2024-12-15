@@ -62,9 +62,12 @@ static inline void render(const argparse::ArgumentParser& parser)
     }
 }
 
-static inline int getPipeline(const argparse::ArgumentParser& parser)
+static inline int getPipelineIdx(const argparse::ArgumentParser& parser)
 {
-    return (parser.get<bool>("--isKepler") << 1) | (int)parser.get<bool>("--multiFocus");
+    const int is_kepler = parser.get<bool>("--isKepler");
+    const int is_mf = parser.get<bool>("--multiFocus");
+    const int idx = ((is_kepler << 1) | is_mf) - 1;
+    return idx;
 }
 
 int main(int argc, char* argv[])
@@ -75,17 +78,15 @@ int main(int argc, char* argv[])
         parser->parse_args(argc, argv);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
-        std::cerr << parser;
+        std::cerr << *parser;
         std::exit(1);
     }
 
-    constexpr std::array<void (*)(const argparse::ArgumentParser&), 4> handlers{
-        nullptr,
+    constexpr std::array<void (*)(const argparse::ArgumentParser&), 2> handlers{
         render<tlct::raytrix::StateYuv420>,
         render<tlct::tspc::StateYuv420>,
-        nullptr,
     };
-    const int pipeline = getPipeline(*parser);
+    const int pipeline = getPipelineIdx(*parser);
 
     try {
         const auto& handler = handlers[pipeline];

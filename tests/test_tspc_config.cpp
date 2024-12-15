@@ -1,4 +1,4 @@
-#include <filesystem>
+﻿#include <filesystem>
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
@@ -15,7 +15,7 @@ TEST_CASE("tlct::cfg::tspc")
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
 
-    const auto table = toml::parse_file("test/calib with 中文.toml");
+    const auto table = toml::parse_file(u8"test/清华单聚焦光场相机.toml");
     auto layout = tn::Layout::fromToml(table);
 
     SUBCASE("Layout")
