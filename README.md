@@ -14,9 +14,6 @@ I/O:
 Frame Range:
             [--begin VAR] [--end VAR]
 
-Camera Specification:
-            [--multiFocus] [--isKepler]
-
 Conversion:
             [--views VAR] [--upsample VAR] [--psizeInflate VAR] [--maxPsize VAR] [--patternSize VAR]
             [--psizeShortcutThre VAR]
@@ -35,10 +32,6 @@ I/O (detailed usage):
 Frame Range (detailed usage):
   -b, --begin          The index of the start frame, left contains, starts from zero [nargs=0..1] [default: 0]
   -e, --end            The index of the end frame, right NOT contains [nargs=0..1] [default: 1]
-
-Camera Specification (detailed usage):
-  --multiFocus         Is MFPC 
-  --isKepler           Is the main image real 
 
 Conversion (detailed usage):
   --views              Viewpoint number [nargs=0..1] [default: 1]
