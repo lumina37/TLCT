@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 0.16.2.1
+        VERSION 0.16.2.2
         LANGUAGES CXX
 )
 
@@ -58,6 +58,7 @@ if (TLCT_BUILD_TESTS)
             GIT_TAG 8c76808e38c8bf3a639e0e24919620e8cbae52bf
     )
     FetchContent_MakeAvailable(tlct-test-data)
+    set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")
 endif ()
 
 # Helper
@@ -70,21 +71,12 @@ function(copy_dlls_if_needed name)
     endif ()
 endfunction()
 
-function(install_target name)
-    install(TARGETS ${name}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-endfunction()
-
 set(TLCT_COMPILE_INFO "[TLCT v${PROJECT_VERSION}] [OpenCV v${OpenCV_VERSION}] by [${CMAKE_CXX_COMPILER_ID} v${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_SYSTEM_PROCESSOR})]")
-set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")
 
 set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
 configure_file("${TLCT_CONFIGURE_DIR}/cmake.h.in" "${TLCT_CONFIGURE_DIR}/cmake.h" @ONLY)
 
-
+# Add lib/bin/tests
 add_subdirectory(src)
 if (TLCT_BUILD_TESTS)
     add_subdirectory(tests)
@@ -94,26 +86,30 @@ endif ()
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include(CMakePackageConfigHelpers)
 
-    write_basic_package_version_file(
-            "${PROJECT_NAME}-config-version.cmake"
-            VERSION ${PROJECT_VERSION}
-            COMPATIBILITY ExactVersion
-    )
-
-    configure_package_config_file(
-            "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in"
-            "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-            INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
-    )
-
     install(TARGETS ${PROJECT_NAME}-lib ${PROJECT_NAME}-bin argparse
             EXPORT ${PROJECT_NAME}Targets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
     install(EXPORT ${PROJECT_NAME}Targets
             FILE ${PROJECT_NAME}Targets.cmake
             NAMESPACE tlct::
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
+
+    configure_package_config_file(
+            "${PROJECT_SOURCE_DIR}/cmake/config.cmake.in"
+            "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    )
+
+    write_basic_package_version_file(
+            "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+            VERSION ${PROJECT_VERSION}
+            COMPATIBILITY ExactVersion
+    )
+
     install(FILES
             "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
             "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"

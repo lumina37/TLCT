@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(OpenCV REQUIRED COMPONENTS imgproc)
+find_dependency(argparse)
+
+include(${PACKAGE_PREFIX_DIR}/lib/cmake/@PROJECT_NAME@/@PROJECT_NAME@Targets.cmake)
+
+check_required_components(@PROJECT_NAME@)
