@@ -26,8 +26,8 @@ Optional arguments:
   -v, --version        prints version information and exits 
 
 I/O (detailed usage):
-  -i, --src            input yuv420 planar file [required]
-  -o, --dst            output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv) [required]
+  -i, --src            input yuv420p file [required]
+  -o, --dst            output directory [required]
 
 Frame Range (detailed usage):
   -b, --begin          the index of the start frame, left contains, starts from zero [nargs=0..1] [default: 0]
@@ -42,7 +42,7 @@ Conversion (detailed usage):
   --psizeShortcutThre  if the difference bit of dhash of MI is smaller than this value, then use the prev. patch size [nargs=0..1] [default: 4]
 ```
 
-## Official Calibration Tomls
+## Recommend Calibration Configs
 
 See [here](https://github.com/lumina37/TLCT-test-data/tree/master/recommend)
 

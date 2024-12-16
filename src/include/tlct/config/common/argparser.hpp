@@ -16,10 +16,8 @@ namespace tlct::_cfg {
     parser->set_usage_max_line_width(120);
     parser->add_argument("calib_file").help("path of the `calib.cfg`").required();
     parser->add_group("I/O");
-    parser->add_argument("-i", "--src").help("input yuv420 planar file").required();
-    parser->add_argument("-o", "--dst")
-        .help("output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv)")
-        .required();
+    parser->add_argument("-i", "--src").help("input yuv420p file").required();
+    parser->add_argument("-o", "--dst").help("output directory").required();
     parser->add_group("Frame Range");
     parser->add_argument("-b", "--begin")
         .help("the index of the start frame, left contains, starts from zero")
