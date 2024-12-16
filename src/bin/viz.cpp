@@ -25,10 +25,10 @@ int main(int argc, char* argv[])
 {
     argparse::ArgumentParser parser{"Viz", "v" tlct_VERSION, argparse::default_arguments::all};
 
-    parser.add_argument("calib_file").help("Path of the `calibration.toml`").required();
-    parser.add_argument("-i", "--src").help("Input yuv420 planar file").required();
+    parser.add_argument("calib_file").help("path of the `calibration.toml`").required();
+    parser.add_argument("-i", "--src").help("input yuv420 planar file").required();
     parser.add_argument("-o", "--dst")
-        .help("Output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv)")
+        .help("output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv)")
         .required();
 
     try {
