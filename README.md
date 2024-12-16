@@ -1,6 +1,6 @@
 # TLCT
 
-The official implementation of *Tsinghua Lenslet Conversion Tool*.
+The official implementation of the *Tsinghua Lenslet Conversion Tool*.
 
 ## Usage
 
