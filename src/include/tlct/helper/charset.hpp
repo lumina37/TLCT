@@ -6,9 +6,12 @@ namespace tlct::_hp {
 
 #    include <string>
 
-#    include <Windows.h>
+#    pragma push_macro("min")
+#    pragma push_macro("max")
 #    undef min
 #    undef max
+#    define WIN32_LEAN_AND_MEAN
+#    include <Windows.h>
 
 std::wstring utf8_to_wstring(const std::string_view& utf8_str_view)
 {
@@ -38,6 +41,9 @@ std::string cconv(const std::string_view& utf8_str_view)
     std::wstring wstr = utf8_to_wstring(utf8_str_view);
     return wstring_to_gbk(wstr);
 }
+
+#    pragma pop_macro("min")
+#    pragma pop_macro("max")
 
 #endif
 
