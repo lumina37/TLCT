@@ -39,10 +39,10 @@ namespace tlct::_cfg {
         .help("the extracted patch will be inflated by this scale")
         .scan<'g', double>()
         .default_value(2.15);
-    parser->add_argument("--maxPsize")
-        .help("patch size will never be larger than `maxPsize*diameter`")
+    parser->add_argument("--viewShiftRange")
+        .help("reserve `viewShiftRange*diameter` for view shifting")
         .scan<'g', double>()
-        .default_value(0.5);
+        .default_value(0.1);
     parser->add_argument("--patternSize")
         .help("the size of matching pattern will be `patternSize*diameter`")
         .scan<'g', double>()

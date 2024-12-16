@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 0.16.0.10
+        VERSION 0.16.1.0
         LANGUAGES CXX
 )
 
@@ -66,7 +66,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/lumina37/TLCT-test-data.git
-            GIT_TAG b776a79735df21ed8e18ab61a1e1ba5bd1e20ca8
+            GIT_TAG e0c4b380f90e32c39d92b9b78435ea76250c850e
     )
     FetchContent_MakeAvailable(tlct-test-data)
 endif ()

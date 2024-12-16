@@ -41,8 +41,8 @@ MvParams MvParams::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
     const double p_resize_d = patch_xshift_d * cvt_cfg.psize_inflate;
     const int resized_patch_width = (int)std::round(p_resize_d);
 
-    const int move_range = _hp::iround(layout.getDiameter() * (1.0 - cvt_cfg.max_psize * cvt_cfg.psize_inflate));
-    const int view_interval = cvt_cfg.views > 1 ? move_range / (cvt_cfg.views - 1) : 0;
+    const int view_shift_range = _hp::iround(layout.getDiameter() * cvt_cfg.view_shift_range);
+    const int view_interval = cvt_cfg.views > 1 ? view_shift_range / (cvt_cfg.views - 1) : 0;
 
     const int canvas_width = (int)std::round(layout.getMIMaxCols() * patch_xshift + resized_patch_width);
     const int canvas_height = (int)std::round(layout.getMIRows() * patch_yshift + resized_patch_width);
