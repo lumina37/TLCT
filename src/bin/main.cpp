@@ -4,7 +4,6 @@
 #include <sstream>
 
 #include <argparse/argparse.hpp>
-#include <toml++/toml.hpp>
 
 #include "tlct.hpp"
 
@@ -12,10 +11,10 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CState TState>
-static inline void render(const argparse::ArgumentParser& parser, const toml::table& table)
+static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map)
 {
     const auto& common_cfg = tlct::CommonConfig::fromParser(parser);
-    const auto layout = TState::TLayout::fromToml(table).upsample(common_cfg.convert.upsample);
+    const auto layout = TState::TLayout::fromCfgMap(map).upsample(common_cfg.convert.upsample);
 
     auto state = TState::fromConfigs(layout, common_cfg.convert);
 
@@ -71,23 +70,19 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
-    constexpr std::array<void (*)(const argparse::ArgumentParser&, const toml::table&), 2> handlers{
+    constexpr std::array<void (*)(const argparse::ArgumentParser&, const tlct::ConfigMap&), 2> handlers{
         render<tlct::raytrix::StateYuv420>,
         render<tlct::tspc::StateYuv420>,
     };
 
     try {
         const auto& calib_file_path = parser->get<std::string>("calib_file");
-        const auto& table = toml::parse_file(calib_file_path);
-        const int pipeline = tlct::getPipeline(table);
+        const auto& map = tlct::ConfigMap::fromPath(calib_file_path);
+        const int pipeline = map.get_or<"pipeline">(0);
         const auto& handler = handlers[pipeline];
-        handler(*parser, table);
-    } catch (const toml::parse_error& err) {
-        std::cerr << err << std::endl;
-        std::exit(2);
+        handler(*parser, map);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
-        std::cerr << *parser;
-        std::exit(3);
+        std::exit(2);
     }
 }

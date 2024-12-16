@@ -4,9 +4,9 @@
 #include <numbers>
 
 #include <opencv2/imgproc.hpp>
-#include <toml++/toml.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/config/common/map.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cfg::tspc {
@@ -31,7 +31,7 @@ public:
                            cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromToml(const toml::table& table);
+    [[nodiscard]] TLCT_API static inline Layout fromCfgMap(const ConfigMap& map);
 
     // Non-const methods
     TLCT_API inline Layout& upsample(int factor) noexcept;
@@ -72,19 +72,15 @@ private:
     bool is_out_shift_;
 };
 
-Layout Layout::fromToml(const toml::table& table)
+Layout Layout::fromCfgMap(const ConfigMap& map)
 {
-    const auto node2point = [](toml::node_view<const toml::node> node) {
-        return cv::Point2d{node[0].value<double>().value(), node[1].value<double>().value()};
-    };
-
-    cv::Size imgsize{table["width"].value<int>().value(), table["height"].value<int>().value()};
-    const double diameter = table["diameter"].value<double>().value();
-    const bool transpose = table["transpose"].value_or(false);
-    const cv::Point2d left_top = node2point(table["ltop"]);
-    const cv::Point2d right_top = node2point(table["rtop"]);
-    const cv::Point2d left_bottom = node2point(table["lbot"]);
-    const cv::Point2d right_bottom = node2point(table["rbot"]);
+    cv::Size imgsize{map.get<"width", int>(), map.get<"height", int>()};
+    const double diameter = map.get<"diameter", int>();
+    const bool transpose = map.get_or<"transpose">(false);
+    const cv::Point2d left_top = {map.get<"ltopx", double>(), map.get<"ltopy", double>()};
+    const cv::Point2d right_top = {map.get<"rtopx", double>(), map.get<"rtopy", double>()};
+    const cv::Point2d left_bottom = {map.get<"lbotx", double>(), map.get<"lboty", double>()};
+    const cv::Point2d right_bottom = {map.get<"rbotx", double>(), map.get<"rboty", double>()};
 
     return {imgsize, diameter, transpose, left_top, right_top, left_bottom, right_bottom};
 }

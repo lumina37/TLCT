@@ -8,8 +8,8 @@
 
 namespace tlct {
 
-using _hp::getPipeline;
 using cfg::CommonConfig;
+using cfg::ConfigMap;
 using cfg::newParser;
 
 } // namespace tlct

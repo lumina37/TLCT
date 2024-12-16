@@ -36,7 +36,6 @@ target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
 )
 target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
-        tomlplusplus::tomlplusplus
         argparse
 )
 

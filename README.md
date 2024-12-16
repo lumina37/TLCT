@@ -19,7 +19,7 @@ Conversion:
             [--psizeShortcutThre VAR]
 
 Positional arguments:
-  calib_file           path of the `calibration.toml` [required]
+  calib_file           path of the `calib.cfg` [required]
 
 Optional arguments:
   -h, --help           shows help message and exits 

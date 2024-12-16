@@ -14,7 +14,7 @@ namespace tlct::_cfg {
         std::make_unique<argparse::ArgumentParser>("tlct", "v" tlct_VERSION, argparse::default_arguments::all);
 
     parser->set_usage_max_line_width(120);
-    parser->add_argument("calib_file").help("path of the `calibration.toml`").required();
+    parser->add_argument("calib_file").help("path of the `calib.cfg`").required();
     parser->add_group("I/O");
     parser->add_argument("-i", "--src").help("input yuv420 planar file").required();
     parser->add_argument("-o", "--dst")

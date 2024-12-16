@@ -3,7 +3,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
 #include <doctest/doctest.h>
-#include <toml++/toml.hpp>
 
 #include "tlct.hpp"
 
@@ -15,8 +14,8 @@ TEST_CASE("tlct::cfg::raytrix")
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
 
-    const auto table = toml::parse_file(u8"test/raytrix.toml");
-    auto layout = tn::Layout::fromToml(table);
+    const auto map = tlct::ConfigMap::fromPath("test/raytrix.cfg");
+    auto layout = tn::Layout::fromCfgMap(map);
 
     SUBCASE("Layout")
     {

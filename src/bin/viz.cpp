@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 {
     argparse::ArgumentParser parser{"Viz", "v" tlct_VERSION, argparse::default_arguments::all};
 
-    parser.add_argument("calib_file").help("path of the `calibration.toml`").required();
+    parser.add_argument("calib_file").help("path of the `calib.cfg`").required();
     parser.add_argument("-i", "--src").help("input yuv420 planar file").required();
     parser.add_argument("-o", "--dst")
         .help("output directory, and the output file name is like 'v000-1920x1080.yuv' (v{view}-{wdt}x{hgt}.yuv)")
@@ -40,15 +40,15 @@ int main(int argc, char* argv[])
     }
 
     const auto& calib_file_path = parser.get<std::string>("calib_file");
-    const auto& calib_table = toml::parse_file(calib_file_path);
-    const int pipeline = tlct::getPipeline(calib_table);
+    const auto& map = tlct::ConfigMap::fromPath(calib_file_path);
+    const int pipeline = map.get_or<"pipeline">(0);
 
     cv::Mat canvas;
 
     if (pipeline == 0) {
         namespace tn = tlct::raytrix;
 
-        const auto& layout = tn::Layout::fromToml(calib_table);
+        const auto& layout = tn::Layout::fromCfgMap(map);
         const auto& raw_size = layout.getRawImgSize();
         auto yuv_reader =
             tlct::io::Yuv420Reader::fromPath(parser.get<std::string>("--src"), raw_size.width, raw_size.height);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     } else {
         namespace tn = tlct::tspc;
 
-        const auto& layout = tn::Layout::fromToml(calib_table);
+        const auto& layout = tn::Layout::fromCfgMap(map);
         const auto& raw_size = layout.getRawImgSize();
         auto yuv_reader =
             tlct::io::Yuv420Reader::fromPath(parser.get<std::string>("--src"), raw_size.width, raw_size.height);

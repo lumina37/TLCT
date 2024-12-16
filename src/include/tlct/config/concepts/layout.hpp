@@ -4,7 +4,8 @@
 #include <filesystem>
 
 #include <opencv2/core.hpp>
-#include <toml++/toml.hpp>
+
+#include <tlct/config/common/map.hpp>
 
 namespace tlct::_cfg::concepts {
 
@@ -16,9 +17,9 @@ concept CLayout = std::is_trivially_copyable_v<Self> && requires {
 } && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
-} && requires(const toml::table& table) {
+} && requires(const ConfigMap& map) {
     // Init from
-    { Self::fromToml(table) } -> std::same_as<Self>;
+    { Self::fromCfgMap(map) } -> std::same_as<Self>;
 } && requires(Self self) {
     // Non-const methods
     requires requires(int factor) {

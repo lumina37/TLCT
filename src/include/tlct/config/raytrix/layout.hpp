@@ -5,9 +5,9 @@
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
-#include <toml++/toml.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/config/common/map.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cfg::raytrix {
@@ -36,7 +36,7 @@ public:
     TLCT_API inline Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromToml(const toml::table& table);
+    [[nodiscard]] TLCT_API static inline Layout fromCfgMap(const ConfigMap& map);
 
     // Non-const methods
     TLCT_API inline Layout& upsample(int factor) noexcept;
@@ -79,16 +79,12 @@ private:
     bool is_out_shift_;
 };
 
-Layout Layout::fromToml(const toml::table& table)
+Layout Layout::fromCfgMap(const ConfigMap& map)
 {
-    const auto node2point = [](toml::node_view<const toml::node> node) {
-        return cv::Point2d{node[0].value<double>().value(), node[1].value<double>().value()};
-    };
-
-    cv::Size imgsize{table["width"].value<int>().value(), table["height"].value<int>().value()};
-    const double diameter = table["diameter"].value<double>().value();
-    const bool transpose = table["transpose"].value_or(false);
-    const cv::Point2d offset = node2point(table["offset"]);
+    cv::Size imgsize{map.get<"width", int>(), map.get<"height", int>()};
+    const double diameter = map.get<"diameter", double>();
+    const bool transpose = map.get_or<"transpose">(false);
+    const cv::Point2d offset = {map.get<"offsetx", double>(), map.get<"offsety", double>()};
 
     return {imgsize, diameter, transpose, offset};
 }

@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 0.16.1.0
+        VERSION 0.16.2.0
         LANGUAGES CXX
 )
 
@@ -30,17 +30,6 @@ endif ()
 include(FetchContent)
 
 find_package(OpenCV REQUIRED COMPONENTS imgproc OPTIONAL_COMPONENTS imgcodecs)
-
-set(TLCT_TOMLPP_PATH "https://github.com/marzer/tomlplusplus/archive/refs/tags/v3.4.0.tar.gz" CACHE STRING
-        "Specifies the path of tomlplusplus")
-set(TOML_ENABLE_FORMATTERS OFF CACHE BOOL "")
-
-FetchContent_Declare(
-        tomlplusplus
-        DOWNLOAD_EXTRACT_TIMESTAMP ON
-        URL ${TLCT_TOMLPP_PATH}
-)
-FetchContent_MakeAvailable(tomlplusplus)
 
 set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
         "Specifies the path of argparse")
@@ -66,7 +55,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/lumina37/TLCT-test-data.git
-            GIT_TAG e0c4b380f90e32c39d92b9b78435ea76250c850e
+            GIT_TAG 225668b5621553fb01b9a173293581dc0d19e646
     )
     FetchContent_MakeAvailable(tlct-test-data)
 endif ()
@@ -117,11 +106,7 @@ if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
             INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
     )
 
-    install(TARGETS
-            ${PROJECT_NAME}-lib
-            ${PROJECT_NAME}-bin
-            tomlplusplus_tomlplusplus
-            argparse
+    install(TARGETS ${PROJECT_NAME}-lib ${PROJECT_NAME}-bin argparse
             EXPORT ${PROJECT_NAME}Targets
     )
     install(EXPORT ${PROJECT_NAME}Targets
