@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  schedule:
-    - cron: "42 6 * * *"
   pull_request:
     branches: [ master ]
     paths:
@@ -16,14 +14,30 @@ jobs:
     name: Test
     runs-on: ubuntu-24.04
 
+    env:
+      OPENCV_VERSION: 4.10.0
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install OpenCV
+      - name: Cache OpenCV
+        id: opencv-cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/opencv-install
+          key: ${{ runner.os }}-$OPENCV_VERSION
+
+      - name: Build OpenCV
+        if: steps.opencv-cache.outputs.cache-hit != 'true'
         run: |
-          sudo apt update
-          sudo apt install libopencv-dev
+          cp ./.devcontainer/install-opencv.sh /tmp/
+          chmod +x /tmp/install-opencv.sh
+          cd /tmp
+          ./install-opencv.sh $OPENCV_VERSION /tmp/opencv-install
+
+      - name: Restore OpenCV
+        run: sudo cp -r /tmp/opencv-install /usr/local
 
       - name: Build
         run: |
