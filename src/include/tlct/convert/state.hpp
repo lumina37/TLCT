@@ -9,28 +9,35 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/common.hpp"
-#include "tlct/config/raytrix.hpp"
+#include "tlct/config/layout.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/raytrix/multiview.hpp"
-#include "tlct/convert/raytrix/patchsize.hpp"
+#include "tlct/convert/multiview.hpp"
+#include "tlct/convert/patchsize.hpp"
 #include "tlct/io.hpp"
 
-namespace tlct::_cvt::raytrix {
+namespace tlct {
+
+namespace _cvt {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <io::concepts::CFrame TFrame_>
+template <tcfg::concepts::CLayout TLayout_, io::concepts::CFrame TFrame_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
 class State_
 {
 public:
     static constexpr int CHANNELS = 3;
+    static constexpr bool IS_KEPLER = IS_KEPLER_;
+    static constexpr bool IS_MULTI_FOCUS = IS_MULTI_FOCUS_;
 
     // Typename alias
     using TFrame = TFrame_;
     using TCvtConfig = tcfg::CommonConfig::Convert;
-    using TLayout = tcfg::raytrix::Layout;
+    using TLayout = TLayout_;
     using TMIs = MIs_<TLayout>;
+    using PsizeParams = PsizeParams_<TLayout>;
+    using MvParams = MvParams_<TLayout>;
+    using MvCache = MvCache_<TLayout>;
 
     // Constructor
     State_() = delete;
@@ -58,9 +65,8 @@ public:
 
     inline void renderInto(TFrame& dst, int view_row, int view_col) const
     {
-        // mv_cache_.output_image_channels_u8[0]=dst.getY();
-        renderView(mv_cache_.srcs_32f_, mv_cache_.output_image_channels_u8, layout_, patchsizes_, mv_params_, mv_cache_,
-                   view_row, view_col);
+        renderView<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f_, mv_cache_.output_image_channels_u8, layout_,
+                                                       patchsizes_, mv_params_, mv_cache_, view_row, view_col);
 
         mv_cache_.output_image_channels_u8[0].copyTo(dst.getY());
         cv::resize(mv_cache_.output_image_channels_u8[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
@@ -80,28 +86,30 @@ private:
     MvParams mv_params_;
     mutable MvCache mv_cache_;
 };
-template <io::concepts::CFrame TFrame_>
-State_<TFrame_>::State_(const State_::TLayout& layout, const State_::TCvtConfig& cvt_cfg)
+
+template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::State_(const TLayout& layout, const TCvtConfig& cvt_cfg)
     : layout_(layout), cvt_cfg_(cvt_cfg)
 {
     mis_ = TMIs::fromLayout(layout);
 
     prev_patchsizes_ = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols(), PsizeRecord{});
     patchsizes_ = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols());
-    psize_params_ = PsizeParams::fromConfigs(layout, cvt_cfg);
+    psize_params_ = PsizeParams_<TLayout>::fromConfigs(layout, cvt_cfg);
 
-    mv_params_ = MvParams::fromConfigs(layout, cvt_cfg);
-    mv_cache_ = MvCache::fromParams(mv_params_);
+    mv_params_ = MvParams_<TLayout>::fromConfigs(layout, cvt_cfg);
+    mv_cache_ = MvCache_<TLayout>::fromParams(mv_params_);
 }
 
-template <io::concepts::CFrame TFrame>
-State_<TFrame> State_<TFrame>::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
+template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>
+State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
 {
     return {layout, cvt_cfg};
 }
 
-template <io::concepts::CFrame TFrame>
-void State_<TFrame>::update(const TFrame& src)
+template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+void State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src)
 {
     layout_.processInto(src.getY(), mv_cache_.rotated_srcs_[0]);
     layout_.processInto(src.getU(), mv_cache_.rotated_srcs_[1]);
@@ -128,8 +136,19 @@ void State_<TFrame>::update(const TFrame& src)
     mis_.update(mv_cache_.srcs_32f_[0]);
 
     std::swap(prev_patchsizes_, patchsizes_);
-    estimatePatchsizes(layout_, cvt_cfg_, psize_params_, mis_, prev_patchsizes_, patchsizes_);
-    computeWeights(mis_, layout_, mv_cache_);
+    estimatePatchsizes<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(layout_, cvt_cfg_, psize_params_, mis_, prev_patchsizes_,
+                                                           patchsizes_);
+    if constexpr (IS_MULTI_FOCUS) {
+        computeWeights(mis_, layout_, mv_cache_);
+    }
 }
 
-} // namespace tlct::_cvt::raytrix
+} // namespace _cvt
+
+namespace cvt {
+
+using _cvt::State_;
+
+} // namespace cvt
+
+} // namespace tlct

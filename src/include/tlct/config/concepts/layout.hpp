@@ -13,8 +13,6 @@ namespace fs = std::filesystem;
 
 template <typename Self>
 concept CLayout = std::is_trivially_copyable_v<Self> && requires {
-    { Self::IS_KEPLER } -> std::convertible_to<bool>;
-} && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
 } && requires(const ConfigMap& map) {

@@ -7,7 +7,6 @@ namespace tlct::concepts {
 
 using cfg::concepts::CLayout;
 
-using cvt::concepts::CNeighbors;
 using cvt::concepts::CState;
 
 } // namespace tlct::concepts

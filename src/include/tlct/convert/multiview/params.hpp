@@ -1,21 +1,25 @@
 #pragma once
 
-#include "tlct/config/tspc.hpp"
+#include <numbers>
+
+#include "tlct/config/common.hpp"
+#include "tlct/config/concepts.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
-namespace tlct::_cvt::tspc {
+namespace tlct::_cvt {
 
 namespace tcfg = tlct::cfg;
 
-class MvParams
+template <tcfg::concepts::CLayout TLayout_>
+class MvParams_
 {
 public:
     // Typename alias
-    using TLayout = tcfg::tspc::Layout;
+    using TLayout = TLayout_;
     using TCvtConfig = tcfg::CommonConfig::Convert;
 
     // Initialize from
-    [[nodiscard]] static inline MvParams fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg);
+    [[nodiscard]] static inline MvParams_ fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg);
 
     cv::Range canvas_crop_roi[2];
     double psize_inflate;
@@ -30,11 +34,12 @@ public:
     int output_height;
 };
 
-MvParams MvParams::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
+template <tcfg::concepts::CLayout TLayout>
+MvParams_<TLayout> MvParams_<TLayout>::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
 {
     const double psize_inflate = cvt_cfg.psize_inflate;
 
-    const double patch_xshift_d = 0.285 * layout.getDiameter();
+    const double patch_xshift_d = 0.3 * layout.getDiameter();
     const int patch_xshift = (int)std::ceil(patch_xshift_d);
     const int patch_yshift = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
 
@@ -60,4 +65,4 @@ MvParams MvParams::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
             view_interval,          canvas_width,  canvas_height, output_width, output_height};
 }
 
-} // namespace tlct::_cvt::tspc
+} // namespace tlct::_cvt

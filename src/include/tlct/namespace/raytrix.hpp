@@ -1,16 +1,22 @@
 #pragma once
 
-#include "tlct/config/raytrix.hpp"
-#include "tlct/convert/raytrix.hpp"
+#include "tlct/config/layout.hpp"
+#include "tlct/convert.hpp"
+#include "tlct/io.hpp"
 
-namespace tlct::raytrix {
+namespace tlct {
 
-using cfg::raytrix::Layout;
-using cfg::raytrix::LEN_TYPE_NUM;
+namespace raytrix {
 
-using cvt::raytrix::FarNeighbors;
-using cvt::raytrix::NearNeighbors;
-using cvt::raytrix::State_;
-using cvt::raytrix::StateYuv420;
+using Layout = tlct::cfg::OffsetLayout;
+using StateYuv420 = tlct::cvt::State_<Layout, tlct::io::Yuv420Frame, false, true>;
 
-} // namespace tlct::raytrix
+} // namespace raytrix
+
+namespace _cvt {
+
+template class State_<tlct::cfg::OffsetLayout, tlct::io::Yuv420Frame, false, true>;
+
+}
+
+} // namespace tlct

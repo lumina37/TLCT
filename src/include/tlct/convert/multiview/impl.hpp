@@ -3,27 +3,26 @@
 #include <array>
 #include <cmath>
 #include <limits>
-#include <numbers>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/config/raytrix.hpp"
+#include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/raytrix/patchsize/neighbors.hpp"
-#include "tlct/convert/raytrix/patchsize/params.hpp"
+#include "tlct/convert/multiview/cache.hpp"
+#include "tlct/convert/multiview/params.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/math.hpp"
 
-namespace tlct::_cvt::raytrix {
+namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-static inline void computeWeights(const MIs_<tcfg::raytrix::Layout>& mis, const tcfg::raytrix::Layout& layout,
-                                  MvCache& cache)
+template <tcfg::concepts::CLayout TLayout>
+static inline void computeWeights(const MIs_<TLayout>& mis, const TLayout& layout, MvCache_<TLayout>& cache)
 {
-    cache.texture_I.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
+    cv::Mat texture_I(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
     cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev ti_meanstddev{};
 
@@ -39,7 +38,7 @@ static inline void computeWeights(const MIs_<tcfg::raytrix::Layout>& mis, const 
             const auto& mi = mis.getMI(offset).I;
 
             const auto curr_I = (float)textureIntensity(mi(roi));
-            cache.texture_I.at<float>(row, col) = curr_I;
+            texture_I.at<float>(row, col) = curr_I;
             ti_meanstddev.update(curr_I);
 
             offset++;
@@ -52,21 +51,24 @@ static inline void computeWeights(const MIs_<tcfg::raytrix::Layout>& mis, const 
     const double ti_stddev = ti_meanstddev.getStddev();
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const auto& curr_ti = cache.texture_I.at<float>({col, row});
+            const auto& curr_ti = texture_I.at<float>({col, row});
             const double normed_I = (curr_ti - ti_mean) / ti_stddev;
-            cache.weights.at<float>(row, col) = (float)_hp::sigmoid(normed_I);
+            cache.weights.template at<float>(row, col) = (float)_hp::sigmoid(normed_I);
         }
     }
 }
 
-static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels& dsts,
-                              const tcfg::raytrix::Layout& layout, const std::vector<PsizeRecord>& patchsizes,
-                              const MvParams& params, MvCache& cache, int view_row, int view_col)
+template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
+                              typename MvCache_<TLayout>::TChannels& dsts, const TLayout& layout,
+                              const std::vector<PsizeRecord>& patchsizes, const MvParams_<TLayout>& params,
+                              MvCache_<TLayout>& cache, int view_row, int view_col)
 {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
 
     cv::Mat resized_patch;
+    [[maybe_unused]] cv::Mat rotated_patch;
     cv::Mat weighted_patch;
 
     for (const int chan_id : rgs::views::iota(0, (int)srcs.size())) {
@@ -77,7 +79,6 @@ static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
                 const int offset = row_offset + col;
-                const float weight = cache.weights.at<float>(row, col);
 
                 // Extract patch
                 const cv::Point2d center = layout.getMICenter(row, col);
@@ -86,8 +87,14 @@ static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels
                 const cv::Mat& patch = getRoiImageByCenter(srcs[chan_id], patch_center, psize);
 
                 // Paste patch
-                cv::resize(patch, resized_patch, {params.resized_patch_width, params.resized_patch_width}, 0, 0,
-                           cv::INTER_LINEAR);
+                if constexpr (IS_KEPLER) {
+                    cv::rotate(patch, rotated_patch, cv::ROTATE_180);
+                    cv::resize(rotated_patch, resized_patch, {params.resized_patch_width, params.resized_patch_width},
+                               0, 0, cv::INTER_CUBIC);
+                } else {
+                    cv::resize(patch, resized_patch, {params.resized_patch_width, params.resized_patch_width}, 0, 0,
+                               cv::INTER_CUBIC);
+                }
 
                 cv::multiply(resized_patch, cache.grad_blending_weight, weighted_patch);
 
@@ -96,8 +103,15 @@ static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels
                 const int right_shift = ((row % 2) ^ (int)layout.isOutShift()) * (params.patch_xshift / 2);
                 const cv::Rect roi{col * params.patch_xshift + right_shift, row * params.patch_yshift,
                                    params.resized_patch_width, params.resized_patch_width};
-                cache.render_canvas(roi) += weighted_patch * weight;
-                cache.weight_canvas(roi) += cache.grad_blending_weight * weight;
+
+                if constexpr (IS_MULTI_FOCUS) {
+                    const float weight = cache.weights.template at<float>(row, col);
+                    cache.render_canvas(roi) += weighted_patch * weight;
+                    cache.weight_canvas(roi) += cache.grad_blending_weight * weight;
+                } else {
+                    cache.render_canvas(roi) += weighted_patch;
+                    cache.weight_canvas(roi) += cache.grad_blending_weight;
+                }
             }
             row_offset += layout.getMIMaxCols();
         }
@@ -118,4 +132,4 @@ static inline void renderView(const MvCache::TChannels& srcs, MvCache::TChannels
     }
 }
 
-} // namespace tlct::_cvt::raytrix
+} // namespace tlct::_cvt

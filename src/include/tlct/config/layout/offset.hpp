@@ -2,7 +2,6 @@
 
 #include <array>
 #include <numbers>
-#include <ranges>
 
 #include <opencv2/imgproc.hpp>
 
@@ -10,44 +9,35 @@
 #include "tlct/config/common/map.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
-namespace tlct::_cfg::raytrix {
+namespace tlct::_cfg {
 
-namespace rgs = std::ranges;
-
-static constexpr int LEN_TYPE_NUM = 3;
-
-class Layout
+class OffsetLayout
 {
 public:
-    static constexpr bool IS_KEPLER = false;
-
     // Typename alias
-    using TIdx2Type = std::array<std::array<int, LEN_TYPE_NUM>, 2>;
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API inline Layout() noexcept
+    TLCT_API inline OffsetLayout() noexcept
         : imgsize_(), raw_imgsize_(), diameter_(), radius_(), transpose_(), left_top_(), x_unit_shift_(),
-          y_unit_shift_(), mirows_(), micols_(), idx2type_(), upsample_(1), is_out_shift_(){};
-    TLCT_API inline Layout(const Layout& rhs) noexcept = default;
-    TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
-    TLCT_API inline Layout(Layout&& rhs) noexcept = default;
-    TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
-    TLCT_API inline Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept;
+          y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
+    TLCT_API inline OffsetLayout(const OffsetLayout& rhs) noexcept = default;
+    TLCT_API inline OffsetLayout& operator=(const OffsetLayout& rhs) noexcept = default;
+    TLCT_API inline OffsetLayout(OffsetLayout&& rhs) noexcept = default;
+    TLCT_API inline OffsetLayout& operator=(OffsetLayout&& rhs) noexcept = default;
+    TLCT_API inline OffsetLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromCfgMap(const ConfigMap& map);
+    [[nodiscard]] TLCT_API static inline OffsetLayout fromCfgMap(const ConfigMap& map);
 
     // Non-const methods
-    TLCT_API inline Layout& upsample(int factor) noexcept;
+    TLCT_API inline OffsetLayout& upsample(int factor) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
     [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
     [[nodiscard]] TLCT_API inline cv::Size getRawImgSize() const noexcept { return raw_imgsize_; };
-    [[nodiscard]] TLCT_API inline int getMIType(int row, int col) const noexcept;
-    [[nodiscard]] TLCT_API inline int getMIType(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool isTranspose() const noexcept { return transpose_; };
@@ -74,12 +64,11 @@ private:
     double y_unit_shift_;
     int mirows_;
     TMiCols micols_;
-    TIdx2Type idx2type_;
     int upsample_;
     bool is_out_shift_;
 };
 
-Layout Layout::fromCfgMap(const ConfigMap& map)
+OffsetLayout OffsetLayout::fromCfgMap(const ConfigMap& map)
 {
     cv::Size imgsize{map.get<"width", int>(), map.get<"height", int>()};
     const double diameter = map.get<"diameter", double>();
@@ -89,7 +78,7 @@ Layout Layout::fromCfgMap(const ConfigMap& map)
     return {imgsize, diameter, transpose, offset};
 }
 
-Layout& Layout::upsample(int factor) noexcept
+OffsetLayout& OffsetLayout::upsample(int factor) noexcept
 {
 
     imgsize_ *= factor;
@@ -102,15 +91,7 @@ Layout& Layout::upsample(int factor) noexcept
     return *this;
 }
 
-int Layout::getMIType(int row, int col) const noexcept
-{
-    const int type = idx2type_[row % idx2type_.size()][col % LEN_TYPE_NUM];
-    return type;
-}
-
-int Layout::getMIType(cv::Point index) const noexcept { return getMIType(index.y, index.x); }
-
-cv::Point2d Layout::getMICenter(int row, int col) const noexcept
+cv::Point2d OffsetLayout::getMICenter(int row, int col) const noexcept
 {
     cv::Point2d center{left_top_.x + x_unit_shift_ * col, left_top_.y + y_unit_shift_ * row};
     if (row % 2 == 1) {
@@ -119,9 +100,9 @@ cv::Point2d Layout::getMICenter(int row, int col) const noexcept
     return center;
 }
 
-cv::Point2d Layout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
+cv::Point2d OffsetLayout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
+void OffsetLayout::processInto(const cv::Mat& src, cv::Mat& dst) const
 {
     dst = src;
 
@@ -139,7 +120,7 @@ void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
     }
 }
 
-Layout::Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept
+OffsetLayout::OffsetLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept
     : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), transpose_(transpose), upsample_(1)
 {
     cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};
@@ -178,16 +159,6 @@ Layout::Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d of
     micols_[0] = (int)(((double)imgsize.width - left_top_.x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
     micols_[1] = (int)(((double)imgsize.width - mi_1_0_x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
     mirows_ = (int)(((double)imgsize.height - left_top_.y - y_unit_shift_ / 2.0) / y_unit_shift_) + 1;
-
-    const bool is_odd_yidx = center_mi_yidx % 2;
-    for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
-        idx2type_[is_odd_yidx][type] = type;
-    }
-    const bool is_another_row_on_left = is_odd_yidx ^ is_out_shift_;
-    for (const int idx : rgs::views::iota(0, LEN_TYPE_NUM)) {
-        const int type = idx2type_[is_odd_yidx][(idx + 2 - is_another_row_on_left) % 3];
-        idx2type_[!is_odd_yidx][idx] = type;
-    }
 }
 
-} // namespace tlct::_cfg::raytrix
+} // namespace tlct::_cfg

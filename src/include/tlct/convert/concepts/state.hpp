@@ -5,6 +5,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/io.hpp"
 

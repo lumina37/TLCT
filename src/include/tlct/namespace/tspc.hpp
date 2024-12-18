@@ -1,14 +1,22 @@
 #pragma once
 
-#include "tlct/config/tspc.hpp"
-#include "tlct/convert/tspc.hpp"
+#include "tlct/config/layout.hpp"
+#include "tlct/convert.hpp"
+#include "tlct/io.hpp"
 
-namespace tlct::tspc {
+namespace tlct {
 
-using cfg::tspc::Layout;
+namespace tspc {
 
-using cvt::tspc::Neighbors;
-using cvt::tspc::State_;
-using cvt::tspc::StateYuv420;
+using Layout = tlct::cfg::CornersLayout;
+using StateYuv420 = tlct::cvt::State_<Layout, tlct::io::Yuv420Frame, true, false>;
 
-} // namespace tlct::tspc
+} // namespace tspc
+
+namespace _cvt {
+
+template class State_<tlct::cfg::CornersLayout, tlct::io::Yuv420Frame, true, false>;
+
+}
+
+} // namespace tlct

@@ -9,32 +9,30 @@
 #include "tlct/config/common/map.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
-namespace tlct::_cfg::tspc {
+namespace tlct::_cfg {
 
-class Layout
+class CornersLayout
 {
 public:
-    static constexpr bool IS_KEPLER = true;
-
     // Typename alias
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API inline Layout() noexcept
+    TLCT_API inline CornersLayout() noexcept
         : imgsize_(), raw_imgsize_(), diameter_(), radius_(), transpose_(), left_top_(), right_top_(),
           left_y_unit_shift_(), right_y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
-    TLCT_API inline Layout(const Layout& rhs) noexcept = default;
-    TLCT_API inline Layout& operator=(const Layout& rhs) noexcept = default;
-    TLCT_API inline Layout(Layout&& rhs) noexcept = default;
-    TLCT_API inline Layout& operator=(Layout&& rhs) noexcept = default;
-    TLCT_API inline Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d left_top,
-                           cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept;
+    TLCT_API inline CornersLayout(const CornersLayout& rhs) noexcept = default;
+    TLCT_API inline CornersLayout& operator=(const CornersLayout& rhs) noexcept = default;
+    TLCT_API inline CornersLayout(CornersLayout&& rhs) noexcept = default;
+    TLCT_API inline CornersLayout& operator=(CornersLayout&& rhs) noexcept = default;
+    TLCT_API inline CornersLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d left_top,
+                                  cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Layout fromCfgMap(const ConfigMap& map);
+    [[nodiscard]] TLCT_API static inline CornersLayout fromCfgMap(const ConfigMap& map);
 
     // Non-const methods
-    TLCT_API inline Layout& upsample(int factor) noexcept;
+    TLCT_API inline CornersLayout& upsample(int factor) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
@@ -72,7 +70,7 @@ private:
     bool is_out_shift_;
 };
 
-Layout Layout::fromCfgMap(const ConfigMap& map)
+CornersLayout CornersLayout::fromCfgMap(const ConfigMap& map)
 {
     cv::Size imgsize{map.get<"width", int>(), map.get<"height", int>()};
     const double diameter = map.get<"diameter", int>();
@@ -85,7 +83,7 @@ Layout Layout::fromCfgMap(const ConfigMap& map)
     return {imgsize, diameter, transpose, left_top, right_top, left_bottom, right_bottom};
 }
 
-Layout& Layout::upsample(int factor) noexcept
+CornersLayout& CornersLayout::upsample(int factor) noexcept
 {
     imgsize_ *= factor;
     diameter_ *= factor;
@@ -98,7 +96,7 @@ Layout& Layout::upsample(int factor) noexcept
     return *this;
 }
 
-cv::Point2d Layout::getMICenter(int row, int col) const noexcept
+cv::Point2d CornersLayout::getMICenter(int row, int col) const noexcept
 {
     cv::Point2d left = left_top_ + left_y_unit_shift_ * row;
     cv::Point2d right = right_top_ + right_y_unit_shift_ * row;
@@ -112,9 +110,9 @@ cv::Point2d Layout::getMICenter(int row, int col) const noexcept
     return center;
 }
 
-cv::Point2d Layout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
+cv::Point2d CornersLayout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
+void CornersLayout::processInto(const cv::Mat& src, cv::Mat& dst) const
 {
     dst = src;
 
@@ -132,8 +130,8 @@ void Layout::processInto(const cv::Mat& src, cv::Mat& dst) const
     }
 }
 
-Layout::Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d left_top, cv::Point2d right_top,
-               cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
+CornersLayout::CornersLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d left_top,
+                             cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
     : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), transpose_(transpose), upsample_(1)
 {
     if (transpose) {
@@ -185,4 +183,4 @@ Layout::Layout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d le
     right_y_unit_shift_ = right_y_shift / (left_y_rows - 1);
 }
 
-} // namespace tlct::_cfg::tspc
+} // namespace tlct::_cfg
