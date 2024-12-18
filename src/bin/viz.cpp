@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
         namespace tn = tlct::raytrix;
 
         const auto& layout = tn::Layout::fromCfgMap(map);
+        const auto& mitypes = tlct::cfg::MITypes(layout.isOutShift());
         const auto& raw_size = layout.getRawImgSize();
         auto yuv_reader =
             tlct::io::Yuv420Reader::fromPath(parser.get<std::string>("--src"), raw_size.width, raw_size.height);
@@ -60,7 +61,7 @@ int main(int argc, char* argv[])
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
                 const auto center = layout.getMICenter(row, col);
-                const auto mitype = layout.getMIType(row, col);
+                const auto mitype = mitypes.getMIType(row, col);
                 const bool r = mitype == 0;
                 const bool g = mitype == 1;
                 const bool b = mitype == 2;
