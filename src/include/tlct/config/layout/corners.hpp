@@ -19,13 +19,13 @@ public:
 
     // Constructor
     TLCT_API inline CornersLayout() noexcept
-        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), transpose_(), left_top_(), right_top_(),
+        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), direction_(), left_top_(), right_top_(),
           left_y_unit_shift_(), right_y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
     TLCT_API inline CornersLayout(const CornersLayout& rhs) noexcept = default;
     TLCT_API inline CornersLayout& operator=(const CornersLayout& rhs) noexcept = default;
     TLCT_API inline CornersLayout(CornersLayout&& rhs) noexcept = default;
     TLCT_API inline CornersLayout& operator=(CornersLayout&& rhs) noexcept = default;
-    TLCT_API inline CornersLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d left_top,
+    TLCT_API inline CornersLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
                                   cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept;
 
     // Initialize from
@@ -41,7 +41,7 @@ public:
     [[nodiscard]] TLCT_API inline cv::Size getRawImgSize() const noexcept { return raw_imgsize_; };
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
-    [[nodiscard]] TLCT_API inline bool isTranspose() const noexcept { return transpose_; };
+    [[nodiscard]] TLCT_API inline bool getDirection() const noexcept { return direction_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
@@ -50,7 +50,6 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
-    [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return _hp::sgn(isOutShift()); };
 
     TLCT_API inline void processInto(const cv::Mat& src, cv::Mat& dst) const;
 
@@ -59,7 +58,7 @@ private:
     cv::Size raw_imgsize_;
     double diameter_;
     double radius_;
-    bool transpose_;
+    bool direction_;
     cv::Point2d left_top_;
     cv::Point2d right_top_;
     cv::Point2d left_y_unit_shift_;
@@ -72,15 +71,17 @@ private:
 
 CornersLayout CornersLayout::fromCfgMap(const ConfigMap& map)
 {
-    cv::Size imgsize{map.get<"width", int>(), map.get<"height", int>()};
-    const double diameter = map.get<"diameter", int>();
-    const bool transpose = map.get_or<"transpose">(false);
-    const cv::Point2d left_top = {map.get<"ltopx", double>(), map.get<"ltopy", double>()};
-    const cv::Point2d right_top = {map.get<"rtopx", double>(), map.get<"rtopy", double>()};
-    const cv::Point2d left_bottom = {map.get<"lbotx", double>(), map.get<"lboty", double>()};
-    const cv::Point2d right_bottom = {map.get<"rbotx", double>(), map.get<"rboty", double>()};
+    cv::Size imgsize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
+    const double diameter = map.get<"MIDiameter", int>();
+    const bool direction = map.get_or<"MLADirection">(false);
+    const cv::Point2d left_top = {map.get<"LeftTopMICenterX", double>(), map.get<"LeftTopMICenterY", double>()};
+    const cv::Point2d right_top = {map.get<"RightTopMICenterX", double>(), map.get<"RightTopMICenterY", double>()};
+    const cv::Point2d left_bottom = {map.get<"LeftBottomMICenterX", double>(),
+                                     map.get<"LeftBottomMICenterY", double>()};
+    const cv::Point2d right_bottom = {map.get<"RightBottomMICenterX", double>(),
+                                      map.get<"RightBottomMICenterY", double>()};
 
-    return {imgsize, diameter, transpose, left_top, right_top, left_bottom, right_bottom};
+    return {imgsize, diameter, direction, left_top, right_top, left_bottom, right_bottom};
 }
 
 CornersLayout& CornersLayout::upsample(int factor) noexcept
@@ -104,7 +105,7 @@ cv::Point2d CornersLayout::getMICenter(int row, int col) const noexcept
     cv::Point2d center = left + x_unit_shift * col;
 
     if (row % 2 == 1) {
-        center -= x_unit_shift / 2.0 * isOutShiftSgn();
+        center -= x_unit_shift / 2.0 * _hp::sgn(isOutShift());
     }
 
     return center;
@@ -116,7 +117,7 @@ void CornersLayout::processInto(const cv::Mat& src, cv::Mat& dst) const
 {
     dst = src;
 
-    if (isTranspose()) {
+    if (getDirection()) {
         cv::Mat transposed_src;
         cv::transpose(src, transposed_src);
         dst = std::move(transposed_src);
@@ -130,11 +131,11 @@ void CornersLayout::processInto(const cv::Mat& src, cv::Mat& dst) const
     }
 }
 
-CornersLayout::CornersLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d left_top,
+CornersLayout::CornersLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
                              cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
-    : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), transpose_(transpose), upsample_(1)
+    : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
 {
-    if (transpose) {
+    if (direction) {
         std::swap(left_top.x, left_top.y);
         std::swap(right_bottom.x, right_bottom.y);
         std::swap(right_top.x, right_top.y);

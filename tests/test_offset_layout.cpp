@@ -24,7 +24,7 @@ TEST_CASE("tlct::cfg#OffsetLayout")
 
     CHECK(layout.getDiameter() == doctest::Approx(37.154060363770).epsilon(eps));
     CHECK(layout.getRadius() == doctest::Approx(18.577030181885).epsilon(eps));
-    CHECK(layout.isTranspose() == false);
+    CHECK(layout.getDirection() == false);
 
     const auto center_0_0 = layout.getMICenter(0, 0);
     CHECK(center_0_0.x == doctest::Approx(48.4).epsilon(eps));

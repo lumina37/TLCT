@@ -24,7 +24,7 @@ TEST_CASE("tlct::cfg#CornersLayout")
 
     CHECK(layout.getDiameter() == doctest::Approx(70.).epsilon(eps));
     CHECK(layout.getRadius() == doctest::Approx(35.).epsilon(eps));
-    CHECK(layout.isTranspose() == true);
+    CHECK(layout.getDirection() == true);
 
     const auto center_0_0 = layout.getMICenter(0, 0);
     CHECK(center_0_0.x == doctest::Approx(37.5).epsilon(eps));

@@ -19,13 +19,13 @@ public:
 
     // Constructor
     TLCT_API inline OffsetLayout() noexcept
-        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), transpose_(), left_top_(), x_unit_shift_(),
+        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), direction_(), left_top_(), x_unit_shift_(),
           y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
     TLCT_API inline OffsetLayout(const OffsetLayout& rhs) noexcept = default;
     TLCT_API inline OffsetLayout& operator=(const OffsetLayout& rhs) noexcept = default;
     TLCT_API inline OffsetLayout(OffsetLayout&& rhs) noexcept = default;
     TLCT_API inline OffsetLayout& operator=(OffsetLayout&& rhs) noexcept = default;
-    TLCT_API inline OffsetLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept;
+    TLCT_API inline OffsetLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d offset) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline OffsetLayout fromCfgMap(const ConfigMap& map);
@@ -40,7 +40,7 @@ public:
     [[nodiscard]] TLCT_API inline cv::Size getRawImgSize() const noexcept { return raw_imgsize_; };
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
-    [[nodiscard]] TLCT_API inline bool isTranspose() const noexcept { return transpose_; };
+    [[nodiscard]] TLCT_API inline bool getDirection() const noexcept { return direction_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
@@ -49,7 +49,6 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
-    [[nodiscard]] TLCT_API inline int isOutShiftSgn() const noexcept { return _hp::sgn(isOutShift()); };
 
     TLCT_API inline void processInto(const cv::Mat& src, cv::Mat& dst) const;
 
@@ -58,7 +57,7 @@ private:
     cv::Size raw_imgsize_;
     double diameter_;
     double radius_;
-    bool transpose_;
+    bool direction_;
     cv::Point2d left_top_;
     double x_unit_shift_;
     double y_unit_shift_;
@@ -70,12 +69,12 @@ private:
 
 OffsetLayout OffsetLayout::fromCfgMap(const ConfigMap& map)
 {
-    cv::Size imgsize{map.get<"width", int>(), map.get<"height", int>()};
-    const double diameter = map.get<"diameter", double>();
-    const bool transpose = map.get_or<"transpose">(false);
-    const cv::Point2d offset = {map.get<"offsetx", double>(), map.get<"offsety", double>()};
+    cv::Size imgsize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
+    const double diameter = map.get<"MIDiameter", double>();
+    const bool direction = map.get_or<"MLADirection">(false);
+    const cv::Point2d offset = {map.get<"CentralMIOffsetX", double>(), map.get<"CentralMIOffsetY", double>()};
 
-    return {imgsize, diameter, transpose, offset};
+    return {imgsize, diameter, direction, offset};
 }
 
 OffsetLayout& OffsetLayout::upsample(int factor) noexcept
@@ -95,7 +94,7 @@ cv::Point2d OffsetLayout::getMICenter(int row, int col) const noexcept
 {
     cv::Point2d center{left_top_.x + x_unit_shift_ * col, left_top_.y + y_unit_shift_ * row};
     if (row % 2 == 1) {
-        center.x -= x_unit_shift_ / 2.0 * isOutShiftSgn();
+        center.x -= x_unit_shift_ / 2.0 * _hp::sgn(isOutShift());
     }
     return center;
 }
@@ -106,7 +105,7 @@ void OffsetLayout::processInto(const cv::Mat& src, cv::Mat& dst) const
 {
     dst = src;
 
-    if (isTranspose()) {
+    if (getDirection()) {
         cv::Mat transposed_src;
         cv::transpose(src, transposed_src);
         dst = std::move(transposed_src);
@@ -120,12 +119,12 @@ void OffsetLayout::processInto(const cv::Mat& src, cv::Mat& dst) const
     }
 }
 
-OffsetLayout::OffsetLayout(cv::Size imgsize, double diameter, bool transpose, cv::Point2d offset) noexcept
-    : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), transpose_(transpose), upsample_(1)
+OffsetLayout::OffsetLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d offset) noexcept
+    : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
 {
     cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};
 
-    if (isTranspose()) {
+    if (getDirection()) {
         std::swap(imgsize.height, imgsize.width);
         std::swap(center_mi.x, center_mi.y);
     }

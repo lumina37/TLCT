@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 
     const auto& calib_file_path = parser.get<std::string>("calib_file");
     const auto& map = tlct::ConfigMap::fromPath(calib_file_path);
-    const int pipeline = map.get_or<"pipeline">(0);
+    const int pipeline = ((map.get_or<"IsKepler">(0) << 1) | map.get_or<"IsMultiFocus">(0)) - 1;
 
     cv::Mat canvas;
 

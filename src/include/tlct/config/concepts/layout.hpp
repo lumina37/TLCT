@@ -31,7 +31,7 @@ concept CLayout = std::is_trivially_copyable_v<Self> && requires {
     { self.getRawImgSize() } noexcept -> std::same_as<cv::Size>;
     { self.getDiameter() } noexcept -> std::floating_point;
     { self.getRadius() } noexcept -> std::floating_point;
-    { self.isTranspose() } noexcept -> std::same_as<bool>;
+    { self.getDirection() } noexcept -> std::same_as<bool>;
     { self.getUpsample() } noexcept -> std::integral;
     { self.getMIRows() } noexcept -> std::integral;
     requires requires(int row) {
@@ -46,7 +46,6 @@ concept CLayout = std::is_trivially_copyable_v<Self> && requires {
         { self.getMICenter(index) } noexcept -> std::same_as<cv::Point2d>;
     };
     { self.isOutShift() } noexcept -> std::same_as<bool>;
-    { self.isOutShiftSgn() } noexcept -> std::integral;
 
     requires requires(const cv::Mat& src, cv::Mat& dst) { self.processInto(src, dst); };
 };

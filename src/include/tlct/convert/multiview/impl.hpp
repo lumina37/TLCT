@@ -124,7 +124,7 @@ static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
         cv::resize(cache.normed_image_u8, cache.resized_normed_image_u8, {params.output_width, params.output_height},
                    0.0, 0.0, cv::INTER_AREA);
 
-        if (layout.isTranspose()) {
+        if (layout.getDirection()) {
             cv::transpose(cache.resized_normed_image_u8, dsts[chan_id]);
         } else {
             cache.resized_normed_image_u8.copyTo(dsts[chan_id]);

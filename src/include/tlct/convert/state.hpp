@@ -53,7 +53,7 @@ public:
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept
     {
-        if (layout_.isTranspose()) {
+        if (layout_.getDirection()) {
             return {mv_params_.output_height, mv_params_.output_width};
         } else {
             return {mv_params_.output_width, mv_params_.output_height};
