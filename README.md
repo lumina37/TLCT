@@ -6,7 +6,7 @@ The official implementation of the *Tsinghua Lenslet Conversion Tool*.
 
 ## Demo
 
-You can download the minimal demo [here](https://drive.google.com/file/d/1p2Jo4Nds4yvKZeKrzZjhxTdxbg7XuGjH/view).
+You can download the minimal demo [here](https://drive.google.com/file/d/1boCJ7uzLoA9fSLcrom1f0Sj4zEEgYpU_/view).
 
 ## Recommend Calibration Configs
 
