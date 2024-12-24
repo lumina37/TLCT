@@ -42,8 +42,7 @@ public:
 
     template <_hp::cestring key, typename Tf>
         requires std::is_invocable_v<Tf>
-    [[nodiscard]] TLCT_API inline auto get_or_else(const Tf& default_factory) const noexcept
-        -> decltype(default_factory());
+    [[nodiscard]] TLCT_API inline auto get_or_else(Tf&& default_factory) const noexcept -> decltype(default_factory());
 
     template <typename Tv>
     [[nodiscard]] TLCT_API inline Tv get(const std::string& key) const;
@@ -54,7 +53,7 @@ public:
 
     template <typename Tf>
         requires std::is_invocable_v<Tf>
-    [[nodiscard]] TLCT_API inline auto get_or_else(const std::string& key, const Tf& default_factory) const noexcept
+    [[nodiscard]] TLCT_API inline auto get_or_else(const std::string& key, Tf&& default_factory) const noexcept
         -> decltype(default_factory());
 
 private:
@@ -150,7 +149,7 @@ Tv ConfigMap::get_or(const Tv& default_val) const noexcept
 
 template <_hp::cestring key, typename Tf>
     requires std::is_invocable_v<Tf>
-auto ConfigMap::get_or_else(const Tf& default_factory) const noexcept -> decltype(default_factory())
+auto ConfigMap::get_or_else(Tf&& default_factory) const noexcept -> decltype(default_factory())
 {
     return this->get_or_else<Tf>(key.string, default_factory);
 };
@@ -176,8 +175,7 @@ Tv ConfigMap::get_or(const std::string& key, const Tv& default_val) const noexce
 
 template <typename Tf>
     requires std::is_invocable_v<Tf>
-auto ConfigMap::get_or_else(const std::string& key, const Tf& default_factory) const noexcept
-    -> decltype(default_factory())
+auto ConfigMap::get_or_else(const std::string& key, Tf&& default_factory) const noexcept -> decltype(default_factory())
 {
     using Tval = decltype(default_factory());
 
