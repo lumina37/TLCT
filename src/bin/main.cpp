@@ -18,8 +18,8 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
 
     auto state = TState::fromConfigs(layout, cli_cfg.convert);
 
-    const auto src_size = layout.getRawImgSize();
-    const auto output_size = state.getOutputSize();
+    const auto& src_size = layout.getRawImgSize();
+    const auto& output_size = state.getOutputSize();
 
     using TYuvReader = tlct::io::YuvReader_<typename TState::TFrame>;
     using TYuvWriter = tlct::io::YuvWriter_<typename TState::TFrame>;
