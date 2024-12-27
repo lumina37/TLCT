@@ -1,9 +1,6 @@
 function(tlct_add_executable name srcs)
     add_executable(${name} ${srcs})
-    target_link_libraries(${name} PRIVATE tlct::lib argparse)
-    target_include_directories(${name} PRIVATE
-            $<BUILD_INTERFACE:${argparse_SOURCE_DIR}/include>
-    )
+    target_link_libraries(${name} PRIVATE tlct::lib)
     target_compile_definitions(${name} PRIVATE $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>)
 
     if (TLCT_ENABLE_LTO)
