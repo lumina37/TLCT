@@ -23,9 +23,6 @@ cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO
         "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 option(TLCT_VERBOSE_WARNING "Show more verbose compiler warnings" OFF)
 
-set(TLCT_BUILD_APP $<IF:$<STREQUAL:${CMAKE_SOURCE_DIR},${PROJECT_SOURCE_DIR}>,ON,OFF> CACHE BOOL
-        "Build the applications in `src/bin`")
-
 if (MSVC)
     option(TLCT_WITH_STATIC_CRT "Link with STATIC CRT" OFF)
     set(MSVC_RUNTIME_TYPE MultiThreaded$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
@@ -36,17 +33,15 @@ include(FetchContent)
 
 find_package(OpenCV REQUIRED COMPONENTS imgproc OPTIONAL_COMPONENTS imgcodecs)
 
-if (TLCT_BUILD_APP)
-    set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
-            "Specifies the path of argparse")
+set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
+        "Specifies the path of argparse")
 
-    FetchContent_Declare(
-            argparse
-            DOWNLOAD_EXTRACT_TIMESTAMP ON
-            URL ${TLCT_ARGPARSE_PATH}
-    )
-    FetchContent_MakeAvailable(argparse)
-endif ()
+FetchContent_Declare(
+        argparse
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
+        URL ${TLCT_ARGPARSE_PATH}
+)
+FetchContent_MakeAvailable(argparse)
 
 if (TLCT_BUILD_TESTS)
     include(CTest)
@@ -93,7 +88,7 @@ include(GNUInstallDirs)
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include(CMakePackageConfigHelpers)
 
-    install(TARGETS ${PROJECT_NAME}-lib ${PROJECT_NAME}-bin argparse
+    install(TARGETS ${PROJECT_NAME}-lib argparse
             EXPORT ${PROJECT_NAME}Targets
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
