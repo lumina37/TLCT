@@ -1,6 +1,6 @@
 function(tlct_add_executable name srcs)
     add_executable(${name} ${srcs})
-    target_link_libraries(${name} PRIVATE argparse tlct::lib)
+    target_link_libraries(${name} PRIVATE tlct::lib argparse)
     target_include_directories(${name} PRIVATE
             $<BUILD_INTERFACE:${argparse_SOURCE_DIR}/include>
     )

@@ -121,7 +121,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER>
 
 template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline PsizeRecord
-estimatePatchsize(const TLayout& layout, const tcfg::CommonConfig::Convert& cvt_cfg,
+estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg,
                   const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
                   const std::vector<PsizeRecord>& patchsizes, const std::vector<PsizeRecord>& prev_patchsizes,
                   const cv::Point index, const int offset)
@@ -183,7 +183,7 @@ estimatePatchsize(const TLayout& layout, const tcfg::CommonConfig::Convert& cvt_
 }
 
 template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
-static inline void estimatePatchsizes(const TLayout& layout, const tcfg::CommonConfig::Convert& cvt_cfg,
+static inline void estimatePatchsizes(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg,
                                       const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
                                       const std::vector<PsizeRecord>& prev_patchsizes,
                                       std::vector<PsizeRecord>& patchsizes)

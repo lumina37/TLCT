@@ -1,15 +1,26 @@
 #pragma once
 
-#include "tlct/config/common/argparser.hpp"
-#include "tlct/config/common/common.hpp"
-#include "tlct/config/common/map.hpp"
+#include "tlct/common/defines.h"
+
+#ifdef TLCT_BUILD_APP
+
+#    include "tlct/config/common/cli.hpp"
 
 namespace tlct::cfg {
 
 namespace _ = _cfg;
 
-using _::CommonConfig;
-using _::ConfigMap;
-using _::newParser;
+using _::CliConfig;
+using _::makeParser;
+
+} // namespace tlct::cfg
+
+#endif
+
+#include "tlct/config/common/map.hpp"
+
+namespace tlct::cfg {
+
+using _cfg::ConfigMap;
 
 } // namespace tlct::cfg

@@ -16,7 +16,7 @@ class MvParams_
 public:
     // Typename alias
     using TLayout = TLayout_;
-    using TCvtConfig = tcfg::CommonConfig::Convert;
+    using TCvtConfig = tcfg::CliConfig::Convert;
 
     // Initialize from
     [[nodiscard]] static inline MvParams_ fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg);

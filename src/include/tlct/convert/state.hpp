@@ -32,7 +32,7 @@ public:
 
     // Typename alias
     using TFrame = TFrame_;
-    using TCvtConfig = tcfg::CommonConfig::Convert;
+    using TCvtConfig = tcfg::CliConfig::Convert;
     using TLayout = TLayout_;
     using TMIs = MIs_<TLayout>;
     using PsizeParams = PsizeParams_<TLayout>;

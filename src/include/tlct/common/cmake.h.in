@@ -2,6 +2,7 @@
 
 #cmakedefine TLCT_HEADER_ONLY
 #cmakedefine TLCT_BUILD_SHARED_LIBS
+#cmakedefine TLCT_BUILD_APP
 
 #cmakedefine tlct_VERSION_MAJOR @tlct_VERSION_MAJOR@
 #cmakedefine tlct_VERSION_MINOR @tlct_VERSION_MINOR@

@@ -1,4 +1,4 @@
 add_subdirectory(lib)
-if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+if (TLCT_BUILD_APP)
     add_subdirectory(bin)
 endif ()

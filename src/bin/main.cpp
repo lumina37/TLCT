@@ -13,22 +13,22 @@ namespace rgs = std::ranges;
 template <tlct::concepts::CState TState>
 static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map)
 {
-    const auto& common_cfg = tlct::CommonConfig::fromParser(parser);
-    const auto layout = TState::TLayout::fromCfgMap(map).upsample(common_cfg.convert.upsample);
+    const auto& cli_cfg = tlct::CliConfig::fromParser(parser);
+    const auto layout = TState::TLayout::fromCfgMap(map).upsample(cli_cfg.convert.upsample);
 
-    auto state = TState::fromConfigs(layout, common_cfg.convert);
+    auto state = TState::fromConfigs(layout, cli_cfg.convert);
 
     const auto src_size = layout.getRawImgSize();
     const auto output_size = state.getOutputSize();
 
     using TYuvReader = tlct::io::YuvReader_<typename TState::TFrame>;
     using TYuvWriter = tlct::io::YuvWriter_<typename TState::TFrame>;
-    auto yuv_reader = TYuvReader::fromPath(common_cfg.path.src, src_size.width, src_size.height);
+    auto yuv_reader = TYuvReader::fromPath(cli_cfg.path.src, src_size.width, src_size.height);
 
-    const fs::path& dstdir = common_cfg.path.dst;
+    const fs::path& dstdir = cli_cfg.path.dst;
     fs::create_directories(dstdir);
     std::vector<TYuvWriter> yuv_writers;
-    const int total_writers = common_cfg.convert.views * common_cfg.convert.views;
+    const int total_writers = cli_cfg.convert.views * cli_cfg.convert.views;
     yuv_writers.reserve(total_writers);
     for (const auto i : rgs::views::iota(0, total_writers)) {
         std::stringstream filename_s;
@@ -38,17 +38,17 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
         yuv_writers.emplace_back(TYuvWriter::fromPath(saveto_path));
     }
 
-    yuv_reader.skip(common_cfg.range.begin);
+    yuv_reader.skip(cli_cfg.range.begin);
 
     auto frame = typename TState::TFrame{src_size};
     auto mv = typename TState::TFrame{output_size};
-    for (int fid = common_cfg.range.begin; fid < common_cfg.range.end; fid++) {
+    for (int fid = cli_cfg.range.begin; fid < cli_cfg.range.end; fid++) {
         yuv_reader.read_into(frame);
         state.update(frame);
 
         int view = 0;
-        for (const int view_row : rgs::views::iota(0, common_cfg.convert.views)) {
-            for (const int view_col : rgs::views::iota(0, common_cfg.convert.views)) {
+        for (const int view_row : rgs::views::iota(0, cli_cfg.convert.views)) {
+            for (const int view_col : rgs::views::iota(0, cli_cfg.convert.views)) {
                 auto& yuv_writer = yuv_writers[view];
                 state.renderInto(mv, view_row, view_col);
                 yuv_writer.write(mv);
@@ -60,7 +60,7 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
 
 int main(int argc, char* argv[])
 {
-    auto parser = tlct::newParser();
+    auto parser = tlct::makeParser();
 
     try {
         parser->parse_args(argc, argv);

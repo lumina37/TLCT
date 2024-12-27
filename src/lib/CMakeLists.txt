@@ -36,7 +36,7 @@ target_include_directories(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
 )
 target_link_libraries(${TLCT_LIB_NAME} ${TLCT_LIB_DEP_SCOPE}
         ${OpenCV_LIBS}
-        argparse
+        $<$<BOOL:${TLCT_BUILD_APP}>:argparse>
 )
 
 if (NOT TLCT_HEADER_ONLY AND TLCT_BUILD_SHARED_LIBS)

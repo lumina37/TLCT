@@ -2,7 +2,9 @@
 
 include(CMakeFindDependencyMacro)
 find_dependency(OpenCV REQUIRED COMPONENTS imgproc)
-find_dependency(argparse)
+if (TLCT_BUILD_APP)
+    find_dependency(argparse)
+endif ()
 
 include(${PACKAGE_PREFIX_DIR}/lib/cmake/@PROJECT_NAME@/@PROJECT_NAME@Targets.cmake)
 

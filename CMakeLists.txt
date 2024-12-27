@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.2.0.1
+        VERSION 1.2.0.2
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
@@ -23,6 +23,9 @@ cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO
         "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 option(TLCT_VERBOSE_WARNING "Show more verbose compiler warnings" OFF)
 
+set(TLCT_BUILD_APP $<IF:$<STREQUAL:${CMAKE_SOURCE_DIR},${PROJECT_SOURCE_DIR}>,ON,OFF> CACHE BOOL
+        "Build the applications in `src/bin`")
+
 if (MSVC)
     option(TLCT_WITH_STATIC_CRT "Link with STATIC CRT" OFF)
     set(MSVC_RUNTIME_TYPE MultiThreaded$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
@@ -33,15 +36,17 @@ include(FetchContent)
 
 find_package(OpenCV REQUIRED COMPONENTS imgproc OPTIONAL_COMPONENTS imgcodecs)
 
-set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
-        "Specifies the path of argparse")
+if (TLCT_BUILD_APP)
+    set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
+            "Specifies the path of argparse")
 
-FetchContent_Declare(
-        argparse
-        DOWNLOAD_EXTRACT_TIMESTAMP ON
-        URL ${TLCT_ARGPARSE_PATH}
-)
-FetchContent_MakeAvailable(argparse)
+    FetchContent_Declare(
+            argparse
+            DOWNLOAD_EXTRACT_TIMESTAMP ON
+            URL ${TLCT_ARGPARSE_PATH}
+    )
+    FetchContent_MakeAvailable(argparse)
+endif ()
 
 if (TLCT_BUILD_TESTS)
     include(CTest)
@@ -64,8 +69,6 @@ if (TLCT_BUILD_TESTS)
 endif ()
 
 # Helper
-include(GNUInstallDirs)
-
 function(copy_dlls_if_needed name)
     if (WIN32 AND BUILD_SHARED_LIBS)
         add_custom_command(TARGET ${name} POST_BUILD COMMAND ${CMAKE_COMMAND} -E
@@ -85,6 +88,8 @@ if (TLCT_BUILD_TESTS)
 endif ()
 
 # Install
+include(GNUInstallDirs)
+
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include(CMakePackageConfigHelpers)
 
