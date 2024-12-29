@@ -20,7 +20,7 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CLayout TLayout>
-static inline void computeWeights(const MIs_<TLayout>& mis, const TLayout& layout, MvCache_<TLayout>& cache)
+static inline void computeWeights(const TLayout& layout, const MIs_<TLayout>& mis, MvCache_<TLayout>& cache)
 {
     cv::Mat texture_I(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
     cache.weights.create(layout.getMIRows(), layout.getMIMaxCols(), CV_32FC1);
@@ -28,22 +28,18 @@ static inline void computeWeights(const MIs_<TLayout>& mis, const TLayout& layou
 
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
     const double mi_width = layout.getRadius();
-    const auto& roi = getRoiByCenter(mi_center, mi_width);
+    const cv::Rect & roi = getRoiByCenter(mi_center, mi_width);
 
     // 1-pass: compute texture intensity
-    int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-        int offset = row_offset;
+        const int row_offset = row * layout.getMIMaxCols();
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const auto& mi = mis.getMI(offset).I;
-
-            const auto curr_I = (float)textureIntensity(mi(roi));
+            const int offset = row_offset + col;
+            const cv::Mat& mi = mis.getMI(offset).I;
+            const float curr_I = (float)textureIntensity(mi(roi));
             texture_I.at<float>(row, col) = curr_I;
             ti_meanstddev.update(curr_I);
-
-            offset++;
         }
-        row_offset += layout.getMIMaxCols();
     }
 
     // 2-pass: compute weight
@@ -51,7 +47,7 @@ static inline void computeWeights(const MIs_<TLayout>& mis, const TLayout& layou
     const double ti_stddev = ti_meanstddev.getStddev();
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
-            const auto& curr_ti = texture_I.at<float>({col, row});
+            const float& curr_ti = texture_I.at<float>({col, row});
             const double normed_I = (curr_ti - ti_mean) / ti_stddev;
             cache.weights.template at<float>(row, col) = (float)_hp::sigmoid(normed_I);
         }
@@ -61,7 +57,7 @@ static inline void computeWeights(const MIs_<TLayout>& mis, const TLayout& layou
 template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool IS_MULTI_FOCUS>
 static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
                               typename MvCache_<TLayout>::TChannels& dsts, const TLayout& layout,
-                              const std::vector<PsizeRecord>& patchsizes, const MvParams_<TLayout>& params,
+                              const MvParams_<TLayout>& params, const std::vector<PsizeRecord>& patchsizes,
                               MvCache_<TLayout>& cache, int view_row, int view_col)
 {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
@@ -75,8 +71,8 @@ static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
         cache.render_canvas.setTo(std::numeric_limits<float>::epsilon());
         cache.weight_canvas.setTo(std::numeric_limits<float>::epsilon());
 
-        int row_offset = 0;
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
+            const int row_offset = row * layout.getMIMaxCols();
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
                 const int offset = row_offset + col;
 
@@ -113,7 +109,6 @@ static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
                     cache.weight_canvas(roi) += cache.grad_blending_weight;
                 }
             }
-            row_offset += layout.getMIMaxCols();
         }
 
         cv::Mat cropped_rendered_image = cache.render_canvas(params.canvas_crop_roi);

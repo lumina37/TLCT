@@ -66,7 +66,7 @@ public:
     inline void renderInto(TFrame& dst, int view_row, int view_col) const
     {
         renderView<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f_, mv_cache_.output_image_channels_u8, layout_,
-                                                       patchsizes_, mv_params_, mv_cache_, view_row, view_col);
+                                                       mv_params_, patchsizes_, mv_cache_, view_row, view_col);
 
         mv_cache_.output_image_channels_u8[0].copyTo(dst.getY());
         cv::resize(mv_cache_.output_image_channels_u8[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
@@ -139,7 +139,7 @@ void State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& sr
     estimatePatchsizes<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(layout_, cvt_cfg_, psize_params_, mis_, prev_patchsizes_,
                                                            patchsizes_);
     if constexpr (IS_MULTI_FOCUS) {
-        computeWeights(mis_, layout_, mv_cache_);
+        computeWeights(layout_, mis_, mv_cache_);
     }
 }
 

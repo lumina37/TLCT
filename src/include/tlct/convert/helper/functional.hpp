@@ -21,7 +21,7 @@ namespace rgs = std::ranges;
                                                   : std::numeric_limits<double>::max();
 
     for (const int row : rgs::views::iota(0, diameter)) {
-        auto prow = rect.ptr<float>(row);
+        float* prow = rect.ptr<float>(row);
         for (const int col : rgs::views::iota(0, diameter)) {
             const double xdist = radius - (double)row;
             const double ydist = radius - (double)col;
@@ -62,7 +62,7 @@ namespace rgs = std::ranges;
     const uint64_t u64max = std::numeric_limits<uint64_t>::max();
     uint64_t mask = u64max ^ (u64max >> 1);
     for (const int row : rgs::views::iota(0, thumbnail_height)) {
-        auto prow = thumbnail.ptr<float>(row);
+        float* prow = thumbnail.ptr<float>(row);
         for ([[maybe_unused]] const int _ : rgs::views::iota(0, thumbnail_width)) {
             const bool flag = *(prow + 1) > *prow;
             dhash |= flag * mask;

@@ -110,14 +110,14 @@ MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
     cv::multiply(I_32f, I_32f, I_2_32f);
 
     auto item_it = items_.begin();
-    auto* row_cursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
+    uint8_t* row_cursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
     size_t row_step = params_.mi_max_cols_ * params_.aligned_mi_size_;
     for (const int irow : rgs::views::iota(0, layout_.getMIRows())) {
 
         uint8_t* col_cursor = row_cursor;
         const int mi_cols = layout_.getMICols(irow);
         for (const int icol : rgs::views::iota(0, mi_cols)) {
-            const auto mi_center = layout_.getMICenter(irow, icol);
+            const cv::Point2d& mi_center = layout_.getMICenter(irow, icol);
             const cv::Rect roi = getRoiByCenter(mi_center, layout_.getDiameter());
 
             uint8_t* mat_cursor = col_cursor;

@@ -80,7 +80,7 @@ public:
     };
     [[nodiscard]] TLCT_API static inline cv::Point2d getUnitShift(const Direction direction) noexcept
     {
-        const auto unit_shift = UNIT_SHIFTS[(int)direction];
+        const auto& unit_shift = UNIT_SHIFTS[(int)direction];
         return {unit_shift[0], unit_shift[1]};
     };
 
@@ -233,7 +233,7 @@ public:
     };
     [[nodiscard]] TLCT_API static inline cv::Point2d getUnitShift(const Direction direction) noexcept
     {
-        const auto unit_shift = UNIT_SHIFTS[(int)direction];
+        const auto& unit_shift = UNIT_SHIFTS[(int)direction];
         return {unit_shift[0], unit_shift[1]};
     };
 

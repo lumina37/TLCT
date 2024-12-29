@@ -39,7 +39,7 @@ evaluatePsize(const TLayout& layout, const PsizeParams_<TLayout>& params, const 
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
 
-        const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
+        const WrapMI& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
         const cv::Point2d match_step = _hp::sgn(IS_KEPLER) * Neighbors::getUnitShift(direction);
@@ -81,7 +81,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER>
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
 
-        const auto& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
+        const WrapMI& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
         const cv::Point2d match_step = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
@@ -121,18 +121,18 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER>
 
 template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline PsizeRecord
-estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg,
-                  const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
-                  const std::vector<PsizeRecord>& patchsizes, const std::vector<PsizeRecord>& prev_patchsizes,
-                  const cv::Point index, const int offset)
+estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg, const PsizeParams_<TLayout>& params,
+                  const MIs_<TLayout>& mis, const std::vector<PsizeRecord>& patchsizes,
+                  const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index)
 {
     using NearNeighbors = NearNeighbors_<TLayout>;
     using FarNeighbors = FarNeighbors_<TLayout>;
     using PsizeParams = PsizeParams_<TLayout>;
 
-    const auto& anchor_mi = mis.getMI(offset);
+    const int offset = index.y * layout.getMIMaxCols() + index.x;
+    const WrapMI& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
-    const auto& prev_psize = prev_patchsizes[offset];
+    const PsizeRecord& prev_psize = prev_patchsizes[offset];
 
     if (prev_psize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
         const int hash_dist = L1Dist(prev_psize.hash, hash);
@@ -142,15 +142,15 @@ estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg
     }
 
     WrapSSIM wrap_anchor{anchor_mi};
-    const auto near_neighbors = NearNeighbors::fromLayoutAndIndex(layout, index);
-    const auto near_psize_metric =
+    const NearNeighbors& near_neighbors = NearNeighbors::fromLayoutAndIndex(layout, index);
+    const PsizeMetric& near_psize_metric =
         estimateWithNeighbor<NearNeighbors, IS_KEPLER>(layout, params, mis, near_neighbors, wrap_anchor);
     double max_matric = near_psize_metric.metric;
     int best_psize = near_psize_metric.psize;
 
     if constexpr (USE_FAR_NEIGHBOR) {
-        const auto far_neighbors = FarNeighbors::fromLayoutAndIndex(layout, index);
-        const auto far_psize_metric =
+        const FarNeighbors& far_neighbors = FarNeighbors::fromLayoutAndIndex(layout, index);
+        const PsizeMetric& far_psize_metric =
             estimateWithNeighbor<FarNeighbors, IS_KEPLER>(layout, params, mis, far_neighbors, wrap_anchor);
         if (far_psize_metric.metric > max_matric) {
             max_matric = far_psize_metric.metric;
@@ -167,10 +167,10 @@ estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg
             continue;
         }
 
-        const auto ref_idx = near_neighbors.getNeighborIdx(direction);
+        const cv::Point& ref_idx = near_neighbors.getNeighborIdx(direction);
         const int ref_offset = ref_idx.y * layout.getMIMaxCols() + ref_idx.x;
         const int ref_psize = patchsizes[ref_offset].psize;
-        const auto ref_psize_metric =
+        const PsizeMetric& ref_psize_metric =
             evaluatePsize<TLayout, IS_KEPLER>(layout, params, mis, near_neighbors, wrap_anchor, ref_psize);
 
         if (ref_psize_metric.metric > max_matric) {
@@ -188,17 +188,14 @@ static inline void estimatePatchsizes(const TLayout& layout, const tcfg::CliConf
                                       const std::vector<PsizeRecord>& prev_patchsizes,
                                       std::vector<PsizeRecord>& patchsizes)
 {
-    int row_offset = 0;
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-        int offset = row_offset;
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const cv::Point index{col, row};
-            const auto& psize = estimatePatchsize<TLayout, IS_KEPLER, USE_FAR_NEIGHBOR>(
-                layout, cvt_cfg, params, mis, patchsizes, prev_patchsizes, index, offset);
+            const PsizeRecord& psize = estimatePatchsize<TLayout, IS_KEPLER, USE_FAR_NEIGHBOR>(
+                layout, cvt_cfg, params, mis, patchsizes, prev_patchsizes, index);
+            const int offset = index.y * layout.getMIMaxCols() + index.x;
             patchsizes[offset] = psize;
-            offset++;
         }
-        row_offset += layout.getMIMaxCols();
     }
 }
 
