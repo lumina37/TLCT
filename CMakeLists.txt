@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.2.0.4
+        VERSION 1.2.0.5
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
@@ -57,7 +57,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/lumina37/TLCT-test-data.git
-            GIT_TAG edfaae3d7d48b789db25be3ea2a5bd7593751c76
+            GIT_TAG e927a96513c6be758e71dbd3a01dbb0259cbe91a
     )
     FetchContent_MakeAvailable(tlct-test-data)
     set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")

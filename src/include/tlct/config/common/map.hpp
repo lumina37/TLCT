@@ -70,37 +70,31 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
         if (row.empty()) [[unlikely]] {
             continue;
         }
-
-        const auto delim = std::find(row.begin() + 1, row.end(), ':');
-        if (delim == row.end()) [[unlikely]] {
-            continue;
-        }
-        if (delim == std::prev(row.end())) [[unlikely]] {
+        if (row[0] == '#') [[unlikely]] {
+            // is comment row
             continue;
         }
 
-        auto key_end = delim - 1;
-        for (; key_end != row.begin(); key_end--) {
-            if (!is_nul(*key_end)) {
-                break;
-            }
+        const auto delim_it = std::find(row.begin(), row.end(), ':');
+        if (delim_it == row.end()) [[unlikely]] {
+            continue;
         }
-        key_end++;
 
-        auto value_start = delim + 1;
-        const auto comment = std::find(value_start, row.end(), '#');
-        for (; value_start != comment; value_start++) {
-            if (!is_nul(*value_start)) {
-                break;
-            }
+        const auto key_end_it = std::find_if(row.begin(), delim_it, is_nul);
+        if (key_end_it == delim_it) [[unlikely]] {
+            continue;
+        }
+        const auto value_start_it = std::find_if_not(delim_it + 1, row.end(), is_nul);
+        if (value_start_it == row.end()) [[unlikely]] {
+            continue;
         }
 
 #ifdef _WIN32
-        const std::string& key = _hp::cconv({row.begin(), key_end});
-        const std::string& value = _hp::cconv({value_start, comment});
+        const std::string& key = _hp::cconv({row.begin(), key_end_it});
+        const std::string& value = _hp::cconv({value_start_it, row.end()});
 #else
-        const std::string_view& key{row.begin(), key_end};
-        const std::string_view& value{value_start, row.end()};
+        const std::string_view& key{row.begin(), key_end_it};
+        const std::string_view& value{value_start_it, row.end()};
 #endif
         cfg_map.emplace(key, value);
     }
