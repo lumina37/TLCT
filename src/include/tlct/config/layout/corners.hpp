@@ -51,8 +51,6 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
 
-    TLCT_API inline void processInto(const cv::Mat& src, cv::Mat& dst) const;
-
 private:
     cv::Size imgsize_;
     cv::Size raw_imgsize_;
@@ -112,24 +110,6 @@ cv::Point2d CornersLayout::getMICenter(int row, int col) const noexcept
 }
 
 cv::Point2d CornersLayout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
-
-void CornersLayout::processInto(const cv::Mat& src, cv::Mat& dst) const
-{
-    dst = src;
-
-    if (getDirection()) {
-        cv::Mat transposed_src;
-        cv::transpose(src, transposed_src);
-        dst = std::move(transposed_src);
-    }
-
-    const int upsample = getUpsample();
-    if (upsample != 1) [[likely]] {
-        cv::Mat upsampled_src;
-        cv::resize(dst, upsampled_src, {}, upsample, upsample, cv::INTER_CUBIC);
-        dst = std::move(upsampled_src);
-    }
-}
 
 CornersLayout::CornersLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
                              cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept

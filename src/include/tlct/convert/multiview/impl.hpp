@@ -28,7 +28,7 @@ static inline void computeWeights(const TLayout& layout, const MIs_<TLayout>& mi
 
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
     const double mi_width = layout.getRadius();
-    const cv::Rect & roi = getRoiByCenter(mi_center, mi_width);
+    const cv::Rect& roi = getRoiByCenter(mi_center, mi_width);
 
     // 1-pass: compute texture intensity
     for (const int row : rgs::views::iota(0, layout.getMIRows())) {
@@ -116,14 +116,8 @@ static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
 
         cv::divide(cropped_rendered_image, cropped_weight_matrix, cache.normed_image);
         cache.normed_image.convertTo(cache.normed_image_u8, CV_8UC1);
-        cv::resize(cache.normed_image_u8, cache.resized_normed_image_u8, {params.output_width, params.output_height},
-                   0.0, 0.0, cv::INTER_AREA);
-
-        if (layout.getDirection()) {
-            cv::transpose(cache.resized_normed_image_u8, dsts[chan_id]);
-        } else {
-            cache.resized_normed_image_u8.copyTo(dsts[chan_id]);
-        }
+        cv::resize(cache.normed_image_u8, dsts[chan_id], {params.output_width, params.output_height}, 0.0, 0.0,
+                   cv::INTER_AREA);
     }
 }
 

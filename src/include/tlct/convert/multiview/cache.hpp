@@ -26,7 +26,7 @@ public:
     inline MvCache_() noexcept = default;
     inline MvCache_(cv::Mat&& grad_blending_weight, cv::Mat&& render_canvas, cv::Mat&& weight_canvas)
         : grad_blending_weight(std::move(grad_blending_weight)), render_canvas(std::move(render_canvas)),
-          weight_canvas(std::move(weight_canvas)), normed_image_u8(), resized_normed_image_u8() {};
+          weight_canvas(std::move(weight_canvas)), normed_image_u8() {};
     MvCache_(MvCache_&& rhs) noexcept = default;
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
@@ -37,13 +37,12 @@ public:
     cv::Mat render_canvas;
     cv::Mat weight_canvas;
 
-    TChannels rotated_srcs_;
-    TChannels srcs_;
-    TChannels srcs_32f_;
+    TChannels raw_srcs;
+    TChannels srcs;
+    TChannels srcs_32f;
 
     cv::Mat normed_image;
     cv::Mat normed_image_u8;
-    cv::Mat resized_normed_image_u8;
     cv::Mat weights;
     TChannels output_image_channels_u8;
 };

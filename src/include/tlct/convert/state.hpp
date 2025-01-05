@@ -65,8 +65,12 @@ public:
 
     inline void renderInto(TFrame& dst, int view_row, int view_col) const
     {
-        renderView<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f_, mv_cache_.output_image_channels_u8, layout_,
+        renderView<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f, mv_cache_.output_image_channels_u8, layout_,
                                                        mv_params_, patchsizes_, mv_cache_, view_row, view_col);
+
+        for (int i = 0; i < MvCache::CHANNELS; i++) {
+            cv::transpose(mv_cache_.output_image_channels_u8[i], mv_cache_.output_image_channels_u8[i]);
+        }
 
         mv_cache_.output_image_channels_u8[0].copyTo(dst.getY());
         cv::resize(mv_cache_.output_image_channels_u8[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
@@ -111,29 +115,42 @@ State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TLayout& l
 template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
 void State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src)
 {
-    layout_.processInto(src.getY(), mv_cache_.rotated_srcs_[0]);
-    layout_.processInto(src.getU(), mv_cache_.rotated_srcs_[1]);
-    layout_.processInto(src.getV(), mv_cache_.rotated_srcs_[2]);
+    mv_cache_.raw_srcs[0] = src.getY().clone();
+    mv_cache_.raw_srcs[1] = src.getU().clone();
+    mv_cache_.raw_srcs[2] = src.getV().clone();
 
-    mv_cache_.srcs_[0] = mv_cache_.rotated_srcs_[0];
-    if constexpr (TFrame::Ushift != 0) {
-        constexpr int upsample = 1 << TFrame::Ushift;
-        cv::resize(mv_cache_.rotated_srcs_[1], mv_cache_.srcs_[1], {}, upsample, upsample, cv::INTER_CUBIC);
-    } else {
-        mv_cache_.srcs_[1] = mv_cache_.rotated_srcs_[1];
+    if (layout_.getDirection()) {
+        for (int i = 0; i < MvCache::CHANNELS; i++) {
+            cv::transpose(mv_cache_.raw_srcs[i], mv_cache_.raw_srcs[i]);
+        }
     }
-    if constexpr (TFrame::Vshift != 0) {
-        constexpr int upsample = 1 << TFrame::Vshift;
-        cv::resize(mv_cache_.rotated_srcs_[2], mv_cache_.srcs_[2], {}, upsample, upsample, cv::INTER_CUBIC);
+
+    const int upsample = layout_.getUpsample();
+    if (upsample != 1) [[likely]] {
+        cv::resize(mv_cache_.raw_srcs[0], mv_cache_.srcs[0], {}, upsample, upsample, cv::INTER_CUBIC);
     } else {
-        mv_cache_.srcs_[2] = mv_cache_.rotated_srcs_[2];
+        mv_cache_.srcs[0] = mv_cache_.raw_srcs[0];
+    }
+
+    if constexpr (TFrame::Ushift != 0) {
+        const int u_upsample = upsample << TFrame::Ushift;
+        cv::resize(mv_cache_.raw_srcs[1], mv_cache_.srcs[1], {}, u_upsample, u_upsample, cv::INTER_CUBIC);
+    } else {
+        mv_cache_.srcs[1] = mv_cache_.raw_srcs[1];
+    }
+
+    if constexpr (TFrame::Vshift != 0) {
+        const int v_upsample = upsample << TFrame::Vshift;
+        cv::resize(mv_cache_.raw_srcs[2], mv_cache_.srcs[2], {}, v_upsample, v_upsample, cv::INTER_CUBIC);
+    } else {
+        mv_cache_.srcs[2] = mv_cache_.raw_srcs[2];
     }
 
     for (int i = 0; i < MvCache::CHANNELS; i++) {
-        mv_cache_.srcs_[i].convertTo(mv_cache_.srcs_32f_[i], CV_32FC1);
+        mv_cache_.srcs[i].convertTo(mv_cache_.srcs_32f[i], CV_32FC1);
     }
 
-    mis_.update(mv_cache_.srcs_32f_[0]);
+    mis_.update(mv_cache_.srcs_32f[0]);
 
     std::swap(prev_patchsizes_, patchsizes_);
     estimatePatchsizes<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(layout_, cvt_cfg_, psize_params_, mis_, prev_patchsizes_,

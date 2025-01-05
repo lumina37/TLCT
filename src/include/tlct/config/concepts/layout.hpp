@@ -46,8 +46,6 @@ concept CLayout = std::is_trivially_copyable_v<Self> && requires {
         { self.getMICenter(index) } noexcept -> std::same_as<cv::Point2d>;
     };
     { self.isOutShift() } noexcept -> std::same_as<bool>;
-
-    requires requires(const cv::Mat& src, cv::Mat& dst) { self.processInto(src, dst); };
 };
 
 } // namespace tlct::_cfg::concepts
