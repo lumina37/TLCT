@@ -118,10 +118,10 @@ void YuvFrame_<TElem, Ushift_, Vshift_>::alloc()
             aligned_vsize = _hp::alignUp<SIMD_FETCH_SIZE>(getVSize());
         }
 
-        const size_t total_size = aligned_ysize + aligned_usize + aligned_vsize + SIMD_FETCH_SIZE;
+        const size_t total_size = aligned_ysize + aligned_usize + aligned_vsize;
         buffer_ = std::malloc(total_size);
 
-        auto* yptr = (TElem*)_hp::roundTo<SIMD_FETCH_SIZE>((size_t)buffer_);
+        auto* yptr = (TElem*)buffer_;
         auto* uptr = (TElem*)((size_t)yptr + aligned_ysize);
         auto* vptr = (TElem*)((size_t)uptr + aligned_usize);
 

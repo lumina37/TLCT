@@ -56,7 +56,9 @@ int main(int argc, char* argv[])
 
         const auto& frame = yuv_reader.read();
         cv::Mat rgb = convertToRGB(frame);
-        layout.processInto(rgb, canvas);
+        if (layout.getDirection()) {
+            cv::transpose(rgb, rgb);
+        }
 
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
@@ -80,7 +82,9 @@ int main(int argc, char* argv[])
 
         const auto& frame = yuv_reader.read();
         cv::Mat rgb = convertToRGB(frame);
-        layout.processInto(rgb, canvas);
+        if (layout.getDirection()) {
+            cv::transpose(rgb, rgb);
+        }
 
         for (const int row : rgs::views::iota(0, layout.getMIRows())) {
             for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
