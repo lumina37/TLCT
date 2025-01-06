@@ -10,19 +10,22 @@
 namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
-template <tlct::concepts::CState TState>
+template <tlct::concepts::CManager TManager>
 static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map)
 {
     const auto& cli_cfg = tlct::CliConfig::fromParser(parser);
-    const auto layout = TState::TLayout::fromCfgMap(map).upsample(cli_cfg.convert.upsample);
+    const auto layout = TManager::TLayout::fromCfgMap(map).upsample(cli_cfg.convert.upsample);
 
-    auto state = TState::fromConfigs(layout, cli_cfg.convert);
+    auto mgr = TManager::fromConfigs(layout, cli_cfg.convert);
 
     const cv::Size& src_size = layout.getRawImgSize();
-    const cv::Size& output_size = state.getOutputSize();
+    cv::Size output_size = mgr.getOutputSize();
+    if (layout.getDirection()) {
+        std::swap(output_size.width, output_size.height);
+    }
 
-    using TYuvReader = tlct::io::YuvReader_<typename TState::TFrame>;
-    using TYuvWriter = tlct::io::YuvWriter_<typename TState::TFrame>;
+    using TYuvReader = tlct::io::YuvReader_<typename TManager::TFrame>;
+    using TYuvWriter = tlct::io::YuvWriter_<typename TManager::TFrame>;
     auto yuv_reader = TYuvReader::fromPath(cli_cfg.path.src, src_size.width, src_size.height);
 
     const fs::path& dstdir = cli_cfg.path.dst;
@@ -40,17 +43,17 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
 
     yuv_reader.skip(cli_cfg.range.begin);
 
-    auto src_frame = typename TState::TFrame{src_size};
-    auto mv_frame = typename TState::TFrame{output_size};
+    auto src_frame = typename TManager::TFrame{src_size};
+    auto mv_frame = typename TManager::TFrame{output_size};
     for (int fid = cli_cfg.range.begin; fid < cli_cfg.range.end; fid++) {
         yuv_reader.read_into(src_frame);
-        state.update(src_frame);
+        mgr.update(src_frame);
 
         int view = 0;
         for (const int view_row : rgs::views::iota(0, cli_cfg.convert.views)) {
             for (const int view_col : rgs::views::iota(0, cli_cfg.convert.views)) {
                 auto& yuv_writer = yuv_writers[view];
-                state.renderInto(mv_frame, view_row, view_col);
+                mgr.renderInto(mv_frame, view_row, view_col);
                 yuv_writer.write(mv_frame);
                 view++;
             }
@@ -71,8 +74,8 @@ int main(int argc, char* argv[])
     }
 
     constexpr std::array<void (*)(const argparse::ArgumentParser&, const tlct::ConfigMap&), 2> handlers{
-        render<tlct::raytrix::StateYuv420>,
-        render<tlct::tspc::StateYuv420>,
+        render<tlct::raytrix::ManagerYuv420>,
+        render<tlct::tspc::ManagerYuv420>,
     };
 
     try {

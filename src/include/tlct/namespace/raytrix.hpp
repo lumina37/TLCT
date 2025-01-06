@@ -9,13 +9,13 @@ namespace tlct {
 namespace raytrix {
 
 using Layout = tlct::cfg::OffsetLayout;
-using StateYuv420 = tlct::cvt::State_<Layout, tlct::io::Yuv420Frame, false, true>;
+using ManagerYuv420 = tlct::cvt::Manager_<Layout, tlct::io::Yuv420Frame, false, true>;
 
 } // namespace raytrix
 
 namespace _cvt {
 
-template class State_<tlct::cfg::OffsetLayout, tlct::io::Yuv420Frame, false, true>;
+template class Manager_<tlct::cfg::OffsetLayout, tlct::io::Yuv420Frame, false, true>;
 
 }
 

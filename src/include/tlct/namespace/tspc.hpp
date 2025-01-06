@@ -9,13 +9,13 @@ namespace tlct {
 namespace tspc {
 
 using Layout = tlct::cfg::CornersLayout;
-using StateYuv420 = tlct::cvt::State_<Layout, tlct::io::Yuv420Frame, true, false>;
+using ManagerYuv420 = tlct::cvt::Manager_<Layout, tlct::io::Yuv420Frame, true, false>;
 
 } // namespace tspc
 
 namespace _cvt {
 
-template class State_<tlct::cfg::CornersLayout, tlct::io::Yuv420Frame, true, false>;
+template class Manager_<tlct::cfg::CornersLayout, tlct::io::Yuv420Frame, true, false>;
 
 }
 

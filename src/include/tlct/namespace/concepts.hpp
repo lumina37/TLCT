@@ -7,6 +7,6 @@ namespace tlct::concepts {
 
 using cfg::concepts::CLayout;
 
-using cvt::concepts::CState;
+using cvt::concepts::CManager;
 
 } // namespace tlct::concepts

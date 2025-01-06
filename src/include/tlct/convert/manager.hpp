@@ -23,7 +23,7 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CLayout TLayout_, io::concepts::CFrame TFrame_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
-class State_
+class Manager_
 {
 public:
     static constexpr int CHANNELS = 3;
@@ -40,24 +40,20 @@ public:
     using MvCache = MvCache_<TLayout>;
 
     // Constructor
-    State_() = delete;
-    State_(const State_& rhs) = delete;
-    State_& operator=(const State_& rhs) = delete;
-    TLCT_API inline State_(State_&& rhs) noexcept = default;
-    TLCT_API inline State_& operator=(State_&& rhs) noexcept = default;
-    TLCT_API inline State_(const State_::TLayout& layout, const State_::TCvtConfig& cvt_cfg);
+    Manager_() = delete;
+    Manager_(const Manager_& rhs) = delete;
+    Manager_& operator=(const Manager_& rhs) = delete;
+    TLCT_API inline Manager_(Manager_&& rhs) noexcept = default;
+    TLCT_API inline Manager_& operator=(Manager_&& rhs) noexcept = default;
+    TLCT_API inline Manager_(const Manager_::TLayout& layout, const Manager_::TCvtConfig& cvt_cfg);
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline State_ fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg);
+    [[nodiscard]] TLCT_API static inline Manager_ fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg);
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept
     {
-        if (layout_.getDirection()) {
-            return {mv_params_.output_height, mv_params_.output_width};
-        } else {
-            return {mv_params_.output_width, mv_params_.output_height};
-        }
+        return {mv_params_.output_width, mv_params_.output_height};
     };
 
     // Non-const methods
@@ -92,7 +88,7 @@ private:
 };
 
 template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::State_(const TLayout& layout, const TCvtConfig& cvt_cfg)
+Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TLayout& layout, const TCvtConfig& cvt_cfg)
     : layout_(layout), cvt_cfg_(cvt_cfg)
 {
     mis_ = TMIs::fromLayout(layout);
@@ -106,14 +102,14 @@ State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::State_(const TLayout& layout
 }
 
 template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>
-State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
+Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>
+Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
 {
     return {layout, cvt_cfg};
 }
 
 template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-void State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src)
+void Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src)
 {
     mv_cache_.raw_srcs[0] = src.getY().clone();
     mv_cache_.raw_srcs[1] = src.getU().clone();
@@ -164,7 +160,7 @@ void State_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& sr
 
 namespace cvt {
 
-using _cvt::State_;
+using _cvt::Manager_;
 
 } // namespace cvt
 

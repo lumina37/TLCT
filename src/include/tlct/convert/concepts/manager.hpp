@@ -15,7 +15,7 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <typename Self>
-concept CState = requires {
+concept CManager = requires {
     // Initialize from
     requires requires(const typename Self::TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg) {
         requires tcfg::concepts::CLayout<typename Self::TLayout>;
