@@ -64,8 +64,10 @@ public:
         renderView<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f, mv_cache_.output_image_channels_u8, layout_,
                                                        mv_params_, patchsizes_, mv_cache_, view_row, view_col);
 
-        for (int i = 0; i < MvCache::CHANNELS; i++) {
-            cv::transpose(mv_cache_.output_image_channels_u8[i], mv_cache_.output_image_channels_u8[i]);
+        if (layout_.getDirection()) {
+            for (int i = 0; i < MvCache::CHANNELS; i++) {
+                cv::transpose(mv_cache_.output_image_channels_u8[i], mv_cache_.output_image_channels_u8[i]);
+            }
         }
 
         mv_cache_.output_image_channels_u8[0].copyTo(dst.getY());
