@@ -17,51 +17,11 @@ namespace tlct::_cvt {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER>
-[[nodiscard]] static inline PsizeMetric
-evaluatePsize(const TLayout& layout, const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
-              const NearNeighbors_<TLayout>& neighbors, WrapSSIM& wrap_anchor, const int psize)
-{
-    using Neighbors = NearNeighbors_<TLayout>;
-
-    const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
-
-    double sum_metric = 0.0;
-    double sum_metric_weight = std::numeric_limits<float>::epsilon();
-
-    for (const auto direction : Neighbors::DIRECTIONS) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const cv::Point2d anchor_shift =
-            -_hp::sgn(IS_KEPLER) * Neighbors::getUnitShift(direction) * params.pattern_shift;
-        const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
-        wrap_anchor.updateRoi(anchor_roi);
-
-        const WrapMI& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
-        WrapSSIM wrap_neib{neib_mi};
-
-        const cv::Point2d match_step = _hp::sgn(IS_KEPLER) * Neighbors::getUnitShift(direction);
-        cv::Point2d cmp_shift = anchor_shift + match_step * psize;
-        const cv::Rect neib_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
-        wrap_neib.updateRoi(neib_roi);
-
-        const double ssim = wrap_anchor.compare(wrap_neib);
-        const double weight = textureIntensity(wrap_anchor.I_);
-        sum_metric += weight * (ssim * ssim);
-        sum_metric_weight += weight;
-    };
-
-    const double metric = sum_metric / sum_metric_weight;
-    return {psize, metric};
-}
-
-template <concepts::CNeighbors TNeighbors, bool IS_KEPLER>
-[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const typename TNeighbors::TLayout& layout,
-                                                             const PsizeParams_<typename TNeighbors::TLayout>& params,
-                                                             const MIs_<typename TNeighbors::TLayout>& mis,
-                                                             const TNeighbors& neighbors, WrapSSIM& wrap_anchor)
+template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TLayout = TNeighbors::TLayout>
+    requires std::is_same_v<TLayout, typename TNeighbors::TLayout>
+[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const TLayout& layout, const PsizeParams_<TLayout>& params,
+                                                             const MIs_<TLayout>& mis, const TNeighbors& neighbors,
+                                                             WrapSSIM& wrap_anchor)
 {
     const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
     const int max_shift = (int)(params.pattern_shift * 2);
@@ -122,8 +82,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER>
 template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline PsizeRecord
 estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg, const PsizeParams_<TLayout>& params,
-                  const MIs_<TLayout>& mis, const std::vector<PsizeRecord>& patchsizes,
-                  const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index)
+                  const MIs_<TLayout>& mis, const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index)
 {
     using NearNeighbors = NearNeighbors_<TLayout>;
     using FarNeighbors = FarNeighbors_<TLayout>;
@@ -153,29 +112,7 @@ estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg
         const PsizeMetric& far_psize_metric =
             estimateWithNeighbor<FarNeighbors, IS_KEPLER>(layout, params, mis, far_neighbors, wrap_anchor);
         if (far_psize_metric.metric > max_matric) {
-            max_matric = far_psize_metric.metric;
             best_psize = far_psize_metric.psize;
-        }
-    }
-
-    for (const auto direction : {
-             NearNeighbors::Direction::UPLEFT,
-             NearNeighbors::Direction::UPRIGHT,
-             NearNeighbors::Direction::LEFT,
-         }) {
-        if (!near_neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const cv::Point& ref_idx = near_neighbors.getNeighborIdx(direction);
-        const int ref_offset = ref_idx.y * layout.getMIMaxCols() + ref_idx.x;
-        const int ref_psize = patchsizes[ref_offset].psize;
-        const PsizeMetric& ref_psize_metric =
-            evaluatePsize<TLayout, IS_KEPLER>(layout, params, mis, near_neighbors, wrap_anchor, ref_psize);
-
-        if (ref_psize_metric.metric > max_matric) {
-            max_matric = ref_psize_metric.metric;
-            best_psize = ref_psize_metric.psize;
         }
     }
 
@@ -192,7 +129,7 @@ static inline void estimatePatchsizes(const TLayout& layout, const tcfg::CliConf
         for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
             const cv::Point index{col, row};
             const PsizeRecord& psize = estimatePatchsize<TLayout, IS_KEPLER, USE_FAR_NEIGHBOR>(
-                layout, cvt_cfg, params, mis, patchsizes, prev_patchsizes, index);
+                layout, cvt_cfg, params, mis, prev_patchsizes, index);
             const int offset = index.y * layout.getMIMaxCols() + index.x;
             patchsizes[offset] = psize;
         }
