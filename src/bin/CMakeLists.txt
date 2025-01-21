@@ -17,5 +17,3 @@ set_target_properties(tlct-bin PROPERTIES
         OUTPUT_NAME ${PROJECT_NAME}
 )
 add_executable(tlct::bin ALIAS tlct-bin)
-
-tlct_add_executable(tlct-viz "viz.cpp")
