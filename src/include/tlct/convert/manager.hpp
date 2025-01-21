@@ -72,9 +72,9 @@ public:
 
         mv_cache_.output_image_channels_u8[0].copyTo(dst.getY());
         cv::resize(mv_cache_.output_image_channels_u8[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()},
-                   0.0, 0.0, cv::INTER_AREA);
+                   0.0, 0.0, cv::INTER_LINEAR_EXACT);
         cv::resize(mv_cache_.output_image_channels_u8[2], dst.getV(), {(int)dst.getVWidth(), (int)dst.getVHeight()},
-                   0.0, 0.0, cv::INTER_AREA);
+                   0.0, 0.0, cv::INTER_LINEAR_EXACT);
     };
 
 private:
@@ -125,21 +125,21 @@ void Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& 
 
     const int upsample = layout_.getUpsample();
     if (upsample != 1) [[likely]] {
-        cv::resize(mv_cache_.raw_srcs[0], mv_cache_.srcs[0], {}, upsample, upsample, cv::INTER_CUBIC);
+        cv::resize(mv_cache_.raw_srcs[0], mv_cache_.srcs[0], {}, upsample, upsample, cv::INTER_LINEAR_EXACT);
     } else {
         mv_cache_.srcs[0] = mv_cache_.raw_srcs[0];
     }
 
     if constexpr (TFrame::Ushift != 0) {
         const int u_upsample = upsample << TFrame::Ushift;
-        cv::resize(mv_cache_.raw_srcs[1], mv_cache_.srcs[1], {}, u_upsample, u_upsample, cv::INTER_CUBIC);
+        cv::resize(mv_cache_.raw_srcs[1], mv_cache_.srcs[1], {}, u_upsample, u_upsample, cv::INTER_LINEAR_EXACT);
     } else {
         mv_cache_.srcs[1] = mv_cache_.raw_srcs[1];
     }
 
     if constexpr (TFrame::Vshift != 0) {
         const int v_upsample = upsample << TFrame::Vshift;
-        cv::resize(mv_cache_.raw_srcs[2], mv_cache_.srcs[2], {}, v_upsample, v_upsample, cv::INTER_CUBIC);
+        cv::resize(mv_cache_.raw_srcs[2], mv_cache_.srcs[2], {}, v_upsample, v_upsample, cv::INTER_LINEAR_EXACT);
     } else {
         mv_cache_.srcs[2] = mv_cache_.raw_srcs[2];
     }

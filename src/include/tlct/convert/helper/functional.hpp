@@ -56,7 +56,7 @@ namespace rgs = std::ranges;
     constexpr int thumbnail_size = thumbnail_height * thumbnail_width;
     std::array<float, thumbnail_size> thumbnail_buffer;
     cv::Mat thumbnail(thumbnail_height, thumbnail_width, CV_32FC1, thumbnail_buffer.data());
-    cv::resize(src, thumbnail, {thumbnail_width, thumbnail_height}, 0., 0., cv::INTER_AREA);
+    cv::resize(src, thumbnail, {thumbnail_width, thumbnail_height}, 0., 0., cv::INTER_LINEAR_EXACT);
 
     uint64_t dhash = 0;
     const uint64_t u64max = std::numeric_limits<uint64_t>::max();

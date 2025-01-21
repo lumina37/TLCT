@@ -86,10 +86,10 @@ static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
                 if constexpr (IS_KEPLER) {
                     cv::rotate(patch, rotated_patch, cv::ROTATE_180);
                     cv::resize(rotated_patch, resized_patch, {params.resized_patch_width, params.resized_patch_width},
-                               0, 0, cv::INTER_CUBIC);
+                               0, 0, cv::INTER_LINEAR_EXACT);
                 } else {
                     cv::resize(patch, resized_patch, {params.resized_patch_width, params.resized_patch_width}, 0, 0,
-                               cv::INTER_CUBIC);
+                               cv::INTER_LINEAR_EXACT);
                 }
 
                 cv::multiply(resized_patch, cache.grad_blending_weight, weighted_patch);
@@ -117,7 +117,7 @@ static inline void renderView(const typename MvCache_<TLayout>::TChannels& srcs,
         cv::divide(cropped_rendered_image, cropped_weight_matrix, cache.normed_image);
         cache.normed_image.convertTo(cache.normed_image_u8, CV_8UC1);
         cv::resize(cache.normed_image_u8, dsts[chan_id], {params.output_width, params.output_height}, 0.0, 0.0,
-                   cv::INTER_AREA);
+                   cv::INTER_LINEAR_EXACT);
     }
 }
 

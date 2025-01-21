@@ -13,8 +13,8 @@ static inline cv::Mat convertToRGB(const tlct::io::Yuv420Frame& frame)
 {
     cv::Mat u, v, yuv, rgb;
     const cv::Size& ysize = frame.getY().size();
-    cv::resize(frame.getU(), u, ysize, 0., 0., cv::INTER_CUBIC);
-    cv::resize(frame.getV(), v, ysize, 0., 0., cv::INTER_CUBIC);
+    cv::resize(frame.getU(), u, ysize, 0., 0., cv::INTER_LINEAR_EXACT);
+    cv::resize(frame.getV(), v, ysize, 0., 0., cv::INTER_LINEAR_EXACT);
     std::vector<cv::Mat> yuv_channels = {frame.getY(), u, v};
     cv::merge(yuv_channels, yuv);
     cv::cvtColor(yuv, rgb, cv::COLOR_YUV2BGR);
