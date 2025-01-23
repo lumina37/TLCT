@@ -14,11 +14,12 @@ template <tlct::concepts::CManager TManager>
 static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map)
 {
     const auto& cli_cfg = tlct::CliConfig::fromParser(parser);
-    const auto arrange = TManager::TArrange::fromCfgMap(map).upsample(cli_cfg.convert.upsample);
+    auto arrange = TManager::TArrange::fromCfgMap(map);
+    cv::Size src_size = arrange.getImgSize();
+    arrange.upsample(cli_cfg.convert.upsample);
 
     auto mgr = TManager::fromConfigs(arrange, cli_cfg.convert);
 
-    cv::Size src_size = arrange.getImgSize();
     cv::Size output_size = mgr.getOutputSize();
     if (arrange.getDirection()) {
         std::swap(src_size.width, src_size.height);
