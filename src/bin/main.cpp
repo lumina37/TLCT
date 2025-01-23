@@ -18,9 +18,9 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
     cv::Size src_size = arrange.getImgSize();
     arrange.upsample(cli_cfg.convert.upsample);
 
-    auto mgr = TManager::fromConfigs(arrange, cli_cfg.convert);
+    auto manager = TManager::fromConfigs(arrange, cli_cfg.convert);
 
-    cv::Size output_size = mgr.getOutputSize();
+    cv::Size output_size = manager.getOutputSize();
     if (arrange.getDirection()) {
         std::swap(src_size.width, src_size.height);
         std::swap(output_size.width, output_size.height);
@@ -49,13 +49,13 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
     auto mv_frame = typename TManager::TFrame{output_size};
     for (int fid = cli_cfg.range.begin; fid < cli_cfg.range.end; fid++) {
         yuv_reader.read_into(src_frame);
-        mgr.update(src_frame);
+        manager.update(src_frame);
 
         int view = 0;
         for (const int view_row : rgs::views::iota(0, cli_cfg.convert.views)) {
             for (const int view_col : rgs::views::iota(0, cli_cfg.convert.views)) {
                 auto& yuv_writer = yuv_writers[view];
-                mgr.renderInto(mv_frame, view_row, view_col);
+                manager.renderInto(mv_frame, view_row, view_col);
                 yuv_writer.write(mv_frame);
                 view++;
             }

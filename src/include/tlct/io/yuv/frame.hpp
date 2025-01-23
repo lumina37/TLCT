@@ -121,9 +121,9 @@ void YuvFrame_<TElem, Ushift_, Vshift_>::alloc()
         const size_t total_size = aligned_ysize + aligned_usize + aligned_vsize;
         buffer_ = std::malloc(total_size);
 
-        auto* yptr = (TElem*)buffer_;
-        auto* uptr = (TElem*)((size_t)yptr + aligned_ysize);
-        auto* vptr = (TElem*)((size_t)uptr + aligned_usize);
+        TElem* yptr = (TElem*)buffer_;
+        TElem* uptr = (TElem*)((size_t)yptr + aligned_ysize);
+        TElem* vptr = (TElem*)((size_t)uptr + aligned_usize);
 
         y_ = cv::Mat((int)getYHeight(), (int)getYWidth(), cv::DataType<TElem>::type, (void*)yptr);
         u_ = cv::Mat((int)getUHeight(), (int)getUWidth(), cv::DataType<TElem>::type, (void*)uptr);
