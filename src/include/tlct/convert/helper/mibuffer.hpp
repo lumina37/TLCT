@@ -14,12 +14,12 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-struct WrapMI {
+struct MIBuffer {
     cv::Mat I, I_2;
 };
 
 template <tlct::cfg::concepts::CArrange TArrange_>
-class MIs_
+class MIBuffers_
 {
 public:
     // Typename alias
@@ -33,7 +33,7 @@ public:
         {
             idiameter_ = _hp::iround(arrange.getDiameter());
             aligned_mat_size_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * sizeof(float));
-            aligned_mi_size_ = (sizeof(WrapMI) / sizeof(cv::Mat)) * aligned_mat_size_;
+            aligned_mi_size_ = (sizeof(MIBuffer) / sizeof(cv::Mat)) * aligned_mat_size_;
             mi_max_cols_ = arrange.getMIMaxCols();
             mi_num_ = mi_max_cols_ * arrange.getMIRows();
             buffer_size_ = mi_num_ * aligned_mi_size_;
@@ -50,11 +50,11 @@ public:
     };
 
     // Constructor
-    inline MIs_() noexcept : arrange_(), params_(), items_(), buffer_(nullptr) {};
-    inline explicit MIs_(const TArrange& arrange);
-    MIs_& operator=(const MIs_& rhs) = delete;
-    MIs_(const MIs_& rhs) = delete;
-    inline MIs_& operator=(MIs_&& rhs) noexcept
+    inline MIBuffers_() noexcept : arrange_(), params_(), items_(), buffer_(nullptr) {};
+    inline explicit MIBuffers_(const TArrange& arrange);
+    MIBuffers_& operator=(const MIBuffers_& rhs) = delete;
+    MIBuffers_(const MIBuffers_& rhs) = delete;
+    inline MIBuffers_& operator=(MIBuffers_&& rhs) noexcept
     {
         arrange_ = std::move(rhs.arrange_);
         params_ = std::move(rhs.params_);
@@ -62,48 +62,48 @@ public:
         buffer_ = std::exchange(rhs.buffer_, nullptr);
         return *this;
     };
-    inline MIs_(MIs_&& rhs) noexcept
+    inline MIBuffers_(MIBuffers_&& rhs) noexcept
         : arrange_(std::move(rhs.arrange_)), params_(std::move(rhs.params_)), items_(std::move(rhs.items_)),
           buffer_(std::exchange(rhs.buffer_, nullptr)) {};
-    inline ~MIs_() { std::free(buffer_); }
+    inline ~MIBuffers_() { std::free(buffer_); }
 
     // Initialize from
-    [[nodiscard]] static inline MIs_ fromArrange(const TArrange& arrange);
+    [[nodiscard]] static inline MIBuffers_ fromArrange(const TArrange& arrange);
 
     // Const methods
-    [[nodiscard]] inline const WrapMI& getMI(int row, int col) const noexcept
+    [[nodiscard]] inline const MIBuffer& getMI(int row, int col) const noexcept
     {
         const int offset = row * params_.mi_max_cols_ + col;
         return items_.at(offset);
     };
-    [[nodiscard]] inline const WrapMI& getMI(cv::Point index) const noexcept { return getMI(index.y, index.x); };
-    [[nodiscard]] inline const WrapMI& getMI(int offset) const noexcept { return items_.at(offset); };
+    [[nodiscard]] inline const MIBuffer& getMI(cv::Point index) const noexcept { return getMI(index.y, index.x); };
+    [[nodiscard]] inline const MIBuffer& getMI(int offset) const noexcept { return items_.at(offset); };
 
     // Non-const methods
-    inline MIs_& update(const cv::Mat& src);
+    inline MIBuffers_& update(const cv::Mat& src);
 
 private:
     TArrange arrange_;
     Params params_;
-    std::vector<WrapMI> items_;
+    std::vector<MIBuffer> items_;
     void* buffer_;
 };
 
 template <tlct::cfg::concepts::CArrange TArrange>
-MIs_<TArrange>::MIs_(const TArrange& arrange) : arrange_(arrange), params_(arrange)
+MIBuffers_<TArrange>::MIBuffers_(const TArrange& arrange) : arrange_(arrange), params_(arrange)
 {
     items_.resize(params_.mi_num_);
     buffer_ = std::malloc(params_.buffer_size_ + Params::SIMD_FETCH_SIZE);
 }
 
 template <tlct::cfg::concepts::CArrange TArrange>
-MIs_<TArrange> MIs_<TArrange>::fromArrange(const TArrange& arrange)
+MIBuffers_<TArrange> MIBuffers_<TArrange>::fromArrange(const TArrange& arrange)
 {
-    return MIs_(arrange);
+    return MIBuffers_(arrange);
 }
 
 template <tlct::cfg::concepts::CArrange TArrange>
-MIs_<TArrange>& MIs_<TArrange>::update(const cv::Mat& src)
+MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src)
 {
     cv::Mat I_2_32f;
     const cv::Mat& I_32f = src;

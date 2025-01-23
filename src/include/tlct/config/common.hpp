@@ -9,6 +9,6 @@ namespace _ = _cfg;
 
 using _::CliConfig;
 using _::ConfigMap;
-using _::makeParser;
+using _::makeUniqArgParser;
 
 } // namespace tlct::cfg

@@ -1,4 +1,4 @@
 #pragma once
 
-#include "constexpr/math.hpp"
-#include "constexpr/string.hpp"
+#include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/constexpr/string.hpp"

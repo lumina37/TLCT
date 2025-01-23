@@ -62,7 +62,7 @@ private:
 
 ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
 {
-    const auto is_nul = [](const char c) { return c == '\t' || c == ' '; };
+    const auto is_nul = [](const char c) { return c == ' ' || c == '\t'; };
 
     std::map<std::string, std::string> cfg_map;
     std::string row;

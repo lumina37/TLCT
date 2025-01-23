@@ -34,7 +34,7 @@ public:
     using TFrame = TFrame_;
     using TCvtConfig = tcfg::CliConfig::Convert;
     using TArrange = TArrange_;
-    using TMIs = MIs_<TArrange>;
+    using TMIBuffers = MIBuffers_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
     using MvParams = MvParams_<TArrange>;
     using MvCache = MvCache_<TArrange>;
@@ -81,7 +81,7 @@ public:
 private:
     TArrange arrange_;
     TCvtConfig cvt_cfg_;
-    TMIs mis_;
+    TMIBuffers mis_;
     std::vector<PsizeRecord> prev_patchsizes_;
     std::vector<PsizeRecord> patchsizes_;
 
@@ -94,7 +94,7 @@ template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool I
 Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvt_cfg)
     : arrange_(arrange), cvt_cfg_(cvt_cfg)
 {
-    mis_ = TMIs::fromArrange(arrange);
+    mis_ = TMIBuffers::fromArrange(arrange);
 
     prev_patchsizes_ = std::vector<PsizeRecord>(arrange.getMIRows() * arrange.getMIMaxCols(), PsizeRecord{});
     patchsizes_ = std::vector<PsizeRecord>(arrange.getMIRows() * arrange.getMIMaxCols());

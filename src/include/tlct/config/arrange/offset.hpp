@@ -19,8 +19,8 @@ public:
 
     // Constructor
     TLCT_API inline OffsetArrange() noexcept
-        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), direction_(), left_top_(), x_unit_shift_(),
-          y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
+        : imgsize_(), diameter_(), radius_(), direction_(), left_top_(), x_unit_shift_(), y_unit_shift_(), mirows_(),
+          micols_(), upsample_(1), is_out_shift_(){};
     TLCT_API inline OffsetArrange(const OffsetArrange& rhs) noexcept = default;
     TLCT_API inline OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
     TLCT_API inline OffsetArrange(OffsetArrange&& rhs) noexcept = default;
@@ -37,7 +37,6 @@ public:
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
     [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
-    [[nodiscard]] TLCT_API inline cv::Size getRawImgSize() const noexcept { return raw_imgsize_; };
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool getDirection() const noexcept { return direction_; };
@@ -52,7 +51,6 @@ public:
 
 private:
     cv::Size imgsize_;
-    cv::Size raw_imgsize_;
     double diameter_;
     double radius_;
     bool direction_;
@@ -100,7 +98,7 @@ cv::Point2d OffsetArrange::getMICenter(int row, int col) const noexcept
 cv::Point2d OffsetArrange::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
 OffsetArrange::OffsetArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d offset) noexcept
-    : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
+    : diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
 {
     cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};
 

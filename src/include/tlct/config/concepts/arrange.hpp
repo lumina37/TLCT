@@ -28,7 +28,6 @@ concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     { self.getImgWidth() } noexcept -> std::integral;
     { self.getImgHeight() } noexcept -> std::integral;
     { self.getImgSize() } noexcept -> std::same_as<cv::Size>;
-    { self.getRawImgSize() } noexcept -> std::same_as<cv::Size>;
     { self.getDiameter() } noexcept -> std::floating_point;
     { self.getRadius() } noexcept -> std::floating_point;
     { self.getDirection() } noexcept -> std::same_as<bool>;

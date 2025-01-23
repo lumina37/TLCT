@@ -20,7 +20,7 @@ namespace tcfg = tlct::cfg;
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
     requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
 [[nodiscard]] static inline PsizeMetric
-estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& params, const MIs_<TArrange>& mis,
+estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
                      const TNeighbors& neighbors, WrapSSIM& wrap_anchor)
 {
     const cv::Point2d mi_center{arrange.getRadius(), arrange.getRadius()};
@@ -41,7 +41,7 @@ estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& para
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
 
-        const WrapMI& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
+        const MIBuffer& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
         const cv::Point2d match_step = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
@@ -82,7 +82,7 @@ estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& para
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline PsizeRecord
 estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
-                  const PsizeParams_<TArrange>& params, const MIs_<TArrange>& mis,
+                  const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
                   const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index)
 {
     using NearNeighbors = NearNeighbors_<TArrange>;
@@ -90,7 +90,7 @@ estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_c
     using PsizeParams = PsizeParams_<TArrange>;
 
     const int offset = index.y * arrange.getMIMaxCols() + index.x;
-    const WrapMI& anchor_mi = mis.getMI(offset);
+    const MIBuffer& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
     const PsizeRecord& prev_psize = prev_patchsizes[offset];
 
@@ -122,7 +122,7 @@ estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_c
 
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
-                                      const PsizeParams_<TArrange>& params, const MIs_<TArrange>& mis,
+                                      const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
                                       const std::vector<PsizeRecord>& prev_patchsizes,
                                       std::vector<PsizeRecord>& patchsizes)
 {

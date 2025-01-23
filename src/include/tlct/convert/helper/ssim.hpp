@@ -11,7 +11,7 @@ class WrapSSIM
 public:
     // Constructor
     WrapSSIM() = delete;
-    inline explicit WrapSSIM(const WrapMI& mi) noexcept : mi_(mi) {};
+    inline explicit WrapSSIM(const MIBuffer& mi) noexcept : mi_(mi) {};
     inline WrapSSIM(const WrapSSIM& rhs) = default;
     WrapSSIM& operator=(const WrapSSIM& rhs) = delete;
     WrapSSIM(WrapSSIM&& rhs) noexcept = default;
@@ -23,7 +23,7 @@ public:
     // Non-const methods
     inline void updateRoi(cv::Rect roi) noexcept;
 
-    const WrapMI& mi_;
+    const MIBuffer& mi_;
     cv::Mat I_, I_2_, mu_, mu_2_, sigma_2_;
 
 private:

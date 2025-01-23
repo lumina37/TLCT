@@ -19,8 +19,8 @@ public:
 
     // Constructor
     TLCT_API inline CornersArrange() noexcept
-        : imgsize_(), raw_imgsize_(), diameter_(), radius_(), direction_(), left_top_(), right_top_(),
-          left_y_unit_shift_(), right_y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
+        : imgsize_(), diameter_(), radius_(), direction_(), left_top_(), right_top_(), left_y_unit_shift_(),
+          right_y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
     TLCT_API inline CornersArrange(const CornersArrange& rhs) noexcept = default;
     TLCT_API inline CornersArrange& operator=(const CornersArrange& rhs) noexcept = default;
     TLCT_API inline CornersArrange(CornersArrange&& rhs) noexcept = default;
@@ -38,7 +38,6 @@ public:
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
     [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
-    [[nodiscard]] TLCT_API inline cv::Size getRawImgSize() const noexcept { return raw_imgsize_; };
     [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool getDirection() const noexcept { return direction_; };
@@ -53,7 +52,6 @@ public:
 
 private:
     cv::Size imgsize_;
-    cv::Size raw_imgsize_;
     double diameter_;
     double radius_;
     bool direction_;
@@ -113,7 +111,7 @@ cv::Point2d CornersArrange::getMICenter(cv::Point index) const noexcept { return
 
 CornersArrange::CornersArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
                                cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
-    : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
+    : diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
 {
     if (direction) {
         std::swap(left_top.x, left_top.y);

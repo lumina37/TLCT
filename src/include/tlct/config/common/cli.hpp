@@ -11,7 +11,7 @@ namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
 
-[[nodiscard]] TLCT_API inline std::unique_ptr<argparse::ArgumentParser> makeParser() noexcept
+[[nodiscard]] TLCT_API inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept
 {
     auto parser =
         std::make_unique<argparse::ArgumentParser>("tlct", "v" tlct_VERSION, argparse::default_arguments::all);

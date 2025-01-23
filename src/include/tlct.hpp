@@ -10,6 +10,6 @@ namespace tlct {
 
 using cfg::CliConfig;
 using cfg::ConfigMap;
-using cfg::makeParser;
+using cfg::makeUniqArgParser;
 
 } // namespace tlct

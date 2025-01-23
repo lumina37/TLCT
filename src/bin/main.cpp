@@ -18,9 +18,10 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
 
     auto mgr = TManager::fromConfigs(arrange, cli_cfg.convert);
 
-    const cv::Size& src_size = arrange.getRawImgSize();
+    cv::Size src_size = arrange.getImgSize();
     cv::Size output_size = mgr.getOutputSize();
     if (arrange.getDirection()) {
+        std::swap(src_size.width, src_size.height);
         std::swap(output_size.width, output_size.height);
     }
 
@@ -63,7 +64,7 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
 
 int main(int argc, char* argv[])
 {
-    auto parser = tlct::makeParser();
+    auto parser = tlct::makeUniqArgParser();
 
     try {
         parser->parse_args(argc, argv);

@@ -20,7 +20,7 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange>
-static inline void computeWeights(const TArrange& arrange, const MIs_<TArrange>& mis, MvCache_<TArrange>& cache)
+static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArrange>& mis, MvCache_<TArrange>& cache)
 {
     cv::Mat texture_I(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
