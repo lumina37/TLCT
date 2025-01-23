@@ -11,28 +11,28 @@
 
 namespace tlct::_cfg {
 
-class CornersLayout
+class CornersArrange
 {
 public:
     // Typename alias
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API inline CornersLayout() noexcept
+    TLCT_API inline CornersArrange() noexcept
         : imgsize_(), raw_imgsize_(), diameter_(), radius_(), direction_(), left_top_(), right_top_(),
           left_y_unit_shift_(), right_y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
-    TLCT_API inline CornersLayout(const CornersLayout& rhs) noexcept = default;
-    TLCT_API inline CornersLayout& operator=(const CornersLayout& rhs) noexcept = default;
-    TLCT_API inline CornersLayout(CornersLayout&& rhs) noexcept = default;
-    TLCT_API inline CornersLayout& operator=(CornersLayout&& rhs) noexcept = default;
-    TLCT_API inline CornersLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
-                                  cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept;
+    TLCT_API inline CornersArrange(const CornersArrange& rhs) noexcept = default;
+    TLCT_API inline CornersArrange& operator=(const CornersArrange& rhs) noexcept = default;
+    TLCT_API inline CornersArrange(CornersArrange&& rhs) noexcept = default;
+    TLCT_API inline CornersArrange& operator=(CornersArrange&& rhs) noexcept = default;
+    TLCT_API inline CornersArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
+                                   cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline CornersLayout fromCfgMap(const ConfigMap& map);
+    [[nodiscard]] TLCT_API static inline CornersArrange fromCfgMap(const ConfigMap& map);
 
     // Non-const methods
-    TLCT_API inline CornersLayout& upsample(int factor) noexcept;
+    TLCT_API inline CornersArrange& upsample(int factor) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
@@ -67,7 +67,7 @@ private:
     bool is_out_shift_;
 };
 
-CornersLayout CornersLayout::fromCfgMap(const ConfigMap& map)
+CornersArrange CornersArrange::fromCfgMap(const ConfigMap& map)
 {
     cv::Size imgsize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const double diameter = map.get<"MIDiameter", int>();
@@ -82,7 +82,7 @@ CornersLayout CornersLayout::fromCfgMap(const ConfigMap& map)
     return {imgsize, diameter, direction, left_top, right_top, left_bottom, right_bottom};
 }
 
-CornersLayout& CornersLayout::upsample(int factor) noexcept
+CornersArrange& CornersArrange::upsample(int factor) noexcept
 {
     imgsize_ *= factor;
     diameter_ *= factor;
@@ -95,7 +95,7 @@ CornersLayout& CornersLayout::upsample(int factor) noexcept
     return *this;
 }
 
-cv::Point2d CornersLayout::getMICenter(int row, int col) const noexcept
+cv::Point2d CornersArrange::getMICenter(int row, int col) const noexcept
 {
     cv::Point2d left = left_top_ + left_y_unit_shift_ * row;
     cv::Point2d right = right_top_ + right_y_unit_shift_ * row;
@@ -109,10 +109,10 @@ cv::Point2d CornersLayout::getMICenter(int row, int col) const noexcept
     return center;
 }
 
-cv::Point2d CornersLayout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
+cv::Point2d CornersArrange::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-CornersLayout::CornersLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
-                             cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
+CornersArrange::CornersArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
+                               cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
     : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
 {
     if (direction) {

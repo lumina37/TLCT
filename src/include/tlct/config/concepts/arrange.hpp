@@ -12,7 +12,7 @@ namespace tlct::_cfg::concepts {
 namespace fs = std::filesystem;
 
 template <typename Self>
-concept CLayout = std::is_trivially_copyable_v<Self> && requires {
+concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
 } && requires(const ConfigMap& map) {

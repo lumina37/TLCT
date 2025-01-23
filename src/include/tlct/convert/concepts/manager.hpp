@@ -17,9 +17,9 @@ namespace tcfg = tlct::cfg;
 template <typename Self>
 concept CManager = requires {
     // Initialize from
-    requires requires(const typename Self::TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg) {
-        requires tcfg::concepts::CLayout<typename Self::TLayout>;
-        { Self::fromConfigs(layout, cvt_cfg) } -> std::same_as<Self>;
+    requires requires(const typename Self::TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg) {
+        requires tcfg::concepts::CArrange<typename Self::TArrange>;
+        { Self::fromConfigs(arrange, cvt_cfg) } -> std::same_as<Self>;
     };
 } && requires {
     // Const methods

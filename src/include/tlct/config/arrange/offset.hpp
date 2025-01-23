@@ -11,27 +11,27 @@
 
 namespace tlct::_cfg {
 
-class OffsetLayout
+class OffsetArrange
 {
 public:
     // Typename alias
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API inline OffsetLayout() noexcept
+    TLCT_API inline OffsetArrange() noexcept
         : imgsize_(), raw_imgsize_(), diameter_(), radius_(), direction_(), left_top_(), x_unit_shift_(),
           y_unit_shift_(), mirows_(), micols_(), upsample_(1), is_out_shift_(){};
-    TLCT_API inline OffsetLayout(const OffsetLayout& rhs) noexcept = default;
-    TLCT_API inline OffsetLayout& operator=(const OffsetLayout& rhs) noexcept = default;
-    TLCT_API inline OffsetLayout(OffsetLayout&& rhs) noexcept = default;
-    TLCT_API inline OffsetLayout& operator=(OffsetLayout&& rhs) noexcept = default;
-    TLCT_API inline OffsetLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d offset) noexcept;
+    TLCT_API inline OffsetArrange(const OffsetArrange& rhs) noexcept = default;
+    TLCT_API inline OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
+    TLCT_API inline OffsetArrange(OffsetArrange&& rhs) noexcept = default;
+    TLCT_API inline OffsetArrange& operator=(OffsetArrange&& rhs) noexcept = default;
+    TLCT_API inline OffsetArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d offset) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline OffsetLayout fromCfgMap(const ConfigMap& map);
+    [[nodiscard]] TLCT_API static inline OffsetArrange fromCfgMap(const ConfigMap& map);
 
     // Non-const methods
-    TLCT_API inline OffsetLayout& upsample(int factor) noexcept;
+    TLCT_API inline OffsetArrange& upsample(int factor) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
@@ -65,7 +65,7 @@ private:
     bool is_out_shift_;
 };
 
-OffsetLayout OffsetLayout::fromCfgMap(const ConfigMap& map)
+OffsetArrange OffsetArrange::fromCfgMap(const ConfigMap& map)
 {
     cv::Size imgsize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const double diameter = map.get<"MIDiameter", double>();
@@ -75,7 +75,7 @@ OffsetLayout OffsetLayout::fromCfgMap(const ConfigMap& map)
     return {imgsize, diameter, direction, offset};
 }
 
-OffsetLayout& OffsetLayout::upsample(int factor) noexcept
+OffsetArrange& OffsetArrange::upsample(int factor) noexcept
 {
 
     imgsize_ *= factor;
@@ -88,7 +88,7 @@ OffsetLayout& OffsetLayout::upsample(int factor) noexcept
     return *this;
 }
 
-cv::Point2d OffsetLayout::getMICenter(int row, int col) const noexcept
+cv::Point2d OffsetArrange::getMICenter(int row, int col) const noexcept
 {
     cv::Point2d center{left_top_.x + x_unit_shift_ * col, left_top_.y + y_unit_shift_ * row};
     if (row % 2 == 1) {
@@ -97,9 +97,9 @@ cv::Point2d OffsetLayout::getMICenter(int row, int col) const noexcept
     return center;
 }
 
-cv::Point2d OffsetLayout::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
+cv::Point2d OffsetArrange::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-OffsetLayout::OffsetLayout(cv::Size imgsize, double diameter, bool direction, cv::Point2d offset) noexcept
+OffsetArrange::OffsetArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d offset) noexcept
     : raw_imgsize_(imgsize), diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
 {
     cv::Point2d center_mi{imgsize.width / 2.0 + offset.x, imgsize.height / 2.0 - offset.y};

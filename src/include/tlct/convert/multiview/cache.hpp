@@ -12,14 +12,14 @@ namespace tlct::_cvt {
 
 namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CLayout TLayout_>
+template <tcfg::concepts::CArrange TArrange_>
 class MvCache_
 {
 public:
     static constexpr int CHANNELS = 3;
 
     // Typename alias
-    using TLayout = TLayout_;
+    using TArrange = TArrange_;
     using TChannels = std::array<cv::Mat, CHANNELS>;
 
     // Constructor
@@ -31,7 +31,7 @@ public:
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline MvCache_ fromParams(const MvParams_<TLayout>& params);
+    [[nodiscard]] TLCT_API static inline MvCache_ fromParams(const MvParams_<TArrange>& params);
 
     cv::Mat grad_blending_weight;
     cv::Mat render_canvas;
@@ -47,8 +47,8 @@ public:
     TChannels output_image_channels_u8;
 };
 
-template <tcfg::concepts::CLayout TLayout>
-MvCache_<TLayout> MvCache_<TLayout>::fromParams(const MvParams_<TLayout>& params)
+template <tcfg::concepts::CArrange TArrange>
+MvCache_<TArrange> MvCache_<TArrange>::fromParams(const MvParams_<TArrange>& params)
 {
     constexpr double GRADIENT_BLENDING_WIDTH = 0.75;
     cv::Mat grad_blending_weight = circleWithFadeoutBorder(params.resized_patch_width, GRADIENT_BLENDING_WIDTH);

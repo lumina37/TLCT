@@ -17,13 +17,13 @@ namespace tlct::_cvt {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TLayout = TNeighbors::TLayout>
-    requires std::is_same_v<TLayout, typename TNeighbors::TLayout>
-[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const TLayout& layout, const PsizeParams_<TLayout>& params,
-                                                             const MIs_<TLayout>& mis, const TNeighbors& neighbors,
-                                                             WrapSSIM& wrap_anchor)
+template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
+    requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
+[[nodiscard]] static inline PsizeMetric
+estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& params, const MIs_<TArrange>& mis,
+                     const TNeighbors& neighbors, WrapSSIM& wrap_anchor)
 {
-    const cv::Point2d mi_center{layout.getRadius(), layout.getRadius()};
+    const cv::Point2d mi_center{arrange.getRadius(), arrange.getRadius()};
     const int max_shift = (int)(params.pattern_shift * 2);
 
     double sum_psize = 0.0;
@@ -79,16 +79,17 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TLayout = TN
     return {psize, metric};
 }
 
-template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
+template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline PsizeRecord
-estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg, const PsizeParams_<TLayout>& params,
-                  const MIs_<TLayout>& mis, const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index)
+estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
+                  const PsizeParams_<TArrange>& params, const MIs_<TArrange>& mis,
+                  const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index)
 {
-    using NearNeighbors = NearNeighbors_<TLayout>;
-    using FarNeighbors = FarNeighbors_<TLayout>;
-    using PsizeParams = PsizeParams_<TLayout>;
+    using NearNeighbors = NearNeighbors_<TArrange>;
+    using FarNeighbors = FarNeighbors_<TArrange>;
+    using PsizeParams = PsizeParams_<TArrange>;
 
-    const int offset = index.y * layout.getMIMaxCols() + index.x;
+    const int offset = index.y * arrange.getMIMaxCols() + index.x;
     const WrapMI& anchor_mi = mis.getMI(offset);
     const uint64_t hash = dhash(anchor_mi.I);
     const PsizeRecord& prev_psize = prev_patchsizes[offset];
@@ -101,16 +102,16 @@ estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg
     }
 
     WrapSSIM wrap_anchor{anchor_mi};
-    const NearNeighbors& near_neighbors = NearNeighbors::fromLayoutAndIndex(layout, index);
+    const NearNeighbors& near_neighbors = NearNeighbors::fromArrangeAndIndex(arrange, index);
     const PsizeMetric& near_psize_metric =
-        estimateWithNeighbor<NearNeighbors, IS_KEPLER>(layout, params, mis, near_neighbors, wrap_anchor);
+        estimateWithNeighbor<NearNeighbors, IS_KEPLER>(arrange, params, mis, near_neighbors, wrap_anchor);
     double max_matric = near_psize_metric.metric;
     int best_psize = near_psize_metric.psize;
 
     if constexpr (USE_FAR_NEIGHBOR) {
-        const FarNeighbors& far_neighbors = FarNeighbors::fromLayoutAndIndex(layout, index);
+        const FarNeighbors& far_neighbors = FarNeighbors::fromArrangeAndIndex(arrange, index);
         const PsizeMetric& far_psize_metric =
-            estimateWithNeighbor<FarNeighbors, IS_KEPLER>(layout, params, mis, far_neighbors, wrap_anchor);
+            estimateWithNeighbor<FarNeighbors, IS_KEPLER>(arrange, params, mis, far_neighbors, wrap_anchor);
         if (far_psize_metric.metric > max_matric) {
             best_psize = far_psize_metric.psize;
         }
@@ -119,18 +120,18 @@ estimatePatchsize(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg
     return {best_psize, hash};
 }
 
-template <tcfg::concepts::CLayout TLayout, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
-static inline void estimatePatchsizes(const TLayout& layout, const tcfg::CliConfig::Convert& cvt_cfg,
-                                      const PsizeParams_<TLayout>& params, const MIs_<TLayout>& mis,
+template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
+static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
+                                      const PsizeParams_<TArrange>& params, const MIs_<TArrange>& mis,
                                       const std::vector<PsizeRecord>& prev_patchsizes,
                                       std::vector<PsizeRecord>& patchsizes)
 {
-    for (const int row : rgs::views::iota(0, layout.getMIRows())) {
-        for (const int col : rgs::views::iota(0, layout.getMICols(row))) {
+    for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const cv::Point index{col, row};
-            const PsizeRecord& psize = estimatePatchsize<TLayout, IS_KEPLER, USE_FAR_NEIGHBOR>(
-                layout, cvt_cfg, params, mis, prev_patchsizes, index);
-            const int offset = index.y * layout.getMIMaxCols() + index.x;
+            const PsizeRecord& psize = estimatePatchsize<TArrange, IS_KEPLER, USE_FAR_NEIGHBOR>(
+                arrange, cvt_cfg, params, mis, prev_patchsizes, index);
+            const int offset = index.y * arrange.getMIMaxCols() + index.x;
             patchsizes[offset] = psize;
         }
     }

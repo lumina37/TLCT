@@ -1,11 +1,11 @@
 #pragma once
 
-#include "tlct/config/concepts/layout.hpp"
+#include "tlct/config/concepts/arrange.hpp"
 
 namespace tlct::cfg::concepts {
 
 namespace _ = _cfg::concepts;
 
-using _::CLayout;
+using _::CArrange;
 
 } // namespace tlct::cfg::concepts

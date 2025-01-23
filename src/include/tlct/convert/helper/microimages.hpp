@@ -18,24 +18,24 @@ struct WrapMI {
     cv::Mat I, I_2;
 };
 
-template <tlct::cfg::concepts::CLayout TLayout_>
+template <tlct::cfg::concepts::CArrange TArrange_>
 class MIs_
 {
 public:
     // Typename alias
-    using TLayout = TLayout_;
+    using TArrange = TArrange_;
 
     struct Params {
         static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
 
         inline Params() = default;
-        inline explicit Params(const TLayout& layout) noexcept
+        inline explicit Params(const TArrange& arrange) noexcept
         {
-            idiameter_ = _hp::iround(layout.getDiameter());
+            idiameter_ = _hp::iround(arrange.getDiameter());
             aligned_mat_size_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * sizeof(float));
             aligned_mi_size_ = (sizeof(WrapMI) / sizeof(cv::Mat)) * aligned_mat_size_;
-            mi_max_cols_ = layout.getMIMaxCols();
-            mi_num_ = mi_max_cols_ * layout.getMIRows();
+            mi_max_cols_ = arrange.getMIMaxCols();
+            mi_num_ = mi_max_cols_ * arrange.getMIRows();
             buffer_size_ = mi_num_ * aligned_mi_size_;
         };
         inline Params& operator=(Params&& rhs) noexcept = default;
@@ -50,25 +50,25 @@ public:
     };
 
     // Constructor
-    inline MIs_() noexcept : layout_(), params_(), items_(), buffer_(nullptr) {};
-    inline explicit MIs_(const TLayout& layout);
+    inline MIs_() noexcept : arrange_(), params_(), items_(), buffer_(nullptr) {};
+    inline explicit MIs_(const TArrange& arrange);
     MIs_& operator=(const MIs_& rhs) = delete;
     MIs_(const MIs_& rhs) = delete;
     inline MIs_& operator=(MIs_&& rhs) noexcept
     {
-        layout_ = std::move(rhs.layout_);
+        arrange_ = std::move(rhs.arrange_);
         params_ = std::move(rhs.params_);
         items_ = std::move(rhs.items_);
         buffer_ = std::exchange(rhs.buffer_, nullptr);
         return *this;
     };
     inline MIs_(MIs_&& rhs) noexcept
-        : layout_(std::move(rhs.layout_)), params_(std::move(rhs.params_)), items_(std::move(rhs.items_)),
+        : arrange_(std::move(rhs.arrange_)), params_(std::move(rhs.params_)), items_(std::move(rhs.items_)),
           buffer_(std::exchange(rhs.buffer_, nullptr)) {};
     inline ~MIs_() { std::free(buffer_); }
 
     // Initialize from
-    [[nodiscard]] static inline MIs_ fromLayout(const TLayout& layout);
+    [[nodiscard]] static inline MIs_ fromArrange(const TArrange& arrange);
 
     // Const methods
     [[nodiscard]] inline const WrapMI& getMI(int row, int col) const noexcept
@@ -83,27 +83,27 @@ public:
     inline MIs_& update(const cv::Mat& src);
 
 private:
-    TLayout layout_;
+    TArrange arrange_;
     Params params_;
     std::vector<WrapMI> items_;
     void* buffer_;
 };
 
-template <tlct::cfg::concepts::CLayout TLayout>
-MIs_<TLayout>::MIs_(const TLayout& layout) : layout_(layout), params_(layout)
+template <tlct::cfg::concepts::CArrange TArrange>
+MIs_<TArrange>::MIs_(const TArrange& arrange) : arrange_(arrange), params_(arrange)
 {
     items_.resize(params_.mi_num_);
     buffer_ = std::malloc(params_.buffer_size_ + Params::SIMD_FETCH_SIZE);
 }
 
-template <tlct::cfg::concepts::CLayout TLayout>
-MIs_<TLayout> MIs_<TLayout>::fromLayout(const TLayout& layout)
+template <tlct::cfg::concepts::CArrange TArrange>
+MIs_<TArrange> MIs_<TArrange>::fromArrange(const TArrange& arrange)
 {
-    return MIs_(layout);
+    return MIs_(arrange);
 }
 
-template <tlct::cfg::concepts::CLayout TLayout>
-MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
+template <tlct::cfg::concepts::CArrange TArrange>
+MIs_<TArrange>& MIs_<TArrange>::update(const cv::Mat& src)
 {
     cv::Mat I_2_32f;
     const cv::Mat& I_32f = src;
@@ -112,13 +112,13 @@ MIs_<TLayout>& MIs_<TLayout>::update(const cv::Mat& src)
     auto item_it = items_.begin();
     uint8_t* row_cursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
     size_t row_step = params_.mi_max_cols_ * params_.aligned_mi_size_;
-    for (const int irow : rgs::views::iota(0, layout_.getMIRows())) {
+    for (const int irow : rgs::views::iota(0, arrange_.getMIRows())) {
 
         uint8_t* col_cursor = row_cursor;
-        const int mi_cols = layout_.getMICols(irow);
+        const int mi_cols = arrange_.getMICols(irow);
         for (const int icol : rgs::views::iota(0, mi_cols)) {
-            const cv::Point2d& mi_center = layout_.getMICenter(irow, icol);
-            const cv::Rect roi = getRoiByCenter(mi_center, layout_.getDiameter());
+            const cv::Point2d& mi_center = arrange_.getMICenter(irow, icol);
+            const cv::Rect roi = getRoiByCenter(mi_center, arrange_.getDiameter());
 
             uint8_t* mat_cursor = col_cursor;
 

@@ -5,8 +5,7 @@
 
 namespace tlct::concepts {
 
-using cfg::concepts::CLayout;
-
+using cfg::concepts::CArrange;
 using cvt::concepts::CManager;
 
 } // namespace tlct::concepts

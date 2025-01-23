@@ -9,29 +9,29 @@ namespace tlct::_cvt {
 
 namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CLayout TLayout_>
+template <tcfg::concepts::CArrange TArrange_>
 class PsizeParams_
 {
 public:
     static constexpr int INVALID_PSIZE = 0;
 
     // Typename alias
-    using TLayout = TLayout_;
+    using TArrange = TArrange_;
     using TCvtConfig = tcfg::CliConfig::Convert;
 
     // Initialize from
-    [[nodiscard]] static inline PsizeParams_ fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg);
+    [[nodiscard]] static inline PsizeParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg);
 
     double pattern_size;
     double pattern_shift;
     int min_psize;
 };
 
-template <tcfg::concepts::CLayout TLayout>
-PsizeParams_<TLayout> PsizeParams_<TLayout>::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
+template <tcfg::concepts::CArrange TArrange>
+PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg)
 {
-    const double pattern_size = layout.getDiameter() * cvt_cfg.pattern_size;
-    const double radius = layout.getDiameter() / 2.0;
+    const double pattern_size = arrange.getDiameter() * cvt_cfg.pattern_size;
+    const double radius = arrange.getDiameter() / 2.0;
     const double half_pattern_size = pattern_size / 2.0;
     const double max_pattern_shift =
         std::sqrt((radius - half_pattern_size) * (radius + half_pattern_size)) - half_pattern_size;

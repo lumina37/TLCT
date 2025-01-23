@@ -16,9 +16,9 @@ concept CNeighbors = requires {
     { Self::INFLATE } -> std::convertible_to<double>;
 } && requires {
     // Initialize from
-    requires requires(const Self::TLayout& layout, const cv::Point index) {
-        requires tcfg::concepts::CLayout<typename Self::TLayout>;
-        { Self::fromLayoutAndIndex(layout, index) } noexcept -> std::same_as<Self>;
+    requires requires(const Self::TArrange& arrange, const cv::Point index) {
+        requires tcfg::concepts::CArrange<typename Self::TArrange>;
+        { Self::fromArrangeAndIndex(arrange, index) } noexcept -> std::same_as<Self>;
     };
 } && requires {
     requires requires(const Self& self) {

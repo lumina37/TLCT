@@ -8,8 +8,8 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/config/arrange.hpp"
 #include "tlct/config/common.hpp"
-#include "tlct/config/layout.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview.hpp"
 #include "tlct/convert/patchsize.hpp"
@@ -22,7 +22,7 @@ namespace _cvt {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CLayout TLayout_, io::concepts::CFrame TFrame_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
+template <tcfg::concepts::CArrange TArrange_, io::concepts::CFrame TFrame_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
 class Manager_
 {
 public:
@@ -33,11 +33,11 @@ public:
     // Typename alias
     using TFrame = TFrame_;
     using TCvtConfig = tcfg::CliConfig::Convert;
-    using TLayout = TLayout_;
-    using TMIs = MIs_<TLayout>;
-    using PsizeParams = PsizeParams_<TLayout>;
-    using MvParams = MvParams_<TLayout>;
-    using MvCache = MvCache_<TLayout>;
+    using TArrange = TArrange_;
+    using TMIs = MIs_<TArrange>;
+    using PsizeParams = PsizeParams_<TArrange>;
+    using MvParams = MvParams_<TArrange>;
+    using MvCache = MvCache_<TArrange>;
 
     // Constructor
     Manager_() = delete;
@@ -45,10 +45,10 @@ public:
     Manager_& operator=(const Manager_& rhs) = delete;
     TLCT_API inline Manager_(Manager_&& rhs) noexcept = default;
     TLCT_API inline Manager_& operator=(Manager_&& rhs) noexcept = default;
-    TLCT_API inline Manager_(const Manager_::TLayout& layout, const Manager_::TCvtConfig& cvt_cfg);
+    TLCT_API inline Manager_(const Manager_::TArrange& arrange, const Manager_::TCvtConfig& cvt_cfg);
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Manager_ fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg);
+    [[nodiscard]] TLCT_API static inline Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg);
 
     // Const methods
     [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept
@@ -61,10 +61,11 @@ public:
 
     inline void renderInto(TFrame& dst, int view_row, int view_col) const
     {
-        renderView<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f, mv_cache_.output_image_channels_u8, layout_,
-                                                       mv_params_, patchsizes_, mv_cache_, view_row, view_col);
+        renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f, mv_cache_.output_image_channels_u8,
+                                                        arrange_, mv_params_, patchsizes_, mv_cache_, view_row,
+                                                        view_col);
 
-        if (layout_.getDirection()) {
+        if (arrange_.getDirection()) {
             for (int i = 0; i < MvCache::CHANNELS; i++) {
                 cv::transpose(mv_cache_.output_image_channels_u8[i], mv_cache_.output_image_channels_u8[i]);
             }
@@ -78,7 +79,7 @@ public:
     };
 
 private:
-    TLayout layout_;
+    TArrange arrange_;
     TCvtConfig cvt_cfg_;
     TMIs mis_;
     std::vector<PsizeRecord> prev_patchsizes_;
@@ -89,41 +90,41 @@ private:
     mutable MvCache mv_cache_;
 };
 
-template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TLayout& layout, const TCvtConfig& cvt_cfg)
-    : layout_(layout), cvt_cfg_(cvt_cfg)
+template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvt_cfg)
+    : arrange_(arrange), cvt_cfg_(cvt_cfg)
 {
-    mis_ = TMIs::fromLayout(layout);
+    mis_ = TMIs::fromArrange(arrange);
 
-    prev_patchsizes_ = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols(), PsizeRecord{});
-    patchsizes_ = std::vector<PsizeRecord>(layout.getMIRows() * layout.getMIMaxCols());
-    psize_params_ = PsizeParams_<TLayout>::fromConfigs(layout, cvt_cfg);
+    prev_patchsizes_ = std::vector<PsizeRecord>(arrange.getMIRows() * arrange.getMIMaxCols(), PsizeRecord{});
+    patchsizes_ = std::vector<PsizeRecord>(arrange.getMIRows() * arrange.getMIMaxCols());
+    psize_params_ = PsizeParams_<TArrange>::fromConfigs(arrange, cvt_cfg);
 
-    mv_params_ = MvParams_<TLayout>::fromConfigs(layout, cvt_cfg);
-    mv_cache_ = MvCache_<TLayout>::fromParams(mv_params_);
+    mv_params_ = MvParams_<TArrange>::fromConfigs(arrange, cvt_cfg);
+    mv_cache_ = MvCache_<TArrange>::fromParams(mv_params_);
 }
 
-template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>
-Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TLayout& layout, const TCvtConfig& cvt_cfg)
+template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>
+Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg)
 {
-    return {layout, cvt_cfg};
+    return {arrange, cvt_cfg};
 }
 
-template <tcfg::concepts::CLayout TLayout, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-void Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src)
+template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src)
 {
     mv_cache_.raw_srcs[0] = src.getY().clone();
     mv_cache_.raw_srcs[1] = src.getU().clone();
     mv_cache_.raw_srcs[2] = src.getV().clone();
 
-    if (layout_.getDirection()) {
+    if (arrange_.getDirection()) {
         for (int i = 0; i < MvCache::CHANNELS; i++) {
             cv::transpose(mv_cache_.raw_srcs[i], mv_cache_.raw_srcs[i]);
         }
     }
 
-    const int upsample = layout_.getUpsample();
+    const int upsample = arrange_.getUpsample();
     if (upsample != 1) [[likely]] {
         cv::resize(mv_cache_.raw_srcs[0], mv_cache_.srcs[0], {}, upsample, upsample, cv::INTER_LINEAR_EXACT);
     } else {
@@ -151,10 +152,10 @@ void Manager_<TLayout, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& 
     mis_.update(mv_cache_.srcs_32f[0]);
 
     std::swap(prev_patchsizes_, patchsizes_);
-    estimatePatchsizes<TLayout, IS_KEPLER, IS_MULTI_FOCUS>(layout_, cvt_cfg_, psize_params_, mis_, prev_patchsizes_,
-                                                           patchsizes_);
+    estimatePatchsizes<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(arrange_, cvt_cfg_, psize_params_, mis_, prev_patchsizes_,
+                                                            patchsizes_);
     if constexpr (IS_MULTI_FOCUS) {
-        computeWeights(layout_, mis_, mv_cache_);
+        computeWeights(arrange_, mis_, mv_cache_);
     }
 }
 
