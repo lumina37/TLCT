@@ -82,8 +82,8 @@ private:
     TArrange arrange_;
     TCvtConfig cvt_cfg_;
     TMIBuffers mis_;
-    std::vector<PsizeRecord> prev_patchsizes_;
-    std::vector<PsizeRecord> patchsizes_;
+    cv::Mat prev_patchsizes_;
+    cv::Mat patchsizes_;
 
     PsizeParams psize_params_;
     MvParams mv_params_;
@@ -96,8 +96,8 @@ Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& 
 {
     mis_ = TMIBuffers::fromArrange(arrange);
 
-    prev_patchsizes_ = std::vector<PsizeRecord>(arrange.getMIRows() * arrange.getMIMaxCols(), PsizeRecord{});
-    patchsizes_ = std::vector<PsizeRecord>(arrange.getMIRows() * arrange.getMIMaxCols());
+    prev_patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_64FC2);
+    patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_64FC2);
     psize_params_ = PsizeParams_<TArrange>::fromConfigs(arrange, cvt_cfg);
 
     mv_params_ = MvParams_<TArrange>::fromConfigs(arrange, cvt_cfg);

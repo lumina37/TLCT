@@ -2,7 +2,6 @@
 
 #include <limits>
 #include <ranges>
-#include <vector>
 
 #include <opencv2/core.hpp>
 
@@ -81,17 +80,16 @@ estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& para
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline PsizeRecord
 estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
-                  const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
-                  const std::vector<PsizeRecord>& prev_patchsizes, const cv::Point index)
+                  const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis, const cv::Mat& prev_patchsizes,
+                  const cv::Point index)
 {
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
 
-    const int offset = index.y * arrange.getMIMaxCols() + index.x;
-    const MIBuffer& anchor_mi = mis.getMI(offset);
+    const MIBuffer& anchor_mi = mis.getMI(index);
     const uint64_t hash = dhash(anchor_mi.I);
-    const PsizeRecord& prev_psize = prev_patchsizes[offset];
+    const PsizeRecord& prev_psize = prev_patchsizes.at<PsizeRecord>(index);
 
     if (prev_psize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
         const int hash_dist = L1Dist(prev_psize.hash, hash);
@@ -122,16 +120,14 @@ estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_c
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
                                       const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
-                                      const std::vector<PsizeRecord>& prev_patchsizes,
-                                      std::vector<PsizeRecord>& patchsizes)
+                                      const cv::Mat& prev_patchsizes, cv::Mat& patchsizes)
 {
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const cv::Point index{col, row};
             const PsizeRecord& psize = estimatePatchsize<TArrange, IS_KEPLER, USE_FAR_NEIGHBOR>(
                 arrange, cvt_cfg, params, mis, prev_patchsizes, index);
-            const int offset = index.y * arrange.getMIMaxCols() + index.x;
-            patchsizes[offset] = psize;
+            patchsizes.at<PsizeRecord>(index) = psize;
         }
     }
 }

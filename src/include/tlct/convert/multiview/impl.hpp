@@ -57,8 +57,8 @@ static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArr
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
 static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs,
                               typename MvCache_<TArrange>::TChannels& dsts, const TArrange& arrange,
-                              const MvParams_<TArrange>& params, const std::vector<PsizeRecord>& patchsizes,
-                              MvCache_<TArrange>& cache, int view_row, int view_col)
+                              const MvParams_<TArrange>& params, const cv::Mat& patchsizes, MvCache_<TArrange>& cache,
+                              int view_row, int view_col)
 {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
@@ -72,13 +72,10 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
         cache.weight_canvas.setTo(std::numeric_limits<float>::epsilon());
 
         for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
-            const int row_offset = row * arrange.getMIMaxCols();
             for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
-                const int offset = row_offset + col;
-
                 // Extract patch
                 const cv::Point2f center = arrange.getMICenter(row, col);
-                const float psize = params.psize_inflate * patchsizes[offset].psize;
+                const float psize = params.psize_inflate * patchsizes.at<PsizeRecord>(row, col).psize;
                 const cv::Point2f patch_center{center.x + view_shift_x, center.y + view_shift_y};
                 const cv::Mat& patch = getRoiImageByCenter(srcs[chan_id], patch_center, psize);
 
