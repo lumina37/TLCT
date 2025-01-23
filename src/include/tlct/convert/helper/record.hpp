@@ -5,13 +5,13 @@
 namespace tlct::_cvt {
 
 struct PsizeRecord {
-    int psize;
+    int64_t psize;
     uint64_t hash;
 };
 
 struct PsizeMetric {
     int psize;
-    double metric;
+    float metric;
 };
 
 } // namespace tlct::_cvt

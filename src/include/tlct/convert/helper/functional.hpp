@@ -13,21 +13,21 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const double border_width_factor)
+[[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const float border_width_factor)
 {
     cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
-    const double radius = (double)diameter / 2.0;
-    const double heap = border_width_factor > 0.0 ? 1.0 + 1.0 / border_width_factor * (1.0 - border_width_factor)
-                                                  : std::numeric_limits<double>::max();
+    const float radius = diameter / 2.0;
+    const float heap = border_width_factor > 0.0 ? 1.0 + 1.0 / border_width_factor * (1.0 - border_width_factor)
+                                                 : std::numeric_limits<float>::max();
 
     for (const int row : rgs::views::iota(0, diameter)) {
         float* prow = rect.ptr<float>(row);
         for (const int col : rgs::views::iota(0, diameter)) {
-            const double xdist = radius - (double)row;
-            const double ydist = radius - (double)col;
-            const double dist = std::sqrt(xdist * xdist + ydist * ydist);
-            const double pix = std::max(0.0, std::min(1.0, (1.0 - dist / radius) * heap));
-            *prow = (float)pix;
+            const float xdist = radius - (float)row;
+            const float ydist = radius - (float)col;
+            const float dist = std::sqrt(xdist * xdist + ydist * ydist);
+            const float pix = std::max(0.0f, std::min(1.0f, (1.0f - dist / radius) * heap));
+            *prow = pix;
             prow++;
         }
     }
@@ -35,10 +35,10 @@ namespace rgs = std::ranges;
     return rect;
 }
 
-[[nodiscard]] static inline double textureIntensity(const cv::Mat& src)
+[[nodiscard]] static inline float textureIntensity(const cv::Mat& src)
 {
     cv::Mat edges;
-    double intensity = 0.0;
+    float intensity = 0.0;
     cv::Sobel(src, edges, -1, 1, 0);
     edges = cv::abs(edges);
     intensity += cv::sum(edges)[0];

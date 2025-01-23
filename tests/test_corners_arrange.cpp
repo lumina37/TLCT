@@ -16,7 +16,7 @@ TEST_CASE("tlct::cfg#CornersArrange")
     const auto& cfg_map = tlct::ConfigMap::fromPath("test/清华单聚焦光场相机.cfg");
     const auto& arrange = tlct::cfg::CornersArrange::fromCfgMap(cfg_map);
 
-    constexpr double eps = 0.1;
+    constexpr float eps = 0.1;
 
     CHECK(arrange.getImgWidth() == 3068);
     CHECK(arrange.getImgHeight() == 4080);
@@ -26,13 +26,13 @@ TEST_CASE("tlct::cfg#CornersArrange")
     CHECK(arrange.getRadius() == doctest::Approx(35.).epsilon(eps));
     CHECK(arrange.getDirection() == true);
 
-    const cv::Point2d& center_0_0 = arrange.getMICenter(0, 0);
+    const cv::Point2f& center_0_0 = arrange.getMICenter(0, 0);
     CHECK(center_0_0.x == doctest::Approx(37.5).epsilon(eps));
     CHECK(center_0_0.y == doctest::Approx(38.25).epsilon(eps));
-    const cv::Point2d& center_1_0 = arrange.getMICenter(1, 0);
+    const cv::Point2f& center_1_0 = arrange.getMICenter(1, 0);
     CHECK(center_1_0.x == doctest::Approx(73.0).epsilon(eps));
     CHECK(center_1_0.y == doctest::Approx(99.0).epsilon(eps));
-    const cv::Point2d& center_0_1 = arrange.getMICenter(0, 1);
+    const cv::Point2f& center_0_1 = arrange.getMICenter(0, 1);
     CHECK(center_0_1.x == doctest::Approx(108.0).epsilon(eps));
     CHECK(center_0_1.y == doctest::Approx(38.0).epsilon(eps));
 

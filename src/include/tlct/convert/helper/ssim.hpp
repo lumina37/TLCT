@@ -18,7 +18,7 @@ public:
     WrapSSIM& operator=(WrapSSIM&& rhs) noexcept = delete;
 
     // Const methods
-    [[nodiscard]] inline double compare(const WrapSSIM& rhs) const noexcept;
+    [[nodiscard]] inline float compare(const WrapSSIM& rhs) const noexcept;
 
     // Non-const methods
     inline void updateRoi(cv::Rect roi) noexcept;
@@ -40,9 +40,9 @@ void WrapSSIM::updateRoi(cv::Rect roi) noexcept
     cv::subtract(sigma_2_, mu_2_, sigma_2_);
 }
 
-double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
+float WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
 {
-    constexpr double C1 = 6.5025, C2 = 58.5225;
+    constexpr float C1 = 6.5025, C2 = 58.5225;
 
     cv::multiply(I_, rhs.I_, I1_I2);
     cv::multiply(mu_, rhs.mu_, mu1_mu2);
@@ -76,7 +76,7 @@ double WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
     cv::divide(t3, t1, t3);
 
     const cv::Scalar& ssim_scalar = cv::mean(t3);
-    const double ssim = ssim_scalar[0];
+    const float ssim = ssim_scalar[0];
 
     return ssim;
 }

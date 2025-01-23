@@ -13,7 +13,7 @@ namespace tcfg = tlct::cfg;
 template <typename Self>
 concept CNeighbors = requires {
     // Constant
-    { Self::INFLATE } -> std::convertible_to<double>;
+    { Self::INFLATE } -> std::convertible_to<float>;
 } && requires {
     // Initialize from
     requires requires(const Self::TArrange& arrange, const cv::Point index) {
@@ -23,12 +23,12 @@ concept CNeighbors = requires {
 } && requires {
     requires requires(const Self& self) {
         { self.getSelfIdx() } noexcept -> std::same_as<cv::Point>;
-        { self.getSelfPt() } noexcept -> std::same_as<cv::Point2d>;
+        { self.getSelfPt() } noexcept -> std::same_as<cv::Point2f>;
 
         { self.hasNeighbor((typename Self::Direction)0) } noexcept -> std::same_as<bool>;
         { self.getNeighborIdx((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point>;
-        { self.getNeighborPt((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point2d>;
-        { self.getUnitShift((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point2d>;
+        { self.getNeighborPt((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point2f>;
+        { self.getUnitShift((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point2f>;
     };
 };
 

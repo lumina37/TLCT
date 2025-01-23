@@ -9,20 +9,20 @@ class MeanStddev
 public:
     inline MeanStddev() noexcept : mean_(), var_(), count_() {};
 
-    inline void update(double val) noexcept
+    inline void update(float val) noexcept
     {
         count_++;
-        const double prev_mean = mean_;
+        const float prev_mean = mean_;
         mean_ += (val - prev_mean) / (float)count_;
         var_ += (val - mean_) * (val - prev_mean);
     }
 
-    [[nodiscard]] inline double getMean() const noexcept { return mean_; }
-    [[nodiscard]] inline double getStddev() const noexcept { return sqrt(var_ / count_); }
+    [[nodiscard]] inline float getMean() const noexcept { return mean_; }
+    [[nodiscard]] inline float getStddev() const noexcept { return sqrt(var_ / count_); }
 
 private:
-    double mean_;
-    double var_;
+    float mean_;
+    float var_;
     int count_;
 };
 

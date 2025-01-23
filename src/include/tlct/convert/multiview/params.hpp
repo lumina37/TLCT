@@ -22,7 +22,7 @@ public:
     [[nodiscard]] static inline MvParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg);
 
     cv::Range canvas_crop_roi[2];
-    double psize_inflate;
+    float psize_inflate;
     int views;
     int patch_xshift; // the extracted patch will be zoomed to this height
     int patch_yshift;
@@ -37,13 +37,13 @@ public:
 template <tcfg::concepts::CArrange TArrange>
 MvParams_<TArrange> MvParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg)
 {
-    const double psize_inflate = cvt_cfg.psize_inflate;
+    const float psize_inflate = cvt_cfg.psize_inflate;
 
-    const double patch_xshift_d = 0.3 * arrange.getDiameter();
+    const float patch_xshift_d = 0.3 * arrange.getDiameter();
     const int patch_xshift = (int)std::ceil(patch_xshift_d);
     const int patch_yshift = (int)std::ceil(patch_xshift_d * std::numbers::sqrt3 / 2.0);
 
-    const double p_resize_d = patch_xshift_d * cvt_cfg.psize_inflate;
+    const float p_resize_d = patch_xshift_d * cvt_cfg.psize_inflate;
     const int resized_patch_width = (int)std::round(p_resize_d);
 
     const int view_shift_range = _hp::iround(arrange.getDiameter() * cvt_cfg.view_shift_range);
@@ -58,8 +58,8 @@ MvParams_<TArrange> MvParams_<TArrange>::fromConfigs(const TArrange& arrange, co
                               (int)(canvas_height - resized_patch_width - patch_xshift / 2.0)};
 
     const int upsample = arrange.getUpsample();
-    const int output_width = _hp::roundTo<2>(_hp::iround((double)col_range.size() / upsample));
-    const int output_height = _hp::roundTo<2>(_hp::iround((double)row_range.size() / upsample));
+    const int output_width = _hp::roundTo<2>(_hp::iround((float)col_range.size() / upsample));
+    const int output_height = _hp::roundTo<2>(_hp::iround((float)row_range.size() / upsample));
 
     return {{row_range, col_range}, psize_inflate, cvt_cfg.views, patch_xshift, patch_yshift, resized_patch_width,
             view_interval,          canvas_width,  canvas_height, output_width, output_height};

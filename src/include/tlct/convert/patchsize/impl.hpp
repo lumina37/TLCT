@@ -23,20 +23,20 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
 estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
                      const TNeighbors& neighbors, WrapSSIM& wrap_anchor)
 {
-    const cv::Point2d mi_center{arrange.getRadius(), arrange.getRadius()};
+    const cv::Point2f mi_center{arrange.getRadius(), arrange.getRadius()};
     const int max_shift = (int)(params.pattern_shift * 2);
 
-    double sum_psize = 0.0;
-    double sum_metric = 0.0;
-    double sum_psize_weight = std::numeric_limits<float>::epsilon();
-    double sum_metric_weight = std::numeric_limits<float>::epsilon();
+    float sum_psize = 0.0;
+    float sum_metric = 0.0;
+    float sum_psize_weight = std::numeric_limits<float>::epsilon();
+    float sum_metric_weight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
             continue;
         }
 
-        const cv::Point2d anchor_shift =
+        const cv::Point2f anchor_shift =
             -_hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction) * params.pattern_shift;
         const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
         wrap_anchor.updateRoi(anchor_roi);
@@ -44,37 +44,36 @@ estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& para
         const MIBuffer& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrap_neib{neib_mi};
 
-        const cv::Point2d match_step = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
-        cv::Point2d cmp_shift = anchor_shift + match_step * params.min_psize;
+        const cv::Point2f match_step = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
+        cv::Point2f cmp_shift = anchor_shift + match_step * params.min_psize;
 
         int best_psize = 0;
-        double max_ssim = 0.0;
+        float max_ssim = 0.0;
         for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
             cmp_shift += match_step;
 
             const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
             wrap_neib.updateRoi(cmp_roi);
 
-            const double ssim = wrap_anchor.compare(wrap_neib);
+            const float ssim = wrap_anchor.compare(wrap_neib);
             if (ssim > max_ssim) {
                 max_ssim = ssim;
                 best_psize = psize;
             }
         }
 
-        const double weight = textureIntensity(wrap_anchor.I_);
-        const double metric = max_ssim * max_ssim;
-        const double weighted_metric = weight * metric;
+        const float weight = textureIntensity(wrap_anchor.I_);
+        const float metric = max_ssim * max_ssim;
+        const float weighted_metric = weight * metric;
         sum_psize += best_psize * weighted_metric;
         sum_psize_weight += weighted_metric;
         sum_metric += weighted_metric;
         sum_metric_weight += weight;
     }
 
-    const double cliped_sum_psize =
-        _hp::clip(sum_psize / sum_psize_weight, (double)params.min_psize, (double)max_shift);
+    const float cliped_sum_psize = _hp::clip(sum_psize / sum_psize_weight, (float)params.min_psize, (float)max_shift);
     const int psize = _hp::iround(cliped_sum_psize / TNeighbors::INFLATE);
-    const double metric = sum_metric / sum_metric_weight;
+    const float metric = sum_metric / sum_metric_weight;
 
     return {psize, metric};
 }
@@ -105,7 +104,7 @@ estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_c
     const NearNeighbors& near_neighbors = NearNeighbors::fromArrangeAndIndex(arrange, index);
     const PsizeMetric& near_psize_metric =
         estimateWithNeighbor<NearNeighbors, IS_KEPLER>(arrange, params, mis, near_neighbors, wrap_anchor);
-    double max_matric = near_psize_metric.metric;
+    float max_matric = near_psize_metric.metric;
     int best_psize = near_psize_metric.psize;
 
     if constexpr (USE_FAR_NEIGHBOR) {

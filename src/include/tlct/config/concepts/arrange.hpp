@@ -39,10 +39,10 @@ concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     { self.getMIMaxCols() } noexcept -> std::integral;
     { self.getMIMinCols() } noexcept -> std::integral;
     requires requires(int row, int col) {
-        { self.getMICenter(row, col) } noexcept -> std::same_as<cv::Point2d>;
+        { self.getMICenter(row, col) } noexcept -> std::same_as<cv::Point2f>;
     };
     requires requires(cv::Point index) {
-        { self.getMICenter(index) } noexcept -> std::same_as<cv::Point2d>;
+        { self.getMICenter(index) } noexcept -> std::same_as<cv::Point2f>;
     };
     { self.isOutShift() } noexcept -> std::same_as<bool>;
 };

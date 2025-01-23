@@ -26,8 +26,8 @@ static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArr
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev ti_meanstddev{};
 
-    const cv::Point2d mi_center{arrange.getRadius(), arrange.getRadius()};
-    const double mi_width = arrange.getRadius();
+    const cv::Point2f mi_center{arrange.getRadius(), arrange.getRadius()};
+    const float mi_width = arrange.getRadius();
     const cv::Rect& roi = getRoiByCenter(mi_center, mi_width);
 
     // 1-pass: compute texture intensity
@@ -36,20 +36,20 @@ static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArr
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const int offset = row_offset + col;
             const cv::Mat& mi = mis.getMI(offset).I;
-            const float curr_I = (float)textureIntensity(mi(roi));
+            const float curr_I = textureIntensity(mi(roi));
             texture_I.at<float>(row, col) = curr_I;
             ti_meanstddev.update(curr_I);
         }
     }
 
     // 2-pass: compute weight
-    const double ti_mean = ti_meanstddev.getMean();
-    const double ti_stddev = ti_meanstddev.getStddev();
+    const float ti_mean = ti_meanstddev.getMean();
+    const float ti_stddev = ti_meanstddev.getStddev();
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const float& curr_ti = texture_I.at<float>({col, row});
-            const double normed_I = (curr_ti - ti_mean) / ti_stddev;
-            cache.weights.template at<float>(row, col) = (float)_hp::sigmoid(normed_I);
+            const float normed_I = (curr_ti - ti_mean) / ti_stddev;
+            cache.weights.template at<float>(row, col) = _hp::sigmoid(normed_I);
         }
     }
 }
@@ -77,9 +77,9 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
                 const int offset = row_offset + col;
 
                 // Extract patch
-                const cv::Point2d center = arrange.getMICenter(row, col);
-                const double psize = params.psize_inflate * patchsizes[offset].psize;
-                const cv::Point2d patch_center{center.x + view_shift_x, center.y + view_shift_y};
+                const cv::Point2f center = arrange.getMICenter(row, col);
+                const float psize = params.psize_inflate * patchsizes[offset].psize;
+                const cv::Point2f patch_center{center.x + view_shift_x, center.y + view_shift_y};
                 const cv::Mat& patch = getRoiImageByCenter(srcs[chan_id], patch_center, psize);
 
                 // Paste patch

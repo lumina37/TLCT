@@ -25,8 +25,8 @@ public:
     TLCT_API inline CornersArrange& operator=(const CornersArrange& rhs) noexcept = default;
     TLCT_API inline CornersArrange(CornersArrange&& rhs) noexcept = default;
     TLCT_API inline CornersArrange& operator=(CornersArrange&& rhs) noexcept = default;
-    TLCT_API inline CornersArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
-                                   cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept;
+    TLCT_API inline CornersArrange(cv::Size imgsize, float diameter, bool direction, cv::Point2f left_top,
+                                   cv::Point2f right_top, cv::Point2f left_bottom, cv::Point2f right_bottom) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline CornersArrange fromCfgMap(const ConfigMap& map);
@@ -38,27 +38,27 @@ public:
     [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
     [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
     [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
-    [[nodiscard]] TLCT_API inline double getDiameter() const noexcept { return diameter_; };
-    [[nodiscard]] TLCT_API inline double getRadius() const noexcept { return radius_; };
+    [[nodiscard]] TLCT_API inline float getDiameter() const noexcept { return diameter_; };
+    [[nodiscard]] TLCT_API inline float getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool getDirection() const noexcept { return direction_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
     [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
     [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
     [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
     [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(int row, int col) const noexcept;
-    [[nodiscard]] TLCT_API inline cv::Point2d getMICenter(cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2f getMICenter(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API inline cv::Point2f getMICenter(cv::Point index) const noexcept;
     [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
 
 private:
     cv::Size imgsize_;
-    double diameter_;
-    double radius_;
+    float diameter_;
+    float radius_;
     bool direction_;
-    cv::Point2d left_top_;
-    cv::Point2d right_top_;
-    cv::Point2d left_y_unit_shift_;
-    cv::Point2d right_y_unit_shift_;
+    cv::Point2f left_top_;
+    cv::Point2f right_top_;
+    cv::Point2f left_y_unit_shift_;
+    cv::Point2f right_y_unit_shift_;
     int mirows_;
     TMiCols micols_;
     int upsample_;
@@ -68,14 +68,13 @@ private:
 CornersArrange CornersArrange::fromCfgMap(const ConfigMap& map)
 {
     cv::Size imgsize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
-    const double diameter = map.get<"MIDiameter", int>();
+    const float diameter = map.get<"MIDiameter", int>();
     const bool direction = map.get_or<"MLADirection">(false);
-    const cv::Point2d left_top = {map.get<"LeftTopMICenterX", double>(), map.get<"LeftTopMICenterY", double>()};
-    const cv::Point2d right_top = {map.get<"RightTopMICenterX", double>(), map.get<"RightTopMICenterY", double>()};
-    const cv::Point2d left_bottom = {map.get<"LeftBottomMICenterX", double>(),
-                                     map.get<"LeftBottomMICenterY", double>()};
-    const cv::Point2d right_bottom = {map.get<"RightBottomMICenterX", double>(),
-                                      map.get<"RightBottomMICenterY", double>()};
+    const cv::Point2f left_top = {map.get<"LeftTopMICenterX", float>(), map.get<"LeftTopMICenterY", float>()};
+    const cv::Point2f right_top = {map.get<"RightTopMICenterX", float>(), map.get<"RightTopMICenterY", float>()};
+    const cv::Point2f left_bottom = {map.get<"LeftBottomMICenterX", float>(), map.get<"LeftBottomMICenterY", float>()};
+    const cv::Point2f right_bottom = {map.get<"RightBottomMICenterX", float>(),
+                                      map.get<"RightBottomMICenterY", float>()};
 
     return {imgsize, diameter, direction, left_top, right_top, left_bottom, right_bottom};
 }
@@ -93,12 +92,12 @@ CornersArrange& CornersArrange::upsample(int factor) noexcept
     return *this;
 }
 
-cv::Point2d CornersArrange::getMICenter(int row, int col) const noexcept
+cv::Point2f CornersArrange::getMICenter(int row, int col) const noexcept
 {
-    cv::Point2d left = left_top_ + left_y_unit_shift_ * row;
-    cv::Point2d right = right_top_ + right_y_unit_shift_ * row;
-    cv::Point2d x_unit_shift = (right - left) / (micols_[0] - 1);
-    cv::Point2d center = left + x_unit_shift * col;
+    cv::Point2f left = left_top_ + left_y_unit_shift_ * row;
+    cv::Point2f right = right_top_ + right_y_unit_shift_ * row;
+    cv::Point2f x_unit_shift = (right - left) / (micols_[0] - 1);
+    cv::Point2f center = left + x_unit_shift * col;
 
     if (row % 2 == 1) {
         center -= x_unit_shift / 2.0 * _hp::sgn(isOutShift());
@@ -107,10 +106,10 @@ cv::Point2d CornersArrange::getMICenter(int row, int col) const noexcept
     return center;
 }
 
-cv::Point2d CornersArrange::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
+cv::Point2f CornersArrange::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-CornersArrange::CornersArrange(cv::Size imgsize, double diameter, bool direction, cv::Point2d left_top,
-                               cv::Point2d right_top, cv::Point2d left_bottom, cv::Point2d right_bottom) noexcept
+CornersArrange::CornersArrange(cv::Size imgsize, float diameter, bool direction, cv::Point2f left_top,
+                               cv::Point2f right_top, cv::Point2f left_bottom, cv::Point2f right_bottom) noexcept
     : diameter_(diameter), radius_(diameter / 2.0), direction_(direction), upsample_(1)
 {
     if (direction) {
@@ -125,11 +124,11 @@ CornersArrange::CornersArrange(cv::Size imgsize, double diameter, bool direction
     left_top_ = left_top;
     right_top_ = right_top;
 
-    const auto veclen = [](const cv::Point2d vec) { return std::sqrt(vec.x * vec.x + vec.y * vec.y); };
+    const auto veclen = [](const cv::Point2f vec) { return std::sqrt(vec.x * vec.x + vec.y * vec.y); };
 
-    const cv::Point2d top_x_shift = right_top - left_top;
+    const cv::Point2f top_x_shift = right_top - left_top;
     const int top_cols = _hp::iround(veclen(top_x_shift) / diameter) + 1;
-    const cv::Point2d top_x_unit_shift = top_x_shift / (top_cols - 1);
+    const cv::Point2f top_x_unit_shift = top_x_shift / (top_cols - 1);
 
     if (left_top.x < top_x_unit_shift.x) {
         is_out_shift_ = false;
@@ -140,25 +139,25 @@ CornersArrange::CornersArrange(cv::Size imgsize, double diameter, bool direction
     micols_ = {top_cols, top_cols};
     if (is_out_shift_) {
         // Now the second row have one more intact MI than the first row
-        const double mi_1_0_x = left_top.x - top_x_unit_shift.x / 2.0;
+        const float mi_1_0_x = left_top.x - top_x_unit_shift.x / 2.0;
         if (mi_1_0_x + top_x_unit_shift.x * top_cols < imgsize.width) {
             micols_[1]++;
         }
     } else {
         // Now the second row have one less intact MI than the first row
-        const double mi_1_0_x = left_top.x + top_x_unit_shift.x / 2.0;
+        const float mi_1_0_x = left_top.x + top_x_unit_shift.x / 2.0;
         if (mi_1_0_x + top_x_unit_shift.x * top_cols >= imgsize.width) {
             micols_[1]--;
         }
     }
 
-    const cv::Point2d left_y_shift = left_bottom - left_top;
-    const double approx_y_unit_shift = diameter * std::numbers::sqrt3 / 2.0;
+    const cv::Point2f left_y_shift = left_bottom - left_top;
+    const float approx_y_unit_shift = diameter * std::numbers::sqrt3 / 2.0;
     const int left_y_rows = _hp::iround(veclen(left_y_shift) / approx_y_unit_shift) + 1;
     left_y_unit_shift_ = left_y_shift / (left_y_rows - 1);
-    mirows_ = (int)(((double)imgsize.height - diameter / 2.0 - left_top.y) / left_y_unit_shift_.y) + 1;
+    mirows_ = (int)(((float)imgsize.height - diameter / 2.0 - left_top.y) / left_y_unit_shift_.y) + 1;
 
-    const cv::Point2d right_y_shift = right_bottom - right_top;
+    const cv::Point2f right_y_shift = right_bottom - right_top;
     right_y_unit_shift_ = right_y_shift / (left_y_rows - 1);
 }
 

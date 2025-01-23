@@ -6,7 +6,7 @@
 
 namespace tlct::_cvt {
 
-[[nodiscard]] static inline cv::Rect getRoiByCenter(const cv::Point2d& center, const double width) noexcept
+[[nodiscard]] static inline cv::Rect getRoiByCenter(const cv::Point2f& center, const float width) noexcept
 {
     const int startx = (int)std::round(center.x - width / 2.0);
     const int starty = (int)std::round(center.y - width / 2.0);
@@ -14,14 +14,14 @@ namespace tlct::_cvt {
     return {startx, starty, width_i, width_i};
 }
 
-[[nodiscard]] static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2d& center,
-                                                        const double width) noexcept
+[[nodiscard]] static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2f& center,
+                                                        const float width) noexcept
 {
     cv::Mat roi = src(getRoiByCenter(center, width));
     return roi;
 }
 
-[[nodiscard]] static inline cv::Rect getRoiByCenter(const cv::Point2d& center, const cv::Size2d size) noexcept
+[[nodiscard]] static inline cv::Rect getRoiByCenter(const cv::Point2f& center, const cv::Size2d size) noexcept
 {
     const int startx = (int)std::round(center.x - size.width / 2.0);
     const int starty = (int)std::round(center.y - size.height / 2.0);
@@ -30,7 +30,7 @@ namespace tlct::_cvt {
     return {startx, starty, width_i, height_i};
 }
 
-[[nodiscard]] static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2d& center,
+[[nodiscard]] static inline cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2f& center,
                                                         const cv::Size2d size) noexcept
 {
     cv::Mat roi = src(getRoiByCenter(center, size));
@@ -66,7 +66,7 @@ namespace tlct::_cvt {
 }
 
 [[nodiscard]] static inline cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner,
-                                                              const double width) noexcept
+                                                              const float width) noexcept
 {
     const int width_i = (int)std::round(width);
     cv::Mat roi = src({corner.x, corner.y, width_i, width_i});
@@ -80,4 +80,4 @@ namespace tlct::_cvt {
     return roi;
 }
 
-} // namespace tlct::_cv
+} // namespace tlct::_cvt

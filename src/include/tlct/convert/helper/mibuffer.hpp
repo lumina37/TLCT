@@ -117,7 +117,7 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src)
         uint8_t* col_cursor = row_cursor;
         const int mi_cols = arrange_.getMICols(irow);
         for (const int icol : rgs::views::iota(0, mi_cols)) {
-            const cv::Point2d& mi_center = arrange_.getMICenter(irow, icol);
+            const cv::Point2f& mi_center = arrange_.getMICenter(irow, icol);
             const cv::Rect roi = getRoiByCenter(mi_center, arrange_.getDiameter());
 
             uint8_t* mat_cursor = col_cursor;

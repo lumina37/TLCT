@@ -50,7 +50,7 @@ public:
 template <tcfg::concepts::CArrange TArrange>
 MvCache_<TArrange> MvCache_<TArrange>::fromParams(const MvParams_<TArrange>& params)
 {
-    constexpr double GRADIENT_BLENDING_WIDTH = 0.75;
+    constexpr float GRADIENT_BLENDING_WIDTH = 0.75;
     cv::Mat grad_blending_weight = circleWithFadeoutBorder(params.resized_patch_width, GRADIENT_BLENDING_WIDTH);
     cv::Mat render_canvas{cv::Size{params.canvas_width, params.canvas_height}, CV_32FC1};
     cv::Mat weight_canvas{cv::Size{params.canvas_width, params.canvas_height}, CV_32FC1};
