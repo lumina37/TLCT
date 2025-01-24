@@ -19,16 +19,16 @@ public:
     static constexpr size_t Ushift = Ushift_;
     static constexpr size_t Vshift = Vshift_;
 
-    TLCT_API inline YuvFrame_(size_t ywidth, size_t yheight, size_t ysize)
-        : ywidth_(ywidth), yheight_(yheight), ysize_(ysize) {
+    TLCT_API inline YuvFrame_(size_t yWidth, size_t yHeight, size_t ySize)
+        : yWidth_(yWidth), yHeight_(yHeight), ySize_(ySize) {
         this->alloc();
     }
-    TLCT_API inline YuvFrame_(size_t ywidth, size_t yheight)
-        : ywidth_(ywidth), yheight_(yheight), ysize_(ywidth_ * yheight_) {
+    TLCT_API inline YuvFrame_(size_t yWidth, size_t yHeight)
+        : yWidth_(yWidth), yHeight_(yHeight), ySize_(yWidth_ * yHeight_) {
         this->alloc();
     }
     TLCT_API explicit inline YuvFrame_(const cv::Size& size)
-        : ywidth_(size.width), yheight_(size.height), ysize_(ywidth_ * yheight_) {
+        : yWidth_(size.width), yHeight_(size.height), ySize_(yWidth_ * yHeight_) {
         this->alloc();
     }
 
@@ -36,17 +36,17 @@ public:
     YuvFrame_(const YuvFrame_& rhs) = delete;
     YuvFrame_ operator=(const YuvFrame_& rhs) = delete;
     TLCT_API inline YuvFrame_(YuvFrame_&& rhs) noexcept
-        : ywidth_(rhs.ywidth_),
-          yheight_(rhs.yheight_),
-          ysize_(rhs.ysize_),
+        : yWidth_(rhs.yWidth_),
+          yHeight_(rhs.yHeight_),
+          ySize_(rhs.ySize_),
           buffer_(std::exchange(rhs.buffer_, nullptr)),
           y_(std::move(rhs.y_)),
           u_(std::move(rhs.u_)),
           v_(std::move(rhs.v_)){};
     TLCT_API inline YuvFrame_& operator=(YuvFrame_&& rhs) noexcept {
-        ywidth_ = rhs.ywidth_;
-        yheight_ = rhs.yheight_;
-        ysize_ = rhs.ysize_;
+        yWidth_ = rhs.yWidth_;
+        yHeight_ = rhs.yHeight_;
+        ySize_ = rhs.ySize_;
         buffer_ = std::exchange(rhs.buffer_, nullptr);
         y_ = std::move(rhs.y_);
         u_ = std::move(rhs.u_);
@@ -56,18 +56,18 @@ public:
 
     TLCT_API inline ~YuvFrame_() { std::free(buffer_); }
 
-    [[nodiscard]] TLCT_API inline size_t getYWidth() const noexcept { return ywidth_; };
-    [[nodiscard]] TLCT_API inline size_t getYHeight() const noexcept { return yheight_; };
-    [[nodiscard]] TLCT_API inline size_t getUWidth() const noexcept { return ywidth_ >> Ushift; };
-    [[nodiscard]] TLCT_API inline size_t getUHeight() const noexcept { return yheight_ >> Ushift; };
-    [[nodiscard]] TLCT_API inline size_t getVWidth() const noexcept { return ywidth_ >> Vshift; };
-    [[nodiscard]] TLCT_API inline size_t getVHeight() const noexcept { return yheight_ >> Vshift; };
-    [[nodiscard]] TLCT_API inline size_t getYSize() const noexcept { return ysize_; };
-    [[nodiscard]] TLCT_API inline size_t getUSize() const noexcept { return ysize_ >> (Ushift * 2); };
-    [[nodiscard]] TLCT_API inline size_t getVSize() const noexcept { return ysize_ >> (Vshift * 2); };
+    [[nodiscard]] TLCT_API inline size_t getYWidth() const noexcept { return yWidth_; };
+    [[nodiscard]] TLCT_API inline size_t getYHeight() const noexcept { return yHeight_; };
+    [[nodiscard]] TLCT_API inline size_t getUWidth() const noexcept { return yWidth_ >> Ushift; };
+    [[nodiscard]] TLCT_API inline size_t getUHeight() const noexcept { return yHeight_ >> Ushift; };
+    [[nodiscard]] TLCT_API inline size_t getVWidth() const noexcept { return yWidth_ >> Vshift; };
+    [[nodiscard]] TLCT_API inline size_t getVHeight() const noexcept { return yHeight_ >> Vshift; };
+    [[nodiscard]] TLCT_API inline size_t getYSize() const noexcept { return ySize_; };
+    [[nodiscard]] TLCT_API inline size_t getUSize() const noexcept { return ySize_ >> (Ushift * 2); };
+    [[nodiscard]] TLCT_API inline size_t getVSize() const noexcept { return ySize_ >> (Vshift * 2); };
     [[nodiscard]] TLCT_API inline size_t getTotalSize() const noexcept {
-        const size_t total_size = ysize_ + getUSize() + getVSize();
-        return total_size;
+        const size_t totalSize = ySize_ + getUSize() + getVSize();
+        return totalSize;
     };
 
     [[nodiscard]] TLCT_API inline const cv::Mat& getY() const noexcept { return y_; }
@@ -81,9 +81,9 @@ public:
 private:
     inline void alloc();
 
-    size_t ywidth_;
-    size_t yheight_;
-    size_t ysize_;
+    size_t yWidth_;
+    size_t yHeight_;
+    size_t ySize_;
     void* buffer_;
     cv::Mat y_;
     cv::Mat u_;
@@ -106,21 +106,21 @@ void YuvFrame_<TElem, Ushift_, Vshift_>::alloc() {
             }
         }
 
-        size_t aligned_ysize = _hp::alignUp<SIMD_FETCH_SIZE>(getYSize());
-        size_t aligned_usize = _hp::alignUp<SIMD_FETCH_SIZE>(getUSize());
-        size_t aligned_vsize;
+        size_t alignedYSize = _hp::alignUp<SIMD_FETCH_SIZE>(getYSize());
+        size_t alignedUSize = _hp::alignUp<SIMD_FETCH_SIZE>(getUSize());
+        size_t alignedVSize;
         if constexpr (Ushift == Vshift) {
-            aligned_vsize = aligned_usize;
+            alignedVSize = alignedUSize;
         } else {
-            aligned_vsize = _hp::alignUp<SIMD_FETCH_SIZE>(getVSize());
+            alignedVSize = _hp::alignUp<SIMD_FETCH_SIZE>(getVSize());
         }
 
-        const size_t total_size = aligned_ysize + aligned_usize + aligned_vsize;
-        buffer_ = std::malloc(total_size);
+        const size_t totalSize = alignedYSize + alignedUSize + alignedVSize;
+        buffer_ = std::malloc(totalSize);
 
         TElem* yptr = (TElem*)buffer_;
-        TElem* uptr = (TElem*)((size_t)yptr + aligned_ysize);
-        TElem* vptr = (TElem*)((size_t)uptr + aligned_usize);
+        TElem* uptr = (TElem*)((size_t)yptr + alignedYSize);
+        TElem* vptr = (TElem*)((size_t)uptr + alignedUSize);
 
         y_ = cv::Mat((int)getYHeight(), (int)getYWidth(), cv::DataType<TElem>::type, (void*)yptr);
         u_ = cv::Mat((int)getUHeight(), (int)getUWidth(), cv::DataType<TElem>::type, (void*)uptr);

@@ -19,26 +19,26 @@ public:
     using TCvtConfig = tcfg::CliConfig::Convert;
 
     // Initialize from
-    [[nodiscard]] static inline PsizeParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg);
+    [[nodiscard]] static inline PsizeParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
-    float pattern_size;
-    float pattern_shift;
-    int min_psize;
+    float patternSize;
+    float patternShift;
+    int minPsize;
 };
 
 template <tcfg::concepts::CArrange TArrange>
-PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg) {
-    const float pattern_size = arrange.getDiameter() * cvt_cfg.pattern_size;
+PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg) {
+    const float patternSize = arrange.getDiameter() * cvtCfg.patternSize;
     const float radius = arrange.getDiameter() / 2.f;
-    const float half_pattern_size = pattern_size / 2.f;
-    const float max_pattern_shift =
-        std::sqrt((radius - half_pattern_size) * (radius + half_pattern_size)) - half_pattern_size;
-    const float candidate_pattern_shift = radius * cvt_cfg.max_psize;
-    const float pattern_shift = std::min(max_pattern_shift, candidate_pattern_shift);
+    const float halfPatternSize = patternSize / 2.f;
+    const float maxPatternShift =
+        std::sqrtf((radius - halfPatternSize) * (radius + halfPatternSize)) - halfPatternSize;
+    const float candidatePatternShift = radius * cvtCfg.maxPsize;
+    const float patternShift = std::min(maxPatternShift, candidatePatternShift);
 
-    const int min_psize = (int)std::roundf(0.75f * pattern_size);
+    const int minPsize = (int)std::roundf(0.75f * patternSize);
 
-    return {pattern_size, pattern_shift, min_psize};
+    return {patternSize, patternShift, minPsize};
 }
 
 }  // namespace tlct::_cvt

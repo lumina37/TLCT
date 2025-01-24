@@ -12,8 +12,8 @@ TEST_CASE("tlct::cfg#OffsetArrange") {
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
 
-    const auto& cfg_map = tlct::ConfigMap::fromPath("test/raytrix.cfg");
-    const auto& arrange = tlct::cfg::OffsetArrange::fromCfgMap(cfg_map);
+    const auto& cfgMap = tlct::ConfigMap::fromPath("test/raytrix.cfg");
+    const auto& arrange = tlct::cfg::OffsetArrange::fromCfgMap(cfgMap);
 
     constexpr float eps = 0.1;
 

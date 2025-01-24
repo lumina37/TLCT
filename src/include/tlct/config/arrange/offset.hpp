@@ -18,22 +18,22 @@ public:
 
     // Constructor
     TLCT_API inline OffsetArrange() noexcept
-        : imgsize_(),
+        : imgSize_(),
           diameter_(),
           radius_(),
           direction_(),
-          left_top_(),
-          x_unit_shift_(),
-          y_unit_shift_(),
-          mirows_(),
-          micols_(),
+          leftTop_(),
+          xUnitShift_(),
+          yUnitShift_(),
+          miRows_(),
+          miCols_(),
           upsample_(1),
-          is_out_shift_(){};
+          isOutShift_(){};
     TLCT_API inline OffsetArrange(const OffsetArrange& rhs) noexcept = default;
     TLCT_API inline OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
     TLCT_API inline OffsetArrange(OffsetArrange&& rhs) noexcept = default;
     TLCT_API inline OffsetArrange& operator=(OffsetArrange&& rhs) noexcept = default;
-    TLCT_API inline OffsetArrange(cv::Size imgsize, float diameter, bool direction, cv::Point2f offset) noexcept;
+    TLCT_API inline OffsetArrange(cv::Size imgSize, float diameter, bool direction, cv::Point2f offset) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static inline OffsetArrange fromCfgMap(const ConfigMap& map);
@@ -42,103 +42,103 @@ public:
     TLCT_API inline OffsetArrange& upsample(int factor) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgsize_.width; };
-    [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgsize_.height; };
-    [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgsize_; };
+    [[nodiscard]] TLCT_API inline int getImgWidth() const noexcept { return imgSize_.width; };
+    [[nodiscard]] TLCT_API inline int getImgHeight() const noexcept { return imgSize_.height; };
+    [[nodiscard]] TLCT_API inline cv::Size getImgSize() const noexcept { return imgSize_; };
     [[nodiscard]] TLCT_API inline float getDiameter() const noexcept { return diameter_; };
     [[nodiscard]] TLCT_API inline float getRadius() const noexcept { return radius_; };
     [[nodiscard]] TLCT_API inline bool getDirection() const noexcept { return direction_; };
     [[nodiscard]] TLCT_API inline int getUpsample() const noexcept { return upsample_; };
-    [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return mirows_; };
-    [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return micols_[row % micols_.size()]; };
-    [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(micols_[0], micols_[1]); };
-    [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(micols_[0], micols_[1]); };
+    [[nodiscard]] TLCT_API inline int getMIRows() const noexcept { return miRows_; };
+    [[nodiscard]] TLCT_API inline int getMICols(const int row) const noexcept { return miCols_[row % miCols_.size()]; };
+    [[nodiscard]] TLCT_API inline int getMIMaxCols() const noexcept { return std::max(miCols_[0], miCols_[1]); };
+    [[nodiscard]] TLCT_API inline int getMIMinCols() const noexcept { return std::min(miCols_[0], miCols_[1]); };
     [[nodiscard]] TLCT_API inline cv::Point2f getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API inline cv::Point2f getMICenter(cv::Point index) const noexcept;
-    [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return is_out_shift_; };
+    [[nodiscard]] TLCT_API inline bool isOutShift() const noexcept { return isOutShift_; };
 
 private:
-    cv::Size imgsize_;
+    cv::Size imgSize_;
     float diameter_;
     float radius_;
     bool direction_;
-    cv::Point2f left_top_;
-    float x_unit_shift_;
-    float y_unit_shift_;
-    int mirows_;
-    TMiCols micols_;
+    cv::Point2f leftTop_;
+    float xUnitShift_;
+    float yUnitShift_;
+    int miRows_;
+    TMiCols miCols_;
     int upsample_;
-    bool is_out_shift_;
+    bool isOutShift_;
 };
 
 OffsetArrange OffsetArrange::fromCfgMap(const ConfigMap& map) {
-    cv::Size imgsize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
+    cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const float diameter = map.get<"MIDiameter", float>();
-    const bool direction = map.get_or<"MLADirection">(false);
+    const bool direction = map.getOr<"MLADirection">(false);
     const cv::Point2f offset = {map.get<"CentralMIOffsetX", float>(), map.get<"CentralMIOffsetY", float>()};
 
-    return {imgsize, diameter, direction, offset};
+    return {imgSize, diameter, direction, offset};
 }
 
 OffsetArrange& OffsetArrange::upsample(int factor) noexcept {
-    imgsize_ *= factor;
-    diameter_ *= factor;
-    radius_ *= factor;
-    left_top_ *= factor;
-    x_unit_shift_ *= factor;
-    y_unit_shift_ *= factor;
+    imgSize_ *= factor;
+    diameter_ *= (float)factor;
+    radius_ *= (float)factor;
+    leftTop_ *= factor;
+    xUnitShift_ *= (float)factor;
+    yUnitShift_ *= (float)factor;
     upsample_ = factor;
     return *this;
 }
 
 cv::Point2f OffsetArrange::getMICenter(int row, int col) const noexcept {
-    cv::Point2f center{left_top_.x + x_unit_shift_ * col, left_top_.y + y_unit_shift_ * row};
+    cv::Point2f center{leftTop_.x + xUnitShift_ * (float)col, leftTop_.y + yUnitShift_ * (float)row};
     if (row % 2 == 1) {
-        center.x -= x_unit_shift_ / 2.f * _hp::sgn(isOutShift());
+        center.x -= xUnitShift_ / 2.f * (float)_hp::sgn(isOutShift());
     }
     return center;
 }
 
 cv::Point2f OffsetArrange::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
-OffsetArrange::OffsetArrange(cv::Size imgsize, float diameter, bool direction, cv::Point2f offset) noexcept
+OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, bool direction, cv::Point2f offset) noexcept
     : diameter_(diameter), radius_(diameter / 2.f), direction_(direction), upsample_(1) {
-    cv::Point2f center_mi{imgsize.width / 2.f + offset.x, imgsize.height / 2.f - offset.y};
+    cv::Point2f centerMI{imgSize.width / 2.f + offset.x, imgSize.height / 2.f - offset.y};
 
     if (getDirection()) {
-        std::swap(imgsize.height, imgsize.width);
-        std::swap(center_mi.x, center_mi.y);
+        std::swap(imgSize.height, imgSize.width);
+        std::swap(centerMI.x, centerMI.y);
     }
-    imgsize_ = imgsize;
+    imgSize_ = imgSize;
 
-    x_unit_shift_ = diameter;
-    y_unit_shift_ = diameter * std::numbers::sqrt3_v<float> / 2.f;
-    const int center_mi_xidx = (int)((center_mi.x - radius_) / x_unit_shift_);
-    const int center_mi_yidx = (int)((center_mi.y - radius_) / y_unit_shift_);
+    xUnitShift_ = diameter;
+    yUnitShift_ = diameter * std::numbers::sqrt3_v<float> / 2.f;
+    const int centerMIXIdx = (int)((centerMI.x - radius_) / xUnitShift_);
+    const int centerMIYIdx = (int)((centerMI.y - radius_) / yUnitShift_);
 
-    const float left_x = center_mi.x - x_unit_shift_ * center_mi_xidx;
-    if (center_mi_yidx % 2 == 0) {
-        left_top_.x = left_x;
-        if (left_top_.x > diameter) {
-            is_out_shift_ = true;
+    const float leftX = centerMI.x - xUnitShift_ * centerMIXIdx;
+    if (centerMIYIdx % 2 == 0) {
+        leftTop_.x = leftX;
+        if (leftTop_.x > diameter) {
+            isOutShift_ = true;
         } else {
-            is_out_shift_ = false;
+            isOutShift_ = false;
         }
     } else {
-        if (left_x > diameter) {
-            left_top_.x = left_x - radius_;
-            is_out_shift_ = false;
+        if (leftX > diameter) {
+            leftTop_.x = leftX - radius_;
+            isOutShift_ = false;
         } else {
-            left_top_.x = left_x + radius_;
-            is_out_shift_ = true;
+            leftTop_.x = leftX + radius_;
+            isOutShift_ = true;
         }
     }
-    left_top_.y = center_mi.y - std::floor((center_mi.y - y_unit_shift_ / 2.f) / y_unit_shift_) * y_unit_shift_;
+    leftTop_.y = centerMI.y - std::floor((centerMI.y - yUnitShift_ / 2.f) / yUnitShift_) * yUnitShift_;
 
-    const float mi_1_0_x = left_top_.x - x_unit_shift_ / 2.f * _hp::sgn(is_out_shift_);
-    micols_[0] = (int)(((float)imgsize.width - left_top_.x - x_unit_shift_ / 2.f) / x_unit_shift_) + 1;
-    micols_[1] = (int)(((float)imgsize.width - mi_1_0_x - x_unit_shift_ / 2.f) / x_unit_shift_) + 1;
-    mirows_ = (int)(((float)imgsize.height - left_top_.y - y_unit_shift_ / 2.f) / y_unit_shift_) + 1;
+    const float mi_1_0_x = leftTop_.x - xUnitShift_ / 2.f * (float)_hp::sgn(isOutShift_);
+    miCols_[0] = (int)(((float)imgSize.width - leftTop_.x - xUnitShift_ / 2.f) / xUnitShift_) + 1;
+    miCols_[1] = (int)(((float)imgSize.width - mi_1_0_x - xUnitShift_ / 2.f) / xUnitShift_) + 1;
+    miRows_ = (int)(((float)imgSize.height - leftTop_.y - yUnitShift_ / 2.f) / yUnitShift_) + 1;
 }
 
 }  // namespace tlct::_cfg

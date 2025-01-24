@@ -12,10 +12,10 @@ concept CFrame = requires {
     { Self::Vshift } -> std::convertible_to<size_t>;
 } && requires {
     // Constructor
-    requires requires(size_t ywidth, size_t yheight, size_t ysize) {
-        { Self(ywidth, yheight, ysize) } -> std::same_as<Self>;
-    } && requires(size_t ywidth, size_t yheight) {
-        { Self(ywidth, yheight) } -> std::same_as<Self>;
+    requires requires(size_t yWidth, size_t yHeight, size_t ySize) {
+        { Self(yWidth, yHeight, ySize) } -> std::same_as<Self>;
+    } && requires(size_t yWidth, size_t yHeight) {
+        { Self(yWidth, yHeight) } -> std::same_as<Self>;
     } && requires(const cv::Size& size) {
         { Self(size) } -> std::same_as<Self>;
     };

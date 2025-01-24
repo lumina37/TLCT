@@ -69,23 +69,23 @@ struct CliConfig {
     };
 
     struct Convert {
-        inline Convert(int views, int upsample, float psize_inflate, float view_shift_range, float pattern_size,
-                       int psize_shortcut_threshold) noexcept
+        inline Convert(int views, int upsample, float psizeInflate, float viewShiftRange, float patternSize,
+                       int psizeShortcutThreshold) noexcept
             : views(views),
               upsample(upsample),
-              psize_inflate(psize_inflate),
-              view_shift_range(view_shift_range),
-              max_psize((1.f - view_shift_range) / psize_inflate),
-              pattern_size(pattern_size),
-              psize_shortcut_threshold(psize_shortcut_threshold) {};
+              psizeInflate(psizeInflate),
+              viewShiftRange(viewShiftRange),
+              maxPsize((1.f - viewShiftRange) / psizeInflate),
+              patternSize(patternSize),
+              psizeShortcutThreshold(psizeShortcutThreshold) {};
 
         int views;
         int upsample;
-        float psize_inflate;
-        float view_shift_range;
-        float max_psize;
-        float pattern_size;
-        int psize_shortcut_threshold;
+        float psizeInflate;
+        float viewShiftRange;
+        float maxPsize;
+        float patternSize;
+        int psizeShortcutThreshold;
     };
 
     Path path;

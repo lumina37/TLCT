@@ -30,21 +30,21 @@ public:
         inline Params() = default;
         inline explicit Params(const TArrange& arrange) noexcept {
             idiameter_ = _hp::iround(arrange.getDiameter());
-            aligned_mat_size_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * sizeof(float));
-            aligned_mi_size_ = (sizeof(MIBuffer) / sizeof(cv::Mat)) * aligned_mat_size_;
-            mi_max_cols_ = arrange.getMIMaxCols();
-            mi_num_ = mi_max_cols_ * arrange.getMIRows();
-            buffer_size_ = mi_num_ * aligned_mi_size_;
+            alignedMatSize_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * sizeof(float));
+            alignedMISize_ = (sizeof(MIBuffer) / sizeof(cv::Mat)) * alignedMatSize_;
+            miMaxCols_ = arrange.getMIMaxCols();
+            miNum_ = miMaxCols_ * arrange.getMIRows();
+            bufferSize_ = miNum_ * alignedMISize_;
         };
         inline Params& operator=(Params&& rhs) noexcept = default;
         inline Params(Params&& rhs) noexcept = default;
 
-        size_t aligned_mat_size_;
-        size_t aligned_mi_size_;
-        size_t buffer_size_;
+        size_t alignedMatSize_;
+        size_t alignedMISize_;
+        size_t bufferSize_;
         int idiameter_;
-        int mi_max_cols_;
-        int mi_num_;
+        int miMaxCols_;
+        int miNum_;
     };
 
     // Constructor
@@ -71,7 +71,7 @@ public:
 
     // Const methods
     [[nodiscard]] inline const MIBuffer& getMI(int row, int col) const noexcept {
-        const int offset = row * params_.mi_max_cols_ + col;
+        const int offset = row * params_.miMaxCols_ + col;
         return items_.at(offset);
     };
     [[nodiscard]] inline const MIBuffer& getMI(cv::Point index) const noexcept { return getMI(index.y, index.x); };
@@ -89,8 +89,8 @@ private:
 
 template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::MIBuffers_(const TArrange& arrange) : arrange_(arrange), params_(arrange) {
-    items_.resize(params_.mi_num_);
-    buffer_ = std::malloc(params_.buffer_size_ + Params::SIMD_FETCH_SIZE);
+    items_.resize(params_.miNum_);
+    buffer_ = std::malloc(params_.bufferSize_ + Params::SIMD_FETCH_SIZE);
 }
 
 template <tlct::cfg::concepts::CArrange TArrange>
@@ -100,42 +100,42 @@ MIBuffers_<TArrange> MIBuffers_<TArrange>::fromArrange(const TArrange& arrange) 
 
 template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
-    cv::Mat I_2_32f;
-    const cv::Mat& I_32f = src;
-    cv::multiply(I_32f, I_32f, I_2_32f);
+    cv::Mat f32I2;
+    const cv::Mat& f32I = src;
+    cv::multiply(f32I, f32I, f32I2);
 
-    auto item_it = items_.begin();
-    uint8_t* row_cursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
-    size_t row_step = params_.mi_max_cols_ * params_.aligned_mi_size_;
+    auto itemIt = items_.begin();
+    uint8_t* rowCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
+    size_t rowStep = params_.miMaxCols_ * params_.alignedMISize_;
     for (const int irow : rgs::views::iota(0, arrange_.getMIRows())) {
-        uint8_t* col_cursor = row_cursor;
-        const int mi_cols = arrange_.getMICols(irow);
-        for (const int icol : rgs::views::iota(0, mi_cols)) {
-            const cv::Point2f& mi_center = arrange_.getMICenter(irow, icol);
-            const cv::Rect roi = getRoiByCenter(mi_center, arrange_.getDiameter());
+        uint8_t* colCursor = rowCursor;
+        const int miCols = arrange_.getMICols(irow);
+        for (const int icol : rgs::views::iota(0, miCols)) {
+            const cv::Point2f& miCenter = arrange_.getMICenter(irow, icol);
+            const cv::Rect roi = getRoiByCenter(miCenter, arrange_.getDiameter());
 
-            uint8_t* mat_cursor = col_cursor;
+            uint8_t* matCursor = colCursor;
 
-            const cv::Mat& I_src = I_32f(roi);
-            cv::Mat I_dst = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, mat_cursor);
-            I_src.copyTo(I_dst);
-            mat_cursor += params_.aligned_mat_size_;
+            const cv::Mat& srcI = f32I(roi);
+            cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matCursor);
+            srcI.copyTo(dstI);
+            matCursor += params_.alignedMatSize_;
 
-            const cv::Mat& I_2_src = I_2_32f(roi);
-            cv::Mat I_2_dst = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, mat_cursor);
-            I_2_src.copyTo(I_2_dst);
-            mat_cursor += params_.aligned_mat_size_;
+            const cv::Mat& srcI2 = f32I2(roi);
+            cv::Mat dstI2 = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matCursor);
+            srcI2.copyTo(dstI2);
+            matCursor += params_.alignedMatSize_;
 
-            *item_it = {std::move(I_dst), std::move(I_2_dst)};
-            item_it++;
-            col_cursor += params_.aligned_mi_size_;
+            *itemIt = {std::move(dstI), std::move(dstI2)};
+            itemIt++;
+            colCursor += params_.alignedMISize_;
         }
 
-        if (mi_cols < params_.mi_max_cols_) {
-            item_it++;
+        if (miCols < params_.miMaxCols_) {
+            itemIt++;
         }
 
-        row_cursor += row_step;
+        rowCursor += rowStep;
     }
 
     return *this;

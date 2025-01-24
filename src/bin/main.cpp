@@ -12,50 +12,50 @@ namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
 static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map) {
-    const auto& cli_cfg = tlct::CliConfig::fromParser(parser);
+    const auto& cliCfg = tlct::CliConfig::fromParser(parser);
     auto arrange = TManager::TArrange::fromCfgMap(map);
-    cv::Size src_size = arrange.getImgSize();
-    arrange.upsample(cli_cfg.convert.upsample);
+    cv::Size srcSize = arrange.getImgSize();
+    arrange.upsample(cliCfg.convert.upsample);
 
-    auto manager = TManager::fromConfigs(arrange, cli_cfg.convert);
+    auto manager = TManager::fromConfigs(arrange, cliCfg.convert);
 
-    cv::Size output_size = manager.getOutputSize();
+    cv::Size outputSize = manager.getOutputSize();
     if (arrange.getDirection()) {
-        std::swap(src_size.width, src_size.height);
-        std::swap(output_size.width, output_size.height);
+        std::swap(srcSize.width, srcSize.height);
+        std::swap(outputSize.width, outputSize.height);
     }
 
     using TYuvReader = tlct::io::YuvReader_<typename TManager::TFrame>;
     using TYuvWriter = tlct::io::YuvWriter_<typename TManager::TFrame>;
-    auto yuv_reader = TYuvReader::fromPath(cli_cfg.path.src, src_size.width, src_size.height);
+    auto yuvReader = TYuvReader::fromPath(cliCfg.path.src, srcSize.width, srcSize.height);
 
-    const fs::path& dstdir = cli_cfg.path.dst;
+    const fs::path& dstdir = cliCfg.path.dst;
     fs::create_directories(dstdir);
-    std::vector<TYuvWriter> yuv_writers;
-    const int total_writers = cli_cfg.convert.views * cli_cfg.convert.views;
-    yuv_writers.reserve(total_writers);
-    for (const int i : rgs::views::iota(0, total_writers)) {
-        std::stringstream filename_s;
-        filename_s << 'v' << std::setw(3) << std::setfill('0') << i << '-' << output_size.width << 'x'
-                   << output_size.height << ".yuv";
-        fs::path saveto_path = dstdir / filename_s.str();
-        yuv_writers.emplace_back(TYuvWriter::fromPath(saveto_path));
+    std::vector<TYuvWriter> yuvWriters;
+    const int totalWriters = cliCfg.convert.views * cliCfg.convert.views;
+    yuvWriters.reserve(totalWriters);
+    for (const int i : rgs::views::iota(0, totalWriters)) {
+        std::stringstream filenameStream;
+        filenameStream << 'v' << std::setw(3) << std::setfill('0') << i << '-' << outputSize.width << 'x'
+                       << outputSize.height << ".yuv";
+        fs::path savetoPath = dstdir / filenameStream.str();
+        yuvWriters.emplace_back(TYuvWriter::fromPath(savetoPath));
     }
 
-    yuv_reader.skip(cli_cfg.range.begin);
+    yuvReader.skip(cliCfg.range.begin);
 
-    auto src_frame = typename TManager::TFrame{src_size};
-    auto mv_frame = typename TManager::TFrame{output_size};
-    for (int fid = cli_cfg.range.begin; fid < cli_cfg.range.end; fid++) {
-        yuv_reader.read_into(src_frame);
-        manager.update(src_frame);
+    auto srcFrame = typename TManager::TFrame{srcSize};
+    auto mvFrame = typename TManager::TFrame{outputSize};
+    for (int fid = cliCfg.range.begin; fid < cliCfg.range.end; fid++) {
+        yuvReader.readInto(srcFrame);
+        manager.update(srcFrame);
 
         int view = 0;
-        for (const int view_row : rgs::views::iota(0, cli_cfg.convert.views)) {
-            for (const int view_col : rgs::views::iota(0, cli_cfg.convert.views)) {
-                auto& yuv_writer = yuv_writers[view];
-                manager.renderInto(mv_frame, view_row, view_col);
-                yuv_writer.write(mv_frame);
+        for (const int viewRow : rgs::views::iota(0, cliCfg.convert.views)) {
+            for (const int viewCol : rgs::views::iota(0, cliCfg.convert.views)) {
+                auto& yuvWriter = yuvWriters[view];
+                manager.renderInto(mvFrame, viewRow, viewCol);
+                yuvWriter.write(mvFrame);
                 view++;
             }
         }
@@ -79,11 +79,11 @@ int main(int argc, char* argv[]) {
     };
 
     try {
-        const auto& calib_file_path = parser->get<std::string>("calib_file");
-        const auto& cfg_map = tlct::ConfigMap::fromPath(calib_file_path);
-        const int pipeline = ((cfg_map.get_or<"IsKepler">(0) << 1) | cfg_map.get_or<"IsMultiFocus">(0)) - 1;
+        const auto& calibFilePath = parser->get<std::string>("calib_file");
+        const auto& cfgMap = tlct::ConfigMap::fromPath(calibFilePath);
+        const int pipeline = ((cfgMap.getOr<"IsKepler">(0) << 1) | cfgMap.getOr<"IsMultiFocus">(0)) - 1;
         const auto& handler = handlers[pipeline];
-        handler(*parser, cfg_map);
+        handler(*parser, cfgMap);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
         std::exit(2);

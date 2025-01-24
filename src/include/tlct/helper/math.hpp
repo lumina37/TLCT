@@ -10,13 +10,13 @@ public:
 
     inline void update(float val) noexcept {
         count_++;
-        const float prev_mean = mean_;
-        mean_ += (val - prev_mean) / (float)count_;
-        var_ += (val - mean_) * (val - prev_mean);
+        const float prevMean = mean_;
+        mean_ += (val - prevMean) / (float)count_;
+        var_ += (val - mean_) * (val - prevMean);
     }
 
     [[nodiscard]] inline float getMean() const noexcept { return mean_; }
-    [[nodiscard]] inline float getStddev() const noexcept { return sqrt(var_ / count_); }
+    [[nodiscard]] inline float getStddev() const noexcept { return sqrtf(var_ / (float)count_); }
 
 private:
     float mean_;

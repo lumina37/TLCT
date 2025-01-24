@@ -26,7 +26,7 @@ public:
     TLCT_API inline MITypes& operator=(const MITypes& rhs) noexcept = default;
     TLCT_API inline MITypes(MITypes&& rhs) noexcept = default;
     TLCT_API inline MITypes& operator=(MITypes&& rhs) noexcept = default;
-    TLCT_API inline MITypes(bool is_out_shift) noexcept;
+    TLCT_API inline MITypes(bool isOutShift) noexcept;
 
     [[nodiscard]] TLCT_API inline int getMIType(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API inline int getMIType(cv::Point index) const noexcept;
@@ -35,12 +35,12 @@ private:
     TIdx2Type idx2type_;
 };
 
-MITypes::MITypes(bool is_out_shift) noexcept {
+MITypes::MITypes(bool isOutShift) noexcept {
     for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
         idx2type_[0][type] = type;
     }
     for (const int idx : rgs::views::iota(0, LEN_TYPE_NUM)) {
-        const int type = idx2type_[0][(idx + 2 - is_out_shift) % 3];
+        const int type = idx2type_[0][(idx + 2 - isOutShift) % 3];
         idx2type_[1][idx] = type;
     }
 }

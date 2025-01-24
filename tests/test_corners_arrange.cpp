@@ -9,11 +9,11 @@
 namespace fs = std::filesystem;
 
 TEST_CASE("tlct::cfg#CornersArrange") {
-    const fs::path testdata_dir{TLCT_TESTDATA_DIR};
-    fs::current_path(testdata_dir);
+    const fs::path testdataDir{TLCT_TESTDATA_DIR};
+    fs::current_path(testdataDir);
 
-    const auto& cfg_map = tlct::ConfigMap::fromPath("test/清华单聚焦光场相机.cfg");
-    const auto& arrange = tlct::cfg::CornersArrange::fromCfgMap(cfg_map);
+    const auto& cfgMap = tlct::ConfigMap::fromPath("test/清华单聚焦光场相机.cfg");
+    const auto& arrange = tlct::cfg::CornersArrange::fromCfgMap(cfgMap);
 
     constexpr float eps = 0.1;
 

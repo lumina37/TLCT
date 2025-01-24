@@ -17,15 +17,15 @@ namespace tcfg = tlct::cfg;
 template <typename Self>
 concept CManager = requires {
     // Initialize from
-    requires requires(const typename Self::TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg) {
+    requires requires(const typename Self::TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg) {
         requires tcfg::concepts::CArrange<typename Self::TArrange>;
-        { Self::fromConfigs(arrange, cvt_cfg) } -> std::same_as<Self>;
+        { Self::fromConfigs(arrange, cvtCfg) } -> std::same_as<Self>;
     };
 } && requires {
     // Const methods
     requires io::concepts::CFrame<typename Self::TFrame>;
-    requires requires(const Self self, typename Self::TFrame& dst, int view_row, int view_col) {
-        self.renderInto(dst, view_row, view_col);
+    requires requires(const Self self, typename Self::TFrame& dst, int viewRow, int viewCol) {
+        self.renderInto(dst, viewRow, viewCol);
     };
 } && requires {
     // Const methods

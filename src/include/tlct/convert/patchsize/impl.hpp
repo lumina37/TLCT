@@ -21,65 +21,65 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
 [[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const TArrange& arrange,
                                                              const PsizeParams_<TArrange>& params,
                                                              const MIBuffers_<TArrange>& mis,
-                                                             const TNeighbors& neighbors, WrapSSIM& wrap_anchor) {
-    const cv::Point2f mi_center{arrange.getRadius(), arrange.getRadius()};
-    const int max_shift = (int)(params.pattern_shift * 2);
+                                                             const TNeighbors& neighbors, WrapSSIM& wrapAnchor) {
+    const cv::Point2f miCenter{arrange.getRadius(), arrange.getRadius()};
+    const int maxShift = (int)(params.patternShift * 2);
 
-    float sum_psize = 0.0;
-    float sum_metric = 0.0;
-    float sum_psize_weight = std::numeric_limits<float>::epsilon();
-    float sum_metric_weight = std::numeric_limits<float>::epsilon();
+    float sumPsize = 0.0;
+    float sumMetric = 0.0;
+    float sumPsizeWeight = std::numeric_limits<float>::epsilon();
+    float sumMetricWeight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
             continue;
         }
 
-        const cv::Point2f anchor_shift =
-            -_hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction) * params.pattern_shift;
-        const cv::Rect anchor_roi = getRoiByCenter(mi_center + anchor_shift, params.pattern_size);
-        wrap_anchor.updateRoi(anchor_roi);
+        const cv::Point2f anchorShift =
+            -_hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction) * params.patternShift;
+        const cv::Rect anchorRoi = getRoiByCenter(miCenter + anchorShift, params.patternSize);
+        wrapAnchor.updateRoi(anchorRoi);
 
-        const MIBuffer& neib_mi = mis.getMI(neighbors.getNeighborIdx(direction));
-        WrapSSIM wrap_neib{neib_mi};
+        const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(direction));
+        WrapSSIM wrapNeib{neibMI};
 
-        const cv::Point2f match_step = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
-        cv::Point2f cmp_shift = anchor_shift + match_step * params.min_psize;
+        const cv::Point2f matchStep = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
+        cv::Point2f cmpShift = anchorShift + matchStep * params.minPsize;
 
-        int best_psize = 0;
-        float max_ssim = 0.0;
-        for (const int psize : rgs::views::iota(params.min_psize, max_shift)) {
-            cmp_shift += match_step;
+        int bestPsize = 0;
+        float maxSsim = 0.0;
+        for (const int psize : rgs::views::iota(params.minPsize, maxShift)) {
+            cmpShift += matchStep;
 
-            const cv::Rect cmp_roi = getRoiByCenter(mi_center + cmp_shift, params.pattern_size);
-            wrap_neib.updateRoi(cmp_roi);
+            const cv::Rect cmp_roi = getRoiByCenter(miCenter + cmpShift, params.patternSize);
+            wrapNeib.updateRoi(cmp_roi);
 
-            const float ssim = wrap_anchor.compare(wrap_neib);
-            if (ssim > max_ssim) {
-                max_ssim = ssim;
-                best_psize = psize;
+            const float ssim = wrapAnchor.compare(wrapNeib);
+            if (ssim > maxSsim) {
+                maxSsim = ssim;
+                bestPsize = psize;
             }
         }
 
-        const float weight = textureIntensity(wrap_anchor.I_);
-        const float metric = max_ssim * max_ssim;
-        const float weighted_metric = weight * metric;
-        sum_psize += best_psize * weighted_metric;
-        sum_psize_weight += weighted_metric;
-        sum_metric += weighted_metric;
-        sum_metric_weight += weight;
+        const float weight = textureIntensity(wrapAnchor.I_);
+        const float metric = maxSsim * maxSsim;
+        const float weightedMetric = weight * metric;
+        sumPsize += bestPsize * weightedMetric;
+        sumPsizeWeight += weightedMetric;
+        sumMetric += weightedMetric;
+        sumMetricWeight += weight;
     }
 
-    const float cliped_sum_psize = _hp::clip(sum_psize / sum_psize_weight, (float)params.min_psize, (float)max_shift);
-    const int psize = _hp::iround(cliped_sum_psize / TNeighbors::INFLATE);
-    const float metric = sum_metric / sum_metric_weight;
+    const float clipedSumPsize = _hp::clip(sumPsize / sumPsizeWeight, (float)params.minPsize, (float)maxShift);
+    const int psize = _hp::iround(clipedSumPsize / TNeighbors::INFLATE);
+    const float metric = sumMetric / sumMetricWeight;
 
     return {psize, metric};
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline PsizeRecord estimatePatchsize(const TArrange& arrange,
-                                                          const tcfg::CliConfig::Convert& cvt_cfg,
+                                                          const tcfg::CliConfig::Convert& cvtCfg,
                                                           const PsizeParams_<TArrange>& params,
                                                           const MIBuffers_<TArrange>& mis,
                                                           const cv::Mat& prev_patchsizes, const cv::Point index) {
@@ -87,45 +87,45 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
     using FarNeighbors = FarNeighbors_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
 
-    const MIBuffer& anchor_mi = mis.getMI(index);
-    const uint64_t hash = dhash(anchor_mi.I);
-    const PsizeRecord& prev_psize = prev_patchsizes.at<PsizeRecord>(index);
+    const MIBuffer& anchorMI = mis.getMI(index);
+    const uint64_t hash = dhash(anchorMI.I);
+    const auto& prevPsize = prev_patchsizes.at<PsizeRecord>(index);
 
-    if (prev_psize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        const int hash_dist = L1Dist(prev_psize.hash, hash);
-        if (hash_dist <= cvt_cfg.psize_shortcut_threshold) {
-            return {prev_psize.psize, hash};
+    if (prevPsize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
+        const int hashDist = L1Dist(prevPsize.hash, hash);
+        if (hashDist <= cvtCfg.psizeShortcutThreshold) {
+            return {prevPsize.psize, hash};
         }
     }
 
-    WrapSSIM wrap_anchor{anchor_mi};
-    const NearNeighbors& near_neighbors = NearNeighbors::fromArrangeAndIndex(arrange, index);
-    const PsizeMetric& near_psize_metric =
-        estimateWithNeighbor<NearNeighbors, IS_KEPLER>(arrange, params, mis, near_neighbors, wrap_anchor);
-    float max_matric = near_psize_metric.metric;
-    int best_psize = near_psize_metric.psize;
+    WrapSSIM wrapAnchor{anchorMI};
+    const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange, index);
+    const PsizeMetric& nearPsizeMetric =
+        estimateWithNeighbor<NearNeighbors, IS_KEPLER>(arrange, params, mis, nearNeighbors, wrapAnchor);
+    float maxMetric = nearPsizeMetric.metric;
+    int bestPsize = nearPsizeMetric.psize;
 
     if constexpr (USE_FAR_NEIGHBOR) {
-        const FarNeighbors& far_neighbors = FarNeighbors::fromArrangeAndIndex(arrange, index);
-        const PsizeMetric& far_psize_metric =
-            estimateWithNeighbor<FarNeighbors, IS_KEPLER>(arrange, params, mis, far_neighbors, wrap_anchor);
-        if (far_psize_metric.metric > max_matric) {
-            best_psize = far_psize_metric.psize;
+        const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange, index);
+        const PsizeMetric& farPsizeMetric =
+            estimateWithNeighbor<FarNeighbors, IS_KEPLER>(arrange, params, mis, farNeighbors, wrapAnchor);
+        if (farPsizeMetric.metric > maxMetric) {
+            bestPsize = farPsizeMetric.psize;
         }
     }
 
-    return {best_psize, hash};
+    return {bestPsize, hash};
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
-static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
+static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
                                       const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
-                                      const cv::Mat& prev_patchsizes, cv::Mat& patchsizes) {
+                                      const cv::Mat& prevPatchsizes, cv::Mat& patchsizes) {
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const cv::Point index{col, row};
             const PsizeRecord& psize = estimatePatchsize<TArrange, IS_KEPLER, USE_FAR_NEIGHBOR>(
-                arrange, cvt_cfg, params, mis, prev_patchsizes, index);
+                arrange, cvtCfg, params, mis, prevPatchsizes, index);
             patchsizes.at<PsizeRecord>(index) = psize;
         }
     }

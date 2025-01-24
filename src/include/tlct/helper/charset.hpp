@@ -8,39 +8,35 @@ namespace tlct::_hp {
 
 #    pragma push_macro("min")
 #    pragma push_macro("max")
-#    undef min
-#    undef max
 #    define WIN32_LEAN_AND_MEAN
 #    include <Windows.h>
+#    pragma pop_macro("min")
+#    pragma pop_macro("max")
 
-std::wstring utf8_to_wstring(const std::string_view& utf8_str_view) {
-    int wchar_size = MultiByteToWideChar(CP_UTF8, 0, utf8_str_view.data(), (int)utf8_str_view.size(), nullptr, 0);
-    if (wchar_size == 0) [[unlikely]] {
+std::wstring utf8ToWstring(const std::string_view& utf8StrView) {
+    int wcharSize = MultiByteToWideChar(CP_UTF8, 0, utf8StrView.data(), (int)utf8StrView.size(), nullptr, 0);
+    if (wcharSize == 0) [[unlikely]] {
         return {};
     }
-    std::wstring wstr(wchar_size, 0);
-    MultiByteToWideChar(CP_UTF8, 0, utf8_str_view.data(), (int)utf8_str_view.size(), wstr.data(), wchar_size);
+    std::wstring wstr(wcharSize, 0);
+    MultiByteToWideChar(CP_UTF8, 0, utf8StrView.data(), (int)utf8StrView.size(), wstr.data(), wcharSize);
     return wstr;
 }
 
-std::string wstring_to_gbk(const std::wstring_view& wstr_view) {
-    int gbk_size =
-        WideCharToMultiByte(CP_ACP, 0, wstr_view.data(), (int)wstr_view.size(), nullptr, 0, nullptr, nullptr);
-    if (gbk_size == 0) [[unlikely]] {
+std::string wstringToGBK(const std::wstring_view& wstrView) {
+    int gbkSize = WideCharToMultiByte(CP_ACP, 0, wstrView.data(), (int)wstrView.size(), nullptr, 0, nullptr, nullptr);
+    if (gbkSize == 0) [[unlikely]] {
         return {};
     }
-    std::string gbk_str(gbk_size, 0);
-    WideCharToMultiByte(CP_ACP, 0, wstr_view.data(), (int)wstr_view.size(), gbk_str.data(), gbk_size, nullptr, nullptr);
-    return gbk_str;
+    std::string gbkStr(gbkSize, 0);
+    WideCharToMultiByte(CP_ACP, 0, wstrView.data(), (int)wstrView.size(), gbkStr.data(), gbkSize, nullptr, nullptr);
+    return gbkStr;
 }
 
-std::string cconv(const std::string_view& utf8_str_view) {
-    std::wstring wstr = utf8_to_wstring(utf8_str_view);
-    return wstring_to_gbk(wstr);
+std::string cconv(const std::string_view& utf8StrView) {
+    std::wstring wstr = utf8ToWstring(utf8StrView);
+    return wstringToGBK(wstr);
 }
-
-#    pragma pop_macro("min")
-#    pragma pop_macro("max")
 
 #endif
 

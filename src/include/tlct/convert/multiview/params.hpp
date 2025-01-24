@@ -20,47 +20,47 @@ public:
     // Initialize from
     [[nodiscard]] static inline MvParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg);
 
-    cv::Range canvas_crop_roi[2];
-    float psize_inflate;
+    cv::Range canvasCropRoi[2];
+    float psizeInflate;
     int views;
-    int patch_xshift;  // the extracted patch will be zoomed to this height
-    int patch_yshift;
-    int resized_patch_width;
-    int view_interval;
-    int canvas_width;
-    int canvas_height;
-    int output_width;
-    int output_height;
+    int patchXShift;  // the extracted patch will be zoomed to this height
+    int patchYShift;
+    int resizedPatchWidth;
+    int viewInterval;
+    int canvasWidth;
+    int canvasHeight;
+    int outputWidth;
+    int outputHeight;
 };
 
 template <tcfg::concepts::CArrange TArrange>
 MvParams_<TArrange> MvParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg) {
-    const float psize_inflate = cvt_cfg.psize_inflate;
+    const float psizeInflate = cvt_cfg.psizeInflate;
 
-    const float patch_xshift_f = 0.3f * arrange.getDiameter();
-    const int patch_xshift = (int)std::ceil(patch_xshift_f);
-    const int patch_yshift = (int)std::ceil(patch_xshift_f * std::numbers::sqrt3_v<float> / 2.f);
+    const float f32PatchXShift = 0.3f * arrange.getDiameter();
+    const int patchXShift = (int)std::ceil(f32PatchXShift);
+    const int patchYShift = (int)std::ceil(f32PatchXShift * std::numbers::sqrt3_v<float> / 2.f);
 
-    const float resized_patch_wdt_f = patch_xshift_f * cvt_cfg.psize_inflate;
-    const int resized_patch_wdt = (int)std::roundf(resized_patch_wdt_f);
+    const float f32ResizedPatchWdt = f32PatchXShift * cvt_cfg.psizeInflate;
+    const int resizedPatchWdt = (int)std::roundf(f32ResizedPatchWdt);
 
-    const int view_shift_range = _hp::iround(arrange.getDiameter() * cvt_cfg.view_shift_range);
-    const int view_interval = cvt_cfg.views > 1 ? view_shift_range / (cvt_cfg.views - 1) : 0;
+    const int viewShiftRange = _hp::iround(arrange.getDiameter() * cvt_cfg.viewShiftRange);
+    const int viewInterval = cvt_cfg.views > 1 ? viewShiftRange / (cvt_cfg.views - 1) : 0;
 
-    const int canvas_width = (int)std::roundf(arrange.getMIMaxCols() * patch_xshift_f + resized_patch_wdt_f);
-    const int canvas_height = (int)std::roundf(arrange.getMIRows() * patch_xshift_f + resized_patch_wdt_f);
+    const int canvasWidth = arrange.getMIMaxCols() * patchXShift + resizedPatchWdt;
+    const int canvasHeight = arrange.getMIRows() * patchYShift + resizedPatchWdt;
 
-    const cv::Range col_range{(int)std::ceil(patch_xshift * 1.5),
-                              (int)(canvas_width - resized_patch_wdt - patch_xshift / 2.f)};
-    const cv::Range row_range{(int)std::ceil(patch_xshift * 1.5),
-                              (int)(canvas_height - resized_patch_wdt - patch_xshift / 2.f)};
+    const cv::Range colRange{(int)std::ceil(patchXShift * 1.5),
+                             (int)(canvasWidth - resizedPatchWdt - f32PatchXShift / 2.f)};
+    const cv::Range rowRange{(int)std::ceil(patchXShift * 1.5),
+                             (int)(canvasHeight - resizedPatchWdt - f32PatchXShift / 2.f)};
 
     const int upsample = arrange.getUpsample();
-    const int output_width = _hp::roundTo<2>(_hp::iround((float)col_range.size() / upsample));
-    const int output_height = _hp::roundTo<2>(_hp::iround((float)row_range.size() / upsample));
+    const int outputWidth = _hp::roundTo<2>(_hp::iround((float)colRange.size() / upsample));
+    const int outputHeight = _hp::roundTo<2>(_hp::iround((float)rowRange.size() / upsample));
 
-    return {{row_range, col_range}, psize_inflate, cvt_cfg.views, patch_xshift, patch_yshift, resized_patch_wdt,
-            view_interval,          canvas_width,  canvas_height, output_width, output_height};
+    return {{rowRange, colRange}, psizeInflate, cvt_cfg.views, patchXShift, patchYShift, resizedPatchWdt,
+            viewInterval,         canvasWidth,  canvasHeight,  outputWidth, outputHeight};
 }
 
 }  // namespace tlct::_cvt
