@@ -31,8 +31,7 @@ PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arran
     const float patternSize = arrange.getDiameter() * cvtCfg.patternSize;
     const float radius = arrange.getDiameter() / 2.f;
     const float halfPatternSize = patternSize / 2.f;
-    const float maxPatternShift =
-        std::sqrtf((radius - halfPatternSize) * (radius + halfPatternSize)) - halfPatternSize;
+    const float maxPatternShift = std::sqrt((radius - halfPatternSize) * (radius + halfPatternSize)) - halfPatternSize;
     const float candidatePatternShift = radius * cvtCfg.maxPsize;
     const float patternShift = std::min(maxPatternShift, candidatePatternShift);
 

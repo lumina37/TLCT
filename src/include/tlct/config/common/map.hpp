@@ -160,8 +160,7 @@ Tv ConfigMap::getOr(const std::string& key, const Tv& default_val) const noexcep
 
 template <typename Tf>
     requires std::is_invocable_v<Tf>
-auto ConfigMap::getOrElse(const std::string& key, Tf&& default_factory) const noexcept
-    -> decltype(default_factory()) {
+auto ConfigMap::getOrElse(const std::string& key, Tf&& default_factory) const noexcept -> decltype(default_factory()) {
     using Tval = decltype(default_factory());
 
     const auto it = map_.find(key);

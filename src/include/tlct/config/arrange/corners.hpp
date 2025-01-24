@@ -129,7 +129,7 @@ CornersArrange::CornersArrange(cv::Size imgSize, float diameter, bool direction,
     leftTop_ = leftTop;
     rightTop_ = rightTop;
 
-    const auto veclen = [](const cv::Point2f vec) { return std::sqrtf(vec.x * vec.x + vec.y * vec.y); };
+    const auto veclen = [](const cv::Point2f vec) { return std::sqrt(vec.x * vec.x + vec.y * vec.y); };
 
     const cv::Point2f topXShift = rightTop - leftTop;
     const int topCols = _hp::iround(veclen(topXShift) / diameter) + 1;

@@ -24,7 +24,7 @@ namespace rgs = std::ranges;
         for (const int col : rgs::views::iota(0, diameter)) {
             const float xdist = radius - (float)row;
             const float ydist = radius - (float)col;
-            const float dist = std::sqrtf(xdist * xdist + ydist * ydist);
+            const float dist = std::sqrt(xdist * xdist + ydist * ydist);
             const float pix = std::max(0.f, std::min(1.f, (1.f - dist / radius) * heap));
             *prow = pix;
             prow++;

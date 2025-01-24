@@ -124,7 +124,7 @@ NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TAr
     }
 
     const int isLeftRow = arrange.isOutShift() ^ (index.y % 2 == 0);  // this row is on the left side of up/down row
-    const int udLeftXIdx = index.x - isLeftRow;                      // x index of the up/down-left MI
+    const int udLeftXIdx = index.x - isLeftRow;                       // x index of the up/down-left MI
     const int udRightXIdx = udLeftXIdx + 1;                           // x index of the up/down-right MI
 
     if (index.y > 0) [[likely]] {
@@ -262,7 +262,7 @@ FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArra
     cv::Point2f downrightPt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
 
     const int isLeftRow = arrange.isOutShift() ^ (index.y % 2 == 0);  // this row is on the left side of up/down row
-    const int udLeftXIdx = index.x - isLeftRow - 1;                  // x index of the up/down-left MI
+    const int udLeftXIdx = index.x - isLeftRow - 1;                   // x index of the up/down-left MI
     const int udRightXIdx = udLeftXIdx + 3;                           // x index of the up/down-right MI
 
     if (index.y > 0) [[likely]] {

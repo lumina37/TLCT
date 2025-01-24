@@ -16,7 +16,7 @@ public:
     }
 
     [[nodiscard]] inline float getMean() const noexcept { return mean_; }
-    [[nodiscard]] inline float getStddev() const noexcept { return sqrtf(var_ / (float)count_); }
+    [[nodiscard]] inline float getStddev() const noexcept { return sqrt(var_ / (float)count_); }
 
 private:
     float mean_;
