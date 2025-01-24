@@ -23,8 +23,7 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange_, io::concepts::CFrame TFrame_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
-class Manager_
-{
+class Manager_ {
 public:
     static constexpr int CHANNELS = 3;
     static constexpr bool IS_KEPLER = IS_KEPLER_;
@@ -51,16 +50,14 @@ public:
     [[nodiscard]] TLCT_API static inline Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg);
 
     // Const methods
-    [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept
-    {
+    [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept {
         return {mv_params_.output_width, mv_params_.output_height};
     };
 
     // Non-const methods
     TLCT_API inline void update(const TFrame& src);
 
-    inline void renderInto(TFrame& dst, int view_row, int view_col) const
-    {
+    inline void renderInto(TFrame& dst, int view_row, int view_col) const {
         renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mv_cache_.srcs_32f, mv_cache_.output_image_channels_u8,
                                                         arrange_, mv_params_, patchsizes_, mv_cache_, view_row,
                                                         view_col);
@@ -92,8 +89,7 @@ private:
 
 template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
 Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvt_cfg)
-    : arrange_(arrange), cvt_cfg_(cvt_cfg)
-{
+    : arrange_(arrange), cvt_cfg_(cvt_cfg) {
     mis_ = TMIBuffers::fromArrange(arrange);
 
     prev_patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_64FC2);
@@ -106,14 +102,12 @@ Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& 
 
 template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
 Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>
-Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg)
-{
+Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvt_cfg) {
     return {arrange, cvt_cfg};
 }
 
 template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src)
-{
+void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src) {
     mv_cache_.raw_srcs[0] = src.getY().clone();
     mv_cache_.raw_srcs[1] = src.getU().clone();
     mv_cache_.raw_srcs[2] = src.getV().clone();
@@ -159,12 +153,12 @@ void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame&
     }
 }
 
-} // namespace _cvt
+}  // namespace _cvt
 
 namespace cvt {
 
 using _cvt::Manager_;
 
-} // namespace cvt
+}  // namespace cvt
 
-} // namespace tlct
+}  // namespace tlct

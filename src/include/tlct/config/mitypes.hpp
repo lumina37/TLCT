@@ -13,8 +13,7 @@ namespace _cfg {
 
 namespace rgs = std::ranges;
 
-class MITypes
-{
+class MITypes {
 public:
     static constexpr int LEN_TYPE_NUM = 3;
 
@@ -36,8 +35,7 @@ private:
     TIdx2Type idx2type_;
 };
 
-MITypes::MITypes(bool is_out_shift) noexcept
-{
+MITypes::MITypes(bool is_out_shift) noexcept {
     for (const int type : rgs::views::iota(0, LEN_TYPE_NUM)) {
         idx2type_[0][type] = type;
     }
@@ -47,20 +45,19 @@ MITypes::MITypes(bool is_out_shift) noexcept
     }
 }
 
-int MITypes::getMIType(int row, int col) const noexcept
-{
+int MITypes::getMIType(int row, int col) const noexcept {
     const int type = idx2type_[row % idx2type_.size()][col % LEN_TYPE_NUM];
     return type;
 }
 
 int MITypes::getMIType(cv::Point index) const noexcept { return getMIType(index.y, index.x); }
 
-} // namespace _cfg
+}  // namespace _cfg
 
 namespace cfg {
 
 using _cfg::MITypes;
 
-} // namespace cfg
+}  // namespace cfg
 
-} // namespace tlct
+}  // namespace tlct

@@ -13,8 +13,7 @@ namespace tlct::_cvt {
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange_>
-class MvCache_
-{
+class MvCache_ {
 public:
     static constexpr int CHANNELS = 3;
 
@@ -25,8 +24,10 @@ public:
     // Constructor
     inline MvCache_() noexcept = default;
     inline MvCache_(cv::Mat&& grad_blending_weight, cv::Mat&& render_canvas, cv::Mat&& weight_canvas)
-        : grad_blending_weight(std::move(grad_blending_weight)), render_canvas(std::move(render_canvas)),
-          weight_canvas(std::move(weight_canvas)), normed_image_u8() {};
+        : grad_blending_weight(std::move(grad_blending_weight)),
+          render_canvas(std::move(render_canvas)),
+          weight_canvas(std::move(weight_canvas)),
+          normed_image_u8() {};
     MvCache_(MvCache_&& rhs) noexcept = default;
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
@@ -48,8 +49,7 @@ public:
 };
 
 template <tcfg::concepts::CArrange TArrange>
-MvCache_<TArrange> MvCache_<TArrange>::fromParams(const MvParams_<TArrange>& params)
-{
+MvCache_<TArrange> MvCache_<TArrange>::fromParams(const MvParams_<TArrange>& params) {
     constexpr float GRADIENT_BLENDING_WIDTH = 0.75;
     cv::Mat grad_blending_weight = circleWithFadeoutBorder(params.resized_patch_width, GRADIENT_BLENDING_WIDTH);
     cv::Mat render_canvas{cv::Size{params.canvas_width, params.canvas_height}, CV_32FC1};
@@ -57,4 +57,4 @@ MvCache_<TArrange> MvCache_<TArrange>::fromParams(const MvParams_<TArrange>& par
     return {std::move(grad_blending_weight), std::move(render_canvas), std::move(weight_canvas)};
 }
 
-} // namespace tlct::_cvt
+}  // namespace tlct::_cvt

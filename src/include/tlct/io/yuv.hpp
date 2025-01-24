@@ -19,7 +19,7 @@ template class YuvReader_<Yuv420Frame>;
 using Yuv420Writer = YuvWriter_<Yuv420Frame>;
 template class YuvWriter_<Yuv420Frame>;
 
-} // namespace _io::yuv
+}  // namespace _io::yuv
 
 namespace io::yuv {
 
@@ -33,6 +33,6 @@ using _::Yuv420Frame;
 using _::Yuv420Reader;
 using _::Yuv420Writer;
 
-} // namespace io::yuv
+}  // namespace io::yuv
 
-} // namespace tlct
+}  // namespace tlct

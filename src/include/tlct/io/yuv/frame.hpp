@@ -11,8 +11,7 @@ namespace tlct::_io::yuv {
 namespace fs = std::filesystem;
 
 template <typename TElem_, size_t Ushift_, size_t Vshift_>
-class YuvFrame_
-{
+class YuvFrame_ {
 public:
     static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
 
@@ -21,18 +20,15 @@ public:
     static constexpr size_t Vshift = Vshift_;
 
     TLCT_API inline YuvFrame_(size_t ywidth, size_t yheight, size_t ysize)
-        : ywidth_(ywidth), yheight_(yheight), ysize_(ysize)
-    {
+        : ywidth_(ywidth), yheight_(yheight), ysize_(ysize) {
         this->alloc();
     }
     TLCT_API inline YuvFrame_(size_t ywidth, size_t yheight)
-        : ywidth_(ywidth), yheight_(yheight), ysize_(ywidth_ * yheight_)
-    {
+        : ywidth_(ywidth), yheight_(yheight), ysize_(ywidth_ * yheight_) {
         this->alloc();
     }
     TLCT_API explicit inline YuvFrame_(const cv::Size& size)
-        : ywidth_(size.width), yheight_(size.height), ysize_(ywidth_ * yheight_)
-    {
+        : ywidth_(size.width), yheight_(size.height), ysize_(ywidth_ * yheight_) {
         this->alloc();
     }
 
@@ -40,11 +36,14 @@ public:
     YuvFrame_(const YuvFrame_& rhs) = delete;
     YuvFrame_ operator=(const YuvFrame_& rhs) = delete;
     TLCT_API inline YuvFrame_(YuvFrame_&& rhs) noexcept
-        : ywidth_(rhs.ywidth_), yheight_(rhs.yheight_), ysize_(rhs.ysize_),
-          buffer_(std::exchange(rhs.buffer_, nullptr)), y_(std::move(rhs.y_)), u_(std::move(rhs.u_)),
+        : ywidth_(rhs.ywidth_),
+          yheight_(rhs.yheight_),
+          ysize_(rhs.ysize_),
+          buffer_(std::exchange(rhs.buffer_, nullptr)),
+          y_(std::move(rhs.y_)),
+          u_(std::move(rhs.u_)),
           v_(std::move(rhs.v_)){};
-    TLCT_API inline YuvFrame_& operator=(YuvFrame_&& rhs) noexcept
-    {
+    TLCT_API inline YuvFrame_& operator=(YuvFrame_&& rhs) noexcept {
         ywidth_ = rhs.ywidth_;
         yheight_ = rhs.yheight_;
         ysize_ = rhs.ysize_;
@@ -66,8 +65,7 @@ public:
     [[nodiscard]] TLCT_API inline size_t getYSize() const noexcept { return ysize_; };
     [[nodiscard]] TLCT_API inline size_t getUSize() const noexcept { return ysize_ >> (Ushift * 2); };
     [[nodiscard]] TLCT_API inline size_t getVSize() const noexcept { return ysize_ >> (Vshift * 2); };
-    [[nodiscard]] TLCT_API inline size_t getTotalSize() const noexcept
-    {
+    [[nodiscard]] TLCT_API inline size_t getTotalSize() const noexcept {
         const size_t total_size = ysize_ + getUSize() + getVSize();
         return total_size;
     };
@@ -93,8 +91,7 @@ private:
 };
 
 template <typename TElem, size_t Ushift_, size_t Vshift_>
-void YuvFrame_<TElem, Ushift_, Vshift_>::alloc()
-{
+void YuvFrame_<TElem, Ushift_, Vshift_>::alloc() {
     {
         constexpr size_t ubase = 1 << (Ushift * 2);
 
@@ -131,4 +128,4 @@ void YuvFrame_<TElem, Ushift_, Vshift_>::alloc()
     }
 }
 
-} // namespace tlct::_io::yuv
+}  // namespace tlct::_io::yuv

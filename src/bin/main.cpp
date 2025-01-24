@@ -11,8 +11,7 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
-static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map)
-{
+static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map) {
     const auto& cli_cfg = tlct::CliConfig::fromParser(parser);
     auto arrange = TManager::TArrange::fromCfgMap(map);
     cv::Size src_size = arrange.getImgSize();
@@ -63,8 +62,7 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
     }
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     auto parser = tlct::makeUniqArgParser();
 
     try {

@@ -6,8 +6,7 @@
 
 namespace tlct::_cvt {
 
-class WrapSSIM
-{
+class WrapSSIM {
 public:
     // Constructor
     WrapSSIM() = delete;
@@ -30,9 +29,8 @@ private:
     mutable cv::Mat I1_I2, mu1_mu2, sigma12;
 };
 
-void WrapSSIM::updateRoi(cv::Rect roi) noexcept
-{
-    mi_.I(roi).copyTo(I_); // `BORDER_ISOLATED` has no effect, so we must copy here
+void WrapSSIM::updateRoi(cv::Rect roi) noexcept {
+    mi_.I(roi).copyTo(I_);  // `BORDER_ISOLATED` has no effect, so we must copy here
     mi_.I_2(roi).copyTo(I_2_);
     blurInto(I_, mu_);
     cv::multiply(mu_, mu_, mu_2_);
@@ -40,9 +38,8 @@ void WrapSSIM::updateRoi(cv::Rect roi) noexcept
     cv::subtract(sigma_2_, mu_2_, sigma_2_);
 }
 
-float WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
-{
-    constexpr float C1 = 6.5025, C2 = 58.5225;
+float WrapSSIM::compare(const WrapSSIM& rhs) const noexcept {
+    constexpr float C1 = 6.5025f, C2 = 58.5225f;
 
     cv::multiply(I_, rhs.I_, I1_I2);
     cv::multiply(mu_, rhs.mu_, mu1_mu2);
@@ -52,11 +49,11 @@ float WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
     // t3 = ((2*mu1_mu2 + C1).*(2*sigma12 + C2))
     cv::Mat& t1 = I1_I2;
     cv::multiply(mu1_mu2, 2., t1);
-    cv::add(t1, C1, t1); // t1 += C1
+    cv::add(t1, C1, t1);  // t1 += C1
 
     cv::Mat& t2 = mu1_mu2;
     cv::multiply(sigma12, 2., t2);
-    cv::add(t2, C2, t2); // t2 += C2
+    cv::add(t2, C2, t2);  // t2 += C2
 
     // t3 = t1 * t2
     cv::Mat& t3 = sigma12;
@@ -76,9 +73,9 @@ float WrapSSIM::compare(const WrapSSIM& rhs) const noexcept
     cv::divide(t3, t1, t3);
 
     const cv::Scalar& ssim_scalar = cv::mean(t3);
-    const float ssim = ssim_scalar[0];
+    const float ssim = (float)ssim_scalar[0];
 
     return ssim;
 }
 
-} // namespace tlct::_cvt
+}  // namespace tlct::_cvt

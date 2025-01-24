@@ -13,11 +13,10 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const float border_width_factor)
-{
+[[nodiscard]] static inline cv::Mat circleWithFadeoutBorder(const int diameter, const float border_width_factor) {
     cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
-    const float radius = diameter / 2.0;
-    const float heap = border_width_factor > 0.0 ? 1.0 + 1.0 / border_width_factor * (1.0 - border_width_factor)
+    const float radius = diameter / 2.f;
+    const float heap = border_width_factor > 0.f ? 1.f + 1.f / border_width_factor * (1.f - border_width_factor)
                                                  : std::numeric_limits<float>::max();
 
     for (const int row : rgs::views::iota(0, diameter)) {
@@ -26,7 +25,7 @@ namespace rgs = std::ranges;
             const float xdist = radius - (float)row;
             const float ydist = radius - (float)col;
             const float dist = std::sqrt(xdist * xdist + ydist * ydist);
-            const float pix = std::max(0.0f, std::min(1.0f, (1.0f - dist / radius) * heap));
+            const float pix = std::max(0.f, std::min(1.f, (1.f - dist / radius) * heap));
             *prow = pix;
             prow++;
         }
@@ -35,22 +34,20 @@ namespace rgs = std::ranges;
     return rect;
 }
 
-[[nodiscard]] static inline float textureIntensity(const cv::Mat& src)
-{
+[[nodiscard]] static inline float textureIntensity(const cv::Mat& src) {
     cv::Mat edges;
     float intensity = 0.0;
     cv::Sobel(src, edges, -1, 1, 0);
     edges = cv::abs(edges);
-    intensity += cv::sum(edges)[0];
+    intensity += (float)cv::sum(edges)[0];
     cv::Sobel(src, edges, -1, 0, 1);
     edges = cv::abs(edges);
-    intensity += cv::sum(edges)[0];
+    intensity += (float)cv::sum(edges)[0];
     intensity /= edges.size().area();
     return intensity;
 }
 
-[[nodiscard]] static inline uint64_t dhash(const cv::Mat& src)
-{
+[[nodiscard]] static inline uint64_t dhash(const cv::Mat& src) {
     constexpr int thumbnail_height = 8;
     constexpr int thumbnail_width = thumbnail_height + 1;
     constexpr int thumbnail_size = thumbnail_height * thumbnail_width;
@@ -78,4 +75,4 @@ namespace rgs = std::ranges;
 
 static inline void blurInto(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 
-} // namespace tlct::_cvt
+}  // namespace tlct::_cvt

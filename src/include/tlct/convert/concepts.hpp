@@ -10,4 +10,4 @@ namespace _ = _cvt::concepts;
 using _::CManager;
 using _::CNeighbors;
 
-} // namespace tlct::cvt::concepts
+}  // namespace tlct::cvt::concepts

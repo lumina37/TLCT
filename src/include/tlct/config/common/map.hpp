@@ -12,8 +12,7 @@
 
 namespace tlct::_cfg {
 
-class ConfigMap
-{
+class ConfigMap {
 public:
     // Typename alias
     using TMap = std::map<std::string, std::string>;
@@ -60,8 +59,7 @@ private:
     TMap map_;
 };
 
-ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
-{
+ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) {
     const auto is_nul = [](const char c) { return c == ' ' || c == '\t'; };
 
     std::map<std::string, std::string> cfg_map;
@@ -102,8 +100,7 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs)
     return ConfigMap(std::move(cfg_map));
 }
 
-ConfigMap ConfigMap::fromPath(std::string_view path)
-{
+ConfigMap ConfigMap::fromPath(std::string_view path) {
     std::ifstream ifs(path.data());
     if (!ifs.is_open()) [[unlikely]] {
         std::stringstream err;
@@ -117,8 +114,7 @@ ConfigMap ConfigMap::fromPath(std::string_view path)
 bool ConfigMap::isEmpty() const noexcept { return map_.empty(); }
 
 template <typename Tv>
-inline Tv stox(const std::string& str)
-{
+inline Tv stox(const std::string& str) {
     if constexpr (std::is_integral_v<Tv>) {
         return (Tv)std::stoi(str);
     } else if constexpr (std::is_floating_point_v<Tv>) {
@@ -129,35 +125,30 @@ inline Tv stox(const std::string& str)
 };
 
 template <_hp::cestring key, typename Tv>
-Tv ConfigMap::get() const
-{
+Tv ConfigMap::get() const {
     return this->get<Tv>(key.string);
 };
 
 template <_hp::cestring key, typename Tv>
     requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-Tv ConfigMap::get_or(const Tv& default_val) const noexcept
-{
+Tv ConfigMap::get_or(const Tv& default_val) const noexcept {
     return this->get_or<Tv>(key.string, default_val);
 };
 
 template <_hp::cestring key, typename Tf>
     requires std::is_invocable_v<Tf>
-auto ConfigMap::get_or_else(Tf&& default_factory) const noexcept -> decltype(default_factory())
-{
+auto ConfigMap::get_or_else(Tf&& default_factory) const noexcept -> decltype(default_factory()) {
     return this->get_or_else<Tf>(key.string, default_factory);
 };
 
 template <typename Tv>
-Tv ConfigMap::get(const std::string& key) const
-{
+Tv ConfigMap::get(const std::string& key) const {
     return stox<Tv>(map_.at(key));
 };
 
 template <typename Tv>
     requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-Tv ConfigMap::get_or(const std::string& key, const Tv& default_val) const noexcept
-{
+Tv ConfigMap::get_or(const std::string& key, const Tv& default_val) const noexcept {
     const auto it = map_.find(key);
     if (it == map_.end()) {
         return default_val;
@@ -169,8 +160,8 @@ Tv ConfigMap::get_or(const std::string& key, const Tv& default_val) const noexce
 
 template <typename Tf>
     requires std::is_invocable_v<Tf>
-auto ConfigMap::get_or_else(const std::string& key, Tf&& default_factory) const noexcept -> decltype(default_factory())
-{
+auto ConfigMap::get_or_else(const std::string& key, Tf&& default_factory) const noexcept
+    -> decltype(default_factory()) {
     using Tval = decltype(default_factory());
 
     const auto it = map_.find(key);
@@ -182,4 +173,4 @@ auto ConfigMap::get_or_else(const std::string& key, Tf&& default_factory) const 
     return nval;
 };
 
-} // namespace tlct::_cfg
+}  // namespace tlct::_cfg

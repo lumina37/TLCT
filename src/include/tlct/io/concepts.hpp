@@ -8,4 +8,4 @@ namespace _ = _io::concepts;
 
 using _::CFrame;
 
-} // namespace tlct::io::concepts
+}  // namespace tlct::io::concepts

@@ -4,13 +4,11 @@
 
 namespace tlct::_hp {
 
-class MeanStddev
-{
+class MeanStddev {
 public:
     inline MeanStddev() noexcept : mean_(), var_(), count_() {};
 
-    inline void update(float val) noexcept
-    {
+    inline void update(float val) noexcept {
         count_++;
         const float prev_mean = mean_;
         mean_ += (val - prev_mean) / (float)count_;
@@ -26,4 +24,4 @@ private:
     int count_;
 };
 
-} // namespace tlct::_hp
+}  // namespace tlct::_hp

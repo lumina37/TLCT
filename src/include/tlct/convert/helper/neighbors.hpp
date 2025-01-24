@@ -11,8 +11,7 @@
 namespace tlct::_cvt {
 
 template <tlct::cfg::concepts::CArrange TArrange_>
-class NearNeighbors_
-{
+class NearNeighbors_ {
 public:
     enum class Direction {
         UPLEFT,
@@ -25,9 +24,9 @@ public:
     };
     static constexpr int DIRECTION_NUM = (int)Direction::COUNT;
 
-    static constexpr float INFLATE = 1.0;
+    static constexpr float INFLATE = 1.f;
     static constexpr int DEFAULT_INDEX = -1;
-    static constexpr float DEFAULT_COORD = -1.0;
+    static constexpr float DEFAULT_COORD = -1.f;
 
     // Typename alias
     using TArrange = TArrange_;
@@ -35,9 +34,9 @@ public:
     using TPoints = std::array<cv::Point2f, DIRECTION_NUM>;
     using TUnitShifts = std::array<std::array<float, 2>, DIRECTION_NUM>;
 
-    static constexpr float SCALAR_UNIT_SHIFT = 1.0;
+    static constexpr float SCALAR_UNIT_SHIFT = 1.f;
     static constexpr float X_UNIT_STEP = 0.5 * SCALAR_UNIT_SHIFT;
-    static constexpr float Y_UNIT_STEP = std::numbers::sqrt3 / 2.0 * SCALAR_UNIT_SHIFT;
+    static constexpr float Y_UNIT_STEP = std::numbers::sqrt3_v<float> / 2.f * SCALAR_UNIT_SHIFT;
 
     static constexpr TUnitShifts UNIT_SHIFTS{{
         {-X_UNIT_STEP, -Y_UNIT_STEP},
@@ -66,20 +65,16 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2f getSelfPt() const noexcept { return self_pt_; };
 
     // Left is 0. Clockwise.
-    [[nodiscard]] TLCT_API inline bool hasNeighbor(const Direction direction) const noexcept
-    {
+    [[nodiscard]] TLCT_API inline bool hasNeighbor(const Direction direction) const noexcept {
         return indices_[(int)direction].x != DEFAULT_INDEX;
     };
-    [[nodiscard]] TLCT_API inline cv::Point getNeighborIdx(const Direction direction) const noexcept
-    {
+    [[nodiscard]] TLCT_API inline cv::Point getNeighborIdx(const Direction direction) const noexcept {
         return indices_[(int)direction];
     };
-    [[nodiscard]] TLCT_API inline cv::Point2f getNeighborPt(const Direction direction) const noexcept
-    {
+    [[nodiscard]] TLCT_API inline cv::Point2f getNeighborPt(const Direction direction) const noexcept {
         return points_[(int)direction];
     };
-    [[nodiscard]] TLCT_API static inline cv::Point2f getUnitShift(const Direction direction) noexcept
-    {
+    [[nodiscard]] TLCT_API static inline cv::Point2f getUnitShift(const Direction direction) noexcept {
         const auto& unit_shift = UNIT_SHIFTS[(int)direction];
         return {unit_shift[0], unit_shift[1]};
     };
@@ -92,8 +87,7 @@ private:
 
 private:
     template <size_t... Idx>
-    [[nodiscard]] static consteval auto make_directions(std::index_sequence<Idx...>)
-    {
+    [[nodiscard]] static consteval auto make_directions(std::index_sequence<Idx...>) {
         return std::array<Direction, sizeof...(Idx)>{(Direction)Idx...};
     }
 
@@ -104,8 +98,7 @@ public:
 
 template <tlct::cfg::concepts::CArrange TArrange>
 NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TArrange& arrange,
-                                                                       cv::Point index) noexcept
-{
+                                                                       cv::Point index) noexcept {
     cv::Point left_idx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
     cv::Point right_idx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
     cv::Point upleft_idx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
@@ -130,9 +123,9 @@ NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TAr
         right_pt = arrange.getMICenter(right_idx);
     }
 
-    const int is_left_row = arrange.isOutShift() ^ (index.y % 2 == 0); // this row is on the left side of up/down row
-    const int udleft_xidx = index.x - is_left_row;                     // x index of the up/down-left MI
-    const int udright_xidx = udleft_xidx + 1;                          // x index of the up/down-right MI
+    const int is_left_row = arrange.isOutShift() ^ (index.y % 2 == 0);  // this row is on the left side of up/down row
+    const int udleft_xidx = index.x - is_left_row;                      // x index of the up/down-left MI
+    const int udright_xidx = udleft_xidx + 1;                           // x index of the up/down-right MI
 
     if (index.y > 0) [[likely]] {
         const int yidx = index.y - 1;
@@ -165,8 +158,7 @@ NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TAr
 }
 
 template <tlct::cfg::concepts::CArrange TArrange_>
-class FarNeighbors_
-{
+class FarNeighbors_ {
 public:
     enum class Direction {
         UP,
@@ -179,9 +171,9 @@ public:
     };
     static constexpr int DIRECTION_NUM = (int)Direction::COUNT;
 
-    static constexpr float INFLATE = std::numbers::sqrt3;
+    static constexpr float INFLATE = std::numbers::sqrt3_v<float>;
     static constexpr int DEFAULT_INDEX = -1;
-    static constexpr float DEFAULT_COORD = -1.0;
+    static constexpr float DEFAULT_COORD = -1.f;
 
     // Typename alias
     using TArrange = TArrange_;
@@ -189,8 +181,8 @@ public:
     using TPoints = std::array<cv::Point2f, DIRECTION_NUM>;
     using TUnitShifts = std::array<std::array<float, 2>, DIRECTION_NUM>;
 
-    static constexpr float SCALAR_UNIT_SHIFT = 1.0;
-    static constexpr float X_UNIT_STEP = std::numbers::sqrt3 / 2.0 * SCALAR_UNIT_SHIFT;
+    static constexpr float SCALAR_UNIT_SHIFT = 1.f;
+    static constexpr float X_UNIT_STEP = std::numbers::sqrt3_v<float> / 2.f * SCALAR_UNIT_SHIFT;
     static constexpr float Y_UNIT_STEP = 0.5 * SCALAR_UNIT_SHIFT;
 
     static constexpr TUnitShifts UNIT_SHIFTS{{
@@ -220,20 +212,16 @@ public:
     [[nodiscard]] TLCT_API inline cv::Point2f getSelfPt() const noexcept { return self_pt_; };
 
     // Left is 0. Clockwise.
-    [[nodiscard]] TLCT_API inline bool hasNeighbor(const Direction direction) const noexcept
-    {
+    [[nodiscard]] TLCT_API inline bool hasNeighbor(const Direction direction) const noexcept {
         return indices_[(int)direction].x != DEFAULT_INDEX;
     };
-    [[nodiscard]] TLCT_API inline cv::Point getNeighborIdx(const Direction direction) const noexcept
-    {
+    [[nodiscard]] TLCT_API inline cv::Point getNeighborIdx(const Direction direction) const noexcept {
         return indices_[(int)direction];
     };
-    [[nodiscard]] TLCT_API inline cv::Point2f getNeighborPt(const Direction direction) const noexcept
-    {
+    [[nodiscard]] TLCT_API inline cv::Point2f getNeighborPt(const Direction direction) const noexcept {
         return points_[(int)direction];
     };
-    [[nodiscard]] TLCT_API static inline cv::Point2f getUnitShift(const Direction direction) noexcept
-    {
+    [[nodiscard]] TLCT_API static inline cv::Point2f getUnitShift(const Direction direction) noexcept {
         const auto& unit_shift = UNIT_SHIFTS[(int)direction];
         return {unit_shift[0], unit_shift[1]};
     };
@@ -246,8 +234,7 @@ private:
 
 private:
     template <size_t... Idx>
-    [[nodiscard]] static consteval auto make_directions(std::index_sequence<Idx...>)
-    {
+    [[nodiscard]] static consteval auto make_directions(std::index_sequence<Idx...>) {
         return std::array<Direction, sizeof...(Idx)>{(Direction)Idx...};
     }
 
@@ -257,8 +244,8 @@ public:
 };
 
 template <tlct::cfg::concepts::CArrange TArrange>
-FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArrange& arrange, cv::Point index) noexcept
-{
+FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArrange& arrange,
+                                                                     cv::Point index) noexcept {
     cv::Point up_idx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
     cv::Point down_idx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
     cv::Point upleft_idx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
@@ -274,9 +261,9 @@ FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArra
     cv::Point2f downleft_pt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
     cv::Point2f downright_pt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
 
-    const int is_left_row = arrange.isOutShift() ^ (index.y % 2 == 0); // this row is on the left side of up/down row
-    const int udleft_xidx = index.x - is_left_row - 1;                 // x index of the up/down-left MI
-    const int udright_xidx = udleft_xidx + 3;                          // x index of the up/down-right MI
+    const int is_left_row = arrange.isOutShift() ^ (index.y % 2 == 0);  // this row is on the left side of up/down row
+    const int udleft_xidx = index.x - is_left_row - 1;                  // x index of the up/down-left MI
+    const int udright_xidx = udleft_xidx + 3;                           // x index of the up/down-right MI
 
     if (index.y > 0) [[likely]] {
         const int yidx = index.y - 1;
@@ -318,4 +305,4 @@ FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArra
     return {indices, index, points, self_pt};
 }
 
-} // namespace tlct::_cvt
+}  // namespace tlct::_cvt

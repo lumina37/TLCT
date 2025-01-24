@@ -32,4 +32,4 @@ concept CNeighbors = requires {
     };
 };
 
-} // namespace tlct::_cvt::concepts
+}  // namespace tlct::_cvt::concepts

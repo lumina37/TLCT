@@ -11,8 +11,7 @@ namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
 
-[[nodiscard]] TLCT_API inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept
-{
+[[nodiscard]] TLCT_API inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
     auto parser =
         std::make_unique<argparse::ArgumentParser>("tlct", "v" tlct_VERSION, argparse::default_arguments::all);
 
@@ -72,8 +71,12 @@ struct CliConfig {
     struct Convert {
         inline Convert(int views, int upsample, float psize_inflate, float view_shift_range, float pattern_size,
                        int psize_shortcut_threshold) noexcept
-            : views(views), upsample(upsample), psize_inflate(psize_inflate), view_shift_range(view_shift_range),
-              max_psize((1.0 - view_shift_range) / psize_inflate), pattern_size(pattern_size),
+            : views(views),
+              upsample(upsample),
+              psize_inflate(psize_inflate),
+              view_shift_range(view_shift_range),
+              max_psize((1.f - view_shift_range) / psize_inflate),
+              pattern_size(pattern_size),
               psize_shortcut_threshold(psize_shortcut_threshold) {};
 
         int views;
@@ -93,8 +96,7 @@ struct CliConfig {
     [[nodiscard]] TLCT_API static inline CliConfig fromParser(const argparse::ArgumentParser& parser);
 };
 
-CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser)
-{
+CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser) {
     auto path = CliConfig::Path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
     auto range = CliConfig::Range{parser.get<int>("--begin"), parser.get<int>("--end")};
     auto convert = CliConfig::Convert{parser.get<int>("--views"),          parser.get<int>("--upsample"),
@@ -104,4 +106,4 @@ CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser)
     return {std::move(path), std::move(range), std::move(convert)};
 }
 
-} // namespace tlct::_cfg
+}  // namespace tlct::_cfg

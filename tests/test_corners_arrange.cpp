@@ -8,8 +8,7 @@
 
 namespace fs = std::filesystem;
 
-TEST_CASE("tlct::cfg#CornersArrange")
-{
+TEST_CASE("tlct::cfg#CornersArrange") {
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
 

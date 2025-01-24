@@ -12,4 +12,4 @@ using cfg::CliConfig;
 using cfg::ConfigMap;
 using cfg::makeUniqArgParser;
 
-} // namespace tlct
+}  // namespace tlct

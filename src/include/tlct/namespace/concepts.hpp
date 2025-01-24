@@ -8,4 +8,4 @@ namespace tlct::concepts {
 using cfg::concepts::CArrange;
 using cvt::concepts::CManager;
 
-} // namespace tlct::concepts
+}  // namespace tlct::concepts

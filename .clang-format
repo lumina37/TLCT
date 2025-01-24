@@ -1,16 +1,8 @@
-BasedOnStyle: LLVM
+BasedOnStyle: Google
 IndentWidth: 4
 ColumnLimit: 120
 ---
 Language: Cpp
-NamespaceIndentation: None
 AccessModifierOffset: -4
-PointerAlignment: Left
-AlwaysBreakTemplateDeclarations: Yes
 IndentPPDirectives: AfterHash
-RequiresExpressionIndentation: OuterScope
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterClass: true
-  AfterControlStatement: Never
-  AfterFunction: true
+IncludeBlocks: Preserve

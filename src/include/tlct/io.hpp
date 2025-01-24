@@ -15,4 +15,4 @@ using _::Yuv420Frame;
 using _::Yuv420Reader;
 using _::Yuv420Writer;
 
-} // namespace tlct::io
+}  // namespace tlct::io

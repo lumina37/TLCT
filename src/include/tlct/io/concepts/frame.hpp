@@ -42,4 +42,4 @@ concept CFrame = requires {
     { self.getV() } noexcept -> std::same_as<const cv::Mat&>;
 };
 
-} // namespace tlct::_io::concepts
+}  // namespace tlct::_io::concepts

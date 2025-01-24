@@ -14,4 +14,4 @@ struct PsizeMetric {
     float metric;
 };
 
-} // namespace tlct::_cvt
+}  // namespace tlct::_cvt

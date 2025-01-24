@@ -20,8 +20,7 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange>
-static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArrange>& mis, MvCache_<TArrange>& cache)
-{
+static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArrange>& mis, MvCache_<TArrange>& cache) {
     cv::Mat texture_I(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev ti_meanstddev{};
@@ -58,8 +57,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS
 static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs,
                               typename MvCache_<TArrange>::TChannels& dsts, const TArrange& arrange,
                               const MvParams_<TArrange>& params, const cv::Mat& patchsizes, MvCache_<TArrange>& cache,
-                              int view_row, int view_col)
-{
+                              int view_row, int view_col) {
     const int view_shift_x = (view_col - params.views / 2) * params.view_interval;
     const int view_shift_y = (view_row - params.views / 2) * params.view_interval;
 
@@ -118,4 +116,4 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
     }
 }
 
-} // namespace tlct::_cvt
+}  // namespace tlct::_cvt

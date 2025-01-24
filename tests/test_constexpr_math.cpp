@@ -5,8 +5,7 @@
 
 namespace hp = tlct::_hp;
 
-TEST_CASE("tlct::_hp#constexpr_math")
-{
+TEST_CASE("tlct::_hp#constexpr_math") {
     // int round
     CHECK(hp::iround(3737.1) == 3737);
     CHECK(hp::iround(3737.6) == 3738);

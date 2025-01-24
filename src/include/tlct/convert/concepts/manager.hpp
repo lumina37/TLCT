@@ -37,4 +37,4 @@ concept CManager = requires {
     requires requires(Self self, const typename Self::TFrame& src) { self.update(src); };
 };
 
-} // namespace tlct::_cvt::concepts
+}  // namespace tlct::_cvt::concepts

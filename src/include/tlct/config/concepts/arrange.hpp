@@ -47,4 +47,4 @@ concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     { self.isOutShift() } noexcept -> std::same_as<bool>;
 };
 
-} // namespace tlct::_cfg::concepts
+}  // namespace tlct::_cfg::concepts

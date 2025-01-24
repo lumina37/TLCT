@@ -12,14 +12,12 @@ namespace tlct::_io::yuv {
 namespace fs = std::filesystem;
 
 template <concepts::CFrame TFrame_>
-class YuvWriter_
-{
+class YuvWriter_ {
 public:
     using TFrame = TFrame_;
 
     TLCT_API inline explicit YuvWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
-    TLCT_API static inline YuvWriter_ fromPath(const fs::path& fpath)
-    {
+    TLCT_API static inline YuvWriter_ fromPath(const fs::path& fpath) {
         std::ofstream ofs{fpath, std::ios::binary};
         return YuvWriter_{std::move(ofs)};
     }
@@ -31,11 +29,10 @@ private:
 };
 
 template <concepts::CFrame TFrame>
-void YuvWriter_<TFrame>::write(TFrame& frame)
-{
+void YuvWriter_<TFrame>::write(TFrame& frame) {
     ofs_.write((char*)frame.getY().data, frame.getYSize());
     ofs_.write((char*)frame.getU().data, frame.getUSize());
     ofs_.write((char*)frame.getV().data, frame.getVSize());
 }
 
-} // namespace tlct::_io::yuv
+}  // namespace tlct::_io::yuv

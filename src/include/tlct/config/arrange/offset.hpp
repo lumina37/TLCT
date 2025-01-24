@@ -11,16 +11,24 @@
 
 namespace tlct::_cfg {
 
-class OffsetArrange
-{
+class OffsetArrange {
 public:
     // Typename alias
     using TMiCols = std::array<int, 2>;
 
     // Constructor
     TLCT_API inline OffsetArrange() noexcept
-        : imgsize_(), diameter_(), radius_(), direction_(), left_top_(), x_unit_shift_(), y_unit_shift_(), mirows_(),
-          micols_(), upsample_(1), is_out_shift_(){};
+        : imgsize_(),
+          diameter_(),
+          radius_(),
+          direction_(),
+          left_top_(),
+          x_unit_shift_(),
+          y_unit_shift_(),
+          mirows_(),
+          micols_(),
+          upsample_(1),
+          is_out_shift_(){};
     TLCT_API inline OffsetArrange(const OffsetArrange& rhs) noexcept = default;
     TLCT_API inline OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
     TLCT_API inline OffsetArrange(OffsetArrange&& rhs) noexcept = default;
@@ -63,8 +71,7 @@ private:
     bool is_out_shift_;
 };
 
-OffsetArrange OffsetArrange::fromCfgMap(const ConfigMap& map)
-{
+OffsetArrange OffsetArrange::fromCfgMap(const ConfigMap& map) {
     cv::Size imgsize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const float diameter = map.get<"MIDiameter", float>();
     const bool direction = map.get_or<"MLADirection">(false);
@@ -73,9 +80,7 @@ OffsetArrange OffsetArrange::fromCfgMap(const ConfigMap& map)
     return {imgsize, diameter, direction, offset};
 }
 
-OffsetArrange& OffsetArrange::upsample(int factor) noexcept
-{
-
+OffsetArrange& OffsetArrange::upsample(int factor) noexcept {
     imgsize_ *= factor;
     diameter_ *= factor;
     radius_ *= factor;
@@ -86,11 +91,10 @@ OffsetArrange& OffsetArrange::upsample(int factor) noexcept
     return *this;
 }
 
-cv::Point2f OffsetArrange::getMICenter(int row, int col) const noexcept
-{
+cv::Point2f OffsetArrange::getMICenter(int row, int col) const noexcept {
     cv::Point2f center{left_top_.x + x_unit_shift_ * col, left_top_.y + y_unit_shift_ * row};
     if (row % 2 == 1) {
-        center.x -= x_unit_shift_ / 2.0 * _hp::sgn(isOutShift());
+        center.x -= x_unit_shift_ / 2.f * _hp::sgn(isOutShift());
     }
     return center;
 }
@@ -98,9 +102,8 @@ cv::Point2f OffsetArrange::getMICenter(int row, int col) const noexcept
 cv::Point2f OffsetArrange::getMICenter(cv::Point index) const noexcept { return getMICenter(index.y, index.x); }
 
 OffsetArrange::OffsetArrange(cv::Size imgsize, float diameter, bool direction, cv::Point2f offset) noexcept
-    : diameter_(diameter), radius_(diameter / 2.0f), direction_(direction), upsample_(1)
-{
-    cv::Point2f center_mi{imgsize.width / 2.0f + offset.x, imgsize.height / 2.0f - offset.y};
+    : diameter_(diameter), radius_(diameter / 2.f), direction_(direction), upsample_(1) {
+    cv::Point2f center_mi{imgsize.width / 2.f + offset.x, imgsize.height / 2.f - offset.y};
 
     if (getDirection()) {
         std::swap(imgsize.height, imgsize.width);
@@ -109,7 +112,7 @@ OffsetArrange::OffsetArrange(cv::Size imgsize, float diameter, bool direction, c
     imgsize_ = imgsize;
 
     x_unit_shift_ = diameter;
-    y_unit_shift_ = diameter * std::numbers::sqrt3 / 2.0;
+    y_unit_shift_ = diameter * std::numbers::sqrt3_v<float> / 2.f;
     const int center_mi_xidx = (int)((center_mi.x - radius_) / x_unit_shift_);
     const int center_mi_yidx = (int)((center_mi.y - radius_) / y_unit_shift_);
 
@@ -130,12 +133,12 @@ OffsetArrange::OffsetArrange(cv::Size imgsize, float diameter, bool direction, c
             is_out_shift_ = true;
         }
     }
-    left_top_.y = center_mi.y - std::floor((center_mi.y - y_unit_shift_ / 2.0) / y_unit_shift_) * y_unit_shift_;
+    left_top_.y = center_mi.y - std::floor((center_mi.y - y_unit_shift_ / 2.f) / y_unit_shift_) * y_unit_shift_;
 
-    const float mi_1_0_x = left_top_.x - x_unit_shift_ / 2.0 * _hp::sgn(is_out_shift_);
-    micols_[0] = (int)(((float)imgsize.width - left_top_.x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
-    micols_[1] = (int)(((float)imgsize.width - mi_1_0_x - x_unit_shift_ / 2.0) / x_unit_shift_) + 1;
-    mirows_ = (int)(((float)imgsize.height - left_top_.y - y_unit_shift_ / 2.0) / y_unit_shift_) + 1;
+    const float mi_1_0_x = left_top_.x - x_unit_shift_ / 2.f * _hp::sgn(is_out_shift_);
+    micols_[0] = (int)(((float)imgsize.width - left_top_.x - x_unit_shift_ / 2.f) / x_unit_shift_) + 1;
+    micols_[1] = (int)(((float)imgsize.width - mi_1_0_x - x_unit_shift_ / 2.f) / x_unit_shift_) + 1;
+    mirows_ = (int)(((float)imgsize.height - left_top_.y - y_unit_shift_ / 2.f) / y_unit_shift_) + 1;
 }
 
-} // namespace tlct::_cfg
+}  // namespace tlct::_cfg

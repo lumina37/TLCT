@@ -8,4 +8,4 @@ namespace _ = _cfg::concepts;
 
 using _::CArrange;
 
-} // namespace tlct::cfg::concepts
+}  // namespace tlct::cfg::concepts

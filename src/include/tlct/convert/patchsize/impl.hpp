@@ -18,10 +18,10 @@ namespace tcfg = tlct::cfg;
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
     requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
-[[nodiscard]] static inline PsizeMetric
-estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
-                     const TNeighbors& neighbors, WrapSSIM& wrap_anchor)
-{
+[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const TArrange& arrange,
+                                                             const PsizeParams_<TArrange>& params,
+                                                             const MIBuffers_<TArrange>& mis,
+                                                             const TNeighbors& neighbors, WrapSSIM& wrap_anchor) {
     const cv::Point2f mi_center{arrange.getRadius(), arrange.getRadius()};
     const int max_shift = (int)(params.pattern_shift * 2);
 
@@ -78,11 +78,11 @@ estimateWithNeighbor(const TArrange& arrange, const PsizeParams_<TArrange>& para
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
-[[nodiscard]] static inline PsizeRecord
-estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
-                  const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis, const cv::Mat& prev_patchsizes,
-                  const cv::Point index)
-{
+[[nodiscard]] static inline PsizeRecord estimatePatchsize(const TArrange& arrange,
+                                                          const tcfg::CliConfig::Convert& cvt_cfg,
+                                                          const PsizeParams_<TArrange>& params,
+                                                          const MIBuffers_<TArrange>& mis,
+                                                          const cv::Mat& prev_patchsizes, const cv::Point index) {
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
@@ -120,8 +120,7 @@ estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_c
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
 static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvt_cfg,
                                       const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
-                                      const cv::Mat& prev_patchsizes, cv::Mat& patchsizes)
-{
+                                      const cv::Mat& prev_patchsizes, cv::Mat& patchsizes) {
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const cv::Point index{col, row};
@@ -132,4 +131,4 @@ static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliCo
     }
 }
 
-} // namespace tlct::_cvt
+}  // namespace tlct::_cvt

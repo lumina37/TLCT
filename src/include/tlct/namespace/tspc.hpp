@@ -11,7 +11,7 @@ namespace tspc {
 using Arrange = tlct::cfg::CornersArrange;
 using ManagerYuv420 = tlct::cvt::Manager_<Arrange, tlct::io::Yuv420Frame, true, false>;
 
-} // namespace tspc
+}  // namespace tspc
 
 namespace _cvt {
 
@@ -19,4 +19,4 @@ template class Manager_<tlct::cfg::CornersArrange, tlct::io::Yuv420Frame, true, 
 
 }
 
-} // namespace tlct
+}  // namespace tlct

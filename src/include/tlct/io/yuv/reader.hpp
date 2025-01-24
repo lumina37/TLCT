@@ -12,15 +12,13 @@ namespace tlct::_io::yuv {
 namespace fs = std::filesystem;
 
 template <concepts::CFrame TFrame_>
-class YuvReader_
-{
+class YuvReader_ {
 public:
     using TFrame = TFrame_;
 
     TLCT_API inline YuvReader_(std::ifstream&& ifs, size_t ywidth, size_t yheight)
         : ifs_(std::move(ifs)), ywidth_(ywidth), yheight_(yheight), ysize_(ywidth * yheight){};
-    TLCT_API static inline YuvReader_ fromPath(const fs::path& fpath, size_t ywidth, size_t yheight)
-    {
+    TLCT_API static inline YuvReader_ fromPath(const fs::path& fpath, size_t ywidth, size_t yheight) {
         std::ifstream ifs{fpath, std::ios::binary};
         return {std::move(ifs), ywidth, yheight};
     }
@@ -34,8 +32,7 @@ public:
     [[nodiscard]] TLCT_API inline size_t getYSize() const noexcept { return ysize_; };
     [[nodiscard]] TLCT_API inline size_t getUSize() const noexcept { return ysize_ >> (TFrame::Ushift * 2); };
     [[nodiscard]] TLCT_API inline size_t getVSize() const noexcept { return ysize_ >> (TFrame::Vshift * 2); };
-    [[nodiscard]] TLCT_API inline size_t getTotalSize() const noexcept
-    {
+    [[nodiscard]] TLCT_API inline size_t getTotalSize() const noexcept {
         const size_t total_size = ysize_ + getUSize() + getVSize();
         return total_size;
     };
@@ -52,15 +49,13 @@ private:
 };
 
 template <concepts::CFrame TFrame>
-YuvReader_<TFrame>& YuvReader_<TFrame>::skip(int n)
-{
+YuvReader_<TFrame>& YuvReader_<TFrame>::skip(int n) {
     ifs_.seekg(n * getTotalSize());
     return *this;
 }
 
 template <concepts::CFrame TFrame>
-TFrame YuvReader_<TFrame>::read()
-{
+TFrame YuvReader_<TFrame>::read() {
     TFrame frame{getYWidth(), getYHeight()};
     ifs_.read((char*)frame.getY().data, getYSize());
     ifs_.read((char*)frame.getU().data, getUSize());
@@ -69,11 +64,10 @@ TFrame YuvReader_<TFrame>::read()
 }
 
 template <concepts::CFrame TFrame>
-void YuvReader_<TFrame>::read_into(TFrame& frame)
-{
+void YuvReader_<TFrame>::read_into(TFrame& frame) {
     ifs_.read((char*)frame.getY().data, getYSize());
     ifs_.read((char*)frame.getU().data, getUSize());
     ifs_.read((char*)frame.getV().data, getVSize());
 }
 
-} // namespace tlct::_io::yuv
+}  // namespace tlct::_io::yuv
