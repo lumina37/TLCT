@@ -1,7 +1,14 @@
 #include <array>
+#include <cstdlib>
+#include <exception>
 #include <filesystem>
+#include <iomanip>
+#include <iostream>
 #include <ranges>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <argparse/argparse.hpp>
 

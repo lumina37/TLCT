@@ -1,11 +1,15 @@
 #pragma once
 
+#include <algorithm>
 #include <concepts>
 #include <exception>
 #include <fstream>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
 
 #include "tlct/common/defines.h"
 #include "tlct/helper.hpp"

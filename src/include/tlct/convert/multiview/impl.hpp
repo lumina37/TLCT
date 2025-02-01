@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-#include <cmath>
 #include <limits>
 #include <ranges>
 

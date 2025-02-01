@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <numbers>
 
 #include "tlct/config/common.hpp"

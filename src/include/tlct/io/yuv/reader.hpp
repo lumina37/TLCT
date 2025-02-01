@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <utility>
 
 #include "tlct/common/defines.h"
 #include "tlct/helper/constexpr/math.hpp"

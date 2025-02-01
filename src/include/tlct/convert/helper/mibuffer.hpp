@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdlib>
 #include <ranges>
+#include <utility>
 #include <vector>
 
 #include <opencv2/core.hpp>

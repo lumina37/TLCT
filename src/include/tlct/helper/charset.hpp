@@ -5,6 +5,7 @@ namespace tlct::_hp {
 #ifdef _WIN32
 
 #    include <string>
+#    include <string_view>
 
 #    pragma push_macro("min")
 #    pragma push_macro("max")

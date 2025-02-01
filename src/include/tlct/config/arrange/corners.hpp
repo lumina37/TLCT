@@ -1,7 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <numbers>
+#include <utility>
 
 #include <opencv2/core.hpp>
 

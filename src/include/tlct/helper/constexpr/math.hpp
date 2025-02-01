@@ -1,9 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <concepts>
 #include <cstddef>
-#include <numeric>
 
 namespace tlct::_hp {
 
