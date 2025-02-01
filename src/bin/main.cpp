@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
         std::exit(1);
     }
 
-    constexpr std::array<void (*)(const argparse::ArgumentParser&, const tlct::ConfigMap&), 2> handlers{
+    constexpr std::array handlers{
         render<tlct::raytrix::ManagerYuv420>,
         render<tlct::tspc::ManagerYuv420>,
     };
