@@ -33,7 +33,7 @@ include(FetchContent)
 
 find_package(OpenCV REQUIRED COMPONENTS imgproc)
 
-set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.tar.gz" CACHE STRING
+set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.2.tar.gz" CACHE STRING
         "Specifies the path of argparse")
 
 FetchContent_Declare(
