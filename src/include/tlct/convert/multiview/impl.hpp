@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <limits>
 #include <ranges>
 
@@ -71,7 +72,8 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
             for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
                 // Extract patch
                 const cv::Point2f center = arrange.getMICenter(row, col);
-                const float psize = params.psizeInflate * patchsizes.at<PsizeRecord>(row, col).psize;
+                const auto& psizeRec = std::bit_cast<PsizeRecord>(patchsizes.at<cv::Point2d>(row, col));
+                const float psize = params.psizeInflate * psizeRec.psize;
                 const cv::Point2f patch_center{center.x + view_shift_x, center.y + view_shift_y};
                 const cv::Mat& patch = getRoiImageByCenter(srcs[chan_id], patch_center, psize);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <concepts>
 #include <limits>
 #include <ranges>
@@ -90,7 +91,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
 
     const MIBuffer& anchorMI = mis.getMI(index);
     const uint64_t hash = dhash(anchorMI.I);
-    const auto& prevPsize = prev_patchsizes.at<PsizeRecord>(index);
+    const auto& prevPsize = std::bit_cast<PsizeRecord>(prev_patchsizes.at<cv::Point2d>(index));
 
     if (prevPsize.psize != PsizeParams::INVALID_PSIZE) [[likely]] {
         const int hashDist = L1Dist(prevPsize.hash, hash);
@@ -127,7 +128,7 @@ static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliCo
             const cv::Point index{col, row};
             const PsizeRecord& psize = estimatePatchsize<TArrange, IS_KEPLER, USE_FAR_NEIGHBOR>(
                 arrange, cvtCfg, params, mis, prevPatchsizes, index);
-            patchsizes.at<PsizeRecord>(index) = psize;
+            patchsizes.at<cv::Point2d>(index) = std::bit_cast<cv::Point2d>(psize);
         }
     }
 }
