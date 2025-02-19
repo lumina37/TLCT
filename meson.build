@@ -3,7 +3,7 @@ project(
     version : '1.3.3a0',
     meson_version : '>=1.3.0',
     license : 'LGPL-3.0-or-later',
-    default_options : { 'cpp_std' : 'c++latest' }
+    default_options : { 'cpp_std' : 'c++20' }
 )
 
 feat_header_only = get_option('TLCT_HEADER_ONLY')
