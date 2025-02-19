@@ -1,4 +1,4 @@
 .*/
 *build*/
 
-cmake.h
+config.h

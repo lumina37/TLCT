@@ -6,6 +6,10 @@
 
 #include "tlct.hpp"
 
+#ifndef TLCT_TESTDATA_DIR
+#    define TLCT_TESTDATA_DIR "."
+#endif
+
 namespace fs = std::filesystem;
 
 TEST_CASE("tlct::cfg#CornersArrange") {

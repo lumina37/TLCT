@@ -3,7 +3,7 @@ enable_testing()
 function(tlct_add_test name srcs)
     add_executable(${name} ${srcs})
     target_link_libraries(${name} PRIVATE doctest tlct::lib)
-    target_compile_definitions(${name} PRIVATE $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>)
+    target_compile_definitions(${name} PRIVATE TLCT_TESTDATA_DIR="${TLCT_TESTDATA_DIR}")
 
     copy_dlls_if_needed(${name})
     doctest_discover_tests(${name})

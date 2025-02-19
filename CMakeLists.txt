@@ -17,15 +17,16 @@ include(CMakeDependentOption)
 
 option(TLCT_BUILD_TESTS "Build tests" OFF)
 option(TLCT_HEADER_ONLY "Enable the header-only mode" OFF)
-cmake_dependent_option(TLCT_BUILD_SHARED_LIBS "Specifies the type of TLCT to build" ON
+cmake_dependent_option(TLCT_BUILD_SHARED_LIBS "Build shared libs" ON
         "NOT TLCT_HEADER_ONLY AND BUILD_SHARED_LIBS" OFF)
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
         "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
-option(TLCT_VERBOSE_WARNING "Show more verbose compiler warnings" OFF)
+option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
 
 if (MSVC)
     option(TLCT_WITH_STATIC_CRT "Link with STATIC CRT" OFF)
     set(MSVC_RUNTIME_TYPE MultiThreaded$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif ()
 
 # Dependencies
@@ -74,7 +75,7 @@ endfunction()
 set(TLCT_COMPILE_INFO "[TLCT v${PROJECT_VERSION}] [OpenCV v${OpenCV_VERSION}] by [${CMAKE_CXX_COMPILER_ID} v${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_SYSTEM_PROCESSOR})]")
 
 set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
-configure_file("${TLCT_CONFIGURE_DIR}/cmake.h.in" "${TLCT_CONFIGURE_DIR}/cmake.h" @ONLY)
+configure_file("${TLCT_CONFIGURE_DIR}/config.h.in" "${TLCT_CONFIGURE_DIR}/config.h" @ONLY)
 
 # Add lib/bin/tests
 add_subdirectory(src)
