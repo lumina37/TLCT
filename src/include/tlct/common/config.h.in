@@ -1,0 +1,9 @@
+#pragma once
+
+#mesondefine TLCT_HEADER_ONLY
+#mesondefine TLCT_BUILD_SHARED_LIBS
+
+#define TLCT_VERSION "@TLCT_VERSION@"
+#define TLCT_COMPILE_INFO "@TLCT_COMPILE_INFO@"
+
+#define TLCT_TEST_DATA_DIR "@TLCT_TEST_DATA_DIR@"

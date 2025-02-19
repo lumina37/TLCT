@@ -1,15 +1,16 @@
-﻿#include <filesystem>
+﻿#include <cstdlib>
+#include <filesystem>
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
-#include <doctest/doctest.h>
+#include <doctest.h>
 
 #include "tlct.hpp"
 
 namespace fs = std::filesystem;
 
 TEST_CASE("tlct::cfg#OffsetArrange") {
-    const fs::path testdata_dir{TLCT_TESTDATA_DIR};
+    const fs::path testdata_dir{TLCT_TEST_DATA_DIR};
     fs::current_path(testdata_dir);
 
     const auto& cfgMap = tlct::ConfigMap::fromPath("test/raytrix.cfg");

@@ -1,15 +1,16 @@
-﻿#include <filesystem>
+﻿#include <cstdlib>
+#include <filesystem>
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
-#include <doctest/doctest.h>
+#include <doctest.h>
 
 #include "tlct.hpp"
 
 namespace fs = std::filesystem;
 
 TEST_CASE("tlct::cfg#CornersArrange") {
-    const fs::path testdataDir{TLCT_TESTDATA_DIR};
+    const fs::path testdataDir{TLCT_TEST_DATA_DIR};
     fs::current_path(testdataDir);
 
     const auto& cfgMap = tlct::ConfigMap::fromPath("test/清华单聚焦光场相机.cfg");

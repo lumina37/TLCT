@@ -49,10 +49,9 @@ jobs:
 
       - name: Build
         run: |
-          cmake -S . -B build -DTLCT_BUILD_TESTS=ON
-          cmake --build build --parallel
+          meson setup build -DTLCT_BUILD_TESTS=enabled
+          meson compile -C build
 
       - name: Run tests
         run: |
-          cd build
-          ctest
+          meson test
