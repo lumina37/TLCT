@@ -49,9 +49,9 @@ jobs:
 
       - name: Build
         run: |
-          meson setup build -DTLCT_BUILD_TESTS=enabled
-          meson compile -C build
+          pipx run meson setup build -DTLCT_BUILD_TESTS=enabled
+          pipx run meson compile -C build
 
       - name: Run tests
         run: |
-          meson test
+          pipx run meson test
