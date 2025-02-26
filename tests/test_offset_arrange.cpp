@@ -1,8 +1,7 @@
 ﻿#include <filesystem>
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
-#include <doctest/doctest.h>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "tlct.hpp"
 
@@ -12,7 +11,7 @@
 
 namespace fs = std::filesystem;
 
-TEST_CASE("tlct::cfg#OffsetArrange") {
+TEST_CASE("Arrange with central MI and offset", "tlct::cfg#OffsetArrange") {
     const fs::path testdata_dir{TLCT_TESTDATA_DIR};
     fs::current_path(testdata_dir);
 
@@ -21,28 +20,28 @@ TEST_CASE("tlct::cfg#OffsetArrange") {
 
     constexpr float eps = 0.1;
 
-    CHECK(arrange.getImgWidth() == 6464);
-    CHECK(arrange.getImgHeight() == 4852);
-    CHECK(arrange.getImgSize() == cv::Size(6464, 4852));
+    REQUIRE(arrange.getImgWidth() == 6464);
+    REQUIRE(arrange.getImgHeight() == 4852);
+    REQUIRE(arrange.getImgSize() == cv::Size(6464, 4852));
 
-    CHECK(arrange.getDiameter() == doctest::Approx(37.154060363770).epsilon(eps));
-    CHECK(arrange.getRadius() == doctest::Approx(18.577030181885).epsilon(eps));
-    CHECK(arrange.getDirection() == false);
+    REQUIRE_THAT(arrange.getDiameter(), Catch::Matchers::WithinAbs(37.154060363770, eps));
+    REQUIRE_THAT(arrange.getRadius(), Catch::Matchers::WithinAbs(18.577030181885, eps));
+    REQUIRE(arrange.getDirection() == false);
 
     const cv::Point2f& center_0_0 = arrange.getMICenter(0, 0);
-    CHECK(center_0_0.x == doctest::Approx(48.4).epsilon(eps));
-    CHECK(center_0_0.y == doctest::Approx(36.3).epsilon(eps));
+    REQUIRE_THAT(center_0_0.x, Catch::Matchers::WithinAbs(48.4, eps));
+    REQUIRE_THAT(center_0_0.y, Catch::Matchers::WithinAbs(36.3, eps));
     const cv::Point2f& center_1_0 = arrange.getMICenter(1, 0);
-    CHECK(center_1_0.x == doctest::Approx(29.8).epsilon(eps));
-    CHECK(center_1_0.y == doctest::Approx(68.4).epsilon(eps));
+    REQUIRE_THAT(center_1_0.x, Catch::Matchers::WithinAbs(29.8, eps));
+    REQUIRE_THAT(center_1_0.y, Catch::Matchers::WithinAbs(68.4, eps));
     const cv::Point2f& center_0_1 = arrange.getMICenter(0, 1);
-    CHECK(center_0_1.x == doctest::Approx(85.5).epsilon(eps));
-    CHECK(center_0_1.y == doctest::Approx(36.3).epsilon(eps));
+    REQUIRE_THAT(center_0_1.x, Catch::Matchers::WithinAbs(85.5, eps));
+    REQUIRE_THAT(center_0_1.y, Catch::Matchers::WithinAbs(36.3, eps));
 
-    CHECK(arrange.getMICenter({0, 0}) == center_0_0);
-    CHECK(arrange.getMICenter({1, 0}) == center_0_1);
-    CHECK(arrange.getMICenter({0, 1}) == center_1_0);
+    REQUIRE(arrange.getMICenter({0, 0}) == center_0_0);
+    REQUIRE(arrange.getMICenter({1, 0}) == center_0_1);
+    REQUIRE(arrange.getMICenter({0, 1}) == center_1_0);
 
-    CHECK(arrange.getMIRows() == 150);
-    CHECK(arrange.getMIMinCols() == 173);
+    REQUIRE(arrange.getMIRows() == 150);
+    REQUIRE(arrange.getMIMinCols() == 173);
 }

@@ -48,12 +48,12 @@ if (TLCT_BUILD_TESTS)
     include(CTest)
 
     FetchContent_Declare(
-            doctest
-            GIT_REPOSITORY https://github.com/doctest/doctest.git
-            GIT_TAG v2.4.11
+            Catch2
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG v3.8.0
     )
-    FetchContent_MakeAvailable(doctest)
-    include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
+    FetchContent_MakeAvailable(Catch2)
+    include(Catch)
 
     FetchContent_Declare(
             tlct-test-data
