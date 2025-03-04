@@ -6,6 +6,7 @@ on:
     paths:
       - "src/**"
       - "tests/**"
+      - ".devcontainer/**"
       - "CMakeLists.txt"
       - ".github/workflows/CI.yml"
   push:
@@ -13,6 +14,7 @@ on:
     paths:
       - "src/**"
       - "tests/**"
+      - ".devcontainer/**"
       - "CMakeLists.txt"
       - ".github/workflows/CI.yml"
   workflow_dispatch:
@@ -20,7 +22,7 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     env:
       OPENCV_VERSION: 4.11.0
@@ -34,7 +36,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/opencv-install
-          key: ${{ runner.os }}-${{ env.OPENCV_VERSION }}
+          key: ${{ env.OPENCV_VERSION }}-${{ hashFiles('.devcontainer/install-opencv.sh') }}
 
       - name: Build OpenCV
         if: steps.opencv-cache.outputs.cache-hit != 'true'

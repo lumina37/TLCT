@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.3.3.3
+        VERSION 1.3.3.4
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
@@ -32,7 +32,10 @@ endif ()
 # Dependencies
 include(FetchContent)
 
-find_package(OpenCV REQUIRED COMPONENTS imgproc)
+find_package(OpenCV
+        REQUIRED COMPONENTS imgproc
+        OPTIONAL_COMPONENTS imgcodecs
+)
 
 set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.2.tar.gz" CACHE STRING
         "Specifies the path of argparse")
@@ -58,7 +61,7 @@ if (TLCT_BUILD_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/lumina37/TLCT-test-data.git
-            GIT_TAG e927a96513c6be758e71dbd3a01dbb0259cbe91a
+            GIT_TAG 0c5a1e0f8beacecb05123edc12eff8a4a1f3b616
     )
     FetchContent_MakeAvailable(tlct-test-data)
     set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")
