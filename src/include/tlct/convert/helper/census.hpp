@@ -26,10 +26,10 @@ public:
     inline void updateRoi(cv::Rect roi) noexcept;
 
     const MIBuffer& mi_;
-    cv::Mat srcY_, censusMap_, censusMask_;
+    cv::Mat srcY_;
 
 private:
-    mutable cv::Mat I1I2, mu1mu2, sigma12;
+    cv::Mat censusMap_, censusMask_;
 };
 
 void WrapCensus::updateRoi(cv::Rect roi) noexcept {
@@ -39,6 +39,8 @@ void WrapCensus::updateRoi(cv::Rect roi) noexcept {
 }
 
 float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
+    constexpr int BYTE_COUNT = sizeof(cv::Vec3b) / sizeof(uint8_t);
+
     uint64_t diffSum = 0;
     for (int row = 0; row < censusMap_.rows; row++) {
         const cv::Vec3b* pLhsMap = censusMap_.ptr<cv::Vec3b>(row);
@@ -46,7 +48,6 @@ float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
         const cv::Vec3b* pRhsMap = rhs.censusMap_.ptr<cv::Vec3b>(row);
         const cv::Vec3b* pRhsMask = rhs.censusMask_.ptr<cv::Vec3b>(row);
         for (int col = 0; col < censusMap_.cols; col++) {
-            constexpr int BYTE_COUNT = sizeof(cv::Vec3b) / sizeof(uint8_t);
             for (int byteId = 0; byteId < BYTE_COUNT; byteId++) {
                 const uint8_t diff = (*pLhsMap)[byteId] ^ (*pRhsMap)[byteId];
                 const uint8_t mask = (*pLhsMask)[byteId] & (*pRhsMask)[byteId];
@@ -60,7 +61,7 @@ float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
         }
     }
 
-    const float avgDiff = (float)diffSum / (float)(censusMap_.total() * 3);
+    const float avgDiff = (float)diffSum / (float)(censusMap_.total() * BYTE_COUNT);
     return avgDiff;
 }
 

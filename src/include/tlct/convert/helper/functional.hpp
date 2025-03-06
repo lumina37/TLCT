@@ -93,7 +93,7 @@ static inline void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask
             const uint8_t centralPix = src.at<uint8_t>(row, col);
             for (int winRow = -HALF_WINDOW; winRow <= HALF_WINDOW; winRow++) {
                 for (int winCol = -HALF_WINDOW; winCol <= HALF_WINDOW; winCol++) {
-                    if (winRow == 0 && winCol == 0) continue;  // Central
+                    if (winRow == 0 && winCol == 0) continue;  // skip the central pixel
 
                     const int byteId = winPixCount / 8;
                     const int bitOffset = winPixCount % 8;

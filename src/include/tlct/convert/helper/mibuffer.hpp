@@ -40,7 +40,7 @@ public:
             idiameter_ = _hp::iround(arrange.getDiameter());
             alignedMatSizeC1_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_);
             alignedMatSizeC3_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * 3);
-            alignedMISize_ = alignedMatSizeC1_ * MIBuffer::C1_COUNT + alignedMatSizeC3_ * MIBuffer::C1_COUNT;
+            alignedMISize_ = alignedMatSizeC1_ * MIBuffer::C1_COUNT + alignedMatSizeC3_ * MIBuffer::C3_COUNT;
             miMaxCols_ = arrange.getMIMaxCols();
             miNum_ = miMaxCols_ * arrange.getMIRows();
             bufferSize_ = miNum_ * alignedMISize_;
