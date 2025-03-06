@@ -31,8 +31,10 @@ template <tcfg::concepts::CArrange TArrange>
 PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg) {
     const float patternSize = arrange.getDiameter() * cvtCfg.patternSize;
     const float radius = arrange.getDiameter() / 2.f;
+    const float safeRadius = radius * 0.95f;
     const float halfPatternSize = patternSize / 2.f;
-    const float maxPatternShift = std::sqrt((radius - halfPatternSize) * (radius + halfPatternSize)) - halfPatternSize;
+    const float maxPatternShift =
+        std::sqrt((safeRadius - halfPatternSize) * (safeRadius + halfPatternSize)) - halfPatternSize;
     const float candidatePatternShift = radius * cvtCfg.maxPsize;
     const float patternShift = std::min(maxPatternShift, candidatePatternShift);
 

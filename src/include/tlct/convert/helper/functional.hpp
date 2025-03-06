@@ -37,10 +37,10 @@ namespace rgs = std::ranges;
 [[nodiscard]] static inline float textureIntensity(const cv::Mat& src) {
     cv::Mat edges;
     float intensity = 0.0;
-    cv::Sobel(src, edges, -1, 1, 0);
+    cv::Sobel(src, edges, CV_32F, 1, 0);
     edges = cv::abs(edges);
     intensity += (float)cv::sum(edges)[0];
-    cv::Sobel(src, edges, -1, 0, 1);
+    cv::Sobel(src, edges, CV_32F, 0, 1);
     edges = cv::abs(edges);
     intensity += (float)cv::sum(edges)[0];
     intensity /= edges.size().area();
@@ -73,6 +73,55 @@ namespace rgs = std::ranges;
 
 [[nodiscard]] static inline int L1Dist(uint64_t lhs, uint64_t rhs) { return std::popcount(lhs ^ rhs); }
 
-static inline void blurInto(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
+static inline void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap,
+                                      cv::Mat& censusMask) {
+    const auto isInRange = [&src](const int row, const int col) {
+        if (row < 0 || row >= src.rows) return false;
+        if (col < 0 || col >= src.cols) return false;
+        return true;
+    };
+
+    for (int row = 0; row < src.rows; row++) {
+        cv::Vec3b* pMap = censusMap.ptr<cv::Vec3b>(row);
+        cv::Vec3b* pMask = censusMask.ptr<cv::Vec3b>(row);
+        for (int col = 0; col < src.cols; col++) {
+            // For each pixel
+            constexpr int WINDOW = 5;
+            constexpr int HALF_WINDOW = WINDOW / 2;
+            // Deal with the window
+            int count = 0;
+            const uint8_t central = src.at<uint8_t>(row, col);
+            for (int winRow = -HALF_WINDOW; winRow <= HALF_WINDOW; winRow++) {
+                for (int winCol = -HALF_WINDOW; winCol <= HALF_WINDOW; winCol++) {
+                    if (winRow == 0 && winCol == 0) continue;  // Central
+
+                    const int vecIdx = count / 8;
+                    const int vecShift = count % 8;
+                    constexpr uint8_t one = 1;
+                    if (!isInRange(row + winRow, col + winCol)) {
+                        (*pMask)[vecIdx] &= ~(one << vecShift);  // bit set pMask[vecIdx][vecShift] = 0
+                    } else {
+                        const uint8_t srcMaskElem = srcMask.at<uint8_t>(row + winRow, col + winCol);
+                        if (srcMaskElem == 0) {
+                            (*pMask)[vecIdx] &= ~(one << vecShift);  // bit set pMask[vecIdx][vecShift] = 0
+                        } else {
+                            const uint8_t srcElem = src.at<uint8_t>(row + winRow, col + winCol);
+                            (*pMask)[vecIdx] |= (one << vecShift);  // bit set pMask[vecIdx][vecShift] = 1
+                            if (srcElem > central) {
+                                (*pMap)[vecIdx] |= (one << vecShift);  // bit set pMap[vecIdx][vecShift] = 1
+                            } else {
+                                (*pMap)[vecIdx] &= ~(one << vecShift);  // bit set pMap[vecIdx][vecShift] = 1
+                            }
+                        }
+                    }
+
+                    count++;
+                }
+            }
+            pMap++;
+            pMask++;
+        }
+    }
+}
 
 }  // namespace tlct::_cvt

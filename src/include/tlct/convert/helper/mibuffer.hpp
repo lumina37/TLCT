@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <ranges>
 #include <utility>
@@ -9,6 +10,7 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
@@ -17,7 +19,9 @@ namespace tlct::_cvt {
 namespace rgs = std::ranges;
 
 struct MIBuffer {
-    cv::Mat I, I_2;
+    cv::Mat srcY;        // 8UC1
+    cv::Mat censusMap;   // 8UC3
+    cv::Mat censusMask;  // 8UC3
 };
 
 template <tlct::cfg::concepts::CArrange TArrange_>
@@ -32,8 +36,9 @@ public:
         inline Params() = default;
         inline explicit Params(const TArrange& arrange) noexcept {
             idiameter_ = _hp::iround(arrange.getDiameter());
-            alignedMatSize_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * sizeof(float));
-            alignedMISize_ = (sizeof(MIBuffer) / sizeof(cv::Mat)) * alignedMatSize_;
+            alignedMatSizeC1_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_);
+            alignedMatSizeC3_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * 3);
+            alignedMISize_ = alignedMatSizeC3_ * 2 + alignedMatSizeC1_;
             miMaxCols_ = arrange.getMIMaxCols();
             miNum_ = miMaxCols_ * arrange.getMIRows();
             bufferSize_ = miNum_ * alignedMISize_;
@@ -41,7 +46,8 @@ public:
         inline Params& operator=(Params&& rhs) noexcept = default;
         inline Params(Params&& rhs) noexcept = default;
 
-        size_t alignedMatSize_;
+        size_t alignedMatSizeC1_;
+        size_t alignedMatSizeC3_;
         size_t alignedMISize_;
         size_t bufferSize_;
         int idiameter_;
@@ -102,9 +108,10 @@ MIBuffers_<TArrange> MIBuffers_<TArrange>::fromArrange(const TArrange& arrange) 
 
 template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
-    cv::Mat f32I2;
-    const cv::Mat& f32I = src;
-    cv::multiply(f32I, f32I, f32I2);
+    int iDiameter = _hp::iround(arrange_.getDiameter());
+    int iRadius = _hp::iround(arrange_.getRadius());
+    cv::Mat srcMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
+    cv::circle(srcMask, {iRadius, iRadius}, iRadius, cv::Scalar::all(0xff), cv::FILLED);
 
     auto itemIt = items_.begin();
     uint8_t* rowCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
@@ -118,17 +125,18 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
 
             uint8_t* matCursor = colCursor;
 
-            const cv::Mat& srcI = f32I(roi);
-            cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matCursor);
-            srcI.copyTo(dstI);
-            matCursor += params_.alignedMatSize_;
+            const cv::Mat& srcY = src(roi);
+            cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC1, matCursor);
+            srcY.copyTo(dstI);
+            matCursor += params_.alignedMatSizeC1_;
 
-            const cv::Mat& srcI2 = f32I2(roi);
-            cv::Mat dstI2 = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matCursor);
-            srcI2.copyTo(dstI2);
-            matCursor += params_.alignedMatSize_;
+            cv::Mat censusMap = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matCursor);
+            matCursor += params_.alignedMatSizeC3_;
+            cv::Mat censusMask = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matCursor);
+            matCursor += params_.alignedMatSizeC3_;
+            censusTransform5x5(srcY, srcMask, censusMap, censusMask);
 
-            *itemIt = {std::move(dstI), std::move(dstI2)};
+            *itemIt = {std::move(dstI), std::move(censusMap), std::move(censusMask)};
             itemIt++;
             colCursor += params_.alignedMISize_;
         }

@@ -40,15 +40,15 @@ namespace fs = std::filesystem;
     parser->add_argument("--psizeInflate")
         .help("the extracted patch will be inflated by this scale")
         .scan<'g', float>()
-        .default_value(2.15);
+        .default_value(2.15f);
     parser->add_argument("--viewShiftRange")
         .help("reserve `viewShiftRange*diameter` for view shifting")
         .scan<'g', float>()
-        .default_value(0.1);
+        .default_value(0.1f);
     parser->add_argument("--patternSize")
         .help("the size of matching pattern will be `patternSize*diameter`")
         .scan<'g', float>()
-        .default_value(0.3);
+        .default_value(0.3f);
     parser->add_argument("--psizeShortcutThre")
         .help("if the difference bit of dhash of MI is smaller than this value, then use the prev. patch size")
         .scan<'i', int>()

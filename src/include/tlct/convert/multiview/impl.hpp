@@ -33,7 +33,7 @@ static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArr
         const int row_offset = row * arrange.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const int offset = row_offset + col;
-            const cv::Mat& mi = mis.getMI(offset).I;
+            const cv::Mat& mi = mis.getMI(offset).srcY;
             const float curr_I = textureIntensity(mi(roi));
             texture_I.at<float>(row, col) = curr_I;
             ti_meanstddev.update(curr_I);

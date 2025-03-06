@@ -140,7 +140,7 @@ void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame&
         mvCache_.srcs[i].convertTo(mvCache_.f32Srcs[i], CV_32FC1);
     }
 
-    mis_.update(mvCache_.f32Srcs[0]);
+    mis_.update(mvCache_.srcs[0]);
 
     std::swap(prevPatchsizes_, patchsizes_);
     estimatePatchsizes<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_,

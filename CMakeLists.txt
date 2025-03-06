@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.3.3.4
+        VERSION 1.4.0.0
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
