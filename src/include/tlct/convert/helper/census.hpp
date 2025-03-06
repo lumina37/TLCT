@@ -46,9 +46,10 @@ float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
         const cv::Vec3b* pRhsMap = rhs.censusMap_.ptr<cv::Vec3b>(row);
         const cv::Vec3b* pRhsMask = rhs.censusMask_.ptr<cv::Vec3b>(row);
         for (int col = 0; col < censusMap_.cols; col++) {
-            for (int vecIdx = 0; vecIdx < 3; vecIdx++) {
-                const uint8_t mask = (*pLhsMask)[vecIdx] & (*pRhsMask)[vecIdx];
-                const uint8_t diff = (*pLhsMap)[vecIdx] ^ (*pRhsMap)[vecIdx];
+            constexpr int BYTE_COUNT = sizeof(cv::Vec3b) / sizeof(uint8_t);
+            for (int byteId = 0; byteId < BYTE_COUNT; byteId++) {
+                const uint8_t diff = (*pLhsMap)[byteId] ^ (*pRhsMap)[byteId];
+                const uint8_t mask = (*pLhsMask)[byteId] & (*pRhsMask)[byteId];
                 const uint8_t maskedDiff = mask & diff;
                 diffSum += std::popcount(maskedDiff);
             }

@@ -19,7 +19,9 @@ namespace tlct::_cvt {
 namespace rgs = std::ranges;
 
 struct MIBuffer {
-    cv::Mat srcY;        // 8UC1
+    static constexpr int C1_COUNT = 1;
+    cv::Mat srcY;  // 8UC1
+    static constexpr int C3_COUNT = 2;
     cv::Mat censusMap;   // 8UC3
     cv::Mat censusMask;  // 8UC3
 };
@@ -38,7 +40,7 @@ public:
             idiameter_ = _hp::iround(arrange.getDiameter());
             alignedMatSizeC1_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_);
             alignedMatSizeC3_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * 3);
-            alignedMISize_ = alignedMatSizeC3_ * 2 + alignedMatSizeC1_;
+            alignedMISize_ = alignedMatSizeC1_ * MIBuffer::C1_COUNT + alignedMatSizeC3_ * MIBuffer::C1_COUNT;
             miMaxCols_ = arrange.getMIMaxCols();
             miNum_ = miMaxCols_ * arrange.getMIRows();
             bufferSize_ = miNum_ * alignedMISize_;
@@ -56,21 +58,21 @@ public:
     };
 
     // Constructor
-    inline MIBuffers_() noexcept : arrange_(), params_(), items_(), buffer_(nullptr) {};
+    inline MIBuffers_() noexcept : arrange_(), params_(), miBuffers_(), buffer_(nullptr) {};
     inline explicit MIBuffers_(const TArrange& arrange);
     MIBuffers_& operator=(const MIBuffers_& rhs) = delete;
     MIBuffers_(const MIBuffers_& rhs) = delete;
     inline MIBuffers_& operator=(MIBuffers_&& rhs) noexcept {
         arrange_ = std::move(rhs.arrange_);
         params_ = std::move(rhs.params_);
-        items_ = std::move(rhs.items_);
+        miBuffers_ = std::move(rhs.miBuffers_);
         buffer_ = std::exchange(rhs.buffer_, nullptr);
         return *this;
     };
     inline MIBuffers_(MIBuffers_&& rhs) noexcept
         : arrange_(std::move(rhs.arrange_)),
           params_(std::move(rhs.params_)),
-          items_(std::move(rhs.items_)),
+          miBuffers_(std::move(rhs.miBuffers_)),
           buffer_(std::exchange(rhs.buffer_, nullptr)) {};
     inline ~MIBuffers_() { std::free(buffer_); }
 
@@ -80,10 +82,10 @@ public:
     // Const methods
     [[nodiscard]] inline const MIBuffer& getMI(int row, int col) const noexcept {
         const int offset = row * params_.miMaxCols_ + col;
-        return items_.at(offset);
+        return miBuffers_.at(offset);
     };
     [[nodiscard]] inline const MIBuffer& getMI(cv::Point index) const noexcept { return getMI(index.y, index.x); };
-    [[nodiscard]] inline const MIBuffer& getMI(int offset) const noexcept { return items_.at(offset); };
+    [[nodiscard]] inline const MIBuffer& getMI(int offset) const noexcept { return miBuffers_.at(offset); };
 
     // Non-const methods
     inline MIBuffers_& update(const cv::Mat& src);
@@ -91,13 +93,13 @@ public:
 private:
     TArrange arrange_;
     Params params_;
-    std::vector<MIBuffer> items_;
+    std::vector<MIBuffer> miBuffers_;
     void* buffer_;
 };
 
 template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::MIBuffers_(const TArrange& arrange) : arrange_(arrange), params_(arrange) {
-    items_.resize(params_.miNum_);
+    miBuffers_.resize(params_.miNum_);
     buffer_ = std::malloc(params_.bufferSize_ + Params::SIMD_FETCH_SIZE);
 }
 
@@ -110,42 +112,43 @@ template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
     int iDiameter = _hp::iround(arrange_.getDiameter());
     int iRadius = _hp::iround(arrange_.getRadius());
-    cv::Mat srcMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
-    cv::circle(srcMask, {iRadius, iRadius}, iRadius, cv::Scalar::all(0xff), cv::FILLED);
+    cv::Mat srcCircleMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
+    cv::circle(srcCircleMask, {iRadius, iRadius}, iRadius, cv::Scalar::all(0xff), cv::FILLED);
 
-    auto itemIt = items_.begin();
-    uint8_t* rowCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
-    size_t rowStep = params_.miMaxCols_ * params_.alignedMISize_;
-    for (const int irow : rgs::views::iota(0, arrange_.getMIRows())) {
-        uint8_t* colCursor = rowCursor;
-        const int miCols = arrange_.getMICols(irow);
-        for (const int icol : rgs::views::iota(0, miCols)) {
-            const cv::Point2f& miCenter = arrange_.getMICenter(irow, icol);
-            const cv::Rect roi = getRoiByCenter(miCenter, arrange_.getDiameter());
+    auto miBufIterator = miBuffers_.begin();
+    uint8_t* rowBufCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
+    size_t rowBufStep = params_.miMaxCols_ * params_.alignedMISize_;
+    for (const int rowMIIdx : rgs::views::iota(0, arrange_.getMIRows())) {
+        uint8_t* colBufCursor = rowBufCursor;
 
-            uint8_t* matCursor = colCursor;
+        const int miCols = arrange_.getMICols(rowMIIdx);
+        for (const int colMIIdx : rgs::views::iota(0, miCols)) {
+            const cv::Point2f& miCenter = arrange_.getMICenter(rowMIIdx, colMIIdx);
+            const cv::Rect miRoi = getRoiByCenter(miCenter, arrange_.getDiameter());
 
-            const cv::Mat& srcY = src(roi);
-            cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC1, matCursor);
+            uint8_t* matBufCursor = colBufCursor;
+
+            const cv::Mat& srcY = src(miRoi);
+            cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC1, matBufCursor);
             srcY.copyTo(dstI);
-            matCursor += params_.alignedMatSizeC1_;
+            matBufCursor += params_.alignedMatSizeC1_;
 
-            cv::Mat censusMap = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matCursor);
-            matCursor += params_.alignedMatSizeC3_;
-            cv::Mat censusMask = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matCursor);
-            matCursor += params_.alignedMatSizeC3_;
-            censusTransform5x5(srcY, srcMask, censusMap, censusMask);
+            cv::Mat censusMap = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matBufCursor);
+            matBufCursor += params_.alignedMatSizeC3_;
+            cv::Mat censusMask = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matBufCursor);
+            matBufCursor += params_.alignedMatSizeC3_;
+            censusTransform5x5(srcY, srcCircleMask, censusMap, censusMask);
 
-            *itemIt = {std::move(dstI), std::move(censusMap), std::move(censusMask)};
-            itemIt++;
-            colCursor += params_.alignedMISize_;
+            *miBufIterator = {std::move(dstI), std::move(censusMap), std::move(censusMask)};
+            miBufIterator++;
+            colBufCursor += params_.alignedMISize_;
         }
 
         if (miCols < params_.miMaxCols_) {
-            itemIt++;
+            miBufIterator++;
         }
 
-        rowCursor += rowStep;
+        rowBufCursor += rowBufStep;
     }
 
     return *this;

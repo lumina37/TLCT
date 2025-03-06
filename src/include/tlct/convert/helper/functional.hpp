@@ -82,44 +82,47 @@ static inline void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask
     };
 
     for (int row = 0; row < src.rows; row++) {
-        cv::Vec3b* pMap = censusMap.ptr<cv::Vec3b>(row);
-        cv::Vec3b* pMask = censusMask.ptr<cv::Vec3b>(row);
+        cv::Vec3b* pCsMap = censusMap.ptr<cv::Vec3b>(row);
+        cv::Vec3b* pCsMask = censusMask.ptr<cv::Vec3b>(row);
         for (int col = 0; col < src.cols; col++) {
             // For each pixel
             constexpr int WINDOW = 5;
             constexpr int HALF_WINDOW = WINDOW / 2;
             // Deal with the window
-            int count = 0;
-            const uint8_t central = src.at<uint8_t>(row, col);
+            int winPixCount = 0;
+            const uint8_t centralPix = src.at<uint8_t>(row, col);
             for (int winRow = -HALF_WINDOW; winRow <= HALF_WINDOW; winRow++) {
                 for (int winCol = -HALF_WINDOW; winCol <= HALF_WINDOW; winCol++) {
                     if (winRow == 0 && winCol == 0) continue;  // Central
 
-                    const int vecIdx = count / 8;
-                    const int vecShift = count % 8;
+                    const int byteId = winPixCount / 8;
+                    const int bitOffset = winPixCount % 8;
                     constexpr uint8_t one = 1;
                     if (!isInRange(row + winRow, col + winCol)) {
-                        (*pMask)[vecIdx] &= ~(one << vecShift);  // bit set pMask[vecIdx][vecShift] = 0
+                        (*pCsMask)[byteId] &= ~(one << bitOffset);  // bit set pMask[vecIdx][vecShift] = 0
                     } else {
-                        const uint8_t srcMaskElem = srcMask.at<uint8_t>(row + winRow, col + winCol);
-                        if (srcMaskElem == 0) {
-                            (*pMask)[vecIdx] &= ~(one << vecShift);  // bit set pMask[vecIdx][vecShift] = 0
+                        const uint8_t srcMaskVal = srcMask.at<uint8_t>(row + winRow, col + winCol);
+                        if (srcMaskVal == 0) {
+                            (*pCsMask)[byteId] &= ~(one << bitOffset);  // bit set pMask[vecIdx][vecShift] = 0
                         } else {
-                            const uint8_t srcElem = src.at<uint8_t>(row + winRow, col + winCol);
-                            (*pMask)[vecIdx] |= (one << vecShift);  // bit set pMask[vecIdx][vecShift] = 1
-                            if (srcElem > central) {
-                                (*pMap)[vecIdx] |= (one << vecShift);  // bit set pMap[vecIdx][vecShift] = 1
+                            const uint8_t srcPix = src.at<uint8_t>(row + winRow, col + winCol);
+                            (*pCsMask)[byteId] |= (one << bitOffset);  // bit set pMask[vecIdx][vecShift] = 1
+                            if (srcPix > centralPix) {
+                                (*pCsMap)[byteId] |= (one << bitOffset);  // bit set pMap[vecIdx][vecShift] = 1
                             } else {
-                                (*pMap)[vecIdx] &= ~(one << vecShift);  // bit set pMap[vecIdx][vecShift] = 1
+                                (*pCsMap)[byteId] &= ~(one << bitOffset);  // bit set pMap[vecIdx][vecShift] = 1
                             }
                         }
                     }
 
-                    count++;
+                    // bump for each pixel in window
+                    winPixCount++;
                 }
             }
-            pMap++;
-            pMask++;
+
+            // bump for each pixel in src
+            pCsMap++;
+            pCsMask++;
         }
     }
 }
