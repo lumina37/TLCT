@@ -65,7 +65,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         }
 
         const float weight = textureIntensity(wrapAnchor.srcY_);
-        const float metric = std::expf(-minMetric * 2.0f);
+        const float metric = expf(-minMetric * 2.0f);
         const float weightedMetric = weight * metric;
         sumPsize += bestPsize * weightedMetric;
         sumPsizeWeight += weightedMetric;
