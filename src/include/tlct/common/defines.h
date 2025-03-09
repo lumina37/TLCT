@@ -2,18 +2,18 @@
 
 #include "tlct/common/config.h"
 
-#ifdef TLCT_HEADER_ONLY
+#ifdef _TLCT_LIB_HEADER_ONLY
 #    define TLCT_API
 #else
-#    ifdef TLCT_BUILD_SHARED_LIBS
+#    ifdef _TLCT_LIB_DYNAMIC
 #        ifdef _MSC_VER
-#            ifdef _TLCT_BUILD_LIBS
+#            ifdef tlct_lib_dynamic_EXPORTS
 #                define TLCT_API __declspec(dllexport)
 #            else
 #                define TLCT_API __declspec(dllimport)
 #            endif
 #        else
-#            ifdef _TLCT_BUILD_LIBS
+#            ifdef tlct_lib_dynamic_EXPORTS
 #                define TLCT_API __attribute__((visibility("default")))
 #            else
 #                define TLCT_API

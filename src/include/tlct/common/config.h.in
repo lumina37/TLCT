@@ -1,7 +1,4 @@
 #pragma once
 
-#cmakedefine TLCT_HEADER_ONLY
-#cmakedefine TLCT_BUILD_SHARED_LIBS
-
 #cmakedefine tlct_VERSION "@tlct_VERSION@"
 #cmakedefine TLCT_COMPILE_INFO "@TLCT_COMPILE_INFO@"

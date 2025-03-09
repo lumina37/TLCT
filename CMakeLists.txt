@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.4.0.0
+        VERSION 1.4.1.0
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
@@ -16,9 +16,6 @@ project(tlct
 include(CMakeDependentOption)
 
 option(TLCT_BUILD_TESTS "Build tests" OFF)
-option(TLCT_HEADER_ONLY "Enable the header-only mode" OFF)
-cmake_dependent_option(TLCT_BUILD_SHARED_LIBS "Build shared libs" ON
-        "NOT TLCT_HEADER_ONLY AND BUILD_SHARED_LIBS" OFF)
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
         "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
@@ -69,7 +66,7 @@ endif ()
 
 # Helper
 function(copy_dlls_if_needed name)
-    if (WIN32 AND BUILD_SHARED_LIBS)
+    if (WIN32)
         add_custom_command(TARGET ${name} POST_BUILD COMMAND ${CMAKE_COMMAND} -E
                 copy_if_different $<TARGET_RUNTIME_DLLS:${name}> $<TARGET_FILE:${name}> $<TARGET_FILE_DIR:${name}> COMMAND_EXPAND_LISTS)
     endif ()
@@ -92,7 +89,13 @@ include(GNUInstallDirs)
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     include(CMakePackageConfigHelpers)
 
-    install(TARGETS ${PROJECT_NAME}-lib argparse
+    install(TARGETS ${PROJECT_NAME}-lib-dynamic argparse
+            EXPORT ${PROJECT_NAME}Targets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+    install(TARGETS ${PROJECT_NAME}-lib-static
             EXPORT ${PROJECT_NAME}Targets
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
