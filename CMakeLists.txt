@@ -6,14 +6,14 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.4.1
+        VERSION 1.4.2
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
 )
 
-set(TLCT_VERSION_BETA_SUFFIX "alpha.5")
-if (${TLCT_VERSION_BETA_SUFFIX} STREQUAL "")
+set(TLCT_VERSION_BETA_SUFFIX "")
+if (NOT TLCT_VERSION_BETA_SUFFIX)
     set(TLCT_VERSION ${PROJECT_VERSION})
 else ()
     set(TLCT_VERSION ${PROJECT_VERSION}-${TLCT_VERSION_BETA_SUFFIX})
@@ -71,7 +71,7 @@ if (TLCT_ENABLE_TESTS)
 endif ()
 
 # Helper
-function(copy_dlls_if_needed name)
+function(tlct_copy_dlls_if_needed name)
     if (WIN32)
         add_custom_command(TARGET ${name} POST_BUILD COMMAND ${CMAKE_COMMAND} -E
                 copy_if_different $<TARGET_RUNTIME_DLLS:${name}> $<TARGET_FILE:${name}> $<TARGET_FILE_DIR:${name}> COMMAND_EXPAND_LISTS)

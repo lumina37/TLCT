@@ -11,7 +11,7 @@ function(tlct_add_test name srcs)
     list(APPEND _TLCT_TEST_TARGETS ${name})
     set(_TLCT_TEST_TARGETS ${_TLCT_TEST_TARGETS} PARENT_SCOPE)
 
-    copy_dlls_if_needed(${name})
+    tlct_copy_dlls_if_needed(${name})
 endfunction()
 
 tlct_add_test(test_constexpr_math "test_constexpr_math.cpp")
