@@ -39,7 +39,11 @@ add_library(tlct::lib::static ALIAS tlct-lib-static)
 
 add_library(tlct-lib-dynamic SHARED "lib.cpp")
 common_target_setting(tlct-lib-dynamic)
-set_target_properties(tlct-lib-dynamic PROPERTIES OUTPUT_NAME tlct)
+set_target_properties(tlct-lib-dynamic PROPERTIES
+        OUTPUT_NAME tlct
+        DEBUG_POSTFIX "-${tlct_VERSION}d"
+        RELEASE_POSTFIX "-${tlct_VERSION}"
+)
 target_compile_definitions(tlct-lib-dynamic PUBLIC "_TLCT_LIB_DYNAMIC")
 add_library(tlct::lib::dynamic ALIAS tlct-lib-dynamic)
 
