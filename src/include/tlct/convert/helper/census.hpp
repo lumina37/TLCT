@@ -41,8 +41,8 @@ void WrapCensus::updateRoi(cv::Rect roi) noexcept {
 float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
     constexpr int BYTE_COUNT = sizeof(cv::Vec3b) / sizeof(uint8_t);
 
-    uint64_t diffBitCount = 0;
     uint64_t maskBitCount = 0;
+    uint64_t diffBitCount = 0;
     for (int row = 0; row < censusMap_.rows; row++) {
         const cv::Vec3b* pLhsMap = censusMap_.ptr<cv::Vec3b>(row);
         const cv::Vec3b* pLhsMask = censusMask_.ptr<cv::Vec3b>(row);
@@ -53,8 +53,8 @@ float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
                 const uint8_t diff = (*pLhsMap)[byteId] ^ (*pRhsMap)[byteId];
                 const uint8_t mask = (*pLhsMask)[byteId] & (*pRhsMask)[byteId];
                 const uint8_t maskedDiff = mask & diff;
+                maskBitCount += std::popcount(mask);
                 diffBitCount += std::popcount(maskedDiff);
-                maskBitCount += std::popcount(maskBitCount);
             }
             pLhsMap++;
             pLhsMask++;
