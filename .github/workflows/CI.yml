@@ -51,7 +51,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -S . -B build -DTLCT_BUILD_TESTS=ON
+          cmake -S . -B build -DTLCT_ENABLE_TESTS=ON
           cmake --build build --target tlct-tests --parallel
 
       - name: Run tests

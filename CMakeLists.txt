@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.4.1.4
+        VERSION 1.4.1.5
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
@@ -15,7 +15,7 @@ project(tlct
 # Compile Options
 include(CMakeDependentOption)
 
-option(TLCT_BUILD_TESTS "Build tests" OFF)
+option(TLCT_ENABLE_TESTS "Build tests" OFF)
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
         "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
@@ -43,7 +43,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(argparse)
 
-if (TLCT_BUILD_TESTS)
+if (TLCT_ENABLE_TESTS)
     include(CTest)
 
     FetchContent_Declare(
@@ -78,7 +78,7 @@ configure_file("${TLCT_CONFIGURE_DIR}/config.h.in" "${TLCT_CONFIGURE_DIR}/config
 
 # Add lib/bin/tests
 add_subdirectory(src)
-if (TLCT_BUILD_TESTS)
+if (TLCT_ENABLE_TESTS)
     add_subdirectory(tests)
 endif ()
 
