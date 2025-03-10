@@ -6,16 +6,23 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.4.1.5
+        VERSION 1.4.1
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
 )
 
+set(TLCT_VERSION_BETA_SUFFIX "alpha.5")
+if (${TLCT_VERSION_BETA_SUFFIX} STREQUAL "")
+    set(TLCT_VERSION ${PROJECT_VERSION})
+else ()
+    set(TLCT_VERSION ${PROJECT_VERSION}-${TLCT_VERSION_BETA_SUFFIX})
+endif ()
+
 # Compile Options
 include(CMakeDependentOption)
 
-option(TLCT_ENABLE_TESTS "Build tests" OFF)
+option(TLCT_ENABLE_TESTS "Enable tests" OFF)
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
         "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
@@ -71,7 +78,7 @@ function(copy_dlls_if_needed name)
     endif ()
 endfunction()
 
-set(TLCT_COMPILE_INFO "[TLCT v${PROJECT_VERSION}] [OpenCV v${OpenCV_VERSION}] by [${CMAKE_CXX_COMPILER_ID} v${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_SYSTEM_PROCESSOR})]")
+set(TLCT_COMPILE_INFO "[TLCT v${TLCT_VERSION}] [OpenCV v${OpenCV_VERSION}] by [${CMAKE_CXX_COMPILER_ID} v${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_SYSTEM_PROCESSOR})]")
 
 set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
 configure_file("${TLCT_CONFIGURE_DIR}/config.h.in" "${TLCT_CONFIGURE_DIR}/config.h" @ONLY)

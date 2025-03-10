@@ -1,4 +1,4 @@
 #pragma once
 
-#cmakedefine tlct_VERSION "@tlct_VERSION@"
+#cmakedefine TLCT_VERSION "@TLCT_VERSION@"
 #cmakedefine TLCT_COMPILE_INFO "@TLCT_COMPILE_INFO@"

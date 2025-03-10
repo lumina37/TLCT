@@ -50,8 +50,8 @@ add_library(tlct-lib-dynamic SHARED "lib.cpp")
 common_target_setting(tlct-lib-dynamic)
 set_target_properties(tlct-lib-dynamic PROPERTIES
         OUTPUT_NAME tlct
-        DEBUG_POSTFIX "-${tlct_VERSION}d"
-        RELEASE_POSTFIX "-${tlct_VERSION}"
+        DEBUG_POSTFIX "-${TLCT_VERSION}d"
+        RELEASE_POSTFIX "-${TLCT_VERSION}"
 )
 if (MSVC)
     set_target_properties(tlct-lib-dynamic PROPERTIES

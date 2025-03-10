@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 
 [[nodiscard]] TLCT_API inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
     auto parser =
-        std::make_unique<argparse::ArgumentParser>("tlct", "v" tlct_VERSION, argparse::default_arguments::all);
+        std::make_unique<argparse::ArgumentParser>("tlct", "v" TLCT_VERSION, argparse::default_arguments::all);
 
     parser->set_usage_max_line_width(120);
     parser->add_argument("calib_file").help("path of the `calib.cfg`").required();
