@@ -15,7 +15,7 @@ function(tlct_add_executable name srcs)
         target_compile_definitions(${name} PRIVATE "_CRT_SECURE_NO_WARNINGS")
     endif ()
 
-    copy_dlls_if_needed(${name})
+    tlct_copy_dlls_if_needed(${name})
 endfunction()
 
 tlct_add_executable(tlct-bin "main.cpp")

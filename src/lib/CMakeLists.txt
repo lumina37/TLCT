@@ -1,4 +1,4 @@
-function(common_target_setting name)
+function(tlct_common_lib_setting name)
     get_target_property(__TYPE ${name} TYPE)
     if (${__TYPE} STREQUAL "INTERFACE_LIBRARY")
         set(__PUB_DEP_SCOPE "INTERFACE")
@@ -38,7 +38,7 @@ function(common_target_setting name)
 endfunction()
 
 add_library(tlct-lib-static STATIC "lib.cpp")
-common_target_setting(tlct-lib-static)
+tlct_common_lib_setting(tlct-lib-static)
 if (MSVC)
     set_target_properties(tlct-lib-static PROPERTIES
             MSVC_RUNTIME_LIBRARY ${_TLCT_MSVC_RUNTIME_LIBRARY}
@@ -47,7 +47,7 @@ endif ()
 add_library(tlct::lib::static ALIAS tlct-lib-static)
 
 add_library(tlct-lib-dynamic SHARED "lib.cpp")
-common_target_setting(tlct-lib-dynamic)
+tlct_common_lib_setting(tlct-lib-dynamic)
 set_target_properties(tlct-lib-dynamic PROPERTIES
         OUTPUT_NAME tlct
         DEBUG_POSTFIX "-${TLCT_VERSION}d"
@@ -62,6 +62,6 @@ target_compile_definitions(tlct-lib-dynamic PUBLIC "_TLCT_LIB_DYNAMIC")
 add_library(tlct::lib::dynamic ALIAS tlct-lib-dynamic)
 
 add_library(tlct-lib-header-only INTERFACE)
-common_target_setting(tlct-lib-header-only)
+tlct_common_lib_setting(tlct-lib-header-only)
 target_compile_definitions(tlct-lib-header-only INTERFACE "_TLCT_LIB_HEADER_ONLY")
 add_library(tlct::lib::header-only ALIAS tlct-lib-header-only)
