@@ -24,6 +24,10 @@ function(common_target_setting name)
         target_compile_options(${name} ${__PUB_DEP_SCOPE} -mavx2)
     endif ()
 
+    if (MSVC)
+        target_compile_definitions(${name} ${__PUB_DEP_SCOPE} "_CRT_SECURE_NO_WARNINGS")
+    endif ()
+
     if (TLCT_VERBOSE_WARNING)
         if (MSVC)
             target_compile_options(${name} ${__PUB_DEP_SCOPE} /W4)
@@ -35,6 +39,11 @@ endfunction()
 
 add_library(tlct-lib-static STATIC "lib.cpp")
 common_target_setting(tlct-lib-static)
+if (MSVC)
+    set_target_properties(tlct-lib-static PROPERTIES
+            MSVC_RUNTIME_LIBRARY ${_TLCT_MSVC_RUNTIME_LIBRARY}
+    )
+endif ()
 add_library(tlct::lib::static ALIAS tlct-lib-static)
 
 add_library(tlct-lib-dynamic SHARED "lib.cpp")
@@ -44,6 +53,11 @@ set_target_properties(tlct-lib-dynamic PROPERTIES
         DEBUG_POSTFIX "-${tlct_VERSION}d"
         RELEASE_POSTFIX "-${tlct_VERSION}"
 )
+if (MSVC)
+    set_target_properties(tlct-lib-dynamic PROPERTIES
+            MSVC_RUNTIME_LIBRARY ${_TLCT_MSVC_RUNTIME_LIBRARY}
+    )
+endif ()
 target_compile_definitions(tlct-lib-dynamic PUBLIC "_TLCT_LIB_DYNAMIC")
 add_library(tlct::lib::dynamic ALIAS tlct-lib-dynamic)
 

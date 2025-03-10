@@ -6,7 +6,7 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(tlct
-        VERSION 1.4.1.3
+        VERSION 1.4.1.4
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
         HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
@@ -22,8 +22,7 @@ option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
 
 if (MSVC)
     option(TLCT_WITH_STATIC_CRT "Link with STATIC CRT" OFF)
-    set(MSVC_RUNTIME_TYPE MultiThreaded$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    set(_TLCT_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
 endif ()
 
 # Dependencies
