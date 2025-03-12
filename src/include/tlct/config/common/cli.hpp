@@ -49,10 +49,10 @@ namespace fs = std::filesystem;
         .help("the size of matching pattern will be `patternSize*diameter`")
         .scan<'g', float>()
         .default_value(0.3f);
-    parser->add_argument("--psizeShortcutThre")
-        .help("if the difference bit of dhash of MI is smaller than this value, then use the prev. patch size")
-        .scan<'i', int>()
-        .default_value(4);
+    parser->add_argument("--psizeShortcutFactor")
+        .help("if the metric of new patch size is smaller than `prevMetric*factor`, then use the prev. one")
+        .scan<'g', float>()
+        .default_value(1.02f);
 
     parser->add_epilog(TLCT_COMPILE_INFO);
 
@@ -72,14 +72,14 @@ struct CliConfig {
 
     struct Convert {
         inline Convert(int views, int upsample, float psizeInflate, float viewShiftRange, float patternSize,
-                       int psizeShortcutThreshold) noexcept
+                       float psizeShortcutFactor) noexcept
             : views(views),
               upsample(upsample),
               psizeInflate(psizeInflate),
               viewShiftRange(viewShiftRange),
               maxPsize((1.f - viewShiftRange) / psizeInflate),
               patternSize(patternSize),
-              psizeShortcutThreshold(psizeShortcutThreshold) {};
+              psizeShortcutFactor(psizeShortcutFactor) {};
 
         int views;
         int upsample;
@@ -87,7 +87,7 @@ struct CliConfig {
         float viewShiftRange;
         float maxPsize;
         float patternSize;
-        int psizeShortcutThreshold;
+        float psizeShortcutFactor;
     };
 
     Path path;
@@ -103,7 +103,7 @@ CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser) {
     auto range = CliConfig::Range{parser.get<int>("--begin"), parser.get<int>("--end")};
     auto convert = CliConfig::Convert{parser.get<int>("--views"),          parser.get<int>("--upsample"),
                                       parser.get<float>("--psizeInflate"), parser.get<float>("--viewShiftRange"),
-                                      parser.get<float>("--patternSize"),  parser.get<int>("--psizeShortcutThre")};
+                                      parser.get<float>("--patternSize"),  parser.get<float>("--psizeShortcutFactor")};
 
     return {std::move(path), std::move(range), std::move(convert)};
 }

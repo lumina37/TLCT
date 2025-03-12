@@ -89,8 +89,8 @@ Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& 
     : arrange_(arrange), cvtCfg_(cvtCfg) {
     mis_ = TMIBuffers::fromArrange(arrange);
 
-    prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_64FC2);
-    patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_64FC2);
+    prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32SC1);
+    patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32SC1);
     psizeParams_ = PsizeParams_<TArrange>::fromConfigs(arrange, cvtCfg);
 
     mvParams_ = MvParams_<TArrange>::fromConfigs(arrange, cvtCfg);

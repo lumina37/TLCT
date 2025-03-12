@@ -10,6 +10,7 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/helper/consts.hpp"
 #include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/helper/constexpr/math.hpp"
@@ -112,8 +113,9 @@ template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
     int iDiameter = _hp::iround(arrange_.getDiameter());
     int iRadius = _hp::iround(arrange_.getRadius());
+    int iSafeRadius = _hp::iround(arrange_.getRadius() * SAFE_RATIO);
     cv::Mat srcCircleMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
-    cv::circle(srcCircleMask, {iRadius, iRadius}, iRadius, cv::Scalar::all(0xff), cv::FILLED);
+    cv::circle(srcCircleMask, {iRadius, iRadius}, iSafeRadius, cv::Scalar::all(0xff), cv::FILLED);
 
     auto miBufIterator = miBuffers_.begin();
     uint8_t* rowBufCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
@@ -129,17 +131,17 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
             uint8_t* matBufCursor = colBufCursor;
 
             const cv::Mat& srcY = src(miRoi);
-            cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC1, matBufCursor);
-            srcY.copyTo(dstI);
+            cv::Mat dstY = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC1, matBufCursor);
+            srcY.copyTo(dstY);
             matBufCursor += params_.alignedMatSizeC1_;
 
             cv::Mat censusMap = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matBufCursor);
             matBufCursor += params_.alignedMatSizeC3_;
             cv::Mat censusMask = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matBufCursor);
             matBufCursor += params_.alignedMatSizeC3_;
-            censusTransform5x5(srcY, srcCircleMask, censusMap, censusMask);
+            censusTransform5x5(dstY, srcCircleMask, censusMap, censusMask);
 
-            *miBufIterator = {std::move(dstI), std::move(censusMap), std::move(censusMask)};
+            *miBufIterator = {std::move(dstY), std::move(censusMap), std::move(censusMask)};
             miBufIterator++;
             colBufCursor += params_.alignedMISize_;
         }

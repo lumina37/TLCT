@@ -12,7 +12,7 @@ project(tlct
         LANGUAGES CXX
 )
 
-set(TLCT_VERSION_BETA_SUFFIX "alpha.0")
+set(TLCT_VERSION_BETA_SUFFIX "alpha.1")
 if (NOT TLCT_VERSION_BETA_SUFFIX)
     set(TLCT_VERSION ${PROJECT_VERSION})
 else ()
@@ -29,7 +29,7 @@ option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
 
 if (MSVC)
     option(TLCT_WITH_STATIC_CRT "Link with STATIC CRT" OFF)
-    set(_TLCT_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
+    set(_TLCT_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<NOT:$<BOOL:${TLCT_WITH_STATIC_CRT}>>:DLL>)
 endif ()
 
 # Dependencies

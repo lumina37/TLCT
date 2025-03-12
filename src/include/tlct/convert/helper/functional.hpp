@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <bit>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -47,37 +46,13 @@ namespace rgs = std::ranges;
     return intensity;
 }
 
-[[nodiscard]] static inline uint64_t dhash(const cv::Mat& src) {
-    constexpr int thumbnailHeight = 8;
-    constexpr int thumbnailWidth = thumbnailHeight + 1;
-    constexpr int thumbnailSize = thumbnailHeight * thumbnailWidth;
-    std::array<float, thumbnailSize> thumbnailBuffer;
-    cv::Mat thumbnail(thumbnailHeight, thumbnailWidth, CV_32FC1, thumbnailBuffer.data());
-    cv::resize(src, thumbnail, {thumbnailWidth, thumbnailHeight}, 0., 0., cv::INTER_LINEAR_EXACT);
-
-    uint64_t dhash = 0;
-    const uint64_t u64max = std::numeric_limits<uint64_t>::max();
-    uint64_t mask = u64max ^ (u64max >> 1);
-    for (const int row : rgs::views::iota(0, thumbnailHeight)) {
-        float* prow = thumbnail.ptr<float>(row);
-        for ([[maybe_unused]] const int _ : rgs::views::iota(0, thumbnailWidth)) {
-            const bool flag = *(prow + 1) > *prow;
-            dhash |= flag * mask;
-            mask >>= 1;
-            prow++;
-        }
-    }
-
-    return dhash;
-}
-
-[[nodiscard]] static inline int L1Dist(uint64_t lhs, uint64_t rhs) { return std::popcount(lhs ^ rhs); }
-
 static inline void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap,
                                       cv::Mat& censusMask) {
     const auto isInRange = [&src](const int row, const int col) {
-        if (row < 0 || row >= src.rows) return false;
-        if (col < 0 || col >= src.cols) return false;
+        if (row < 0 || row >= src.rows) [[unlikely]]
+            return false;
+        if (col < 0 || col >= src.cols) [[unlikely]]
+            return false;
         return true;
     };
 

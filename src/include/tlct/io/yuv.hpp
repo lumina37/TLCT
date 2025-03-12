@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "tlct/io/concepts/frame.hpp"
 #include "tlct/io/yuv/frame.hpp"
 #include "tlct/io/yuv/reader.hpp"
