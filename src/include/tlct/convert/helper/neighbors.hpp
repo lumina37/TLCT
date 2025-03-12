@@ -93,8 +93,7 @@ private:
     }
 
 public:
-    static constexpr std::array DIRECTIONS{
-        makeDirections(std::make_index_sequence<DIRECTION_NUM>{})};
+    static constexpr std::array DIRECTIONS{makeDirections(std::make_index_sequence<DIRECTION_NUM>{})};
 };
 
 template <tlct::cfg::concepts::CArrange TArrange>
@@ -240,8 +239,7 @@ private:
     }
 
 public:
-    static constexpr std::array DIRECTIONS{
-        makeDirections(std::make_index_sequence<DIRECTION_NUM>{})};
+    static constexpr std::array DIRECTIONS{makeDirections(std::make_index_sequence<DIRECTION_NUM>{})};
 };
 
 template <tlct::cfg::concepts::CArrange TArrange>
