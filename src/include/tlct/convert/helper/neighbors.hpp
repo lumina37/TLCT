@@ -93,7 +93,7 @@ private:
     }
 
 public:
-    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
+    static constexpr std::array DIRECTIONS{
         makeDirections(std::make_index_sequence<DIRECTION_NUM>{})};
 };
 
@@ -240,7 +240,7 @@ private:
     }
 
 public:
-    static constexpr std::array<Direction, DIRECTION_NUM> DIRECTIONS{
+    static constexpr std::array DIRECTIONS{
         makeDirections(std::make_index_sequence<DIRECTION_NUM>{})};
 };
 
