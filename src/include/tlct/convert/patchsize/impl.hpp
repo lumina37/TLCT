@@ -20,7 +20,7 @@ namespace tcfg = tlct::cfg;
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
     requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
-[[nodiscard]] static inline float metricOfPSize(const TArrange& arrange, const PsizeParams_<TArrange>& params,
+[[nodiscard]] static inline float metricOfPsize(const TArrange& arrange, const PsizeParams_<TArrange>& params,
                                                 const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
                                                 WrapCensus& wrapAnchor, const int psize) {
     const cv::Point2f miCenter{arrange.getRadius(), arrange.getRadius()};
@@ -139,7 +139,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
     WrapCensus wrapAnchor{anchorMI};
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         prevMetric =
-            metricOfPSize<NearNeighbors, IS_KEPLER>(arrange, params, mis, nearNeighbors, wrapAnchor, prevPsize);
+            metricOfPsize<NearNeighbors, IS_KEPLER>(arrange, params, mis, nearNeighbors, wrapAnchor, prevPsize);
     }
 
     const PsizeMetric& nearPsizeMetric =

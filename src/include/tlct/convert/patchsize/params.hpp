@@ -39,7 +39,7 @@ PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arran
     const float candidatePatternShift = radius * cvtCfg.maxPsize;
     const float patternShift = std::min(maxPatternShift, candidatePatternShift);
 
-    const int minPsize = (int)std::roundf(0.75f * patternSize);
+    const int minPsize = (int)std::roundf(0.5f * patternSize);
 
     return {patternSize, patternShift, minPsize};
 }
