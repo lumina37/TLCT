@@ -52,7 +52,7 @@ namespace fs = std::filesystem;
     parser->add_argument("--psizeShortcutFactor")
         .help("if the metric of new patch size is smaller than `prevMetric*factor`, then use the prev. one")
         .scan<'g', float>()
-        .default_value(1.02f);
+        .default_value(1.2f);
 
     parser->add_epilog(TLCT_COMPILE_INFO);
 

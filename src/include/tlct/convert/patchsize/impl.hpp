@@ -25,8 +25,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
                                                 WrapCensus& wrapAnchor, const int psize) {
     const cv::Point2f miCenter{arrange.getRadius(), arrange.getRadius()};
 
-    float sumMetric = 0.0;
-    float sumMetricWeight = std::numeric_limits<float>::epsilon();
+    float minMetric = std::numeric_limits<float>::max();
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
             continue;
@@ -47,16 +46,13 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         wrapNeib.updateRoi(cmp_roi);
 
         const float metric = wrapAnchor.compare(wrapNeib);
-
-        const float weight = textureIntensity(wrapAnchor.srcY_);
-        const float expMetric = expf(-metric);
-        const float weightedMetric = weight * expMetric;
-        sumMetric += weightedMetric;
-        sumMetricWeight += weight;
+        if (metric < minMetric) {
+            minMetric = metric;
+        }
     }
 
-    const float finalMetric = sumMetric / sumMetricWeight;
-    return finalMetric;
+    const float expMetric = expf(-minMetric * 2.0f);
+    return expMetric;
 }
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
@@ -105,8 +101,8 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         }
 
         const float weight = textureIntensity(wrapAnchor.srcY_);
-        const float metric = expf(-minMetric);
-        const float weightedMetric = weight * metric;
+        const float expMetric = expf(-minMetric * 2.0f);
+        const float weightedMetric = weight * expMetric;
         sumPsize += (float)bestPsize * weightedMetric;
         sumPsizeWeight += weightedMetric;
         sumMetric += weightedMetric;
@@ -153,7 +149,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange, index);
         const PsizeMetric& farPsizeMetric =
             estimateWithNeighbor<FarNeighbors, IS_KEPLER>(arrange, params, mis, farNeighbors, wrapAnchor);
-        if (farPsizeMetric.metric > maxMetric && farPsizeMetric.metric > prevMetric * 1.02) {
+        if (farPsizeMetric.metric > maxMetric && farPsizeMetric.metric > prevMetric * cvtCfg.psizeShortcutFactor) {
             bestPsize = farPsizeMetric.psize;
         }
     }
