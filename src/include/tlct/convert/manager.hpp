@@ -40,20 +40,20 @@ public:
     Manager_() = delete;
     Manager_(const Manager_& rhs) = delete;
     Manager_& operator=(const Manager_& rhs) = delete;
-    TLCT_API inline Manager_(Manager_&& rhs) noexcept = default;
-    TLCT_API inline Manager_& operator=(Manager_&& rhs) noexcept = default;
-    TLCT_API inline Manager_(const Manager_::TArrange& arrange, const Manager_::TCvtConfig& cvtCfg);
+    TLCT_API Manager_(Manager_&& rhs) noexcept = default;
+    TLCT_API Manager_& operator=(Manager_&& rhs) noexcept = default;
+    TLCT_API Manager_(const Manager_::TArrange& arrange, const Manager_::TCvtConfig& cvtCfg);
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
+    [[nodiscard]] TLCT_API static Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
     // Const methods
-    [[nodiscard]] TLCT_API inline cv::Size getOutputSize() const noexcept {
+    [[nodiscard]] TLCT_API cv::Size getOutputSize() const noexcept {
         return {mvParams_.outputWidth, mvParams_.outputHeight};
     };
 
     // Non-const methods
-    TLCT_API inline void update(const TFrame& src);
+    TLCT_API void update(const TFrame& src);
 
     inline void renderInto(TFrame& dst, int viewRow, int viewCol) const {
         renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mvCache_.f32Srcs, mvCache_.u8OutputImageChannels, arrange_,

@@ -50,32 +50,31 @@ public:
 
     // Constructor
     NearNeighbors_() = delete;
-    TLCT_API inline NearNeighbors_(const NearNeighbors_& rhs) noexcept = default;
-    TLCT_API inline NearNeighbors_& operator=(const NearNeighbors_& rhs) noexcept = default;
-    TLCT_API inline NearNeighbors_(NearNeighbors_&& rhs) noexcept = default;
-    TLCT_API inline NearNeighbors_& operator=(NearNeighbors_&& rhs) noexcept = default;
-    TLCT_API inline NearNeighbors_(TIndices indices, cv::Point selfIdx, TPoints points, cv::Point2f selfPt) noexcept
-        : indices_(indices), selfIdx_(selfIdx), points_(points), selfPt_(selfPt){};
+    TLCT_API NearNeighbors_(const NearNeighbors_& rhs) noexcept = default;
+    TLCT_API NearNeighbors_& operator=(const NearNeighbors_& rhs) noexcept = default;
+    TLCT_API NearNeighbors_(NearNeighbors_&& rhs) noexcept = default;
+    TLCT_API NearNeighbors_& operator=(NearNeighbors_&& rhs) noexcept = default;
+    TLCT_API NearNeighbors_(TIndices indices, cv::Point selfIdx, TPoints points, cv::Point2f selfPt) noexcept
+        : indices_(indices), selfIdx_(selfIdx), points_(points), selfPt_(selfPt) {};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline NearNeighbors_ fromArrangeAndIndex(const TArrange& arrange,
-                                                                            cv::Point index) noexcept;
+    [[nodiscard]] TLCT_API static NearNeighbors_ fromArrangeAndIndex(const TArrange& arrange, cv::Point index) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API inline cv::Point getSelfIdx() const noexcept { return selfIdx_; };
-    [[nodiscard]] TLCT_API inline cv::Point2f getSelfPt() const noexcept { return selfPt_; };
+    [[nodiscard]] TLCT_API cv::Point getSelfIdx() const noexcept { return selfIdx_; };
+    [[nodiscard]] TLCT_API cv::Point2f getSelfPt() const noexcept { return selfPt_; };
 
     // Left is 0. Clockwise.
-    [[nodiscard]] TLCT_API inline bool hasNeighbor(const Direction direction) const noexcept {
+    [[nodiscard]] TLCT_API bool hasNeighbor(const Direction direction) const noexcept {
         return indices_[(int)direction].x != DEFAULT_INDEX;
     };
-    [[nodiscard]] TLCT_API inline cv::Point getNeighborIdx(const Direction direction) const noexcept {
+    [[nodiscard]] TLCT_API cv::Point getNeighborIdx(const Direction direction) const noexcept {
         return indices_[(int)direction];
     };
-    [[nodiscard]] TLCT_API inline cv::Point2f getNeighborPt(const Direction direction) const noexcept {
+    [[nodiscard]] TLCT_API cv::Point2f getNeighborPt(const Direction direction) const noexcept {
         return points_[(int)direction];
     };
-    [[nodiscard]] TLCT_API static inline cv::Point2f getUnitShift(const Direction direction) noexcept {
+    [[nodiscard]] TLCT_API static cv::Point2f getUnitShift(const Direction direction) noexcept {
         const auto& unitShift = UNIT_SHIFTS[(int)direction];
         return {unitShift[0], unitShift[1]};
     };
@@ -196,32 +195,31 @@ public:
 
     // Constructor
     FarNeighbors_() = delete;
-    TLCT_API inline FarNeighbors_(const FarNeighbors_& rhs) noexcept = default;
-    TLCT_API inline FarNeighbors_& operator=(const FarNeighbors_& rhs) noexcept = default;
-    TLCT_API inline FarNeighbors_(FarNeighbors_&& rhs) noexcept = default;
-    TLCT_API inline FarNeighbors_& operator=(FarNeighbors_&& rhs) noexcept = default;
-    TLCT_API inline FarNeighbors_(TIndices indices, cv::Point selfIdx, TPoints points, cv::Point2f selfPt) noexcept
-        : indices_(indices), selfIdx_(selfIdx), points_(points), selfPt_(selfPt){};
+    TLCT_API FarNeighbors_(const FarNeighbors_& rhs) noexcept = default;
+    TLCT_API FarNeighbors_& operator=(const FarNeighbors_& rhs) noexcept = default;
+    TLCT_API FarNeighbors_(FarNeighbors_&& rhs) noexcept = default;
+    TLCT_API FarNeighbors_& operator=(FarNeighbors_&& rhs) noexcept = default;
+    TLCT_API FarNeighbors_(TIndices indices, cv::Point selfIdx, TPoints points, cv::Point2f selfPt) noexcept
+        : indices_(indices), selfIdx_(selfIdx), points_(points), selfPt_(selfPt) {};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline FarNeighbors_ fromArrangeAndIndex(const TArrange& arrange,
-                                                                           cv::Point index) noexcept;
+    [[nodiscard]] TLCT_API static FarNeighbors_ fromArrangeAndIndex(const TArrange& arrange, cv::Point index) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API inline cv::Point getSelfIdx() const noexcept { return selfIdx_; };
-    [[nodiscard]] TLCT_API inline cv::Point2f getSelfPt() const noexcept { return selfPt_; };
+    [[nodiscard]] TLCT_API cv::Point getSelfIdx() const noexcept { return selfIdx_; };
+    [[nodiscard]] TLCT_API cv::Point2f getSelfPt() const noexcept { return selfPt_; };
 
     // Left is 0. Clockwise.
-    [[nodiscard]] TLCT_API inline bool hasNeighbor(const Direction direction) const noexcept {
+    [[nodiscard]] TLCT_API bool hasNeighbor(const Direction direction) const noexcept {
         return indices_[(int)direction].x != DEFAULT_INDEX;
     };
-    [[nodiscard]] TLCT_API inline cv::Point getNeighborIdx(const Direction direction) const noexcept {
+    [[nodiscard]] TLCT_API cv::Point getNeighborIdx(const Direction direction) const noexcept {
         return indices_[(int)direction];
     };
-    [[nodiscard]] TLCT_API inline cv::Point2f getNeighborPt(const Direction direction) const noexcept {
+    [[nodiscard]] TLCT_API cv::Point2f getNeighborPt(const Direction direction) const noexcept {
         return points_[(int)direction];
     };
-    [[nodiscard]] TLCT_API static inline cv::Point2f getUnitShift(const Direction direction) noexcept {
+    [[nodiscard]] TLCT_API static cv::Point2f getUnitShift(const Direction direction) noexcept {
         const auto& unitShift = UNIT_SHIFTS[(int)direction];
         return {unitShift[0], unitShift[1]};
     };

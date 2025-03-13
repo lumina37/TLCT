@@ -6,17 +6,17 @@ namespace tlct::_hp {
 
 class MeanStddev {
 public:
-    inline MeanStddev() noexcept : mean_(), var_(), count_() {};
+    MeanStddev() noexcept : mean_(), var_(), count_() {};
 
-    inline void update(float val) noexcept {
+    void update(float val) noexcept {
         count_++;
         const float prevMean = mean_;
         mean_ += (val - prevMean) / (float)count_;
         var_ += (val - mean_) * (val - prevMean);
     }
 
-    [[nodiscard]] inline float getMean() const noexcept { return mean_; }
-    [[nodiscard]] inline float getStddev() const noexcept { return sqrt(var_ / (float)count_); }
+    [[nodiscard]] float getMean() const noexcept { return mean_; }
+    [[nodiscard]] float getStddev() const noexcept { return sqrt(var_ / (float)count_); }
 
 private:
     float mean_;

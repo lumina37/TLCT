@@ -21,15 +21,15 @@ public:
     using TIdx2Type = std::array<std::array<int, LEN_TYPE_NUM>, 2>;
 
     // Constructor
-    TLCT_API inline MITypes() noexcept : idx2type_(){};
-    TLCT_API inline MITypes(const MITypes& rhs) noexcept = default;
-    TLCT_API inline MITypes& operator=(const MITypes& rhs) noexcept = default;
-    TLCT_API inline MITypes(MITypes&& rhs) noexcept = default;
-    TLCT_API inline MITypes& operator=(MITypes&& rhs) noexcept = default;
-    TLCT_API inline MITypes(bool isOutShift) noexcept;
+    TLCT_API MITypes() noexcept : idx2type_() {};
+    TLCT_API MITypes(const MITypes& rhs) noexcept = default;
+    TLCT_API MITypes& operator=(const MITypes& rhs) noexcept = default;
+    TLCT_API MITypes(MITypes&& rhs) noexcept = default;
+    TLCT_API MITypes& operator=(MITypes&& rhs) noexcept = default;
+    TLCT_API MITypes(bool isOutShift) noexcept;
 
-    [[nodiscard]] TLCT_API inline int getMIType(int row, int col) const noexcept;
-    [[nodiscard]] TLCT_API inline int getMIType(cv::Point index) const noexcept;
+    [[nodiscard]] TLCT_API int getMIType(int row, int col) const noexcept;
+    [[nodiscard]] TLCT_API int getMIType(cv::Point index) const noexcept;
 
 private:
     TIdx2Type idx2type_;

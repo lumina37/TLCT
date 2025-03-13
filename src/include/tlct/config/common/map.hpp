@@ -22,41 +22,41 @@ public:
     using TMap = std::map<std::string, std::string>;
 
     // Constructor
-    TLCT_API inline ConfigMap() : map_(){};
-    TLCT_API inline ConfigMap(const ConfigMap& rhs) = default;
-    TLCT_API inline ConfigMap& operator=(const ConfigMap& rhs) = default;
-    TLCT_API inline ConfigMap(ConfigMap&& rhs) noexcept = default;
-    TLCT_API inline ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
-    TLCT_API explicit inline ConfigMap(TMap&& cfg_map) noexcept : map_(std::move(cfg_map)){};
+    TLCT_API ConfigMap() : map_() {};
+    TLCT_API ConfigMap(const ConfigMap& rhs) = default;
+    TLCT_API ConfigMap& operator=(const ConfigMap& rhs) = default;
+    TLCT_API ConfigMap(ConfigMap&& rhs) noexcept = default;
+    TLCT_API ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
+    TLCT_API explicit ConfigMap(TMap&& cfg_map) noexcept : map_(std::move(cfg_map)){};
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline ConfigMap fromFstream(std::ifstream&& ifs);
-    [[nodiscard]] TLCT_API static inline ConfigMap fromPath(std::string_view path);
+    [[nodiscard]] TLCT_API static ConfigMap fromFstream(std::ifstream&& ifs);
+    [[nodiscard]] TLCT_API static ConfigMap fromPath(std::string_view path);
 
     // Const methods
-    [[nodiscard]] TLCT_API inline bool isEmpty() const noexcept;
+    [[nodiscard]] TLCT_API bool isEmpty() const noexcept;
 
     template <_hp::cestring key, typename Tv>
-    [[nodiscard]] TLCT_API inline Tv get() const;
+    [[nodiscard]] TLCT_API Tv get() const;
 
     template <_hp::cestring key, typename Tv>
         requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-    [[nodiscard]] TLCT_API inline Tv getOr(const Tv& default_val) const noexcept;
+    [[nodiscard]] TLCT_API Tv getOr(const Tv& default_val) const noexcept;
 
     template <_hp::cestring key, typename Tf>
         requires std::is_invocable_v<Tf>
-    [[nodiscard]] TLCT_API inline auto getOrElse(Tf&& default_factory) const noexcept -> decltype(default_factory());
+    [[nodiscard]] TLCT_API auto getOrElse(Tf&& default_factory) const noexcept -> decltype(default_factory());
 
     template <typename Tv>
-    [[nodiscard]] TLCT_API inline Tv get(const std::string& key) const;
+    [[nodiscard]] TLCT_API Tv get(const std::string& key) const;
 
     template <typename Tv>
         requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-    [[nodiscard]] TLCT_API inline Tv getOr(const std::string& key, const Tv& default_val) const noexcept;
+    [[nodiscard]] TLCT_API Tv getOr(const std::string& key, const Tv& default_val) const noexcept;
 
     template <typename Tf>
         requires std::is_invocable_v<Tf>
-    [[nodiscard]] TLCT_API inline auto getOrElse(const std::string& key, Tf&& default_factory) const noexcept
+    [[nodiscard]] TLCT_API auto getOrElse(const std::string& key, Tf&& default_factory) const noexcept
         -> decltype(default_factory());
 
 private:
@@ -118,7 +118,7 @@ ConfigMap ConfigMap::fromPath(std::string_view path) {
 bool ConfigMap::isEmpty() const noexcept { return map_.empty(); }
 
 template <typename Tv>
-inline Tv stox(const std::string& str) {
+static inline Tv stox(const std::string& str) {
     if constexpr (std::is_integral_v<Tv>) {
         return (Tv)std::stoi(str);
     } else if constexpr (std::is_floating_point_v<Tv>) {

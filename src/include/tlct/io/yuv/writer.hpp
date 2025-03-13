@@ -17,13 +17,13 @@ class YuvWriter_ {
 public:
     using TFrame = TFrame_;
 
-    TLCT_API inline explicit YuvWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
-    TLCT_API static inline YuvWriter_ fromPath(const fs::path& fpath) {
+    TLCT_API explicit YuvWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
+    TLCT_API static YuvWriter_ fromPath(const fs::path& fpath) {
         std::ofstream ofs{fpath, std::ios::binary};
         return YuvWriter_{std::move(ofs)};
     }
 
-    TLCT_API inline void write(TFrame& frame);
+    TLCT_API void write(TFrame& frame);
 
 private:
     std::ofstream ofs_;

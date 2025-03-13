@@ -13,7 +13,7 @@ namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
 
-[[nodiscard]] TLCT_API inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
+[[nodiscard]] TLCT_API std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
     auto parser =
         std::make_unique<argparse::ArgumentParser>("tlct", "v" TLCT_VERSION, argparse::default_arguments::all);
 
@@ -71,8 +71,8 @@ struct CliConfig {
     };
 
     struct Convert {
-        inline Convert(int views, int upsample, float psizeInflate, float viewShiftRange, float patternSize,
-                       float psizeShortcutFactor) noexcept
+        Convert(int views, int upsample, float psizeInflate, float viewShiftRange, float patternSize,
+                float psizeShortcutFactor) noexcept
             : views(views),
               upsample(upsample),
               psizeInflate(psizeInflate),
@@ -95,7 +95,7 @@ struct CliConfig {
     Convert convert;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline CliConfig fromParser(const argparse::ArgumentParser& parser);
+    [[nodiscard]] TLCT_API static CliConfig fromParser(const argparse::ArgumentParser& parser);
 };
 
 CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser) {

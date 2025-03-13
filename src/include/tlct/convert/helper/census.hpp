@@ -16,17 +16,17 @@ class WrapCensus {
 public:
     // Constructor
     WrapCensus() = delete;
-    inline explicit WrapCensus(const MIBuffer& mi) noexcept : mi_(mi) {};
-    inline WrapCensus(const WrapCensus& rhs) = default;
+    explicit WrapCensus(const MIBuffer& mi) noexcept : mi_(mi) {};
+    WrapCensus(const WrapCensus& rhs) = default;
     WrapCensus& operator=(const WrapCensus& rhs) = delete;
     WrapCensus(WrapCensus&& rhs) noexcept = default;
     WrapCensus& operator=(WrapCensus&& rhs) noexcept = delete;
 
     // Const methods
-    [[nodiscard]] inline float compare(const WrapCensus& rhs) const noexcept;
+    [[nodiscard]] float compare(const WrapCensus& rhs) const noexcept;
 
     // Non-const methods
-    inline void updateRoi(cv::Rect roi) noexcept;
+    void updateRoi(cv::Rect roi) noexcept;
 
     const MIBuffer& mi_;
     cv::Mat srcY_;

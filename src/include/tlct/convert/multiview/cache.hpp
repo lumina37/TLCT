@@ -33,7 +33,7 @@ public:
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static inline MvCache_ fromParams(const MvParams_<TArrange>& params);
+    [[nodiscard]] TLCT_API static MvCache_ fromParams(const MvParams_<TArrange>& params);
 
     cv::Mat gradBlendingWeight;
     cv::Mat renderCanvas;
