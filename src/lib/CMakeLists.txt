@@ -33,7 +33,9 @@ function(tlct_common_lib_setting name)
     endif ()
 endfunction()
 
-add_library(tlct-lib-static STATIC "lib.cpp")
+file(GLOB_RECURSE _TLCT_SRCS "*.cpp")
+
+add_library(tlct-lib-static STATIC ${_TLCT_SRCS})
 tlct_common_lib_setting(tlct-lib-static)
 if (MSVC)
     set_target_properties(tlct-lib-static PROPERTIES
@@ -42,7 +44,7 @@ if (MSVC)
 endif ()
 add_library(tlct::lib::static ALIAS tlct-lib-static)
 
-add_library(tlct-lib-dynamic SHARED "lib.cpp")
+add_library(tlct-lib-dynamic SHARED ${_TLCT_SRCS})
 tlct_common_lib_setting(tlct-lib-dynamic)
 set_target_properties(tlct-lib-dynamic PROPERTIES
         OUTPUT_NAME tlct
