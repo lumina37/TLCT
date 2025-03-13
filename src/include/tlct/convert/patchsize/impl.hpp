@@ -25,7 +25,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
                                                 WrapCensus& wrapAnchor, const int psize) {
     const cv::Point2f miCenter{arrange.getRadius(), arrange.getRadius()};
 
-    float minMetric = std::numeric_limits<float>::max();
+    float minDiffRatio = std::numeric_limits<float>::max();
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
             continue;
@@ -45,14 +45,14 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         const cv::Rect cmp_roi = getRoiByCenter(miCenter + cmpShift, params.patternSize);
         wrapNeib.updateRoi(cmp_roi);
 
-        const float metric = wrapAnchor.compare(wrapNeib);
-        if (metric < minMetric) {
-            minMetric = metric;
+        const float diffRatio = wrapAnchor.compare(wrapNeib);
+        if (diffRatio < minDiffRatio) {
+            minDiffRatio = diffRatio;
         }
     }
 
-    const float expMetric = expf(-minMetric * 2.0f);
-    return expMetric;
+    const float metric = expf(-minDiffRatio * 2.0f);
+    return metric;
 }
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
@@ -86,23 +86,23 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         cv::Point2f cmpShift = anchorShift + matchStep * params.minPsize;
 
         int bestPsize = 0;
-        float minMetric = std::numeric_limits<float>::max();
+        float minDiffRatio = std::numeric_limits<float>::max();  // smaller is better
         for (const int psize : rgs::views::iota(params.minPsize, maxShift)) {
             cmpShift += matchStep;
 
             const cv::Rect cmp_roi = getRoiByCenter(miCenter + cmpShift, params.patternSize);
             wrapNeib.updateRoi(cmp_roi);
 
-            const float metric = wrapAnchor.compare(wrapNeib);
-            if (metric < minMetric) {
-                minMetric = metric;
+            const float diffRatio = wrapAnchor.compare(wrapNeib);
+            if (diffRatio < minDiffRatio) {
+                minDiffRatio = diffRatio;
                 bestPsize = psize;
             }
         }
 
         const float weight = textureIntensity(wrapAnchor.srcY_);
-        const float expMetric = expf(-minMetric * 2.0f);
-        const float weightedMetric = weight * expMetric;
+        const float metric = expf(-minDiffRatio * 2.0f);
+        const float weightedMetric = weight * metric;
         sumPsize += (float)bestPsize * weightedMetric;
         sumPsizeWeight += weightedMetric;
         sumMetric += weightedMetric;

@@ -63,8 +63,8 @@ float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
         }
     }
 
-    const float avgDiff = (float)diffBitCount / (float)(maskBitCount);
-    return avgDiff;
+    const float diffRatio = (float)diffBitCount / (float)(maskBitCount);
+    return diffRatio;
 }
 
 }  // namespace tlct::_cvt
