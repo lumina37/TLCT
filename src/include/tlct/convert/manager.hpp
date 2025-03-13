@@ -60,7 +60,7 @@ public:
                                                         mvParams_, patchsizes_, mvCache_, viewRow, viewCol);
 
         if (arrange_.getDirection()) {
-            for (int i = 0; i < MvCache::CHANNELS; i++) {
+            for (const int i : rgs::views::iota(0, MvCache::CHANNELS)) {
                 cv::transpose(mvCache_.u8OutputImageChannels[i], mvCache_.u8OutputImageChannels[i]);
             }
         }
@@ -110,7 +110,7 @@ void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame&
     mvCache_.rawSrcs[2] = src.getV().clone();
 
     if (arrange_.getDirection()) {
-        for (int i = 0; i < MvCache::CHANNELS; i++) {
+        for (const int i : rgs::views::iota(0, MvCache::CHANNELS)) {
             cv::transpose(mvCache_.rawSrcs[i], mvCache_.rawSrcs[i]);
         }
     }
@@ -136,7 +136,7 @@ void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame&
         mvCache_.srcs[2] = mvCache_.rawSrcs[2];
     }
 
-    for (int i = 0; i < MvCache::CHANNELS; i++) {
+    for (const int i : rgs::views::iota(0, MvCache::CHANNELS)) {
         mvCache_.srcs[i].convertTo(mvCache_.f32Srcs[i], CV_32FC1);
     }
 

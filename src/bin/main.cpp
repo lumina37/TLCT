@@ -53,7 +53,7 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
 
     auto srcFrame = typename TManager::TFrame{srcSize};
     auto mvFrame = typename TManager::TFrame{outputSize};
-    for (int fid = cliCfg.range.begin; fid < cliCfg.range.end; fid++) {
+    for ([[maybe_unused]] const int fid : rgs::views::iota(cliCfg.range.begin, cliCfg.range.end)) {
         yuvReader.readInto(srcFrame);
         manager.update(srcFrame);
 

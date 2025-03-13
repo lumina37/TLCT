@@ -56,10 +56,10 @@ static inline void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask
         return true;
     };
 
-    for (int row = 0; row < src.rows; row++) {
+    for (const int row : rgs::views::iota(0, src.rows)) {
         cv::Vec3b* pCsMap = censusMap.ptr<cv::Vec3b>(row);
         cv::Vec3b* pCsMask = censusMask.ptr<cv::Vec3b>(row);
-        for (int col = 0; col < src.cols; col++) {
+        for (const int col : rgs::views::iota(0, src.cols)) {
             // For each pixel
             constexpr int WINDOW = 5;
             constexpr int HALF_WINDOW = WINDOW / 2;

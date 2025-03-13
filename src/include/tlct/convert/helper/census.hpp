@@ -2,12 +2,15 @@
 
 #include <bit>
 #include <cstdint>
+#include <ranges>
 
 #include <opencv2/imgproc.hpp>
 
 #include "tlct/convert/helper/mibuffer.hpp"
 
 namespace tlct::_cvt {
+
+namespace rgs = std::ranges;
 
 class WrapCensus {
 public:
@@ -43,13 +46,13 @@ float WrapCensus::compare(const WrapCensus& rhs) const noexcept {
 
     uint64_t maskBitCount = 0;
     uint64_t diffBitCount = 0;
-    for (int row = 0; row < censusMap_.rows; row++) {
+    for (const int row : rgs::views::iota(0, censusMap_.rows)) {
         const cv::Vec3b* pLhsMap = censusMap_.ptr<cv::Vec3b>(row);
         const cv::Vec3b* pLhsMask = censusMask_.ptr<cv::Vec3b>(row);
         const cv::Vec3b* pRhsMap = rhs.censusMap_.ptr<cv::Vec3b>(row);
         const cv::Vec3b* pRhsMask = rhs.censusMask_.ptr<cv::Vec3b>(row);
-        for (int col = 0; col < censusMap_.cols; col++) {
-            for (int byteId = 0; byteId < BYTE_COUNT; byteId++) {
+        for ([[maybe_unused]] const int _ : rgs::views::iota(0, censusMap_.cols)) {
+            for (const int byteId : rgs::views::iota(0, BYTE_COUNT)) {
                 const uint8_t diff = (*pLhsMap)[byteId] ^ (*pRhsMap)[byteId];
                 const uint8_t mask = (*pLhsMask)[byteId] & (*pRhsMask)[byteId];
                 const uint8_t maskedDiff = mask & diff;
