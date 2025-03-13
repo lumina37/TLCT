@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -48,6 +49,11 @@ namespace rgs = std::ranges;
 
 static inline void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap,
                                       cv::Mat& censusMask) {
+    assert(src.type() == CV_8UC1);
+    assert(srcMask.type() == CV_8UC1);
+    assert(censusMap.elemSize() == 3);
+    assert(censusMask.elemSize() == 3);
+
     const auto isInRange = [&src](const int row, const int col) {
         if (row < 0 || row >= src.rows) [[unlikely]]
             return false;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -26,6 +27,7 @@ struct MIBuffer {
     cv::Mat censusMap;   // 8UC3
     cv::Mat censusMask;  // 8UC3
 };
+static_assert(sizeof(MIBuffer) / sizeof(cv::Mat) == MIBuffer::C1_COUNT + MIBuffer::C3_COUNT);
 
 template <tlct::cfg::concepts::CArrange TArrange_>
 class MIBuffers_ {
@@ -111,6 +113,8 @@ MIBuffers_<TArrange> MIBuffers_<TArrange>::fromArrange(const TArrange& arrange) 
 
 template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
+    assert(src.type() == CV_8UC1);
+
     int iDiameter = _hp::iround(arrange_.getDiameter());
     int iRadius = _hp::iround(arrange_.getRadius());
     int iSafeRadius = _hp::iround(arrange_.getRadius() * SAFE_RATIO);
