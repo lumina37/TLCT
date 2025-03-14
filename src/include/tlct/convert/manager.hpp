@@ -5,7 +5,6 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/common/defines.h"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/convert/helper.hpp"
@@ -40,20 +39,20 @@ public:
     Manager_() = delete;
     Manager_(const Manager_& rhs) = delete;
     Manager_& operator=(const Manager_& rhs) = delete;
-    TLCT_API Manager_(Manager_&& rhs) noexcept = default;
-    TLCT_API Manager_& operator=(Manager_&& rhs) noexcept = default;
-    TLCT_API Manager_(const Manager_::TArrange& arrange, const Manager_::TCvtConfig& cvtCfg);
+    Manager_(Manager_&& rhs) noexcept = default;
+    Manager_& operator=(Manager_&& rhs) noexcept = default;
+    Manager_(const Manager_::TArrange& arrange, const Manager_::TCvtConfig& cvtCfg);
 
     // Initialize from
-    [[nodiscard]] TLCT_API static Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
+    [[nodiscard]] static Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
     // Const methods
-    [[nodiscard]] TLCT_API cv::Size getOutputSize() const noexcept {
+    [[nodiscard]] cv::Size getOutputSize() const noexcept {
         return {mvParams_.outputWidth, mvParams_.outputHeight};
     };
 
     // Non-const methods
-    TLCT_API void update(const TFrame& src);
+    void update(const TFrame& src);
 
     inline void renderInto(TFrame& dst, int viewRow, int viewCol) const {
         renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mvCache_.f32Srcs, mvCache_.u8OutputImageChannels, arrange_,

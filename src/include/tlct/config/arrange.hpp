@@ -9,9 +9,6 @@ namespace tlct::cfg {
 namespace _ = _cfg;
 
 using _::CornersArrange;
-static_assert(concepts::CArrange<CornersArrange>);
-
 using _::OffsetArrange;
-static_assert(concepts::CArrange<OffsetArrange>);
 
 }  // namespace tlct::cfg
