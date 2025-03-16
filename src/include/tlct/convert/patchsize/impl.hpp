@@ -20,10 +20,8 @@ namespace tcfg = tlct::cfg;
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
     requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
-[[nodiscard]] static inline float metricOfPsize(const TArrange& arrange, const MIBuffers_<TArrange>& mis,
-                                                const TNeighbors& neighbors, WrapCensus& wrapAnchor, const int psize) {
-    const cv::Point2f miCenter{arrange.getRadius(), arrange.getRadius()};
-
+[[nodiscard]] static inline float metricOfPsize(const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
+                                                const MIBuffer& anchorMI, const int psize) {
     float minDiffRatio = std::numeric_limits<float>::max();
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -31,12 +29,11 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         }
 
         const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(direction));
-        WrapCensus wrapNeib{neibMI};
 
         const cv::Point2f matchStep = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
         const cv::Point2f cmpShift = matchStep * psize;
 
-        const float diffRatio = wrapAnchor.compare(wrapNeib, cmpShift);
+        const float diffRatio = censusCompare(anchorMI, neibMI, cmpShift);
         if (diffRatio < minDiffRatio) {
             minDiffRatio = diffRatio;
         }
@@ -48,12 +45,9 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
     requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
-[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const TArrange& arrange,
-                                                             const PsizeParams_<TArrange>& params,
+[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const PsizeParams_<TArrange>& params,
                                                              const MIBuffers_<TArrange>& mis,
-                                                             const TNeighbors& neighbors, WrapCensus& wrapAnchor) {
-    const cv::Point2f miCenter{arrange.getRadius(), arrange.getRadius()};
-
+                                                             const TNeighbors& neighbors, const MIBuffer& anchorMI) {
     float sumPsize = 0.0;
     float sumMetric = 0.0;
     float sumPsizeWeight = std::numeric_limits<float>::epsilon();
@@ -64,7 +58,6 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         }
 
         const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(direction));
-        WrapCensus wrapNeib{neibMI};
 
         const cv::Point2f matchStep = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
         cv::Point2f cmpShift = matchStep * params.minPsize;
@@ -73,14 +66,14 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         float minDiffRatio = std::numeric_limits<float>::max();  // smaller is better
         for (const int psize : rgs::views::iota(params.minPsize, params.maxPsize)) {
             cmpShift += matchStep;
-            const float diffRatio = wrapAnchor.compare(wrapNeib, cmpShift);
+            const float diffRatio = censusCompare(anchorMI, neibMI, cmpShift);
             if (diffRatio < minDiffRatio) {
                 minDiffRatio = diffRatio;
                 bestPsize = psize;
             }
         }
 
-        const float weight = wrapNeib.mi.intensity;
+        const float weight = neibMI.intensity;
         const float metric = expf(-minDiffRatio * 2.0f);
         const float weightedMetric = weight * metric;
         sumPsize += (float)bestPsize * weightedMetric;
@@ -111,13 +104,12 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
     int bestPsize = prevPsize;
 
     const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange, index);
-    WrapCensus wrapAnchor{anchorMI};
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        prevMetric = metricOfPsize<NearNeighbors, IS_KEPLER>(arrange, mis, nearNeighbors, wrapAnchor, prevPsize);
+        prevMetric = metricOfPsize<NearNeighbors, IS_KEPLER>(mis, nearNeighbors, anchorMI, prevPsize);
     }
 
     const PsizeMetric& nearPsizeMetric =
-        estimateWithNeighbor<NearNeighbors, IS_KEPLER>(arrange, params, mis, nearNeighbors, wrapAnchor);
+        estimateWithNeighbor<NearNeighbors, IS_KEPLER>(params, mis, nearNeighbors, anchorMI);
     if (nearPsizeMetric.metric > prevMetric * cvtCfg.psizeShortcutFactor) {
         maxMetric = nearPsizeMetric.metric;
         bestPsize = nearPsizeMetric.psize;
@@ -126,7 +118,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
     if constexpr (USE_FAR_NEIGHBOR) {
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange, index);
         const PsizeMetric& farPsizeMetric =
-            estimateWithNeighbor<FarNeighbors, IS_KEPLER>(arrange, params, mis, farNeighbors, wrapAnchor);
+            estimateWithNeighbor<FarNeighbors, IS_KEPLER>(params, mis, farNeighbors, anchorMI);
         if (farPsizeMetric.metric > maxMetric && farPsizeMetric.metric > prevMetric * cvtCfg.psizeShortcutFactor) {
             bestPsize = farPsizeMetric.psize;
         }
