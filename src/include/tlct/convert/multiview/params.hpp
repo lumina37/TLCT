@@ -5,6 +5,7 @@
 
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/helper/consts.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cvt {
@@ -45,7 +46,7 @@ MvParams_<TArrange> MvParams_<TArrange>::fromConfigs(const TArrange& arrange, co
     const float f32ResizedPatchWdt = f32PatchXShift * cvt_cfg.psizeInflate;
     const int resizedPatchWdt = (int)std::roundf(f32ResizedPatchWdt);
 
-    const int viewShiftRange = _hp::iround(arrange.getDiameter() * cvt_cfg.viewShiftRange);
+    const int viewShiftRange = _hp::iround(arrange.getDiameter() * SAFE_RATIO * cvt_cfg.viewShiftRange);
     const int viewInterval = cvt_cfg.views > 1 ? viewShiftRange / (cvt_cfg.views - 1) : 0;
 
     const int canvasWidth = arrange.getMIMaxCols() * patchXShift + resizedPatchWdt;

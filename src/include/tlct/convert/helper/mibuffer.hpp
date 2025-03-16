@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <numbers>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -26,6 +27,8 @@ struct MIBuffer {
     static constexpr int C3_COUNT = 2;
     cv::Mat censusMap;   // 8UC3
     cv::Mat censusMask;  // 8UC3
+
+    float intensity;
 };
 static_assert(sizeof(MIBuffer) / sizeof(cv::Mat) == MIBuffer::C1_COUNT + MIBuffer::C3_COUNT);
 
@@ -40,9 +43,9 @@ public:
 
         inline Params() = default;
         inline explicit Params(const TArrange& arrange) noexcept {
-            idiameter_ = _hp::iround(arrange.getDiameter());
-            alignedMatSizeC1_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_);
-            alignedMatSizeC3_ = _hp::alignUp<SIMD_FETCH_SIZE>(idiameter_ * idiameter_ * 3);
+            iDiameter_ = _hp::iround(arrange.getDiameter());
+            alignedMatSizeC1_ = _hp::alignUp<SIMD_FETCH_SIZE>(iDiameter_ * iDiameter_);
+            alignedMatSizeC3_ = _hp::alignUp<SIMD_FETCH_SIZE>(iDiameter_ * iDiameter_ * 3);
             alignedMISize_ = alignedMatSizeC1_ * MIBuffer::C1_COUNT + alignedMatSizeC3_ * MIBuffer::C3_COUNT;
             miMaxCols_ = arrange.getMIMaxCols();
             miNum_ = miMaxCols_ * arrange.getMIRows();
@@ -55,7 +58,7 @@ public:
         size_t alignedMatSizeC3_;
         size_t alignedMISize_;
         size_t bufferSize_;
-        int idiameter_;
+        int iDiameter_;
         int miMaxCols_;
         int miNum_;
     };
@@ -115,11 +118,15 @@ template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
     assert(src.type() == CV_8UC1);
 
-    int iDiameter = _hp::iround(arrange_.getDiameter());
-    int iRadius = _hp::iround(arrange_.getRadius());
-    int iSafeRadius = _hp::iround(arrange_.getRadius() * SAFE_RATIO);
-    cv::Mat srcCircleMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
+    const int iDiameter = _hp::iround(arrange_.getDiameter());
+    const float radius = arrange_.getRadius();
+    const int iRadius = _hp::iround(arrange_.getRadius());
+    const int iSafeRadius = _hp::iround(arrange_.getRadius() * SAFE_RATIO);
+    const cv::Mat srcCircleMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
     cv::circle(srcCircleMask, {iRadius, iRadius}, iSafeRadius, cv::Scalar::all(0xff), cv::FILLED);
+
+    const float textureRoiWidth = arrange_.getDiameter() / std::numbers::sqrt2_v<float> * SAFE_RATIO;
+    const cv::Rect textureRoi = getRoiByCenter({radius, radius}, textureRoiWidth);
 
     auto miBufIterator = miBuffers_.begin();
     uint8_t* rowBufCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
@@ -135,17 +142,20 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
             uint8_t* matBufCursor = colBufCursor;
 
             const cv::Mat& srcY = src(miRoi);
-            cv::Mat dstY = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC1, matBufCursor);
+            cv::Mat dstY = cv::Mat(params_.iDiameter_, params_.iDiameter_, CV_8UC1, matBufCursor);
             srcY.copyTo(dstY);
             matBufCursor += params_.alignedMatSizeC1_;
 
-            cv::Mat censusMap = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matBufCursor);
+            cv::Mat censusMap = cv::Mat(params_.iDiameter_, params_.iDiameter_, CV_8UC3, matBufCursor);
             matBufCursor += params_.alignedMatSizeC3_;
-            cv::Mat censusMask = cv::Mat(params_.idiameter_, params_.idiameter_, CV_8UC3, matBufCursor);
+            cv::Mat censusMask = cv::Mat(params_.iDiameter_, params_.iDiameter_, CV_8UC3, matBufCursor);
             matBufCursor += params_.alignedMatSizeC3_;
             censusTransform5x5(dstY, srcCircleMask, censusMap, censusMask);
 
-            *miBufIterator = {std::move(dstY), std::move(censusMap), std::move(censusMask)};
+            const cv::Mat texture = dstY(textureRoi);
+            const float intensity = textureIntensity(texture);
+
+            *miBufIterator = {std::move(dstY), std::move(censusMap), std::move(censusMask), intensity};
             miBufIterator++;
             colBufCursor += params_.alignedMISize_;
         }

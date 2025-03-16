@@ -6,6 +6,7 @@
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/consts.hpp"
+#include "tlct/helper/constexpr/math.hpp"
 
 namespace tlct::_cvt {
 
@@ -23,25 +24,18 @@ public:
     // Initialize from
     [[nodiscard]] static inline PsizeParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
-    float patternSize;
-    float patternShift;
     int minPsize;
+    int maxPsize;
 };
 
 template <tcfg::concepts::CArrange TArrange>
 PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg) {
-    const float patternSize = arrange.getDiameter() * cvtCfg.patternSize;
-    const float radius = arrange.getDiameter() / 2.f;
-    const float safeRadius = radius * SAFE_RATIO;
-    const float halfPatternSize = patternSize / 2.f;
-    const float maxPatternShift =
-        std::sqrt((safeRadius - halfPatternSize) * (safeRadius + halfPatternSize)) - halfPatternSize;
-    const float candidatePatternShift = radius * cvtCfg.maxPsize;
-    const float patternShift = std::min(maxPatternShift, candidatePatternShift);
+    const float safeDiameter = arrange.getDiameter() * SAFE_RATIO;
+    const float maxPsizeRatio = (1.f - cvtCfg.viewShiftRange) * SAFE_RATIO / cvtCfg.psizeInflate;
+    const int minPsize = _hp::iround(0.1f * safeDiameter);
+    const int maxPsize = _hp::iround(maxPsizeRatio * safeDiameter);
 
-    const int minPsize = (int)std::roundf(0.5f * patternSize);
-
-    return {patternSize, patternShift, minPsize};
+    return {minPsize, maxPsize};
 }
 
 }  // namespace tlct::_cvt

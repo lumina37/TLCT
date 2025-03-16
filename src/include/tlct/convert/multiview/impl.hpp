@@ -23,17 +23,13 @@ static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArr
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev ti_meanstddev{};
 
-    const cv::Point2f mi_center{arrange.getRadius(), arrange.getRadius()};
-    const float mi_width = arrange.getRadius();
-    const cv::Rect& roi = getRoiByCenter(mi_center, mi_width);
-
     // 1-pass: compute texture intensity
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
         const int row_offset = row * arrange.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
             const int offset = row_offset + col;
-            const cv::Mat& mi = mis.getMI(offset).srcY;
-            const float curr_I = textureIntensity(mi(roi));
+            const auto& mi = mis.getMI(offset);
+            const float curr_I = mi.intensity;
             texture_I.at<float>(row, col) = curr_I;
             ti_meanstddev.update(curr_I);
         }

@@ -21,11 +21,11 @@ std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
     parser->add_argument("-o", "--dst").help("output directory").required();
     parser->add_group("Frame Range");
     parser->add_argument("-b", "--begin")
-        .help("the index of the start frame, left contains, starts from zero")
+        .help("the index of the start frame, left inclusive, starts from zero")
         .scan<'i', int>()
         .default_value(0);
     parser->add_argument("-e", "--end")
-        .help("the index of the end frame, right NOT contains")
+        .help("the index of the end frame, right exclusive")
         .scan<'i', int>()
         .default_value(1);
     parser->add_group("Conversion");
@@ -42,10 +42,6 @@ std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
         .help("reserve `viewShiftRange*diameter` for view shifting")
         .scan<'g', float>()
         .default_value(0.1f);
-    parser->add_argument("--patternSize")
-        .help("the size of matching pattern will be `patternSize*diameter`")
-        .scan<'g', float>()
-        .default_value(0.3f);
     parser->add_argument("--psizeShortcutFactor")
         .help("if the metric of new patch size is smaller than `prevMetric*factor`, then use the prev. one")
         .scan<'g', float>()
@@ -59,9 +55,9 @@ std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
 CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser) {
     auto path = CliConfig::Path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
     auto range = CliConfig::Range{parser.get<int>("--begin"), parser.get<int>("--end")};
-    auto convert = CliConfig::Convert{parser.get<int>("--views"),          parser.get<int>("--upsample"),
+    auto convert = CliConfig::Convert{parser.get<int>("--views"), parser.get<int>("--upsample"),
                                       parser.get<float>("--psizeInflate"), parser.get<float>("--viewShiftRange"),
-                                      parser.get<float>("--patternSize"),  parser.get<float>("--psizeShortcutFactor")};
+                                      parser.get<float>("--psizeShortcutFactor")};
 
     return {std::move(path), std::move(range), std::move(convert)};
 }

@@ -25,22 +25,18 @@ struct CliConfig {
     };
 
     struct Convert {
-        TLCT_API Convert(int views, int upsample, float psizeInflate, float viewShiftRange, float patternSize,
+        TLCT_API Convert(int views, int upsample, float psizeInflate, float viewShiftRange,
                          float psizeShortcutFactor) noexcept
             : views(views),
               upsample(upsample),
               psizeInflate(psizeInflate),
               viewShiftRange(viewShiftRange),
-              maxPsize((1.f - viewShiftRange) / psizeInflate),
-              patternSize(patternSize),
               psizeShortcutFactor(psizeShortcutFactor) {};
 
         int views;
         int upsample;
         float psizeInflate;
         float viewShiftRange;
-        float maxPsize;
-        float patternSize;
         float psizeShortcutFactor;
     };
 
