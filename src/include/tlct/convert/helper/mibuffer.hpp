@@ -122,9 +122,9 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
     const int iDiameter = _hp::iround(arrange_.getDiameter());
     const float radius = arrange_.getRadius();
     const int iRadius = _hp::iround(arrange_.getRadius());
-    const int iSafeRadius = _hp::iround(arrange_.getRadius() * SAFE_RATIO);
+    const int iCensusRadius = _hp::iround(arrange_.getRadius() * 0.8f);
     const cv::Mat srcCircleMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
-    cv::circle(srcCircleMask, {iRadius, iRadius}, iSafeRadius, cv::Scalar::all(0xff), cv::FILLED);
+    cv::circle(srcCircleMask, {iRadius, iRadius}, iCensusRadius, cv::Scalar::all(0xff), cv::FILLED);
 
     const float textureRoiWidth = arrange_.getDiameter() / std::numbers::sqrt2_v<float> * SAFE_RATIO;
     const cv::Rect textureRoi = getRoiByCenter({radius, radius}, textureRoiWidth);

@@ -39,7 +39,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         }
     }
 
-    const float metric = expf(-minDiffRatio * 2.0f);
+    const float metric = expf(-minDiffRatio * 4.0f);
     return metric;
 }
 
@@ -74,7 +74,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         }
 
         const float weight = neibMI.intensity;
-        const float metric = expf(-minDiffRatio * 2.0f);
+        const float metric = expf(-minDiffRatio * 4.0f);
         const float weightedMetric = weight * metric;
         sumPsize += (float)bestPsize * weightedMetric;
         sumPsizeWeight += weightedMetric;
@@ -82,7 +82,8 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         sumMetricWeight += weight;
     }
 
-    const int psize = _hp::iround(sumPsize / sumPsizeWeight / TNeighbors::INFLATE);
+    const float draftPsize = _hp::clip(sumPsize / sumPsizeWeight, (float)params.minPsize, (float)params.maxPsize);
+    const int psize = _hp::iround(draftPsize / TNeighbors::INFLATE);
     const float metric = sumMetric / sumMetricWeight;
 
     return {psize, metric};
