@@ -111,7 +111,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
 
     const PsizeMetric& nearPsizeMetric =
         estimateWithNeighbor<NearNeighbors, IS_KEPLER>(params, mis, nearNeighbors, anchorMI);
-    if (nearPsizeMetric.metric > prevMetric * cvtCfg.psizeShortcutFactor) {
+    if (nearPsizeMetric.metric >= prevMetric * cvtCfg.psizeShortcutFactor) {
         maxMetric = nearPsizeMetric.metric;
         bestPsize = nearPsizeMetric.psize;
     }
