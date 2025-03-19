@@ -1,10 +1,9 @@
 #pragma once
 
-#include <concepts>
 #include <fstream>
 #include <map>
 #include <string>
-#include <string_view>
+#include <type_traits>
 #include <utility>
 
 #include "tlct/common/defines.h"
@@ -23,7 +22,7 @@ public:
     TLCT_API ConfigMap& operator=(const ConfigMap& rhs) = default;
     TLCT_API ConfigMap(ConfigMap&& rhs) noexcept = default;
     TLCT_API ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
-    TLCT_API explicit ConfigMap(TMap&& map) noexcept : map_(std::move(map)){}
+    TLCT_API explicit ConfigMap(TMap&& map) noexcept : map_(std::move(map)) {}
 
     // Initialize from
     [[nodiscard]] TLCT_API static ConfigMap fromFstream(std::ifstream&& ifs);

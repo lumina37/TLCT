@@ -1,8 +1,4 @@
 #include <string>
-#include <string_view>
-
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/helper/charset.hpp"
@@ -12,7 +8,14 @@
 
 namespace tlct::_hp {
 
-[[nodiscard]] std::wstring utf8ToWstring(const std::string_view& utf8StrView) {
+#    pragma push_macro("min")
+#    pragma push_macro("max")
+#    define WIN32_LEAN_AND_MEAN
+#    include <Windows.h>
+#    pragma pop_macro("min")
+#    pragma pop_macro("max")
+
+[[nodiscard]] std::wstring utf8ToWstring(const std::string_view utf8StrView) {
     int wcharSize = MultiByteToWideChar(CP_UTF8, 0, utf8StrView.data(), (int)utf8StrView.size(), nullptr, 0);
     if (wcharSize == 0) [[unlikely]] {
         return {};
@@ -22,7 +25,7 @@ namespace tlct::_hp {
     return wstr;
 }
 
-[[nodiscard]] std::string wstringToGBK(const std::wstring_view& wstrView) {
+[[nodiscard]] std::string wstringToGBK(const std::wstring_view wstrView) {
     int gbkSize = WideCharToMultiByte(CP_ACP, 0, wstrView.data(), (int)wstrView.size(), nullptr, 0, nullptr, nullptr);
     if (gbkSize == 0) [[unlikely]] {
         return {};
@@ -32,7 +35,7 @@ namespace tlct::_hp {
     return gbkStr;
 }
 
-[[nodiscard]] std::string cconv(const std::string_view& utf8StrView) {
+[[nodiscard]] std::string cconv(const std::string_view utf8StrView) {
     std::wstring wstr = utf8ToWstring(utf8StrView);
     return wstringToGBK(wstr);
 }

@@ -6,7 +6,7 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] cv::Mat circleWithFadeoutBorder(const int diameter, const float borderWidthFactor);
+[[nodiscard]] cv::Mat circleWithFadeoutBorder(int diameter, float borderWidthFactor);
 
 [[nodiscard]] float textureIntensity(const cv::Mat& src);
 

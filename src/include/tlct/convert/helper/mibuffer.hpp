@@ -67,12 +67,12 @@ public:
     [[nodiscard]] static MIBuffers_ fromArrange(const TArrange& arrange);
 
     // Const methods
-    [[nodiscard]] const MIBuffer& getMI(int row, int col) const noexcept {
+    [[nodiscard]] const MIBuffer& getMI(const int row, const int col) const noexcept {
         const int offset = row * params_.miMaxCols_ + col;
         return miBuffers_.at(offset);
     }
-    [[nodiscard]] const MIBuffer& getMI(cv::Point index) const noexcept { return getMI(index.y, index.x); }
-    [[nodiscard]] const MIBuffer& getMI(int offset) const noexcept { return miBuffers_.at(offset); }
+    [[nodiscard]] const MIBuffer& getMI(const cv::Point index) const noexcept { return getMI(index.y, index.x); }
+    [[nodiscard]] const MIBuffer& getMI(const int offset) const noexcept { return miBuffers_.at(offset); }
 
     // Non-const methods
     MIBuffers_& update(const cv::Mat& src);

@@ -169,7 +169,6 @@ private:
     TPoints points_;
     cv::Point2f selfPt_;
 
-private:
     template <size_t... Idx>
     [[nodiscard]] static consteval auto makeDirections(std::index_sequence<Idx...>) {
         return std::array<Direction, sizeof...(Idx)>{(Direction)Idx...};

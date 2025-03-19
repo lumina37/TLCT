@@ -9,11 +9,11 @@
 
 namespace tlct::_hp {
 
-[[nodiscard]] std::wstring utf8ToWstring(const std::string_view& utf8StrView);
+[[nodiscard]] std::wstring utf8ToWstring(std::string_view utf8StrView);
 
-[[nodiscard]] std::string wstringToGBK(const std::wstring_view& wstrView);
+[[nodiscard]] std::string wstringToGBK(std::wstring_view wstrView);
 
-[[nodiscard]] std::string cconv(const std::string_view& utf8StrView);
+[[nodiscard]] std::string cconv(std::string_view utf8StrView);
 
 }  // namespace tlct::_hp
 
