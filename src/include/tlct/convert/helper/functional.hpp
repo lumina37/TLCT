@@ -46,5 +46,4 @@ namespace rgs = std::ranges;
     return intensity;
 }
 
-
 }  // namespace tlct::_cvt

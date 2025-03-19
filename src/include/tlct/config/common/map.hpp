@@ -23,7 +23,7 @@ public:
     TLCT_API ConfigMap& operator=(const ConfigMap& rhs) = default;
     TLCT_API ConfigMap(ConfigMap&& rhs) noexcept = default;
     TLCT_API ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
-    TLCT_API explicit ConfigMap(TMap&& cfg_map) noexcept : map_(std::move(cfg_map)){};
+    TLCT_API explicit ConfigMap(TMap&& map) noexcept : map_(std::move(map)){};
 
     // Initialize from
     [[nodiscard]] TLCT_API static ConfigMap fromFstream(std::ifstream&& ifs);
@@ -37,23 +37,23 @@ public:
 
     template <_hp::cestring key, typename Tv>
         requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-    [[nodiscard]] Tv getOr(const Tv& default_val) const noexcept;
+    [[nodiscard]] Tv getOr(const Tv& defaultVal) const noexcept;
 
     template <_hp::cestring key, typename Tf>
         requires std::is_invocable_v<Tf>
-    [[nodiscard]] auto getOrElse(Tf&& default_factory) const noexcept -> decltype(default_factory());
+    [[nodiscard]] auto getOrElse(Tf&& defaultFactory) const noexcept -> decltype(defaultFactory());
 
     template <typename Tv>
     [[nodiscard]] Tv get(const std::string& key) const;
 
     template <typename Tv>
         requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-    [[nodiscard]] Tv getOr(const std::string& key, const Tv& default_val) const noexcept;
+    [[nodiscard]] Tv getOr(const std::string& key, const Tv& defaultVal) const noexcept;
 
     template <typename Tf>
         requires std::is_invocable_v<Tf>
-    [[nodiscard]] auto getOrElse(const std::string& key, Tf&& default_factory) const noexcept
-        -> decltype(default_factory());
+    [[nodiscard]] auto getOrElse(const std::string& key, Tf&& defaultFactory) const noexcept
+        -> decltype(defaultFactory());
 
 private:
     TMap map_;
@@ -77,14 +77,14 @@ Tv ConfigMap::get() const {
 
 template <_hp::cestring key, typename Tv>
     requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-Tv ConfigMap::getOr(const Tv& default_val) const noexcept {
-    return this->getOr<Tv>(key.string, default_val);
+Tv ConfigMap::getOr(const Tv& defaultVal) const noexcept {
+    return this->getOr<Tv>(key.string, defaultVal);
 };
 
 template <_hp::cestring key, typename Tf>
     requires std::is_invocable_v<Tf>
-auto ConfigMap::getOrElse(Tf&& default_factory) const noexcept -> decltype(default_factory()) {
-    return this->getOrElse<Tf>(key.string, default_factory);
+auto ConfigMap::getOrElse(Tf&& defaultFactory) const noexcept -> decltype(defaultFactory()) {
+    return this->getOrElse<Tf>(key.string, defaultFactory);
 };
 
 template <typename Tv>
@@ -94,10 +94,10 @@ Tv ConfigMap::get(const std::string& key) const {
 
 template <typename Tv>
     requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
-Tv ConfigMap::getOr(const std::string& key, const Tv& default_val) const noexcept {
+Tv ConfigMap::getOr(const std::string& key, const Tv& defaultVal) const noexcept {
     const auto it = map_.find(key);
     if (it == map_.end()) {
-        return default_val;
+        return defaultVal;
     }
     const std::string& val = it->second;
     const Tv nval = stox<Tv>(val);
@@ -106,12 +106,12 @@ Tv ConfigMap::getOr(const std::string& key, const Tv& default_val) const noexcep
 
 template <typename Tf>
     requires std::is_invocable_v<Tf>
-auto ConfigMap::getOrElse(const std::string& key, Tf&& default_factory) const noexcept -> decltype(default_factory()) {
-    using Tval = decltype(default_factory());
+auto ConfigMap::getOrElse(const std::string& key, Tf&& defaultFactory) const noexcept -> decltype(defaultFactory()) {
+    using Tval = decltype(defaultFactory());
 
     const auto it = map_.find(key);
     if (it == map_.end()) {
-        return default_factory();
+        return defaultFactory();
     }
     const std::string& val = it->second;
     const Tval nval = stox<Tval>(val);

@@ -19,30 +19,29 @@ namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange>
 static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArrange>& mis, MvCache_<TArrange>& cache) {
-    cv::Mat texture_I(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
-    _hp::MeanStddev ti_meanstddev{};
+    _hp::MeanStddev texMeanStddev{};
 
-    // 1-pass: compute texture intensity
+    // 1-pass: stat texture intensity
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
-        const int row_offset = row * arrange.getMIMaxCols();
+        const int rowOffset = row * arrange.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
-            const int offset = row_offset + col;
+            const int offset = rowOffset + col;
             const auto& mi = mis.getMI(offset);
-            const float curr_I = mi.intensity;
-            texture_I.at<float>(row, col) = curr_I;
-            ti_meanstddev.update(curr_I);
+            texMeanStddev.update(mi.intensity);
         }
     }
 
     // 2-pass: compute weight
-    const float ti_mean = ti_meanstddev.getMean();
-    const float ti_stddev = ti_meanstddev.getStddev();
+    const float texIntensityMean = texMeanStddev.getMean();
+    const float texIntensityStddev = texMeanStddev.getStddev();
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
+        const int rowOffset = row * arrange.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
-            const float& curr_ti = texture_I.at<float>({col, row});
-            const float normed_I = (curr_ti - ti_mean) / ti_stddev;
-            cache.weights.template at<float>(row, col) = _hp::sigmoid(normed_I);
+            const int offset = rowOffset + col;
+            const auto& mi = mis.getMI(offset);
+            const float normedTexIntensity = (mi.intensity - texIntensityMean) / texIntensityStddev;
+            cache.weights.template at<float>(row, col) = _hp::sigmoid(normedTexIntensity);
         }
     }
 }
@@ -51,15 +50,15 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS
 static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs,
                               typename MvCache_<TArrange>::TChannels& dsts, const TArrange& arrange,
                               const MvParams_<TArrange>& params, const cv::Mat& patchsizes, MvCache_<TArrange>& cache,
-                              int view_row, int view_col) {
-    const int view_shift_x = (view_col - params.views / 2) * params.viewInterval;
-    const int view_shift_y = (view_row - params.views / 2) * params.viewInterval;
+                              int viewRow, int viewCol) {
+    const int viewShiftX = (viewCol - params.views / 2) * params.viewInterval;
+    const int viewShiftY = (viewRow - params.views / 2) * params.viewInterval;
 
-    cv::Mat resized_patch;
-    [[maybe_unused]] cv::Mat rotated_patch;
-    cv::Mat weighted_patch;
+    cv::Mat resizedPatch;
+    [[maybe_unused]] cv::Mat rotatedPatch;
+    cv::Mat weightedPatch;
 
-    for (const int chan_id : rgs::views::iota(0, (int)srcs.size())) {
+    for (const int chanIdx : rgs::views::iota(0, (int)srcs.size())) {
         cache.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
         cache.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
 
@@ -68,44 +67,44 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
                 // Extract patch
                 const cv::Point2f center = arrange.getMICenter(row, col);
                 const float psize = params.psizeInflate * (float)patchsizes.at<int>(row, col);
-                const cv::Point2f patch_center{center.x + view_shift_x, center.y + view_shift_y};
-                const cv::Mat& patch = getRoiImageByCenter(srcs[chan_id], patch_center, psize);
+                const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
+                const cv::Mat& patch = getRoiImageByCenter(srcs[chanIdx], patchCenter, psize);
 
                 // Paste patch
                 if constexpr (IS_KEPLER) {
-                    cv::rotate(patch, rotated_patch, cv::ROTATE_180);
-                    cv::resize(rotated_patch, resized_patch, {params.resizedPatchWidth, params.resizedPatchWidth}, 0, 0,
+                    cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
+                    cv::resize(rotatedPatch, resizedPatch, {params.resizedPatchWidth, params.resizedPatchWidth}, 0, 0,
                                cv::INTER_LINEAR_EXACT);
                 } else {
-                    cv::resize(patch, resized_patch, {params.resizedPatchWidth, params.resizedPatchWidth}, 0, 0,
+                    cv::resize(patch, resizedPatch, {params.resizedPatchWidth, params.resizedPatchWidth}, 0, 0,
                                cv::INTER_LINEAR_EXACT);
                 }
 
-                cv::multiply(resized_patch, cache.gradBlendingWeight, weighted_patch);
+                cv::multiply(resizedPatch, cache.gradBlendingWeight, weightedPatch);
 
                 // if the second bar is not out shift, then we need to shift the 1 col
                 // else if the second bar is out shift, then we need to shift the 0 col
-                const int right_shift = ((row % 2) ^ (int)arrange.isOutShift()) * (params.patchXShift / 2);
-                const cv::Rect roi{col * params.patchXShift + right_shift, row * params.patchYShift,
+                const int rightShift = ((row % 2) ^ (int)arrange.isOutShift()) * (params.patchXShift / 2);
+                const cv::Rect roi{col * params.patchXShift + rightShift, row * params.patchYShift,
                                    params.resizedPatchWidth, params.resizedPatchWidth};
 
                 if constexpr (IS_MULTI_FOCUS) {
                     const float weight = cache.weights.template at<float>(row, col);
-                    cache.renderCanvas(roi) += weighted_patch * weight;
+                    cache.renderCanvas(roi) += weightedPatch * weight;
                     cache.weightCanvas(roi) += cache.gradBlendingWeight * weight;
                 } else {
-                    cache.renderCanvas(roi) += weighted_patch;
+                    cache.renderCanvas(roi) += weightedPatch;
                     cache.weightCanvas(roi) += cache.gradBlendingWeight;
                 }
             }
         }
 
-        cv::Mat cropped_rendered_image = cache.renderCanvas(params.canvasCropRoi);
-        cv::Mat cropped_weight_matrix = cache.weightCanvas(params.canvasCropRoi);
+        cv::Mat croppedRenderedImage = cache.renderCanvas(params.canvasCropRoi);
+        cv::Mat croppedWeightMatrix = cache.weightCanvas(params.canvasCropRoi);
 
-        cv::divide(cropped_rendered_image, cropped_weight_matrix, cache.normedImage);
+        cv::divide(croppedRenderedImage, croppedWeightMatrix, cache.normedImage);
         cache.normedImage.convertTo(cache.u8NormedImage, CV_8UC1);
-        cv::resize(cache.u8NormedImage, dsts[chan_id], {params.outputWidth, params.outputHeight}, 0.0, 0.0,
+        cv::resize(cache.u8NormedImage, dsts[chanIdx], {params.outputWidth, params.outputHeight}, 0.0, 0.0,
                    cv::INTER_LINEAR_EXACT);
     }
 }

@@ -224,7 +224,7 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
         }
     }
 
-    const float diffRatio = (float)diffBitCount / (float)(maskBitCount);
+    const float diffRatio = (float)diffBitCount / (float)maskBitCount;
     return diffRatio;
 }
 

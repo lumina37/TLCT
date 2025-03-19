@@ -15,8 +15,8 @@ template <std::floating_point Tv>
 template <size_t to, std::integral Tv>
     requires(to % 2 == 0)
 [[nodiscard]] static constexpr inline Tv roundTo(Tv v) noexcept {
-    constexpr Tv half_to = to >> 1;
-    return (v + half_to) / to * to;
+    constexpr Tv halfTo = to >> 1;
+    return (v + halfTo) & ((~to) + 1);
 }
 
 template <std::unsigned_integral Tv>

@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <utility>
 
 #include <opencv2/core.hpp>
 

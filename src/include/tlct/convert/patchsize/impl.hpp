@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <concepts>
 #include <limits>
 #include <ranges>
 
@@ -19,7 +17,6 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
-    requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
 [[nodiscard]] static inline float metricOfPsize(const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
                                                 const MIBuffer& anchorMI, const int psize) {
     float minDiffRatio = std::numeric_limits<float>::max();
@@ -44,7 +41,6 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
 }
 
 template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
-    requires std::is_same_v<TArrange, typename TNeighbors::TArrange>
 [[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const PsizeParams_<TArrange>& params,
                                                              const MIBuffers_<TArrange>& mis,
                                                              const TNeighbors& neighbors, const MIBuffer& anchorMI) {
@@ -78,8 +74,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         }
     }
 
-    const int draftPsize = bestPsize;
-    const int psize = _hp::iround(draftPsize / TNeighbors::INFLATE);
+    const int psize = _hp::iround(bestPsize / TNeighbors::INFLATE);
     const float metric = minDiffRatio;
 
     return {psize, metric};
