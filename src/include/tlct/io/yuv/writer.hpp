@@ -18,10 +18,7 @@ public:
     using TFrame = TFrame_;
 
     TLCT_API explicit YuvWriter_(std::ofstream&& ofs) : ofs_(std::move(ofs)){};
-    TLCT_API static YuvWriter_ fromPath(const fs::path& fpath) {
-        std::ofstream ofs{fpath, std::ios::binary};
-        return YuvWriter_{std::move(ofs)};
-    }
+    TLCT_API static YuvWriter_ fromPath(const fs::path& fpath);
 
     TLCT_API void write(TFrame& frame);
 

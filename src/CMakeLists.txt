@@ -10,12 +10,12 @@ function(tlct_common_lib_setting name)
 
     target_include_directories(${name} ${__PUB_DEP_SCOPE}
             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
-            $<INSTALL_INTERFACE:include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
             $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
     )
     target_link_libraries(${name} ${__PUB_DEP_SCOPE}
             ${OpenCV_LIBS}
-            argparse
+            argparse::argparse
     )
 
     if (MSVC)
@@ -64,6 +64,6 @@ tlct_common_lib_setting(tlct-lib-header-only)
 target_compile_definitions(tlct-lib-header-only INTERFACE "_TLCT_LIB_HEADER_ONLY")
 add_library(tlct::lib::header-only ALIAS tlct-lib-header-only)
 
-if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+if (DEFINED PROJECT_NAME)
     add_subdirectory(bin)
 endif ()

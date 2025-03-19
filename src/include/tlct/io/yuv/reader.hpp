@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
-#include <ios>
 #include <utility>
 
 #include "tlct/common/defines.h"
@@ -21,10 +20,7 @@ public:
 
     TLCT_API YuvReader_(std::ifstream&& ifs, size_t yWidth, size_t yHeight)
         : ifs_(std::move(ifs)), yWidth_(yWidth), yHeight_(yHeight), ySize_(yWidth * yHeight) {};
-    TLCT_API static YuvReader_ fromPath(const fs::path& fpath, size_t yWidth, size_t yHeight) {
-        std::ifstream ifs{fpath, std::ios::binary};
-        return {std::move(ifs), yWidth, yHeight};
-    }
+    TLCT_API static YuvReader_ fromPath(const fs::path& fpath, size_t yWidth, size_t yHeight);
 
     [[nodiscard]] TLCT_API size_t getYWidth() const noexcept { return yWidth_; };
     [[nodiscard]] TLCT_API size_t getYHeight() const noexcept { return yHeight_; };

@@ -58,9 +58,9 @@ ConfigMap ConfigMap::fromFstream(std::ifstream&& ifs) {
 
 ConfigMap ConfigMap::fromPath(std::string_view path) {
     std::ifstream ifs(path.data());
-    if (!ifs.is_open()) [[unlikely]] {
+    if (!ifs) [[unlikely]] {
         std::stringstream err;
-        err << "Failed to load `ConfigMap` from `" << path << "`! The file may not exist.";
+        err << "Failed to load `ConfigMap`, the file may not exist. path: " << path;
         throw std::runtime_error{err.str()};
     }
 

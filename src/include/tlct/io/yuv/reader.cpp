@@ -1,3 +1,7 @@
+#include <ios>
+#include <sstream>
+#include <stdexcept>
+
 #include "tlct/io/concepts/frame.hpp"
 #include "tlct/io/yuv/frame.hpp"
 
@@ -6,6 +10,18 @@
 #endif
 
 namespace tlct::_io::yuv {
+
+template <concepts::CFrame TFrame>
+YuvReader_<TFrame> YuvReader_<TFrame>::fromPath(const fs::path& fpath, size_t yWidth, size_t yHeight) {
+    std::ifstream ifs{fpath, std::ios::binary};
+    if (!ifs) [[unlikely]] {
+        std::stringstream err;
+        err << "Failed to open file with 'r' mode. path: " << fpath;
+        throw std::runtime_error{err.str()};
+    }
+
+    return {std::move(ifs), yWidth, yHeight};
+}
 
 template <concepts::CFrame TFrame>
 YuvReader_<TFrame>& YuvReader_<TFrame>::skip(int n) {

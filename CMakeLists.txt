@@ -12,7 +12,7 @@ project(tlct
         LANGUAGES CXX
 )
 
-set(TLCT_VERSION_BETA_SUFFIX "alpha.7")
+set(TLCT_VERSION_BETA_SUFFIX "alpha.8")
 if (NOT TLCT_VERSION_BETA_SUFFIX)
     set(TLCT_VERSION ${PROJECT_VERSION})
 else ()
@@ -24,7 +24,7 @@ include(CMakeDependentOption)
 
 option(TLCT_ENABLE_TESTS "Enable tests" OFF)
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
-        "CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
+        "DEFINED PROJECT_NAME" OFF)
 option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
 
 if (MSVC)
@@ -92,7 +92,7 @@ endif ()
 # Install
 include(GNUInstallDirs)
 
-if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+if (DEFINED PROJECT_NAME)
     include(CMakePackageConfigHelpers)
 
     install(TARGETS ${PROJECT_NAME}-lib-dynamic argparse
