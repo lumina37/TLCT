@@ -43,9 +43,9 @@ std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
         .scan<'g', float>()
         .default_value(0.1f);
     parser->add_argument("--psizeShortcutFactor")
-        .help("if the metric of new patch size is smaller than `prevMetric*factor`, then use the prev. one")
+        .help("if the metric of new patch size is larger than `prevMetric*factor`, then use the prev. one")
         .scan<'g', float>()
-        .default_value(1.2f);
+        .default_value(0.85f);
 
     parser->add_epilog(TLCT_COMPILE_INFO);
 
