@@ -18,19 +18,19 @@ public:
     using TMap = std::map<std::string, std::string>;
 
     // Constructor
-    TLCT_API ConfigMap() : map_() {};
+    TLCT_API ConfigMap() : map_() {}
     TLCT_API ConfigMap(const ConfigMap& rhs) = default;
     TLCT_API ConfigMap& operator=(const ConfigMap& rhs) = default;
     TLCT_API ConfigMap(ConfigMap&& rhs) noexcept = default;
     TLCT_API ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
-    TLCT_API explicit ConfigMap(TMap&& map) noexcept : map_(std::move(map)){};
+    TLCT_API explicit ConfigMap(TMap&& map) noexcept : map_(std::move(map)){}
 
     // Initialize from
     [[nodiscard]] TLCT_API static ConfigMap fromFstream(std::ifstream&& ifs);
     [[nodiscard]] TLCT_API static ConfigMap fromPath(std::string_view path);
 
     // Const methods
-    [[nodiscard]] TLCT_API bool isEmpty() const noexcept { return map_.empty(); };
+    [[nodiscard]] TLCT_API bool isEmpty() const noexcept { return map_.empty(); }
 
     template <_hp::cestring key, typename Tv>
     [[nodiscard]] Tv get() const;
@@ -73,24 +73,24 @@ static inline Tv stox(const std::string& str) {
 template <_hp::cestring key, typename Tv>
 Tv ConfigMap::get() const {
     return this->get<Tv>(key.string);
-};
+}
 
 template <_hp::cestring key, typename Tv>
     requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
 Tv ConfigMap::getOr(const Tv& defaultVal) const noexcept {
     return this->getOr<Tv>(key.string, defaultVal);
-};
+}
 
 template <_hp::cestring key, typename Tf>
     requires std::is_invocable_v<Tf>
 auto ConfigMap::getOrElse(Tf&& defaultFactory) const noexcept -> decltype(defaultFactory()) {
     return this->getOrElse<Tf>(key.string, defaultFactory);
-};
+}
 
 template <typename Tv>
 Tv ConfigMap::get(const std::string& key) const {
     return stox<Tv>(map_.at(key));
-};
+}
 
 template <typename Tv>
     requires std::is_trivially_copyable_v<Tv> && (!std::is_invocable_v<Tv>)
@@ -102,7 +102,7 @@ Tv ConfigMap::getOr(const std::string& key, const Tv& defaultVal) const noexcept
     const std::string& val = it->second;
     const Tv nval = stox<Tv>(val);
     return nval;
-};
+}
 
 template <typename Tf>
     requires std::is_invocable_v<Tf>
@@ -116,7 +116,7 @@ auto ConfigMap::getOrElse(const std::string& key, Tf&& defaultFactory) const noe
     const std::string& val = it->second;
     const Tval nval = stox<Tval>(val);
     return nval;
-};
+}
 
 }  // namespace tlct::_cfg
 

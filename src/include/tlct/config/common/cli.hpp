@@ -31,7 +31,7 @@ struct CliConfig {
               upsample(upsample),
               psizeInflate(psizeInflate),
               viewShiftRange(viewShiftRange),
-              psizeShortcutFactor(psizeShortcutFactor) {};
+              psizeShortcutFactor(psizeShortcutFactor) {}
 
         int views;
         int upsample;

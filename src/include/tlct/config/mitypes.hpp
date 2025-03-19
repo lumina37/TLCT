@@ -18,7 +18,7 @@ public:
     using TIdx2Type = std::array<std::array<int, LEN_TYPE_NUM>, 2>;
 
     // Constructor
-    TLCT_API MITypes() noexcept : idx2type_() {};
+    TLCT_API MITypes() noexcept : idx2type_() {}
     TLCT_API MITypes(const MITypes& rhs) noexcept = default;
     TLCT_API MITypes& operator=(const MITypes& rhs) noexcept = default;
     TLCT_API MITypes(MITypes&& rhs) noexcept = default;

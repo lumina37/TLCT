@@ -27,7 +27,7 @@ public:
           miRows_(),
           miCols_(),
           upsample_(1),
-          isOutShift_() {};
+          isOutShift_() {}
     TLCT_API OffsetArrange(const OffsetArrange& rhs) noexcept = default;
     TLCT_API OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
     TLCT_API OffsetArrange(OffsetArrange&& rhs) noexcept = default;
@@ -41,20 +41,20 @@ public:
     TLCT_API OffsetArrange& upsample(int factor) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API int getImgWidth() const noexcept { return imgSize_.width; };
-    [[nodiscard]] TLCT_API int getImgHeight() const noexcept { return imgSize_.height; };
-    [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept { return imgSize_; };
-    [[nodiscard]] TLCT_API float getDiameter() const noexcept { return diameter_; };
-    [[nodiscard]] TLCT_API float getRadius() const noexcept { return radius_; };
-    [[nodiscard]] TLCT_API bool getDirection() const noexcept { return direction_; };
-    [[nodiscard]] TLCT_API int getUpsample() const noexcept { return upsample_; };
-    [[nodiscard]] TLCT_API int getMIRows() const noexcept { return miRows_; };
-    [[nodiscard]] TLCT_API int getMICols(const int row) const noexcept { return miCols_[row % miCols_.size()]; };
-    [[nodiscard]] TLCT_API int getMIMaxCols() const noexcept { return std::max(miCols_[0], miCols_[1]); };
-    [[nodiscard]] TLCT_API int getMIMinCols() const noexcept { return std::min(miCols_[0], miCols_[1]); };
+    [[nodiscard]] TLCT_API int getImgWidth() const noexcept { return imgSize_.width; }
+    [[nodiscard]] TLCT_API int getImgHeight() const noexcept { return imgSize_.height; }
+    [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept { return imgSize_; }
+    [[nodiscard]] TLCT_API float getDiameter() const noexcept { return diameter_; }
+    [[nodiscard]] TLCT_API float getRadius() const noexcept { return radius_; }
+    [[nodiscard]] TLCT_API bool getDirection() const noexcept { return direction_; }
+    [[nodiscard]] TLCT_API int getUpsample() const noexcept { return upsample_; }
+    [[nodiscard]] TLCT_API int getMIRows() const noexcept { return miRows_; }
+    [[nodiscard]] TLCT_API int getMICols(const int row) const noexcept { return miCols_[row % miCols_.size()]; }
+    [[nodiscard]] TLCT_API int getMIMaxCols() const noexcept { return std::max(miCols_[0], miCols_[1]); }
+    [[nodiscard]] TLCT_API int getMIMinCols() const noexcept { return std::min(miCols_[0], miCols_[1]); }
     [[nodiscard]] TLCT_API cv::Point2f getMICenter(int row, int col) const noexcept;
     [[nodiscard]] TLCT_API cv::Point2f getMICenter(cv::Point index) const noexcept;
-    [[nodiscard]] TLCT_API bool isOutShift() const noexcept { return isOutShift_; };
+    [[nodiscard]] TLCT_API bool isOutShift() const noexcept { return isOutShift_; }
 
 private:
     cv::Size imgSize_;
