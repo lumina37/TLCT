@@ -2,13 +2,15 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/defines.h"
+
 namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] cv::Mat circleWithFadeoutBorder(int diameter, float borderWidthFactor);
+[[nodiscard]] TLCT_API cv::Mat circleWithFadeoutBorder(int diameter, float borderWidthFactor);
 
-[[nodiscard]] float textureIntensity(const cv::Mat& src);
+[[nodiscard]] TLCT_API float textureIntensity(const cv::Mat& src);
 
 }  // namespace tlct::_cvt
 

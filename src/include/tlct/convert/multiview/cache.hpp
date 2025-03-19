@@ -5,6 +5,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/multiview/params.hpp"
 
@@ -30,7 +31,7 @@ public:
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] static MvCache_ fromParams(const MvParams_<TArrange>& params);
+    [[nodiscard]] TLCT_API static MvCache_ fromParams(const MvParams_<TArrange>& params);
 
     cv::Mat gradBlendingWeight;
     cv::Mat renderCanvas;

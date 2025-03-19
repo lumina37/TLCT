@@ -2,6 +2,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/defines.h"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 
@@ -17,7 +18,7 @@ public:
     using TCvtConfig = tcfg::CliConfig::Convert;
 
     // Initialize from
-    [[nodiscard]] static MvParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
+    [[nodiscard]] TLCT_API static MvParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
     cv::Range canvasCropRoi[2];
     float psizeInflate;

@@ -2,11 +2,13 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/defines.h"
+
 namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap, cv::Mat& censusMask);
+TLCT_API void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap, cv::Mat& censusMask);
 
 }  // namespace tlct::_cvt
 

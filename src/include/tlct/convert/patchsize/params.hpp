@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tlct/common/defines.h"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 
@@ -17,7 +18,7 @@ public:
     using TCvtConfig = tcfg::CliConfig::Convert;
 
     // Initialize from
-    [[nodiscard]] static PsizeParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
+    [[nodiscard]] TLCT_API static PsizeParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
     int minPsize;
     int maxPsize;

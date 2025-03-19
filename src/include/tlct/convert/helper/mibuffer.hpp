@@ -7,6 +7,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 
 namespace tlct::_cvt {
@@ -64,7 +65,7 @@ public:
     ~MIBuffers_() { std::free(buffer_); }
 
     // Initialize from
-    [[nodiscard]] static MIBuffers_ fromArrange(const TArrange& arrange);
+    [[nodiscard]] TLCT_API static MIBuffers_ fromArrange(const TArrange& arrange);
 
     // Const methods
     [[nodiscard]] const MIBuffer& getMI(const int row, const int col) const noexcept {
@@ -75,7 +76,7 @@ public:
     [[nodiscard]] const MIBuffer& getMI(const int offset) const noexcept { return miBuffers_.at(offset); }
 
     // Non-const methods
-    MIBuffers_& update(const cv::Mat& src);
+    TLCT_API MIBuffers_& update(const cv::Mat& src);
 
 private:
     TArrange arrange_;
@@ -84,7 +85,7 @@ private:
     void* buffer_;
 };
 
-[[nodiscard]] float censusCompare(const MIBuffer& lhsMI, const MIBuffer& rhsMI, cv::Point2f offset) noexcept;
+[[nodiscard]] TLCT_API float censusCompare(const MIBuffer& lhsMI, const MIBuffer& rhsMI, cv::Point2f offset) noexcept;
 
 }  // namespace tlct::_cvt
 
