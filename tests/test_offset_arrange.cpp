@@ -18,7 +18,7 @@ TEST_CASE("Arrange with central MI and offset", "tlct::cfg#OffsetArrange") {
     const auto& cfgMap = tlct::ConfigMap::fromPath("test/raytrix.cfg");
     const auto& arrange = tlct::cfg::OffsetArrange::fromCfgMap(cfgMap);
 
-    constexpr float eps = 0.1;
+    constexpr float eps = 0.1f;
 
     REQUIRE(arrange.getImgWidth() == 6464);
     REQUIRE(arrange.getImgHeight() == 4852);

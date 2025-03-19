@@ -18,7 +18,7 @@ TEST_CASE("Arrange with four corners", "tlct::cfg#CornersArrange") {
     const auto& cfgMap = tlct::ConfigMap::fromPath("test/清华单聚焦光场相机.cfg");
     const auto& arrange = tlct::cfg::CornersArrange::fromCfgMap(cfgMap);
 
-    constexpr float eps = 0.1;
+    constexpr float eps = 0.1f;
 
     REQUIRE(arrange.getImgWidth() == 3068);
     REQUIRE(arrange.getImgHeight() == 4080);
