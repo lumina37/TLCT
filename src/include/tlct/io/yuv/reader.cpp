@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <ios>
 #include <sstream>
 #include <stdexcept>
