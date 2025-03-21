@@ -66,7 +66,7 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
             for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
                 // Extract patch
                 const cv::Point2f center = arrange.getMICenter(row, col);
-                const float psize = params.psizeInflate * (float)patchsizes.at<int>(row, col);
+                const float psize = params.psizeInflate * patchsizes.at<float>(row, col);
                 const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
                 const cv::Mat& patch = getRoiImageByCenter(srcs[chanIdx], patchCenter, psize);
 

@@ -15,6 +15,7 @@ function(tlct_add_test name srcs)
 endfunction()
 
 tlct_add_test(test_constexpr_math "test_constexpr_math.cpp")
+tlct_add_test(test_functional "test_functional.cpp")
 tlct_add_test(test_corners_arrange "test_corners_arrange.cpp")
 tlct_add_test(test_offset_arrange "test_offset_arrange.cpp")
 

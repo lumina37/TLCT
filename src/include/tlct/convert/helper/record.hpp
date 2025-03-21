@@ -3,7 +3,7 @@
 namespace tlct::_cvt {
 
 struct PsizeMetric {
-    int psize;
+    float psize;
     float metric;
 };
 

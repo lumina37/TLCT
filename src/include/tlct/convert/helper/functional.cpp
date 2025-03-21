@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <limits>
 #include <ranges>
+#include <span>
 
 #include <opencv2/imgproc.hpp>
 
@@ -45,6 +46,42 @@ namespace rgs = std::ranges;
     intensity += (float)cv::sum(edges)[0];
     intensity /= (float)edges.size().area();
     return intensity;
+}
+
+[[nodiscard]] TLCT_API int pickByFWHM(const std::span<float> arr) {
+    const float maxVal = *rgs::max_element(arr);
+    const auto& correctedArr = arr | rgs::views::transform([maxVal](const float v) { return maxVal - v; });
+
+    float maxArea = -1.f;
+    int maxAreaIdx = 0;
+    for (const int idx : rgs::views::iota(0, (int)arr.size())) {
+        const float currVal = correctedArr[idx];
+        const float threVal = currVal * 0.5f;
+
+        float area = currVal;
+        for (int leftIdx = idx - 1; leftIdx >= 0; leftIdx--) {
+            const float leftVal = correctedArr[leftIdx];
+            if (leftVal > currVal || leftVal < threVal) {
+                break;
+            }
+            area += leftVal;
+        }
+
+        for (int rightIdx = idx + 1; rightIdx < arr.size(); rightIdx++) {
+            const float rightVal = correctedArr[rightIdx];
+            if (rightVal > currVal || rightVal < threVal) {
+                break;
+            }
+            area += rightVal;
+        }
+
+        if (area > maxArea) {
+            maxArea = area;
+            maxAreaIdx = idx;
+        }
+    }
+
+    return maxAreaIdx;
 }
 
 }  // namespace tlct::_cvt

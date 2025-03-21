@@ -5,8 +5,8 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/config/arrange.hpp"
 #include "tlct/config/common.hpp"
+#include "tlct/config/concepts/arrange.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview.hpp"
 #include "tlct/convert/patchsize.hpp"
@@ -47,9 +47,7 @@ public:
     [[nodiscard]] static Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
     // Const methods
-    [[nodiscard]] cv::Size getOutputSize() const noexcept {
-        return {mvParams_.outputWidth, mvParams_.outputHeight};
-    };
+    [[nodiscard]] cv::Size getOutputSize() const noexcept { return {mvParams_.outputWidth, mvParams_.outputHeight}; };
 
     // Non-const methods
     void update(const TFrame& src);
@@ -75,8 +73,8 @@ private:
     TArrange arrange_;
     TCvtConfig cvtCfg_;
     TMIBuffers mis_;
-    cv::Mat prevPatchsizes_;
-    cv::Mat patchsizes_;
+    cv::Mat prevPatchsizes_;  // CV_32FC1
+    cv::Mat patchsizes_;      // CV_32FC1
 
     PsizeParams psizeParams_;
     MvParams mvParams_;
@@ -88,8 +86,8 @@ Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& 
     : arrange_(arrange), cvtCfg_(cvtCfg) {
     mis_ = TMIBuffers::fromArrange(arrange);
 
-    prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32SC1);
-    patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32SC1);
+    prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
+    patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     psizeParams_ = PsizeParams_<TArrange>::fromConfigs(arrange, cvtCfg);
 
     mvParams_ = MvParams_<TArrange>::fromConfigs(arrange, cvtCfg);
