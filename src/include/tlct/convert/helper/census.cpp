@@ -59,12 +59,10 @@ void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& cen
                             }
                         }
                     }
-
                     // bump for each pixel in window
                     winPixCount++;
                 }
             }
-
             // bump for each pixel in src
             pCsMap++;
             pCsMask++;

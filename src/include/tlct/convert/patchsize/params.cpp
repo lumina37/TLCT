@@ -16,7 +16,7 @@ template <tcfg::concepts::CArrange TArrange>
 PsizeParams_<TArrange> PsizeParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg) {
     const float safeDiameter = arrange.getDiameter() * SAFE_RATIO;
     const float maxPsizeRatio = (1.f - cvtCfg.viewShiftRange) * SAFE_RATIO / cvtCfg.psizeInflate;
-    const int minPsize = _hp::iround(0.2f * arrange.getDiameter());
+    const int minPsize = _hp::iround(0.1f * arrange.getDiameter());
     const int maxPsize = _hp::iround(maxPsizeRatio * safeDiameter);
 
     return {minPsize, maxPsize};

@@ -6,8 +6,6 @@
 
 namespace tlct::_cvt {
 
-namespace rgs = std::ranges;
-
 TLCT_API void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap, cv::Mat& censusMask);
 
 }  // namespace tlct::_cvt

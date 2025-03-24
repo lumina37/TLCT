@@ -54,7 +54,7 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
     const int iDiameter = _hp::iround(arrange_.getDiameter());
     const float radius = arrange_.getRadius();
     const int iRadius = _hp::iround(arrange_.getRadius());
-    const int iCensusRadius = _hp::iround(arrange_.getRadius() * 0.8f);
+    const int iCensusRadius = _hp::iround(arrange_.getRadius() * 0.75f);
     const cv::Mat srcCircleMask = cv::Mat::zeros(iDiameter, iDiameter, CV_8UC1);
     cv::circle(srcCircleMask, {iRadius, iRadius}, iCensusRadius, cv::Scalar::all(0xff), cv::FILLED);
 

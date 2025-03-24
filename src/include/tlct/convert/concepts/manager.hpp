@@ -1,7 +1,6 @@
 #pragma once
 
 #include <concepts>
-#include <ranges>
 
 #include <opencv2/core.hpp>
 
@@ -11,7 +10,6 @@
 
 namespace tlct::_cvt::concepts {
 
-namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <typename Self>
