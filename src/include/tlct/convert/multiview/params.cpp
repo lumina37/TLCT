@@ -28,7 +28,7 @@ MvParams_<TArrange> MvParams_<TArrange>::fromConfigs(const TArrange& arrange, co
     const float f32ResizedPatchWdt = f32PatchXShift * cvtCfg.psizeInflate;
     const int resizedPatchWdt = (int)std::roundf(f32ResizedPatchWdt);
 
-    const int viewShiftRange = _hp::iround(arrange.getDiameter() * SAFE_RATIO * cvtCfg.viewShiftRange);
+    const int viewShiftRange = _hp::iround(arrange.getDiameter() * CONTENT_SAFE_RATIO * cvtCfg.viewShiftRange);
     const int viewInterval = cvtCfg.views > 1 ? viewShiftRange / (cvtCfg.views - 1) : 0;
 
     const int canvasWidth = arrange.getMIMaxCols() * patchXShift + resizedPatchWdt;

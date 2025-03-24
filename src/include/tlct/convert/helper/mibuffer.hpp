@@ -13,8 +13,6 @@
 namespace tlct::_cvt {
 
 struct MIBuffer {
-    static constexpr int C1_COUNT = 1;
-    cv::Mat srcY;  // 8UC1
     static constexpr int C3_COUNT = 2;
     cv::Mat censusMap;   // 8UC3
     cv::Mat censusMask;  // 8UC3
@@ -36,11 +34,11 @@ public:
         Params& operator=(Params&& rhs) noexcept = default;
         Params(Params&& rhs) noexcept = default;
 
-        size_t alignedMatSizeC1_;
         size_t alignedMatSizeC3_;
         size_t alignedMISize_;
         size_t bufferSize_;
-        int iDiameter_;
+        float censusDiameter_;
+        float censusRadius_;
         int miMaxCols_;
         int miNum_;
     };
@@ -85,7 +83,7 @@ private:
     void* buffer_;
 };
 
-[[nodiscard]] TLCT_API float censusCompare(const MIBuffer& lhsMI, const MIBuffer& rhsMI, cv::Point2f offset) noexcept;
+[[nodiscard]] TLCT_API float compare(const MIBuffer& lhsMI, const MIBuffer& rhsMI, cv::Point2f offset) noexcept;
 
 }  // namespace tlct::_cvt
 

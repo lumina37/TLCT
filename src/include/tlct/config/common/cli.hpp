@@ -25,16 +25,18 @@ struct CliConfig {
     };
 
     struct Convert {
-        TLCT_API Convert(int views, int upsample, float psizeInflate, float viewShiftRange,
+        TLCT_API Convert(int views, int upsample, float minPsize, float psizeInflate, float viewShiftRange,
                          float psizeShortcutFactor) noexcept
             : views(views),
               upsample(upsample),
+              minPsize(minPsize),
               psizeInflate(psizeInflate),
               viewShiftRange(viewShiftRange),
               psizeShortcutFactor(psizeShortcutFactor) {}
 
         int views;
         int upsample;
+        float minPsize;
         float psizeInflate;
         float viewShiftRange;
         float psizeShortcutFactor;

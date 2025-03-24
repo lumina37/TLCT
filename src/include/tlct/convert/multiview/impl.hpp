@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <limits>
 #include <ranges>
 
@@ -18,7 +19,8 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange>
-static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArrange>& mis, MvCache_<TArrange>& cache) {
+static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const MIBuffers_<TArrange>& mis,
+                                                cv::Mat& patchsizes, MvCache_<TArrange>& cache) {
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev texMeanStddev{};
 
@@ -36,12 +38,59 @@ static inline void computeWeights(const TArrange& arrange, const MIBuffers_<TArr
     const float texIntensityMean = texMeanStddev.getMean();
     const float texIntensityStddev = texMeanStddev.getStddev();
     for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
-        const int rowOffset = row * arrange.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
-            const int offset = rowOffset + col;
-            const auto& mi = mis.getMI(offset);
+            const cv::Point index{col, row};
+            const auto& mi = mis.getMI(index);
+            const float currIntensity = mi.intensity;
+
+            using TNeighbors = NearNeighbors_<TArrange>;
+            const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange, index);
+
+            std::array<float, TNeighbors::DIRECTION_NUM> neibIntensities;
+            std::array<float, TNeighbors::DIRECTION_NUM> neibPsizes;
+            for (const auto direction : TNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) {
+                    neibIntensities[(int)direction] = -1.f;
+                    neibPsizes[(int)direction] = -1.f;
+                    continue;
+                }
+                const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                const MIBuffer& neibMI = mis.getMI(neibIdx);
+                neibIntensities[(int)direction] = neibMI.intensity;
+                neibPsizes[(int)direction] = patchsizes.at<float>(neibIdx);
+            }
+
             const float normedTexIntensity = (mi.intensity - texIntensityMean) / texIntensityStddev;
             cache.weights.template at<float>(row, col) = _hp::sigmoid(normedTexIntensity);
+
+            int group0GtCount = 0;
+            int group1GtCount = 0;
+            group0GtCount += (int)(neibIntensities[0] > currIntensity);
+            group1GtCount += (int)(neibIntensities[1] > currIntensity);
+            group0GtCount += (int)(neibIntensities[2] > currIntensity);
+            group1GtCount += (int)(neibIntensities[3] > currIntensity);
+            group0GtCount += (int)(neibIntensities[4] > currIntensity);
+            group1GtCount += (int)(neibIntensities[5] > currIntensity);
+
+            // For blurred MI in far field.
+            // These MI will have the blurest texture (lowest intensity) among all its neighbor MIs.
+            // We should assign a small weight for these MI.
+            if (group0GtCount + group1GtCount == 6) {
+                cache.weights.template at<float>(row, col) = std::numeric_limits<float>::epsilon();
+                patchsizes.at<float>(row, col) =
+                    std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
+                continue;
+            }
+
+            // For blurred MI in near field.
+            // These MI will have exactly 3 neighbor MIs that have clearer texture.
+            // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
+            if (group0GtCount == 3 && group1GtCount == 0) {
+                patchsizes.at<float>(row, col) = (neibPsizes[0] + neibPsizes[2] + neibPsizes[4]) / 3.f;
+            }
+            else if (group0GtCount == 0 && group1GtCount == 3) {
+                patchsizes.at<float>(row, col) = (neibPsizes[1] + neibPsizes[3] + neibPsizes[5]) / 3.f;
+            }
         }
     }
 }

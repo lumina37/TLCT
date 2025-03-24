@@ -44,7 +44,7 @@ namespace rgs = std::ranges;
     cv::Sobel(src, edges, CV_32F, 0, 1);
     edges = cv::abs(edges);
     intensity += (float)cv::sum(edges)[0];
-    intensity /= (float)edges.size().area();
+    intensity /= (float)edges.total();
     return intensity;
 }
 

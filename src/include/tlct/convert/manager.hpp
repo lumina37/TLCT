@@ -143,7 +143,7 @@ void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame&
     estimatePatchsizes<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_,
                                                             patchsizes_);
     if constexpr (IS_MULTI_FOCUS) {
-        computeWeights(arrange_, mis_, mvCache_);
+        adjustWgtsAndPsizesForMFocus(arrange_, mis_, patchsizes_, mvCache_);
     }
 }
 

@@ -38,16 +38,17 @@ void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& cen
             const uint8_t centralPix = src.at<uint8_t>(row, col);
             for (int winRow = -HALF_WINDOW; winRow <= HALF_WINDOW; winRow++) {
                 for (int winCol = -HALF_WINDOW; winCol <= HALF_WINDOW; winCol++) {
-                    if (winRow == 0 && winCol == 0) continue;  // skip the central pixel
+                    if (winRow == 0 && winCol == 0) [[unlikely]]
+                        continue;  // skip the central pixel
 
                     const int byteId = winPixCount / 8;
                     const int bitOffset = winPixCount % 8;
                     constexpr uint8_t one = 1;
-                    if (!isInRange(row + winRow, col + winCol)) {
+                    if (!isInRange(row + winRow, col + winCol)) [[unlikely]] {
                         (*pCsMask)[byteId] &= ~(one << bitOffset);  // bit set pMask[vecIdx][vecShift] = 0
                     } else {
                         const uint8_t srcMaskVal = srcMask.at<uint8_t>(row + winRow, col + winCol);
-                        if (srcMaskVal == 0) {
+                        if (srcMaskVal == 0) [[unlikely]] {
                             (*pCsMask)[byteId] &= ~(one << bitOffset);  // bit set pMask[vecIdx][vecShift] = 0
                         } else {
                             const uint8_t srcPix = src.at<uint8_t>(row + winRow, col + winCol);

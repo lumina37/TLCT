@@ -30,7 +30,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
         const cv::Point2f matchStep = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
         const cv::Point2f cmpShift = matchStep * psize;
 
-        const float diffRatio = censusCompare(anchorMI, neibMI, cmpShift);
+        const float diffRatio = compare(anchorMI, neibMI, cmpShift);
         if (diffRatio < minDiffRatio) {
             minDiffRatio = diffRatio;
         }
@@ -66,7 +66,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
     int bestPsize = params.minPsize;
     for (const int psize : rgs::views::iota(params.minPsize, params.maxPsize)) {
         cmpShift += matchStep;
-        const float diffRatio = censusCompare(anchorMI, neibMI, cmpShift);
+        const float diffRatio = compare(anchorMI, neibMI, cmpShift);
         if (diffRatio < minDiffRatio) {
             minDiffRatio = diffRatio;
             bestPsize = psize;

@@ -34,6 +34,10 @@ std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
         .help("the input image will be upsampled by this scale")
         .scan<'i', int>()
         .default_value(1);
+    parser->add_argument("--minPsize")
+        .help("min patch size is `diameter*minPsize`")
+        .scan<'g', float>()
+        .default_value(0.2f);
     parser->add_argument("--psizeInflate")
         .help("the extracted patch will be inflated by this scale")
         .scan<'g', float>()
@@ -55,8 +59,11 @@ std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
 CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser) {
     auto path = CliConfig::Path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
     auto range = CliConfig::Range{parser.get<int>("--begin"), parser.get<int>("--end")};
-    auto convert = CliConfig::Convert{parser.get<int>("--views"), parser.get<int>("--upsample"),
-                                      parser.get<float>("--psizeInflate"), parser.get<float>("--viewShiftRange"),
+    auto convert = CliConfig::Convert{parser.get<int>("--views"),
+                                      parser.get<int>("--upsample"),
+                                      parser.get<float>("--minPsize"),
+                                      parser.get<float>("--psizeInflate"),
+                                      parser.get<float>("--viewShiftRange"),
                                       parser.get<float>("--psizeShortcutFactor")};
 
     return {std::move(path), std::move(range), std::move(convert)};
