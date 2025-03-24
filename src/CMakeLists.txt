@@ -15,6 +15,7 @@ function(tlct_common_lib_setting name)
     )
     target_link_libraries(${name} ${__PUB_DEP_SCOPE}
             ${OpenCV_LIBS}
+            OpenMP::OpenMP_CXX
             argparse::argparse
     )
 

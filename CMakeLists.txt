@@ -12,7 +12,7 @@ project(tlct
         LANGUAGES CXX
 )
 
-set(TLCT_VERSION_BETA_SUFFIX "alpha.0")
+set(TLCT_VERSION_BETA_SUFFIX "alpha.1")
 if (NOT TLCT_VERSION_BETA_SUFFIX)
     set(TLCT_VERSION ${PROJECT_VERSION})
 else ()
@@ -39,6 +39,7 @@ find_package(OpenCV
         REQUIRED COMPONENTS imgproc
         OPTIONAL_COMPONENTS imgcodecs
 )
+find_package(OpenMP REQUIRED COMPONENTS CXX)
 
 set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.2.tar.gz" CACHE STRING
         "Specifies the path of argparse")

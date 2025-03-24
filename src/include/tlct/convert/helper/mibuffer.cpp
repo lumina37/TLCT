@@ -61,14 +61,15 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
     const float textureRoiWidth = arrange_.getDiameter() / std::numbers::sqrt2_v<float> * SAFE_RATIO;
     const cv::Rect textureRoi = getRoiByCenter({radius, radius}, textureRoiWidth);
 
-    auto miBufIterator = miBuffers_.begin();
-    uint8_t* rowBufCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
+    uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
     size_t rowBufStep = params_.miMaxCols_ * params_.alignedMISize_;
-    for (const int rowMIIdx : rgs::views::iota(0, arrange_.getMIRows())) {
-        uint8_t* colBufCursor = rowBufCursor;
+#pragma omp parallel for
+    for (int rowMIIdx = 0; rowMIIdx < arrange_.getMIRows(); rowMIIdx++) {
+        uint8_t* colBufCursor = bufBase + rowMIIdx * rowBufStep;
+        auto miBufIterator = miBuffers_.begin() + rowMIIdx * arrange_.getMIMaxCols();
 
         const int miCols = arrange_.getMICols(rowMIIdx);
-        for (const int colMIIdx : rgs::views::iota(0, miCols)) {
+        for (int colMIIdx = 0; colMIIdx < miCols; colMIIdx++) {
             const cv::Point2f& miCenter = arrange_.getMICenter(rowMIIdx, colMIIdx);
             const cv::Rect miRoi = getRoiByCenter(miCenter, arrange_.getDiameter());
 
@@ -92,12 +93,6 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
             miBufIterator++;
             colBufCursor += params_.alignedMISize_;
         }
-
-        if (miCols < params_.miMaxCols_) {
-            miBufIterator++;
-        }
-
-        rowBufCursor += rowBufStep;
     }
 
     return *this;

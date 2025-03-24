@@ -126,8 +126,9 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
 static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
                                       const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
                                       const cv::Mat& prevPatchsizes, cv::Mat& patchsizes) {
-    for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
-        for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
+#pragma omp parallel for
+    for (int row = 0; row < arrange.getMIRows(); row++) {
+        for (int col = 0; col < arrange.getMICols(row); col++) {
             const cv::Point index{col, row};
             const float psize = estimatePatchsize<TArrange, IS_KEPLER, USE_FAR_NEIGHBOR>(arrange, cvtCfg, params, mis,
                                                                                          prevPatchsizes, index);
