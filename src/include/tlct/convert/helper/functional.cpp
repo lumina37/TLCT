@@ -38,10 +38,10 @@ namespace rgs = std::ranges;
 [[nodiscard]] float textureIntensity(const cv::Mat& src) {
     cv::Mat edges;
     float intensity = 0.0;
-    cv::Sobel(src, edges, CV_32F, 1, 0);
+    cv::Scharr(src, edges, CV_32F, 1, 0);
     edges = cv::abs(edges);
     intensity += (float)cv::sum(edges)[0];
-    cv::Sobel(src, edges, CV_32F, 0, 1);
+    cv::Scharr(src, edges, CV_32F, 0, 1);
     edges = cv::abs(edges);
     intensity += (float)cv::sum(edges)[0];
     intensity /= (float)edges.total();
