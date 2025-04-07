@@ -64,7 +64,3 @@ add_library(tlct-lib-header-only INTERFACE)
 tlct_common_lib_setting(tlct-lib-header-only)
 target_compile_definitions(tlct-lib-header-only INTERFACE "_TLCT_LIB_HEADER_ONLY")
 add_library(tlct::lib::header-only ALIAS tlct-lib-header-only)
-
-if (DEFINED PROJECT_NAME)
-    add_subdirectory(bin)
-endif ()

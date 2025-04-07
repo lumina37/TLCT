@@ -86,6 +86,9 @@ configure_file("${TLCT_CONFIGURE_DIR}/config.h.in" "${TLCT_CONFIGURE_DIR}/config
 
 # Add lib/bin/tests
 add_subdirectory(src)
+if (DEFINED PROJECT_NAME)
+    add_subdirectory(bin)
+endif ()
 if (TLCT_ENABLE_TESTS)
     add_subdirectory(tests)
 endif ()
