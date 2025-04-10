@@ -41,15 +41,17 @@ find_package(OpenCV
 )
 find_package(OpenMP REQUIRED COMPONENTS CXX)
 
-set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.2.tar.gz" CACHE STRING
-        "Specifies the path of argparse")
+if (DEFINED PROJECT_NAME)
+    set(TLCT_ARGPARSE_PATH "https://github.com/p-ranav/argparse/archive/refs/tags/v3.2.tar.gz" CACHE STRING
+            "Specifies the path of argparse")
 
-FetchContent_Declare(
-        argparse
-        DOWNLOAD_EXTRACT_TIMESTAMP ON
-        URL ${TLCT_ARGPARSE_PATH}
-)
-FetchContent_MakeAvailable(argparse)
+    FetchContent_Declare(
+            argparse
+            DOWNLOAD_EXTRACT_TIMESTAMP ON
+            URL ${TLCT_ARGPARSE_PATH}
+    )
+    FetchContent_MakeAvailable(argparse)
+endif ()
 
 if (TLCT_ENABLE_TESTS)
     include(CTest)
