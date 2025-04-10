@@ -4,8 +4,8 @@
 
 namespace tlct {
 
-extern std::string_view compileInfo;
-extern std::string_view version;
+extern const std::string_view compileInfo;
+extern const std::string_view version;
 
 }  // namespace tlct
 

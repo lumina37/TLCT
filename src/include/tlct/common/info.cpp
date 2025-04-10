@@ -8,7 +8,7 @@
 
 namespace tlct {
 
-std::string_view compileInfo{TLCT_COMPILE_INFO};
-std::string_view version{TLCT_VERSION};
+const std::string_view compileInfo{TLCT_COMPILE_INFO};
+const std::string_view version{TLCT_VERSION};
 
 }  // namespace tlct
