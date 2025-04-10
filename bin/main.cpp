@@ -13,13 +13,13 @@
 #include <argparse/argparse.hpp>
 
 #include "tlct.hpp"
+#include "tlct_bin_helper.hpp"
 
 namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
-static inline void render(const argparse::ArgumentParser& parser, const tlct::ConfigMap& map) {
-    const auto& cliCfg = tlct::CliConfig::fromParser(parser);
+static inline void render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) {
     auto arrange = TManager::TArrange::fromCfgMap(map);
     cv::Size srcSize = arrange.getImgSize();
     arrange.upsample(cliCfg.convert.upsample);
@@ -70,7 +70,7 @@ static inline void render(const argparse::ArgumentParser& parser, const tlct::Co
 }
 
 int main(int argc, char* argv[]) {
-    auto parser = tlct::makeUniqArgParser();
+    auto parser = makeUniqArgParser();
 
     try {
         parser->parse_args(argc, argv);
@@ -87,10 +87,11 @@ int main(int argc, char* argv[]) {
 
     try {
         const auto& calibFilePath = parser->get<std::string>("calib_file");
+        const auto& cliCfg = genCfgFromCliParser(*parser);
         const auto& cfgMap = tlct::ConfigMap::fromPath(calibFilePath);
         const int pipeline = ((cfgMap.getOr<"IsKepler">(0) << 1) | cfgMap.getOr<"IsMultiFocus">(0)) - 1;
         const auto& handler = handlers[pipeline];
-        handler(*parser, cfgMap);
+        handler(cliCfg, cfgMap);
     } catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
         std::exit(2);

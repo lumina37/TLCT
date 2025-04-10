@@ -1,17 +1,12 @@
 #pragma once
 
 #include <filesystem>
-#include <memory>
-
-#include <argparse/argparse.hpp>
 
 #include "tlct/common/defines.h"
 
 namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
-
-[[nodiscard]] TLCT_API std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept;
 
 struct CliConfig {
     struct Path {
@@ -25,15 +20,6 @@ struct CliConfig {
     };
 
     struct Convert {
-        TLCT_API Convert(int views, int upsample, float minPsize, float psizeInflate, float viewShiftRange,
-                         float psizeShortcutFactor) noexcept
-            : views(views),
-              upsample(upsample),
-              minPsize(minPsize),
-              psizeInflate(psizeInflate),
-              viewShiftRange(viewShiftRange),
-              psizeShortcutFactor(psizeShortcutFactor) {}
-
         int views;
         int upsample;
         float minPsize;
@@ -46,8 +32,7 @@ struct CliConfig {
     Range range;
     Convert convert;
 
-    // Initialize from
-    [[nodiscard]] TLCT_API static CliConfig fromParser(const argparse::ArgumentParser& parser);
+    TLCT_API CliConfig(Path path, Range range, Convert convert);
 };
 
 }  // namespace tlct::_cfg

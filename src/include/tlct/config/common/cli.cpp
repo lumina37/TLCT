@@ -1,8 +1,5 @@
-#include <memory>
-#include <string>
-#include <utility>
-
-#include <argparse/argparse.hpp>
+#include <cassert>
+#include <numbers>
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/config/common/cli.hpp"
@@ -10,63 +7,18 @@
 
 namespace tlct::_cfg {
 
-std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
-    auto parser =
-        std::make_unique<argparse::ArgumentParser>("tlct", "v" TLCT_VERSION, argparse::default_arguments::all);
+CliConfig::CliConfig(Path path, Range range, Convert convert) : path(path), range(range), convert(convert) {
+    assert(range.end > range.begin);
 
-    parser->set_usage_max_line_width(120);
-    parser->add_argument("calib_file").help("path of the `calib.cfg`").required();
-    parser->add_group("I/O");
-    parser->add_argument("-i", "--src").help("input yuv420p file").required();
-    parser->add_argument("-o", "--dst").help("output directory").required();
-    parser->add_group("Frame Range");
-    parser->add_argument("-b", "--begin")
-        .help("the index of the start frame, left inclusive, starts from zero")
-        .scan<'i', int>()
-        .default_value(0);
-    parser->add_argument("-e", "--end")
-        .help("the index of the end frame, right exclusive")
-        .scan<'i', int>()
-        .default_value(1);
-    parser->add_group("Conversion");
-    parser->add_argument("--views").help("viewpoint number").scan<'i', int>().default_value(1);
-    parser->add_argument("--upsample")
-        .help("the input image will be upsampled by this scale")
-        .scan<'i', int>()
-        .default_value(1);
-    parser->add_argument("--minPsize")
-        .help("min patch size is `diameter*minPsize`")
-        .scan<'g', float>()
-        .default_value(0.2f);
-    parser->add_argument("--psizeInflate")
-        .help("the extracted patch will be inflated by this scale")
-        .scan<'g', float>()
-        .default_value(2.15f);
-    parser->add_argument("--viewShiftRange")
-        .help("reserve `viewShiftRange*diameter` for view shifting")
-        .scan<'g', float>()
-        .default_value(0.1f);
-    parser->add_argument("--psizeShortcutFactor")
-        .help("if the metric of new patch size is larger than `prevMetric*factor`, then use the prev. one")
-        .scan<'g', float>()
-        .default_value(0.85f);
-
-    parser->add_epilog(TLCT_COMPILE_INFO);
-
-    return parser;
-}
-
-CliConfig CliConfig::fromParser(const argparse::ArgumentParser& parser) {
-    auto path = CliConfig::Path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
-    auto range = CliConfig::Range{parser.get<int>("--begin"), parser.get<int>("--end")};
-    auto convert = CliConfig::Convert{parser.get<int>("--views"),
-                                      parser.get<int>("--upsample"),
-                                      parser.get<float>("--minPsize"),
-                                      parser.get<float>("--psizeInflate"),
-                                      parser.get<float>("--viewShiftRange"),
-                                      parser.get<float>("--psizeShortcutFactor")};
-
-    return {std::move(path), std::move(range), std::move(convert)};
+    assert(convert.views > 0);
+    assert(convert.upsample > 0);
+    assert(convert.minPsize > 0.0f);
+    assert(convert.minPsize < 1.0f);
+    assert(convert.psizeInflate >= std::numbers::sqrt3_v<float>);
+    assert(convert.psizeInflate < 3.0f);
+    assert(convert.viewShiftRange >= 0.0f);
+    assert(convert.viewShiftRange < 1.0f);
+    assert(convert.psizeShortcutFactor >= 0.0f);
 }
 
 }  // namespace tlct::_cfg

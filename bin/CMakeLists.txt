@@ -1,6 +1,9 @@
 function(tlct_add_executable name srcs)
     add_executable(${name} ${srcs})
-    target_link_libraries(${name} PRIVATE tlct::lib::static)
+    target_link_libraries(${name} PRIVATE
+            tlct::lib::static
+            argparse::argparse
+    )
 
     if (TLCT_ENABLE_LTO)
         set_target_properties(${name} PROPERTIES
