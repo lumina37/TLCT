@@ -7,8 +7,8 @@
 #include "tlct.hpp"
 
 static inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() {
-    auto parser =
-        std::make_unique<argparse::ArgumentParser>("tlct", "v" TLCT_VERSION, argparse::default_arguments::all);
+    auto parser = std::make_unique<argparse::ArgumentParser>("tlct", std::string("v").append(tlct::version),
+                                                             argparse::default_arguments::all);
 
     parser->set_usage_max_line_width(120);
     parser->add_argument("calib_file").help("path of the `calib.cfg`").required();
@@ -47,7 +47,7 @@ static inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() {
         .scan<'g', float>()
         .default_value(0.85f);
 
-    parser->add_epilog(TLCT_COMPILE_INFO);
+    parser->add_epilog(std::string{tlct::compileInfo});
 
     return parser;
 }

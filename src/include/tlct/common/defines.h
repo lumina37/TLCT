@@ -1,7 +1,5 @@
 #pragma once
 
-#include "tlct/common/config.h"
-
 #ifdef _TLCT_LIB_HEADER_ONLY
 #    define TLCT_API
 #else

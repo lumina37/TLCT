@@ -1,7 +1,7 @@
 #pragma once
 
-#include <algorithm>
 #include <limits>
+#include <numeric>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
@@ -87,8 +87,7 @@ static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const M
             // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
             if (group0GtCount == 3 && group1GtCount == 0) {
                 patchsizes.at<float>(row, col) = (neibPsizes[0] + neibPsizes[2] + neibPsizes[4]) / 3.f;
-            }
-            else if (group0GtCount == 0 && group1GtCount == 3) {
+            } else if (group0GtCount == 0 && group1GtCount == 3) {
                 patchsizes.at<float>(row, col) = (neibPsizes[1] + neibPsizes[3] + neibPsizes[5]) / 3.f;
             }
         }
