@@ -20,7 +20,7 @@ namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
 static inline void render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) {
-    auto arrange = TManager::TArrange::fromCfgMap(map);
+    auto arrange = TManager::TArrange::createWithCfgMap(map).value();
     cv::Size srcSize = arrange.getImgSize();
     arrange.upsample(cliCfg.convert.upsample);
 

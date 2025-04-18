@@ -16,7 +16,7 @@ TEST_CASE("Arrange with central MI and offset", "tlct::cfg#OffsetArrange") {
     fs::current_path(testdata_dir);
 
     const auto& cfgMap = tlct::ConfigMap::fromPath("test/raytrix.cfg");
-    const auto& arrange = tlct::cfg::OffsetArrange::fromCfgMap(cfgMap);
+    const auto& arrange = tlct::cfg::OffsetArrange::create(cfgMap);
 
     constexpr float eps = 0.1f;
 

@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <array>
+#include <expected>
 
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/common/error.hpp"
 #include "tlct/config/common/map.hpp"
 
 namespace tlct::_cfg {
@@ -13,6 +15,7 @@ namespace tlct::_cfg {
 class CornersArrange {
 public:
     // Typename alias
+    using ErrTp = Error;
     using TMiCols = std::array<int, 2>;
 
     // Constructor
@@ -37,7 +40,12 @@ public:
                             cv::Point2f leftBottom, cv::Point2f rightBottom) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static CornersArrange fromCfgMap(const ConfigMap& map);
+    [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> create(cv::Size imgSize, float diameter,
+                                                                              bool direction, cv::Point2f leftTop,
+                                                                              cv::Point2f rightTop,
+                                                                              cv::Point2f leftBottom,
+                                                                              cv::Point2f rightBottom) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> createWithCfgMap(const ConfigMap& map) noexcept;
 
     // Non-const methods
     TLCT_API CornersArrange& upsample(int factor) noexcept;

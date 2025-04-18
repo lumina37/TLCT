@@ -1,9 +1,11 @@
 #include <cmath>
+#include <expected>
 #include <numbers>
 #include <utility>
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/error.hpp"
 #include "tlct/config/common/map.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/helper/constexpr/math.hpp"
@@ -66,7 +68,7 @@ CornersArrange::CornersArrange(cv::Size imgSize, float diameter, bool direction,
     rightYUnitShift_ = rightYShift / (leftYRows - 1);
 }
 
-CornersArrange CornersArrange::fromCfgMap(const ConfigMap& map) {
+std::expected<CornersArrange, Error> CornersArrange::createWithCfgMap(const ConfigMap& map) noexcept {
     cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const float diameter = map.get<"MIDiameter", float>();
     const bool direction = map.getOr<"MLADirection">(false);
@@ -76,7 +78,7 @@ CornersArrange CornersArrange::fromCfgMap(const ConfigMap& map) {
     const cv::Point2f rightBottom = {map.get<"RightBottomMICenterX", float>(),
                                      map.get<"RightBottomMICenterY", float>()};
 
-    return {imgSize, diameter, direction, leftTop, rightTop, leftBottom, rightBottom};
+    return CornersArrange{imgSize, diameter, direction, leftTop, rightTop, leftBottom, rightBottom};
 }
 
 CornersArrange& CornersArrange::upsample(int factor) noexcept {

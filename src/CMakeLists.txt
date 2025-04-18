@@ -6,7 +6,7 @@ function(tlct_common_lib_setting name)
         set(__PUB_DEP_SCOPE "PUBLIC")
     endif ()
 
-    target_compile_features(${name} ${__PUB_DEP_SCOPE} cxx_std_20)
+    target_compile_features(${name} ${__PUB_DEP_SCOPE} cxx_std_23)
 
     target_include_directories(${name} ${__PUB_DEP_SCOPE}
             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>

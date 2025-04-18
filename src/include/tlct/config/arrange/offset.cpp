@@ -4,6 +4,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/error.hpp"
 #include "tlct/config/common/map.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/helper/constexpr/math.hpp"
@@ -54,13 +55,13 @@ OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, bool direction, c
     miRows_ = (int)(((float)imgSize.height - leftTop_.y - yUnitShift_ / 2.f) / yUnitShift_) + 1;
 }
 
-OffsetArrange OffsetArrange::fromCfgMap(const ConfigMap& map) {
+std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const ConfigMap& map) noexcept {
     cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const float diameter = map.get<"MIDiameter", float>();
     const bool direction = map.getOr<"MLADirection">(false);
     const cv::Point2f offset = {map.get<"CentralMIOffsetX", float>(), map.get<"CentralMIOffsetY", float>()};
 
-    return {imgSize, diameter, direction, offset};
+    return OffsetArrange{imgSize, diameter, direction, offset};
 }
 
 OffsetArrange& OffsetArrange::upsample(int factor) noexcept {
