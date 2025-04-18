@@ -19,25 +19,25 @@ public:
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API CornersArrange() noexcept
-        : imgSize_(),
-          diameter_(),
-          radius_(),
-          direction_(),
-          leftTop_(),
-          rightTop_(),
-          leftYUnitShift_(),
-          rightYUnitShift_(),
-          miRows_(),
-          miCols_(),
-          upsample_(1),
-          isOutShift_() {}
+    TLCT_API CornersArrange() noexcept = default;
     TLCT_API CornersArrange(const CornersArrange& rhs) noexcept = default;
     TLCT_API CornersArrange& operator=(const CornersArrange& rhs) noexcept = default;
     TLCT_API CornersArrange(CornersArrange&& rhs) noexcept = default;
     TLCT_API CornersArrange& operator=(CornersArrange&& rhs) noexcept = default;
-    TLCT_API CornersArrange(cv::Size imgSize, float diameter, bool direction, cv::Point2f leftTop, cv::Point2f rightTop,
-                            cv::Point2f leftBottom, cv::Point2f rightBottom) noexcept;
+    TLCT_API CornersArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, cv::Point2f rightTop,
+                            cv::Point2f leftYUnitShift, cv::Point2f rightYUnitShift, int miRows, TMiCols miCols,
+                            int upsample, bool direction, bool isOutShift) noexcept
+        : imgSize_(imgSize),
+          diameter_(diameter),
+          leftTop_(leftTop),
+          rightTop_(rightTop),
+          leftYUnitShift_(leftYUnitShift),
+          rightYUnitShift_(rightYUnitShift),
+          miRows_(miRows),
+          miCols_(miCols),
+          upsample_(upsample),
+          direction_(direction),
+          isOutShift_(isOutShift) {}
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> create(cv::Size imgSize, float diameter,
@@ -55,7 +55,7 @@ public:
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept { return imgSize_.height; }
     [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept { return imgSize_; }
     [[nodiscard]] TLCT_API float getDiameter() const noexcept { return diameter_; }
-    [[nodiscard]] TLCT_API float getRadius() const noexcept { return radius_; }
+    [[nodiscard]] TLCT_API float getRadius() const noexcept { return diameter_ / 2.0f; }
     [[nodiscard]] TLCT_API bool getDirection() const noexcept { return direction_; }
     [[nodiscard]] TLCT_API int getUpsample() const noexcept { return upsample_; }
     [[nodiscard]] TLCT_API int getMIRows() const noexcept { return miRows_; }
@@ -69,8 +69,6 @@ public:
 private:
     cv::Size imgSize_;
     float diameter_;
-    float radius_;
-    bool direction_;
     cv::Point2f leftTop_;
     cv::Point2f rightTop_;
     cv::Point2f leftYUnitShift_;
@@ -78,6 +76,7 @@ private:
     int miRows_;
     TMiCols miCols_;
     int upsample_;
+    bool direction_;
     bool isOutShift_;
 };
 

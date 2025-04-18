@@ -15,44 +15,49 @@
 
 namespace tlct::_cfg {
 
-OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, bool direction, cv::Point2f offset) noexcept
-    : diameter_(diameter), radius_(diameter / 2.f), direction_(direction), upsample_(1) {
+std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, float diameter, bool direction,
+                                                          cv::Point2f offset) noexcept {
     cv::Point2f centerMI{imgSize.width / 2.f + offset.x, imgSize.height / 2.f - offset.y};
 
-    if (getDirection()) {
+    if (direction) {
         std::swap(imgSize.height, imgSize.width);
         std::swap(centerMI.x, centerMI.y);
     }
-    imgSize_ = imgSize;
 
-    xUnitShift_ = diameter;
-    yUnitShift_ = diameter * std::numbers::sqrt3_v<float> / 2.f;
-    const int centerMIXIdx = (int)((centerMI.x - radius_) / xUnitShift_);
-    const int centerMIYIdx = (int)((centerMI.y - radius_) / yUnitShift_);
+    const float radius = diameter / 2.f;
+    const float xUnitShift = diameter;
+    const float yUnitShift = diameter * std::numbers::sqrt3_v<float> / 2.f;
+    const int centerMIXIdx = (int)((centerMI.x - radius) / xUnitShift);
+    const int centerMIYIdx = (int)((centerMI.y - radius) / yUnitShift);
 
-    const float leftX = centerMI.x - xUnitShift_ * centerMIXIdx;
+    cv::Point2f leftTop;
+    bool isOutShift;
+    const float leftX = centerMI.x - xUnitShift * centerMIXIdx;
     if (centerMIYIdx % 2 == 0) {
-        leftTop_.x = leftX;
-        if (leftTop_.x > diameter) {
-            isOutShift_ = true;
+        leftTop.x = leftX;
+        if (leftTop.x > diameter) {
+            isOutShift = true;
         } else {
-            isOutShift_ = false;
+            isOutShift = false;
         }
     } else {
         if (leftX > diameter) {
-            leftTop_.x = leftX - radius_;
-            isOutShift_ = false;
+            leftTop.x = leftX - radius;
+            isOutShift = false;
         } else {
-            leftTop_.x = leftX + radius_;
-            isOutShift_ = true;
+            leftTop.x = leftX + radius;
+            isOutShift = true;
         }
     }
-    leftTop_.y = centerMI.y - std::floor((centerMI.y - yUnitShift_ / 2.f) / yUnitShift_) * yUnitShift_;
+    leftTop.y = centerMI.y - std::floor((centerMI.y - yUnitShift / 2.f) / yUnitShift) * yUnitShift;
 
-    const float mi_1_0_x = leftTop_.x - xUnitShift_ / 2.f * (float)_hp::sgn(isOutShift_);
-    miCols_[0] = (int)(((float)imgSize.width - leftTop_.x - xUnitShift_ / 2.f) / xUnitShift_) + 1;
-    miCols_[1] = (int)(((float)imgSize.width - mi_1_0_x - xUnitShift_ / 2.f) / xUnitShift_) + 1;
-    miRows_ = (int)(((float)imgSize.height - leftTop_.y - yUnitShift_ / 2.f) / yUnitShift_) + 1;
+    TMiCols miCols;
+    const float mi_1_0_x = leftTop.x - xUnitShift / 2.f * (float)_hp::sgn(isOutShift);
+    miCols[0] = (int)(((float)imgSize.width - leftTop.x - xUnitShift / 2.f) / xUnitShift) + 1;
+    miCols[1] = (int)(((float)imgSize.width - mi_1_0_x - xUnitShift / 2.f) / xUnitShift) + 1;
+    const int miRows = (int)(((float)imgSize.height - leftTop.y - yUnitShift / 2.f) / yUnitShift) + 1;
+
+    return OffsetArrange{imgSize, diameter, leftTop, xUnitShift, yUnitShift, miRows, miCols, 1, direction, isOutShift};
 }
 
 std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const ConfigMap& map) noexcept {
@@ -61,13 +66,12 @@ std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const Config
     const bool direction = map.getOr<"MLADirection">(false);
     const cv::Point2f offset = {map.get<"CentralMIOffsetX", float>(), map.get<"CentralMIOffsetY", float>()};
 
-    return OffsetArrange{imgSize, diameter, direction, offset};
+    return create(imgSize, diameter, direction, offset);
 }
 
 OffsetArrange& OffsetArrange::upsample(int factor) noexcept {
     imgSize_ *= factor;
     diameter_ *= (float)factor;
-    radius_ *= (float)factor;
     leftTop_ *= factor;
     xUnitShift_ *= (float)factor;
     yUnitShift_ *= (float)factor;

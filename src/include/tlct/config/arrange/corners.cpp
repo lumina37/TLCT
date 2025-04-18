@@ -16,9 +16,9 @@
 
 namespace tlct::_cfg {
 
-CornersArrange::CornersArrange(cv::Size imgSize, float diameter, bool direction, cv::Point2f leftTop,
-                               cv::Point2f rightTop, cv::Point2f leftBottom, cv::Point2f rightBottom) noexcept
-    : diameter_(diameter), radius_(diameter / 2.f), direction_(direction), upsample_(1) {
+std::expected<CornersArrange, Error> CornersArrange::create(cv::Size imgSize, float diameter, bool direction,
+                                                            cv::Point2f leftTop, cv::Point2f rightTop,
+                                                            cv::Point2f leftBottom, cv::Point2f rightBottom) noexcept {
     if (direction) {
         std::swap(leftTop.x, leftTop.y);
         std::swap(rightBottom.x, rightBottom.y);
@@ -27,9 +27,6 @@ CornersArrange::CornersArrange(cv::Size imgSize, float diameter, bool direction,
         std::swap(rightTop, leftBottom);
         std::swap(imgSize.height, imgSize.width);
     }
-    imgSize_ = imgSize;
-    leftTop_ = leftTop;
-    rightTop_ = rightTop;
 
     const auto veclen = [](const cv::Point2f vec) { return std::sqrt(vec.x * vec.x + vec.y * vec.y); };
 
@@ -37,35 +34,39 @@ CornersArrange::CornersArrange(cv::Size imgSize, float diameter, bool direction,
     const int topCols = _hp::iround(veclen(topXShift) / diameter) + 1;
     const cv::Point2f topXUnitShift = topXShift / (topCols - 1);
 
+    bool isOutShift;
     if (leftTop.x < topXUnitShift.x) {
-        isOutShift_ = false;
+        isOutShift = false;
     } else {
-        isOutShift_ = true;
+        isOutShift = true;
     }
 
-    miCols_ = {topCols, topCols};
-    if (isOutShift_) {
+    TMiCols miCols{topCols, topCols};
+    if (isOutShift) {
         // Now the second row have one more intact MI than the first row
         const float mi10X = leftTop.x - topXUnitShift.x / 2.f;
         if (mi10X + topXUnitShift.x * topCols < imgSize.width) {
-            miCols_[1]++;
+            miCols[1]++;
         }
     } else {
         // Now the second row have one less intact MI than the first row
         const float mi10X = leftTop.x + topXUnitShift.x / 2.f;
         if (mi10X + topXUnitShift.x * topCols >= imgSize.width) {
-            miCols_[1]--;
+            miCols[1]--;
         }
     }
 
     const cv::Point2f leftYShift = leftBottom - leftTop;
     const float approxYUnitShift = diameter * std::numbers::sqrt3_v<float> / 2.f;
     const int leftYRows = _hp::iround(veclen(leftYShift) / approxYUnitShift) + 1;
-    leftYUnitShift_ = leftYShift / (leftYRows - 1);
-    miRows_ = (int)(((float)imgSize.height - diameter / 2.f - leftTop.y) / leftYUnitShift_.y) + 1;
+    const cv::Point2f leftYUnitShift = leftYShift / (leftYRows - 1);
+    const int miRows = (int)(((float)imgSize.height - diameter / 2.f - leftTop.y) / leftYUnitShift.y) + 1;
 
     const cv::Point2f rightYShift = rightBottom - rightTop;
-    rightYUnitShift_ = rightYShift / (leftYRows - 1);
+    const cv::Point2f rightYUnitShift = rightYShift / (leftYRows - 1);
+
+    return CornersArrange{imgSize, diameter, leftTop, rightTop,  leftYUnitShift, rightYUnitShift,
+                          miRows,  miCols,   1,       direction, isOutShift};
 }
 
 std::expected<CornersArrange, Error> CornersArrange::createWithCfgMap(const ConfigMap& map) noexcept {
@@ -78,13 +79,12 @@ std::expected<CornersArrange, Error> CornersArrange::createWithCfgMap(const Conf
     const cv::Point2f rightBottom = {map.get<"RightBottomMICenterX", float>(),
                                      map.get<"RightBottomMICenterY", float>()};
 
-    return CornersArrange{imgSize, diameter, direction, leftTop, rightTop, leftBottom, rightBottom};
+    return create(imgSize, diameter, direction, leftTop, rightTop, leftBottom, rightBottom);
 }
 
 CornersArrange& CornersArrange::upsample(int factor) noexcept {
     imgSize_ *= factor;
     diameter_ *= (float)factor;
-    radius_ *= (float)factor;
     leftTop_ *= factor;
     rightTop_ *= factor;
     leftYUnitShift_ *= factor;

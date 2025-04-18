@@ -19,23 +19,23 @@ public:
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API OffsetArrange() noexcept
-        : imgSize_(),
-          diameter_(),
-          radius_(),
-          direction_(),
-          leftTop_(),
-          xUnitShift_(),
-          yUnitShift_(),
-          miRows_(),
-          miCols_(),
-          upsample_(1),
-          isOutShift_() {}
+    TLCT_API OffsetArrange() noexcept = default;
     TLCT_API OffsetArrange(const OffsetArrange& rhs) noexcept = default;
     TLCT_API OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
     TLCT_API OffsetArrange(OffsetArrange&& rhs) noexcept = default;
     TLCT_API OffsetArrange& operator=(OffsetArrange&& rhs) noexcept = default;
-    TLCT_API OffsetArrange(cv::Size imgSize, float diameter, bool direction, cv::Point2f offset) noexcept;
+    TLCT_API OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, float xUnitShift, float yUnitShift,
+                           int miRows, TMiCols miCols, int upsample, bool direction, bool isOutShift) noexcept
+        : imgSize_(imgSize),
+          diameter_(diameter),
+          leftTop_(leftTop),
+          xUnitShift_(xUnitShift),
+          yUnitShift_(yUnitShift),
+          miRows_(miRows),
+          miCols_(miCols),
+          upsample_(upsample),
+          direction_(direction),
+          isOutShift_(isOutShift) {}
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<OffsetArrange, Error> create(cv::Size imgSize, float diameter,
@@ -51,7 +51,7 @@ public:
     [[nodiscard]] TLCT_API int getImgHeight() const noexcept { return imgSize_.height; }
     [[nodiscard]] TLCT_API cv::Size getImgSize() const noexcept { return imgSize_; }
     [[nodiscard]] TLCT_API float getDiameter() const noexcept { return diameter_; }
-    [[nodiscard]] TLCT_API float getRadius() const noexcept { return radius_; }
+    [[nodiscard]] TLCT_API float getRadius() const noexcept { return diameter_ / 2.0f; }
     [[nodiscard]] TLCT_API bool getDirection() const noexcept { return direction_; }
     [[nodiscard]] TLCT_API int getUpsample() const noexcept { return upsample_; }
     [[nodiscard]] TLCT_API int getMIRows() const noexcept { return miRows_; }
@@ -65,14 +65,13 @@ public:
 private:
     cv::Size imgSize_;
     float diameter_;
-    float radius_;
-    bool direction_;
     cv::Point2f leftTop_;
     float xUnitShift_;
     float yUnitShift_;
     int miRows_;
     TMiCols miCols_;
     int upsample_;
+    bool direction_;
     bool isOutShift_;
 };
 
