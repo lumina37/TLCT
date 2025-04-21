@@ -7,6 +7,7 @@ namespace tlct {
 enum class ErrCode {
     InvalidParam,
     FileSysError,
+    OutOfMemory,
 };
 
 class Error {

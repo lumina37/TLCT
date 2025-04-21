@@ -1,18 +1,14 @@
 #pragma once
 
-#include "tlct/io/concepts.hpp"
 #include "tlct/io/yuv.hpp"
 
 namespace tlct::io {
 
-namespace _ = yuv;
+namespace _ = _io;
 
-using _::YuvFrame_;
-using _::YuvReader_;
-using _::YuvWriter_;
-
-using _::Yuv420Frame;
-using _::Yuv420Reader;
-using _::Yuv420Writer;
+using _io::YuvPlanarExtent;
+using _io::YuvPlanarFrame;
+using _io::YuvPlanarReader;
+using _io::YuvPlanarWriter;
 
 }  // namespace tlct::io

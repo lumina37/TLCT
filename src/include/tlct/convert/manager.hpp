@@ -19,7 +19,7 @@ namespace _cvt {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CArrange TArrange_, io::concepts::CFrame TFrame_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
+template <tcfg::concepts::CArrange TArrange_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
 class Manager_ {
 public:
     static constexpr int CHANNELS = 3;
@@ -27,7 +27,6 @@ public:
     static constexpr bool IS_MULTI_FOCUS = IS_MULTI_FOCUS_;
 
     // Typename alias
-    using TFrame = TFrame_;
     using TCvtConfig = tcfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
@@ -50,9 +49,9 @@ public:
     [[nodiscard]] cv::Size getOutputSize() const noexcept { return {mvParams_.outputWidth, mvParams_.outputHeight}; };
 
     // Non-const methods
-    void update(const TFrame& src);
+    void update(const io::YuvPlanarFrame& src);
 
-    inline void renderInto(TFrame& dst, int viewRow, int viewCol) const {
+    inline void renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) const {
         renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mvCache_.f32Srcs, mvCache_.u8OutputImageChannels, arrange_,
                                                         mvParams_, patchsizes_, mvCache_, viewRow, viewCol);
 
@@ -63,10 +62,10 @@ public:
         }
 
         mvCache_.u8OutputImageChannels[0].copyTo(dst.getY());
-        cv::resize(mvCache_.u8OutputImageChannels[1], dst.getU(), {(int)dst.getUWidth(), (int)dst.getUHeight()}, 0.0,
-                   0.0, cv::INTER_LINEAR_EXACT);
-        cv::resize(mvCache_.u8OutputImageChannels[2], dst.getV(), {(int)dst.getVWidth(), (int)dst.getVHeight()}, 0.0,
-                   0.0, cv::INTER_LINEAR_EXACT);
+        cv::resize(mvCache_.u8OutputImageChannels[1], dst.getU(),
+                   {dst.getExtent().getUWidth(), dst.getExtent().getUHeight()}, 0.0, 0.0, cv::INTER_LINEAR_EXACT);
+        cv::resize(mvCache_.u8OutputImageChannels[2], dst.getV(),
+                   {dst.getExtent().getVWidth(), dst.getExtent().getVHeight()}, 0.0, 0.0, cv::INTER_LINEAR_EXACT);
     };
 
 private:
@@ -81,8 +80,8 @@ private:
     mutable MvCache mvCache_;
 };
 
-template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg)
+template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg)
     : arrange_(arrange), cvtCfg_(cvtCfg) {
     mis_ = TMIBuffers::fromArrange(arrange);
 
@@ -94,14 +93,14 @@ Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& 
     mvCache_ = MvCache_<TArrange>::fromParams(mvParams_);
 }
 
-template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>
-Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg) {
+template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS> Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(
+    const TArrange& arrange, const TCvtConfig& cvtCfg) {
     return {arrange, cvtCfg};
 }
 
-template <tcfg::concepts::CArrange TArrange, io::concepts::CFrame TFrame, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame& src) {
+template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+void Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) {
     mvCache_.rawSrcs[0] = src.getY().clone();
     mvCache_.rawSrcs[1] = src.getU().clone();
     mvCache_.rawSrcs[2] = src.getV().clone();
@@ -119,15 +118,15 @@ void Manager_<TArrange, TFrame, IS_KEPLER, IS_MULTI_FOCUS>::update(const TFrame&
         mvCache_.srcs[0] = mvCache_.rawSrcs[0];
     }
 
-    if constexpr (TFrame::Ushift != 0) {
-        const int uUpsample = upsample << TFrame::Ushift;
+    if (src.getExtent().getUShift() != 0) {
+        const int uUpsample = upsample << src.getExtent().getUShift();
         cv::resize(mvCache_.rawSrcs[1], mvCache_.srcs[1], {}, uUpsample, uUpsample, cv::INTER_LINEAR_EXACT);
     } else {
         mvCache_.srcs[1] = mvCache_.rawSrcs[1];
     }
 
-    if constexpr (TFrame::Vshift != 0) {
-        const int vUpsample = upsample << TFrame::Vshift;
+    if (src.getExtent().getVShift() != 0) {
+        const int vUpsample = upsample << src.getExtent().getVShift();
         cv::resize(mvCache_.rawSrcs[2], mvCache_.srcs[2], {}, vUpsample, vUpsample, cv::INTER_LINEAR_EXACT);
     } else {
         mvCache_.srcs[2] = mvCache_.rawSrcs[2];

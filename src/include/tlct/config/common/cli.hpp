@@ -10,7 +10,8 @@ namespace tlct::_cfg {
 
 namespace fs = std::filesystem;
 
-struct CliConfig {
+class CliConfig {
+public:
     struct Path {
         fs::path src;
         fs::path dst;
@@ -34,10 +35,11 @@ struct CliConfig {
     Range range;
     Convert convert;
 
-    TLCT_API CliConfig(Path&& path, Range range, Convert convert) noexcept;
-
     [[nodiscard]] TLCT_API static std::expected<CliConfig, Error> create(const Path& path, Range range,
                                                                          Convert convert) noexcept;
+
+private:
+    CliConfig(Path&& path, Range range, Convert convert) noexcept;
 };
 
 }  // namespace tlct::_cfg

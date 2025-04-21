@@ -2,20 +2,19 @@
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/convert.hpp"
-#include "tlct/io.hpp"
 
 namespace tlct {
 
 namespace raytrix {
 
-using Arrange = tlct::cfg::OffsetArrange;
-using ManagerYuv420 = tlct::cvt::Manager_<Arrange, tlct::io::Yuv420Frame, false, true>;
+using Arrange = cfg::OffsetArrange;
+using ManagerYuv420 = cvt::Manager_<Arrange, false, true>;
 
 }  // namespace raytrix
 
 namespace _cvt {
 
-template class Manager_<tlct::cfg::OffsetArrange, tlct::io::Yuv420Frame, false, true>;
+template class Manager_<cfg::OffsetArrange, false, true>;
 
 }
 

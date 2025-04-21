@@ -21,8 +21,7 @@ concept CManager = requires {
     };
 } && requires {
     // Const methods
-    requires io::concepts::CFrame<typename Self::TFrame>;
-    requires requires(const Self self, typename Self::TFrame& dst, int viewRow, int viewCol) {
+    requires requires(const Self self, io::YuvPlanarFrame& dst, int viewRow, int viewCol) {
         self.renderInto(dst, viewRow, viewCol);
     };
 } && requires {
@@ -32,7 +31,7 @@ concept CManager = requires {
     };
 } && requires {
     // Non-const methods
-    requires requires(Self self, const typename Self::TFrame& src) { self.update(src); };
+    requires requires(Self self, const io::YuvPlanarFrame& src) { self.update(src); };
 };
 
 }  // namespace tlct::_cvt::concepts

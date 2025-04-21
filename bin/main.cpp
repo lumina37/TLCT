@@ -25,31 +25,31 @@ static inline void render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& 
 
     auto manager = TManager::fromConfigs(arrange, cliCfg.convert);
 
-    cv::Size outputSize = manager.getOutputSize();
+    cv::Size mvSize = manager.getOutputSize();
     if (arrange.getDirection()) {
         std::swap(srcSize.width, srcSize.height);
-        std::swap(outputSize.width, outputSize.height);
+        std::swap(mvSize.width, mvSize.height);
     }
+    const auto srcExtent = tlct::io::YuvPlanarExtent::createYuv420p8bit(srcSize.width, srcSize.height).value();
+    const auto mvExtent = tlct::io::YuvPlanarExtent::createYuv420p8bit(mvSize.width, mvSize.height).value();
 
-    using TYuvReader = tlct::io::YuvReader_<typename TManager::TFrame>;
-    using TYuvWriter = tlct::io::YuvWriter_<typename TManager::TFrame>;
-    auto yuvReader = TYuvReader::fromPath(cliCfg.path.src, srcSize.width, srcSize.height);
+    auto yuvReader = tlct::io::YuvPlanarReader::create(cliCfg.path.src, srcExtent).value();
 
     const fs::path& dstdir = cliCfg.path.dst;
     fs::create_directories(dstdir);
-    std::vector<TYuvWriter> yuvWriters;
+    std::vector<tlct::io::YuvPlanarWriter> yuvWriters;
     const int totalWriters = cliCfg.convert.views * cliCfg.convert.views;
     yuvWriters.reserve(totalWriters);
     for (const int i : rgs::views::iota(0, totalWriters)) {
-        std::string filename = std::format("v{:03}-{}x{}.yuv", i, outputSize.width, outputSize.height);
+        std::string filename = std::format("v{:03}-{}x{}.yuv", i, mvSize.width, mvSize.height);
         fs::path savetoPath = dstdir / filename;
-        yuvWriters.emplace_back(TYuvWriter::fromPath(savetoPath));
+        yuvWriters.emplace_back(tlct::io::YuvPlanarWriter::create(savetoPath).value());
     }
 
     yuvReader.skip(cliCfg.range.begin);
 
-    auto srcFrame = typename TManager::TFrame{srcSize};
-    auto mvFrame = typename TManager::TFrame{outputSize};
+    auto srcFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
+    auto mvFrame = tlct::io::YuvPlanarFrame::create(mvExtent).value();
     for ([[maybe_unused]] const int fid : rgs::views::iota(cliCfg.range.begin, cliCfg.range.end)) {
         yuvReader.readInto(srcFrame);
         manager.update(srcFrame);

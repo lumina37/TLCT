@@ -28,19 +28,24 @@ template <size_t base, std::integral T>
     requires(isPowOf2(base))
 [[nodiscard]] static constexpr inline bool isMulOf(T v) {
     return (v & (base - 1)) == 0;
-};
+}
+
+template <std::integral T>
+[[nodiscard]] static constexpr inline bool isMulOf(T v, size_t shift) {
+    return (v & ((1 << shift) - 1)) == 0;
+}
 
 template <size_t to, std::integral Tv>
     requires(isPowOf2(to))
 [[nodiscard]] static constexpr inline Tv alignUp(Tv v) noexcept {
     return (v + (to - 1)) & ((~to) + 1);
-};
+}
 
 template <size_t to, std::integral Tv>
     requires(isPowOf2(to))
 [[nodiscard]] static constexpr inline Tv alignDown(Tv v) noexcept {
     return v & ((~to) + 1);
-};
+}
 
 // true -> +1, false -> -1
 [[nodiscard]] static constexpr inline int sgn(bool v) noexcept { return ((int)v) * 2 - 1; }
