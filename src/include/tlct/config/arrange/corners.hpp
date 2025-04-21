@@ -26,12 +26,12 @@ public:
     TLCT_API CornersArrange& operator=(CornersArrange&& rhs) noexcept = default;
     TLCT_API CornersArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, cv::Point2f rightTop,
                             cv::Point2f leftYUnitShift, cv::Point2f rightYUnitShift, int miRows, TMiCols miCols,
-                            int upsample, bool direction, bool isOutShift) noexcept;
+                            int upsample, bool direction, bool isKepler, bool isOutShift) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> create(cv::Size imgSize, float diameter,
-                                                                              bool direction, cv::Point2f leftTop,
-                                                                              cv::Point2f rightTop,
+                                                                              bool direction, bool isKepler,
+                                                                              cv::Point2f leftTop, cv::Point2f rightTop,
                                                                               cv::Point2f leftBottom,
                                                                               cv::Point2f rightBottom) noexcept;
     [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> createWithCfgMap(const ConfigMap& map) noexcept;
@@ -46,6 +46,7 @@ public:
     [[nodiscard]] TLCT_API float getDiameter() const noexcept { return diameter_; }
     [[nodiscard]] TLCT_API float getRadius() const noexcept { return diameter_ / 2.0f; }
     [[nodiscard]] TLCT_API bool getDirection() const noexcept { return direction_; }
+    [[nodiscard]] TLCT_API bool getIsKepler() const noexcept { return isKepler_; }
     [[nodiscard]] TLCT_API int getUpsample() const noexcept { return upsample_; }
     [[nodiscard]] TLCT_API int getMIRows() const noexcept { return miRows_; }
     [[nodiscard]] TLCT_API int getMICols(const int row) const noexcept { return miCols_[row % miCols_.size()]; }
@@ -66,6 +67,7 @@ private:
     TMiCols miCols_;
     int upsample_;
     bool direction_;
+    bool isKepler_;
     bool isOutShift_;
 };
 

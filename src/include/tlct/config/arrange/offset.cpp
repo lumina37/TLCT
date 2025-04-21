@@ -17,7 +17,8 @@
 namespace tlct::_cfg {
 
 OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, float xUnitShift, float yUnitShift,
-                             int miRows, TMiCols miCols, int upsample, bool direction, bool isOutShift) noexcept
+                             int miRows, TMiCols miCols, int upsample, bool direction, bool isKepler,
+                             bool isOutShift) noexcept
     : imgSize_(imgSize),
       diameter_(diameter),
       leftTop_(leftTop),
@@ -27,10 +28,11 @@ OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftT
       miCols_(miCols),
       upsample_(upsample),
       direction_(direction),
+      isKepler_(isKepler),
       isOutShift_(isOutShift) {}
 
 std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, float diameter, bool direction,
-                                                          cv::Point2f offset) noexcept {
+                                                          bool isKepler, cv::Point2f offset) noexcept {
     cv::Point2f centerMI{imgSize.width / 2.f + offset.x, imgSize.height / 2.f - offset.y};
 
     if (direction) {
@@ -71,16 +73,18 @@ std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, floa
     miCols[1] = (int)(((float)imgSize.width - mi_1_0_x - xUnitShift / 2.f) / xUnitShift) + 1;
     const int miRows = (int)(((float)imgSize.height - leftTop.y - yUnitShift / 2.f) / yUnitShift) + 1;
 
-    return OffsetArrange{imgSize, diameter, leftTop, xUnitShift, yUnitShift, miRows, miCols, 1, direction, isOutShift};
+    return OffsetArrange{imgSize, diameter, leftTop,   xUnitShift, yUnitShift, miRows,
+                         miCols,  1,        direction, isKepler,   isOutShift};
 }
 
 std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const ConfigMap& map) noexcept {
     cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const float diameter = map.get<"MIDiameter", float>();
     const bool direction = map.getOr<"MLADirection">(false);
+    const bool isKepler = map.getOr<"IsKepler">(true);
     const cv::Point2f offset = {map.get<"CentralMIOffsetX", float>(), map.get<"CentralMIOffsetY", float>()};
 
-    return create(imgSize, diameter, direction, offset);
+    return create(imgSize, diameter, direction, isKepler, offset);
 }
 
 OffsetArrange& OffsetArrange::upsample(int factor) noexcept {

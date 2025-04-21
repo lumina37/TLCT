@@ -78,15 +78,15 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        render<tlct::raytrix::ManagerYuv420>,
         render<tlct::tspc::ManagerYuv420>,
+        render<tlct::raytrix::ManagerYuv420>,
     };
 
     try {
         const auto& calibFilePath = parser->get<std::string>("calib_file");
         const auto cliCfg = cfgFromCliParser(*parser).value();
         const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath).value();
-        const int pipeline = ((cfgMap.getOr<"IsKepler">(0) << 1) | cfgMap.getOr<"IsMultiFocus">(0)) - 1;
+        const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
         const auto& handler = handlers[pipeline];
         handler(cliCfg, cfgMap);
     } catch (const std::exception& err) {

@@ -60,6 +60,7 @@ public:
     [[nodiscard]] TLCT_API static std::expected<MIBuffers_, Error> create(const TArrange& arrange) noexcept;
 
     // Const methods
+    [[nodiscard]] const TArrange& getArrange() const noexcept { return arrange_; }
     [[nodiscard]] const MIBuffer& getMI(const int row, const int col) const noexcept {
         const int offset = row * params_.miMaxCols_ + col;
         return miBuffers_.at(offset);

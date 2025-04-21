@@ -94,7 +94,7 @@ static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const M
     }
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
+template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
 static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs,
                               typename MvCache_<TArrange>::TChannels& dsts, const TArrange& arrange,
                               const MvParams_<TArrange>& params, const cv::Mat& patchsizes, MvCache_<TArrange>& cache,
@@ -120,7 +120,7 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
                 const cv::Mat& patch = getRoiImageByCenter(cache.f32Chan, patchCenter, psize);
 
                 // Paste patch
-                if constexpr (IS_KEPLER) {
+                if (arrange.getIsKepler()) {
                     cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
                     cv::resize(rotatedPatch, resizedPatch, {params.resizedPatchWidth, params.resizedPatchWidth}, 0, 0,
                                cv::INTER_LINEAR_EXACT);

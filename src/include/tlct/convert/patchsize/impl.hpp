@@ -16,7 +16,7 @@ namespace tlct::_cvt {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
+template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArrange>
 [[nodiscard]] static inline float metricOfPsize(const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
                                                 const MIBuffer& anchorMI, const float psize) {
     float minDiffRatio = std::numeric_limits<float>::max();
@@ -27,7 +27,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
 
         const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(direction));
 
-        const cv::Point2f matchStep = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(direction);
+        const cv::Point2f matchStep = _hp::sgn(mis.getArrange().getIsKepler()) * TNeighbors::getUnitShift(direction);
         const cv::Point2f cmpShift = matchStep * psize;
 
         const float diffRatio = compare(anchorMI, neibMI, cmpShift);
@@ -40,7 +40,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
     return metric;
 }
 
-template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = TNeighbors::TArrange>
+template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArrange>
 [[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const PsizeParams_<TArrange>& params,
                                                              const MIBuffers_<TArrange>& mis,
                                                              const TNeighbors& neighbors, const MIBuffer& anchorMI) {
@@ -59,7 +59,8 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
     }
 
     const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(maxIntensityDirection));
-    const cv::Point2f matchStep = _hp::sgn(IS_KEPLER) * TNeighbors::getUnitShift(maxIntensityDirection);
+    const cv::Point2f matchStep =
+        _hp::sgn(mis.getArrange().getIsKepler()) * TNeighbors::getUnitShift(maxIntensityDirection);
     cv::Point2f cmpShift = matchStep * params.minPsize;
 
     float minDiffRatio = std::numeric_limits<float>::max();
@@ -79,7 +80,7 @@ template <concepts::CNeighbors TNeighbors, bool IS_KEPLER, typename TArrange = T
     return {psize, metric};
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
+template <tcfg::concepts::CArrange TArrange, bool USE_FAR_NEIGHBOR>
 [[nodiscard]] static inline float estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
                                                     const PsizeParams_<TArrange>& params,
                                                     const MIBuffers_<TArrange>& mis, const cv::Mat& prevPatchsizes,
@@ -98,13 +99,12 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
     const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange, index);
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         bestPsize = prevPsize;
-        prevMetric = metricOfPsize<NearNeighbors, IS_KEPLER>(mis, nearNeighbors, anchorMI, prevPsize);
+        prevMetric = metricOfPsize<NearNeighbors>(mis, nearNeighbors, anchorMI, prevPsize);
     } else {
         bestPsize = (float)params.minPsize;
     }
 
-    const PsizeMetric& nearPsizeMetric =
-        estimateWithNeighbor<NearNeighbors, IS_KEPLER>(params, mis, nearNeighbors, anchorMI);
+    const PsizeMetric& nearPsizeMetric = estimateWithNeighbor<NearNeighbors>(params, mis, nearNeighbors, anchorMI);
     if (nearPsizeMetric.metric < prevMetric * cvtCfg.psizeShortcutFactor) {
         minMetric = nearPsizeMetric.metric;
         bestPsize = nearPsizeMetric.psize;
@@ -112,8 +112,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
 
     if constexpr (USE_FAR_NEIGHBOR) {
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange, index);
-        const PsizeMetric& farPsizeMetric =
-            estimateWithNeighbor<FarNeighbors, IS_KEPLER>(params, mis, farNeighbors, anchorMI);
+        const PsizeMetric& farPsizeMetric = estimateWithNeighbor<FarNeighbors>(params, mis, farNeighbors, anchorMI);
         if (farPsizeMetric.metric < minMetric && farPsizeMetric.metric < prevMetric * cvtCfg.psizeShortcutFactor) {
             bestPsize = farPsizeMetric.psize;
         }
@@ -122,7 +121,7 @@ template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHB
     return bestPsize;
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool USE_FAR_NEIGHBOR>
+template <tcfg::concepts::CArrange TArrange, bool USE_FAR_NEIGHBOR>
 static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
                                       const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
                                       const cv::Mat& prevPatchsizes, cv::Mat& patchsizes) {
@@ -130,8 +129,8 @@ static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliCo
     for (int row = 0; row < arrange.getMIRows(); row++) {
         for (int col = 0; col < arrange.getMICols(row); col++) {
             const cv::Point index{col, row};
-            const float psize = estimatePatchsize<TArrange, IS_KEPLER, USE_FAR_NEIGHBOR>(arrange, cvtCfg, params, mis,
-                                                                                         prevPatchsizes, index);
+            const float psize =
+                estimatePatchsize<TArrange, USE_FAR_NEIGHBOR>(arrange, cvtCfg, params, mis, prevPatchsizes, index);
             patchsizes.at<float>(index) = psize;
         }
     }

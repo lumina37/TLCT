@@ -19,11 +19,10 @@ namespace _cvt {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CArrange TArrange_, bool IS_KEPLER_, bool IS_MULTI_FOCUS_>
+template <tcfg::concepts::CArrange TArrange_, bool IS_MULTI_FOCUS_>
 class Manager_ {
 public:
     static constexpr int CHANNELS = 3;
-    static constexpr bool IS_KEPLER = IS_KEPLER_;
     static constexpr bool IS_MULTI_FOCUS = IS_MULTI_FOCUS_;
 
     // Typename alias
@@ -53,8 +52,8 @@ public:
     void update(const io::YuvPlanarFrame& src);
 
     inline void renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) const {
-        renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mvCache_.srcs, mvCache_.u8OutputImageChannels, arrange_,
-                                                        mvParams_, patchsizes_, mvCache_, viewRow, viewCol);
+        renderView<TArrange, IS_MULTI_FOCUS>(mvCache_.srcs, mvCache_.u8OutputImageChannels, arrange_, mvParams_,
+                                             patchsizes_, mvCache_, viewRow, viewCol);
 
         if (arrange_.getDirection()) {
             for (const int i : rgs::views::iota(0, MvCache::CHANNELS)) {
@@ -80,8 +79,8 @@ private:
     mutable MvCache mvCache_;
 };
 
-template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg)
+template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
+Manager_<TArrange, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg)
     : arrange_(arrange), cvtCfg_(cvtCfg) {
     mis_ = TMIBuffers::create(arrange).value();
 
@@ -93,15 +92,14 @@ Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange,
     mvCache_ = MvCache::create(mvParams_).value();
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-std::expected<Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>,
-              typename Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::TError>
-Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) {
+template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
+std::expected<Manager_<TArrange, IS_MULTI_FOCUS>, typename Manager_<TArrange, IS_MULTI_FOCUS>::TError>
+Manager_<TArrange, IS_MULTI_FOCUS>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) {
     return Manager_{arrange, cvtCfg};
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-void Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) {
+template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
+void Manager_<TArrange, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) {
     src.getY().copyTo(mvCache_.rawSrcs[0]);
     src.getU().copyTo(mvCache_.rawSrcs[1]);
     src.getV().copyTo(mvCache_.rawSrcs[2]);
@@ -136,8 +134,7 @@ void Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::update(const io::YuvPlanarFr
     mis_.update(mvCache_.srcs[0]);
 
     std::swap(prevPatchsizes_, patchsizes_);
-    estimatePatchsizes<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_,
-                                                            patchsizes_);
+    estimatePatchsizes<TArrange, IS_MULTI_FOCUS>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_, patchsizes_);
     if constexpr (IS_MULTI_FOCUS) {
         adjustWgtsAndPsizesForMFocus(arrange_, mis_, patchsizes_, mvCache_);
     }
