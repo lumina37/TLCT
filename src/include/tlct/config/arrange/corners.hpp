@@ -26,18 +26,7 @@ public:
     TLCT_API CornersArrange& operator=(CornersArrange&& rhs) noexcept = default;
     TLCT_API CornersArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, cv::Point2f rightTop,
                             cv::Point2f leftYUnitShift, cv::Point2f rightYUnitShift, int miRows, TMiCols miCols,
-                            int upsample, bool direction, bool isOutShift) noexcept
-        : imgSize_(imgSize),
-          diameter_(diameter),
-          leftTop_(leftTop),
-          rightTop_(rightTop),
-          leftYUnitShift_(leftYUnitShift),
-          rightYUnitShift_(rightYUnitShift),
-          miRows_(miRows),
-          miCols_(miCols),
-          upsample_(upsample),
-          direction_(direction),
-          isOutShift_(isOutShift) {}
+                            int upsample, bool direction, bool isOutShift) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> create(cv::Size imgSize, float diameter,

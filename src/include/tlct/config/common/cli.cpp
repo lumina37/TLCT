@@ -1,5 +1,7 @@
-#include <cassert>
+#include <expected>
+#include <format>
 #include <numbers>
+#include <utility>
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/config/common/cli.hpp"
@@ -7,18 +9,47 @@
 
 namespace tlct::_cfg {
 
-CliConfig::CliConfig(Path path, Range range, Convert convert) : path(path), range(range), convert(convert) {
-    assert(range.end > range.begin);
+CliConfig::CliConfig(Path&& path, Range range, Convert convert) noexcept
+    : path(std::move(path)), range(range), convert(convert) {}
 
-    assert(convert.views > 0);
-    assert(convert.upsample > 0);
-    assert(convert.minPsize > 0.0f);
-    assert(convert.minPsize < 1.0f);
-    assert(convert.psizeInflate >= std::numbers::sqrt3_v<float>);
-    assert(convert.psizeInflate < 3.0f);
-    assert(convert.viewShiftRange >= 0.0f);
-    assert(convert.viewShiftRange < 1.0f);
-    assert(convert.psizeShortcutFactor >= 0.0f);
+std::expected<CliConfig, Error> CliConfig::create(const Path& path, Range range, Convert convert) noexcept {
+    if (range.end <= range.begin) {
+        auto errMsg = std::format("Expect range.end > range.begin, got: {} <= {}", range.end, range.begin);
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
+
+    if (convert.views <= 0) {
+        auto errMsg = std::format("Expect views > 0, got: {}", convert.views);
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
+
+    if (convert.upsample <= 0) {
+        auto errMsg = std::format("Expect upsample > 0, got: {}", convert.upsample);
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
+
+    if (convert.minPsize <= 0.0f || convert.minPsize >= 1.0f) {
+        auto errMsg = std::format("Expect 0 < minPsize < 1, got: {}", convert.minPsize);
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
+
+    if (convert.psizeInflate < std::numbers::sqrt3_v<float> || convert.psizeInflate > 3.0f) {
+        auto errMsg = std::format("Expect sqrt3 <= psizeInflate <= 3, got: {}", convert.psizeInflate);
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
+
+    if (convert.viewShiftRange < 0.0f || convert.viewShiftRange > 1.0f) {
+        auto errMsg = std::format("Expect 0 <= viewShiftRange <= 1, got: {}", convert.viewShiftRange);
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
+
+    if (convert.psizeShortcutFactor < 0.0f) {
+        auto errMsg = std::format("Expect psizeShortcutFactor >= 0, got: {}", convert.psizeShortcutFactor);
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
+
+    auto copiedPath = path;
+    return CliConfig{std::move(copiedPath), range, convert};
 }
 
 }  // namespace tlct::_cfg

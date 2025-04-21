@@ -16,6 +16,21 @@
 
 namespace tlct::_cfg {
 
+CornersArrange::CornersArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, cv::Point2f rightTop,
+                               cv::Point2f leftYUnitShift, cv::Point2f rightYUnitShift, int miRows, TMiCols miCols,
+                               int upsample, bool direction, bool isOutShift) noexcept
+    : imgSize_(imgSize),
+      diameter_(diameter),
+      leftTop_(leftTop),
+      rightTop_(rightTop),
+      leftYUnitShift_(leftYUnitShift),
+      rightYUnitShift_(rightYUnitShift),
+      miRows_(miRows),
+      miCols_(miCols),
+      upsample_(upsample),
+      direction_(direction),
+      isOutShift_(isOutShift) {}
+
 std::expected<CornersArrange, Error> CornersArrange::create(cv::Size imgSize, float diameter, bool direction,
                                                             cv::Point2f leftTop, cv::Point2f rightTop,
                                                             cv::Point2f leftBottom, cv::Point2f rightBottom) noexcept {

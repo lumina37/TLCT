@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <memory>
 
 #include <argparse/argparse.hpp>
@@ -52,11 +53,15 @@
     return parser;
 }
 
-[[nodiscard]] static inline tlct::CliConfig cfgFromCliParser(const argparse::ArgumentParser& parser) {
-    return {
-        tlct::CliConfig::Path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")},
-        tlct::CliConfig::Range{parser.get<int>("--begin"), parser.get<int>("--end")},
-        tlct::CliConfig::Convert{parser.get<int>("--views"), parser.get<int>("--upsample"),
-                                 parser.get<float>("--minPsize"), parser.get<float>("--psizeInflate"),
-                                 parser.get<float>("--viewShiftRange"), parser.get<float>("--psizeShortcutFactor")}};
+[[nodiscard]] static inline std::expected<tlct::CliConfig, tlct::Error> cfgFromCliParser(
+    const argparse::ArgumentParser& parser) {
+    const tlct::CliConfig::Path path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
+    const tlct::CliConfig::Range range{parser.get<int>("--begin"), parser.get<int>("--end")};
+    const tlct::CliConfig::Convert convert{parser.get<int>("--views"),
+                                           parser.get<int>("--upsample"),
+                                           parser.get<float>("--minPsize"),
+                                           parser.get<float>("--psizeInflate"),
+                                           parser.get<float>("--viewShiftRange"),
+                                           parser.get<float>("--psizeShortcutFactor")};
+    return tlct::CliConfig::create(path, range, convert);
 }

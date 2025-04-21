@@ -2,12 +2,11 @@
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
-#include <iomanip>
+#include <format>
 #include <iostream>
+#include <print>
 #include <ranges>
-#include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <argparse/argparse.hpp>
@@ -42,10 +41,8 @@ static inline void render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& 
     const int totalWriters = cliCfg.convert.views * cliCfg.convert.views;
     yuvWriters.reserve(totalWriters);
     for (const int i : rgs::views::iota(0, totalWriters)) {
-        std::stringstream filenameStream;
-        filenameStream << 'v' << std::setw(3) << std::setfill('0') << i << '-' << outputSize.width << 'x'
-                       << outputSize.height << ".yuv";
-        fs::path savetoPath = dstdir / filenameStream.str();
+        std::string filename = std::format("v{:03}-{}x{}.yuv", i, outputSize.width, outputSize.height);
+        fs::path savetoPath = dstdir / filename;
         yuvWriters.emplace_back(TYuvWriter::fromPath(savetoPath));
     }
 
@@ -75,8 +72,8 @@ int main(int argc, char* argv[]) {
     try {
         parser->parse_args(argc, argv);
     } catch (const std::exception& err) {
-        std::cerr << err.what() << std::endl;
-        std::cerr << *parser;
+        std::println(std::cerr, "{}", err.what());
+        std::println(std::cerr, "{}", parser->help().str());
         std::exit(1);
     }
 
@@ -87,13 +84,13 @@ int main(int argc, char* argv[]) {
 
     try {
         const auto& calibFilePath = parser->get<std::string>("calib_file");
-        const auto& cliCfg = cfgFromCliParser(*parser);
+        const auto& cliCfg = cfgFromCliParser(*parser).value();
         const auto& cfgMap = tlct::ConfigMap::fromPath(calibFilePath);
         const int pipeline = ((cfgMap.getOr<"IsKepler">(0) << 1) | cfgMap.getOr<"IsMultiFocus">(0)) - 1;
         const auto& handler = handlers[pipeline];
         handler(cliCfg, cfgMap);
     } catch (const std::exception& err) {
-        std::cerr << err.what() << std::endl;
+        std::println(std::cerr, "{}", err.what());
         std::exit(2);
     }
 }

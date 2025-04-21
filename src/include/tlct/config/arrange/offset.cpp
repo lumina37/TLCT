@@ -15,6 +15,19 @@
 
 namespace tlct::_cfg {
 
+OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, float xUnitShift, float yUnitShift,
+                             int miRows, TMiCols miCols, int upsample, bool direction, bool isOutShift) noexcept
+    : imgSize_(imgSize),
+      diameter_(diameter),
+      leftTop_(leftTop),
+      xUnitShift_(xUnitShift),
+      yUnitShift_(yUnitShift),
+      miRows_(miRows),
+      miCols_(miCols),
+      upsample_(upsample),
+      direction_(direction),
+      isOutShift_(isOutShift) {}
+
 std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, float diameter, bool direction,
                                                           cv::Point2f offset) noexcept {
     cv::Point2f centerMI{imgSize.width / 2.f + offset.x, imgSize.height / 2.f - offset.y};

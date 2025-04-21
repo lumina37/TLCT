@@ -1,8 +1,10 @@
 #pragma once
 
+#include <expected>
 #include <filesystem>
 
 #include "tlct/common/defines.h"
+#include "tlct/common/error.hpp"
 
 namespace tlct::_cfg {
 
@@ -32,7 +34,10 @@ struct CliConfig {
     Range range;
     Convert convert;
 
-    TLCT_API CliConfig(Path path, Range range, Convert convert);
+    TLCT_API CliConfig(Path&& path, Range range, Convert convert) noexcept;
+
+    [[nodiscard]] TLCT_API static std::expected<CliConfig, Error> create(const Path& path, Range range,
+                                                                         Convert convert) noexcept;
 };
 
 }  // namespace tlct::_cfg

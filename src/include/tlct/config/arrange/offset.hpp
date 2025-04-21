@@ -25,17 +25,7 @@ public:
     TLCT_API OffsetArrange(OffsetArrange&& rhs) noexcept = default;
     TLCT_API OffsetArrange& operator=(OffsetArrange&& rhs) noexcept = default;
     TLCT_API OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, float xUnitShift, float yUnitShift,
-                           int miRows, TMiCols miCols, int upsample, bool direction, bool isOutShift) noexcept
-        : imgSize_(imgSize),
-          diameter_(diameter),
-          leftTop_(leftTop),
-          xUnitShift_(xUnitShift),
-          yUnitShift_(yUnitShift),
-          miRows_(miRows),
-          miCols_(miCols),
-          upsample_(upsample),
-          direction_(direction),
-          isOutShift_(isOutShift) {}
+                           int miRows, TMiCols miCols, int upsample, bool direction, bool isOutShift) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<OffsetArrange, Error> create(cv::Size imgSize, float diameter,
