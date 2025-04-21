@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <expected>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/common/error.hpp"
 #include "tlct/config/concepts.hpp"
 
 namespace tlct::_cvt {
@@ -30,7 +32,7 @@ public:
         static constexpr size_t SIMD_FETCH_SIZE = 128 / 8;
 
         Params() = default;
-        explicit Params(const TArrange& arrange) noexcept;
+        Params(const TArrange& arrange) noexcept;
         Params& operator=(Params&& rhs) noexcept = default;
         Params(Params&& rhs) noexcept = default;
 
@@ -38,31 +40,24 @@ public:
         size_t alignedMISize_;
         size_t bufferSize_;
         float censusDiameter_;
-        float censusRadius_;
         int miMaxCols_;
         int miNum_;
     };
 
+private:
+    MIBuffers_(TArrange&& arrange, Params&& params, std::vector<MIBuffer>&& miBuffers,
+               std::unique_ptr<std::byte[]>&& pBuffer) noexcept;
+
+public:
     // Constructor
-    MIBuffers_() noexcept : arrange_(), params_() {}
-    explicit MIBuffers_(const TArrange& arrange);
+    MIBuffers_() noexcept = default;
     MIBuffers_& operator=(const MIBuffers_& rhs) = delete;
     MIBuffers_(const MIBuffers_& rhs) = delete;
-    MIBuffers_& operator=(MIBuffers_&& rhs) noexcept {
-        arrange_ = std::move(rhs.arrange_);
-        params_ = std::move(rhs.params_);
-        miBuffers_ = std::move(rhs.miBuffers_);
-        pBuffer_ = std::move(rhs.pBuffer_);
-        return *this;
-    }
-    MIBuffers_(MIBuffers_&& rhs) noexcept
-        : arrange_(std::move(rhs.arrange_)),
-          params_(std::move(rhs.params_)),
-          miBuffers_(std::move(rhs.miBuffers_)),
-          pBuffer_(std::move(rhs.pBuffer_)) {}
+    MIBuffers_& operator=(MIBuffers_&& rhs) noexcept;
+    MIBuffers_(MIBuffers_&& rhs) noexcept;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static MIBuffers_ fromArrange(const TArrange& arrange);
+    [[nodiscard]] TLCT_API static std::expected<MIBuffers_, Error> create(const TArrange& arrange) noexcept;
 
     // Const methods
     [[nodiscard]] const MIBuffer& getMI(const int row, const int col) const noexcept {
@@ -73,7 +68,7 @@ public:
     [[nodiscard]] const MIBuffer& getMI(const int offset) const noexcept { return miBuffers_.at(offset); }
 
     // Non-const methods
-    TLCT_API MIBuffers_& update(const cv::Mat& src);
+    TLCT_API MIBuffers_& update(const cv::Mat& src) noexcept;
 
 private:
     TArrange arrange_;

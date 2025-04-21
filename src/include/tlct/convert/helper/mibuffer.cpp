@@ -2,12 +2,15 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <memory>
 #include <ranges>
 #include <utility>
+#include <vector>
 
 #include <opencv2/imgproc.hpp>
 
+#include "tlct/common/error.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/census.hpp"
@@ -24,6 +27,30 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
+template <tlct::cfg::concepts::CArrange TArrange_>
+MIBuffers_<TArrange_>::MIBuffers_(TArrange&& arrange, Params&& params, std::vector<MIBuffer>&& miBuffers,
+                                  std::unique_ptr<std::byte[]>&& pBuffer) noexcept
+    : arrange_(std::move(arrange)),
+      params_(std::move(params)),
+      miBuffers_(std::move(miBuffers)),
+      pBuffer_(std::move(pBuffer)) {}
+
+template <tlct::cfg::concepts::CArrange TArrange>
+MIBuffers_<TArrange>& MIBuffers_<TArrange>::operator=(MIBuffers_&& rhs) noexcept {
+    arrange_ = std::move(rhs.arrange_);
+    params_ = std::move(rhs.params_);
+    miBuffers_ = std::move(rhs.miBuffers_);
+    pBuffer_ = std::move(rhs.pBuffer_);
+    return *this;
+}
+
+template <tlct::cfg::concepts::CArrange TArrange>
+MIBuffers_<TArrange>::MIBuffers_(MIBuffers_&& rhs) noexcept
+    : arrange_(std::move(rhs.arrange_)),
+      params_(std::move(rhs.params_)),
+      miBuffers_(std::move(rhs.miBuffers_)),
+      pBuffer_(std::move(rhs.pBuffer_)) {}
+
 template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
     censusDiameter_ = arrange.getDiameter() * CENSUS_SAFE_RATIO;
@@ -36,18 +63,20 @@ MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
 }
 
 template <tlct::cfg::concepts::CArrange TArrange>
-MIBuffers_<TArrange>::MIBuffers_(const TArrange& arrange) : arrange_(arrange), params_(arrange) {
-    miBuffers_.resize(params_.miNum_);
-    pBuffer_ = std::make_unique_for_overwrite<std::byte[]>(params_.bufferSize_ + Params::SIMD_FETCH_SIZE);
+std::expected<MIBuffers_<TArrange>, Error> MIBuffers_<TArrange>::create(const TArrange& arrange) noexcept {
+    auto copiedArrange = arrange;
+    Params params{arrange};
+    try {
+        std::vector<MIBuffer> miBuffers(params.miNum_);
+        auto pBuffer = std::make_unique_for_overwrite<std::byte[]>(params.bufferSize_ + Params::SIMD_FETCH_SIZE);
+        return MIBuffers_{std::move(copiedArrange), std::move(params), std::move(miBuffers), std::move(pBuffer)};
+    } catch (const std::bad_alloc&) {
+        return std::unexpected{Error{ErrCode::OutOfMemory}};
+    }
 }
 
 template <tlct::cfg::concepts::CArrange TArrange>
-MIBuffers_<TArrange> MIBuffers_<TArrange>::fromArrange(const TArrange& arrange) {
-    return MIBuffers_(arrange);
-}
-
-template <tlct::cfg::concepts::CArrange TArrange>
-MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
+MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) noexcept {
     assert(src.type() == CV_8UC1);
 
     const int iCensusDiameter = _hp::iround(params_.censusDiameter_);

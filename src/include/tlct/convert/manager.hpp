@@ -75,7 +75,6 @@ private:
     TMIBuffers mis_;
     cv::Mat prevPatchsizes_;  // CV_32FC1
     cv::Mat patchsizes_;      // CV_32FC1
-
     PsizeParams psizeParams_;
     MvParams mvParams_;
     mutable MvCache mvCache_;
@@ -84,12 +83,12 @@ private:
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
 Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg)
     : arrange_(arrange), cvtCfg_(cvtCfg) {
-    mis_ = TMIBuffers::fromArrange(arrange);
+    mis_ = TMIBuffers::create(arrange).value();
 
     prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
-    psizeParams_ = PsizeParams::create(arrange, cvtCfg).value();
 
+    psizeParams_ = PsizeParams::create(arrange, cvtCfg).value();
     mvParams_ = MvParams::create(arrange, cvtCfg).value();
     mvCache_ = MvCache::create(mvParams_).value();
 }
