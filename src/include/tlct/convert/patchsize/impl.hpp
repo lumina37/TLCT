@@ -1,10 +1,12 @@
 #pragma once
 
+#include <expected>
 #include <limits>
 #include <ranges>
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/error.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
@@ -122,9 +124,9 @@ template <tcfg::concepts::CArrange TArrange, bool USE_FAR_NEIGHBOR>
 }
 
 template <tcfg::concepts::CArrange TArrange, bool USE_FAR_NEIGHBOR>
-static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
-                                      const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
-                                      const cv::Mat& prevPatchsizes, cv::Mat& patchsizes) {
+static inline std::expected<void, Error> estimatePatchsizes(
+    const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg, const PsizeParams_<TArrange>& params,
+    const MIBuffers_<TArrange>& mis, const cv::Mat& prevPatchsizes, cv::Mat& patchsizes) noexcept {
 #pragma omp parallel for
     for (int row = 0; row < arrange.getMIRows(); row++) {
         for (int col = 0; col < arrange.getMICols(row); col++) {
@@ -134,6 +136,8 @@ static inline void estimatePatchsizes(const TArrange& arrange, const tcfg::CliCo
             patchsizes.at<float>(index) = psize;
         }
     }
+
+    return {};
 }
 
 }  // namespace tlct::_cvt

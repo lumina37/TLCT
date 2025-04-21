@@ -3,6 +3,7 @@
 #include <ios>
 #include <utility>
 
+#include "tlct/common/error.hpp"
 #include "tlct/io/yuv/planar/extent.hpp"
 #include "tlct/io/yuv/planar/frame.hpp"
 
@@ -40,7 +41,7 @@ std::expected<void, Error> YuvPlanarReader::skip(int frameCount) noexcept {
 
 std::expected<YuvPlanarFrame, Error> YuvPlanarReader::read() noexcept {
     auto frameRes = YuvPlanarFrame::create(extent_);
-    if (!frameRes.has_value()) [[unlikely]] {
+    if (!frameRes) [[unlikely]] {
         return frameRes;
     }
     auto& frame = frameRes.value();

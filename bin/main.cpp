@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
-static inline void render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) {
+static inline std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) {
     auto arrange = TManager::TArrange::createWithCfgMap(map).value();
     cv::Size srcSize = arrange.getImgSize();
     arrange.upsample(cliCfg.convert.upsample);
@@ -46,24 +46,41 @@ static inline void render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& 
         yuvWriters.emplace_back(tlct::io::YuvPlanarWriter::create(savetoPath).value());
     }
 
-    yuvReader.skip(cliCfg.range.begin);
+    {
+        auto res = yuvReader.skip(cliCfg.range.begin);
+        if (!res) return std::unexpected{std::move(res.error())};
+    }
 
     auto srcFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
     auto mvFrame = tlct::io::YuvPlanarFrame::create(mvExtent).value();
     for ([[maybe_unused]] const int fid : rgs::views::iota(cliCfg.range.begin, cliCfg.range.end)) {
-        yuvReader.readInto(srcFrame);
-        manager.update(srcFrame);
+        {
+            auto res = yuvReader.readInto(srcFrame);
+            if (!res) return std::unexpected{std::move(res.error())};
+        }
+        {
+            auto res = manager.update(srcFrame);
+            if (!res) return std::unexpected{std::move(res.error())};
+        }
 
         int view = 0;
         for (const int viewRow : rgs::views::iota(0, cliCfg.convert.views)) {
             for (const int viewCol : rgs::views::iota(0, cliCfg.convert.views)) {
                 auto& yuvWriter = yuvWriters[view];
-                manager.renderInto(mvFrame, viewRow, viewCol);
-                yuvWriter.write(mvFrame);
+                {
+                    auto res = manager.renderInto(mvFrame, viewRow, viewCol);
+                    if (!res) return std::unexpected{std::move(res.error())};
+                }
+                {
+                    auto res = yuvWriter.write(mvFrame);
+                    if (!res) return std::unexpected{std::move(res.error())};
+                }
                 view++;
             }
         }
     }
+
+    return {};
 }
 
 int main(int argc, char* argv[]) {
@@ -82,15 +99,35 @@ int main(int argc, char* argv[]) {
         render<tlct::raytrix::ManagerYuv420>,
     };
 
+    std::string calibFilePath;
     try {
-        const auto& calibFilePath = parser->get<std::string>("calib_file");
-        const auto cliCfg = cfgFromCliParser(*parser).value();
-        const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath).value();
-        const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
-        const auto& handler = handlers[pipeline];
+        calibFilePath = parser->get<std::string>("calib_file");
+    } catch (const std::exception& err) {
+        std::println(std::cerr, "{}", err.what());
+        std::exit(1);
+    }
+
+    const auto cliCfgRes = cfgFromCliParser(*parser);
+    if (!cliCfgRes) [[unlikely]] {
+        std::println(std::cerr, "{}", cliCfgRes.error().msg);
+        std::exit(1);
+    }
+    const auto& cliCfg = cliCfgRes.value();
+
+    const auto cfgMapRes = tlct::ConfigMap::createFromPath(calibFilePath);
+    if (!cfgMapRes) [[unlikely]] {
+        std::println(std::cerr, "{}", cfgMapRes.error().msg);
+        std::exit(1);
+    }
+    const auto& cfgMap = cfgMapRes.value();
+
+    const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
+    const auto& handler = handlers[pipeline];
+
+    try {
         handler(cliCfg, cfgMap);
     } catch (const std::exception& err) {
         std::println(std::cerr, "{}", err.what());
-        std::exit(2);
+        std::exit(1);
     }
 }

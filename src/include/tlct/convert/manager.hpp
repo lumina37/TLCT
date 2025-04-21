@@ -5,6 +5,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/error.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/convert/helper.hpp"
@@ -49,11 +50,15 @@ public:
     [[nodiscard]] cv::Size getOutputSize() const noexcept { return {mvParams_.outputWidth, mvParams_.outputHeight}; };
 
     // Non-const methods
-    void update(const io::YuvPlanarFrame& src);
+    [[nodiscard]] std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
 
-    inline void renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) const {
-        renderView<TArrange, IS_MULTI_FOCUS>(mvCache_.srcs, mvCache_.u8OutputImageChannels, arrange_, mvParams_,
-                                             patchsizes_, mvCache_, viewRow, viewCol);
+    [[nodiscard]] std::expected<void, Error> renderInto(io::YuvPlanarFrame& dst, int viewRow,
+                                                        int viewCol) const noexcept {
+        {
+            auto res = renderView<TArrange, IS_MULTI_FOCUS>(mvCache_.srcs, mvCache_.u8OutputImageChannels, arrange_,
+                                                            mvParams_, patchsizes_, mvCache_, viewRow, viewCol);
+            if (!res) return std::unexpected{std::move(res.error())};
+        }
 
         if (arrange_.getDirection()) {
             for (const int i : rgs::views::iota(0, MvCache::CHANNELS)) {
@@ -66,7 +71,9 @@ public:
                    {dst.getExtent().getUWidth(), dst.getExtent().getUHeight()}, 0.0, 0.0, cv::INTER_LINEAR_EXACT);
         cv::resize(mvCache_.u8OutputImageChannels[2], dst.getV(),
                    {dst.getExtent().getVWidth(), dst.getExtent().getVHeight()}, 0.0, 0.0, cv::INTER_LINEAR_EXACT);
-    };
+
+        return {};
+    }
 
 private:
     TArrange arrange_;
@@ -99,7 +106,8 @@ Manager_<TArrange, IS_MULTI_FOCUS>::create(const TArrange& arrange, const TCvtCo
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
-void Manager_<TArrange, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) {
+std::expected<void, Error> Manager_<TArrange, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) noexcept {
+    // TODO: handle `std::bad_alloc` in this func
     src.getY().copyTo(mvCache_.rawSrcs[0]);
     src.getU().copyTo(mvCache_.rawSrcs[1]);
     src.getV().copyTo(mvCache_.rawSrcs[2]);
@@ -131,13 +139,24 @@ void Manager_<TArrange, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) {
         mvCache_.srcs[2] = mvCache_.rawSrcs[2];
     }
 
-    mis_.update(mvCache_.srcs[0]);
+    {
+        auto res = mis_.update(mvCache_.srcs[0]);
+        if (!res) return std::unexpected{std::move(res.error())};
+    }
 
     std::swap(prevPatchsizes_, patchsizes_);
-    estimatePatchsizes<TArrange, IS_MULTI_FOCUS>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_, patchsizes_);
+
+    {
+        auto res = estimatePatchsizes<TArrange, IS_MULTI_FOCUS>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_,
+                                                                patchsizes_);
+        if (!res) return std::unexpected{std::move(res.error())};
+    }
+
     if constexpr (IS_MULTI_FOCUS) {
         adjustWgtsAndPsizesForMFocus(arrange_, mis_, patchsizes_, mvCache_);
     }
+
+    return {};
 }
 
 }  // namespace _cvt

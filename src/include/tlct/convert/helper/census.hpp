@@ -6,7 +6,8 @@
 
 namespace tlct::_cvt {
 
-TLCT_API void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap, cv::Mat& censusMask);
+TLCT_API void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap,
+                                 cv::Mat& censusMask) noexcept;
 
 }  // namespace tlct::_cvt
 

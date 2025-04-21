@@ -1,11 +1,13 @@
 #pragma once
 
+#include <expected>
 #include <limits>
 #include <numeric>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
 
+#include "tlct/common/error.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview/cache.hpp"
@@ -21,6 +23,7 @@ namespace tcfg = tlct::cfg;
 template <tcfg::concepts::CArrange TArrange>
 static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const MIBuffers_<TArrange>& mis,
                                                 cv::Mat& patchsizes, MvCache_<TArrange>& cache) {
+    // TODO: handle `std::bad_alloc` in this func
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev texMeanStddev{};
 
@@ -95,10 +98,12 @@ static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const M
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
-static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs,
-                              typename MvCache_<TArrange>::TChannels& dsts, const TArrange& arrange,
-                              const MvParams_<TArrange>& params, const cv::Mat& patchsizes, MvCache_<TArrange>& cache,
-                              int viewRow, int viewCol) {
+static inline std::expected<void, Error> renderView(const typename MvCache_<TArrange>::TChannels& srcs,
+                                                    typename MvCache_<TArrange>::TChannels& dsts,
+                                                    const TArrange& arrange, const MvParams_<TArrange>& params,
+                                                    const cv::Mat& patchsizes, MvCache_<TArrange>& cache, int viewRow,
+                                                    int viewCol) noexcept {
+    // TODO: handle `std::bad_alloc` in this func
     const int viewShiftX = (viewCol - params.views / 2) * params.viewInterval;
     const int viewShiftY = (viewRow - params.views / 2) * params.viewInterval;
 
@@ -155,6 +160,8 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
         cv::resize(cache.u8NormedImage, dsts[chanIdx], {params.outputWidth, params.outputHeight}, 0.0, 0.0,
                    cv::INTER_LINEAR_EXACT);
     }
+
+    return {};
 }
 
 }  // namespace tlct::_cvt

@@ -76,8 +76,12 @@ std::expected<MIBuffers_<TArrange>, Error> MIBuffers_<TArrange>::create(const TA
 }
 
 template <tlct::cfg::concepts::CArrange TArrange>
-MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) noexcept {
-    assert(src.type() == CV_8UC1);
+std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noexcept {
+    // TODO: handle `std::bad_alloc` in this func
+    if (src.type() != CV_8UC1) [[unlikely]] {
+        std::string errMsg = std::format("MIBuffers::update expect CV_8UC1, got {}", src.type());
+        return std::unexpected{Error{ErrCode::InvalidParam, std::move(errMsg)}};
+    }
 
     const int iCensusDiameter = _hp::iround(params_.censusDiameter_);
     const int iCensusRadius = _hp::iround(params_.censusDiameter_ / 2.f);
@@ -115,7 +119,7 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) noexcept 
         }
     }
 
-    return *this;
+    return {};
 }
 
 [[nodiscard]] float compare(const MIBuffer& lhsMI, const MIBuffer& rhsMI, cv::Point2f offset) noexcept {

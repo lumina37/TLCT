@@ -12,7 +12,7 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap, cv::Mat& censusMask) {
+void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap, cv::Mat& censusMask) noexcept {
     assert(src.type() == CV_8UC1);
     assert(srcMask.type() == CV_8UC1);
     assert(censusMap.elemSize() == 3);

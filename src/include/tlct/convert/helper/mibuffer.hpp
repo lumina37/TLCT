@@ -69,7 +69,7 @@ public:
     [[nodiscard]] const MIBuffer& getMI(const int offset) const noexcept { return miBuffers_.at(offset); }
 
     // Non-const methods
-    TLCT_API MIBuffers_& update(const cv::Mat& src) noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
 private:
     TArrange arrange_;

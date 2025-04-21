@@ -18,7 +18,7 @@ class YuvPlanarWriter {
 public:
     [[nodiscard]] TLCT_API static std::expected<YuvPlanarWriter, Error> create(const fs::path& fpath) noexcept;
 
-    TLCT_API std::expected<void, Error> write(YuvPlanarFrame& frame) noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> write(YuvPlanarFrame& frame) noexcept;
 
 private:
     std::ofstream ofs_;
