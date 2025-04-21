@@ -47,8 +47,8 @@ std::expected<ConfigMap, Error> ConfigMap::createFromFs(std::ifstream&& ifs) {
         const std::string& key = _hp::cconv({row.begin(), keyEndIt});
         const std::string& value = _hp::cconv({valueStartIt, row.end()});
 #else
-        const std::string_view& key{row.begin(), key_end_it};
-        const std::string_view& value{value_start_it, row.end()};
+        const std::string_view& key{row.begin(), keyEndIt};
+        const std::string_view& value{valueStartIt, row.end()};
 #endif
         cfgMap.emplace(key, value);
     }
