@@ -1,8 +1,11 @@
 #pragma once
 
+#include <expected>
+
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
+#include "tlct/common/error.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 
@@ -18,7 +21,8 @@ public:
     using TCvtConfig = tcfg::CliConfig::Convert;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static MvParams_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
+    [[nodiscard]] TLCT_API static std::expected<MvParams_, Error> create(const TArrange& arrange,
+                                                                         const TCvtConfig& cvtCfg) noexcept;
 
     cv::Range canvasCropRoi[2];
     float psizeInflate;

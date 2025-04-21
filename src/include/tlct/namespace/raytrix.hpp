@@ -10,6 +10,8 @@ namespace raytrix {
 using Arrange = cfg::OffsetArrange;
 using ManagerYuv420 = cvt::Manager_<Arrange, false, true>;
 
+static_assert(cvt::concepts::CManager<ManagerYuv420>);
+
 }  // namespace raytrix
 
 namespace _cvt {

@@ -109,6 +109,7 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
     for (const int chanIdx : rgs::views::iota(0, (int)srcs.size())) {
         cache.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
         cache.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
+        cache.srcs[chanIdx].convertTo(cache.f32Chan, CV_32FC1);
 
         for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
             for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
@@ -116,7 +117,7 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
                 const cv::Point2f center = arrange.getMICenter(row, col);
                 const float psize = params.psizeInflate * patchsizes.at<float>(row, col);
                 const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
-                const cv::Mat& patch = getRoiImageByCenter(srcs[chanIdx], patchCenter, psize);
+                const cv::Mat& patch = getRoiImageByCenter(cache.f32Chan, patchCenter, psize);
 
                 // Paste patch
                 if constexpr (IS_KEPLER) {
@@ -150,8 +151,7 @@ static inline void renderView(const typename MvCache_<TArrange>::TChannels& srcs
         cv::Mat croppedRenderedImage = cache.renderCanvas(params.canvasCropRoi);
         cv::Mat croppedWeightMatrix = cache.weightCanvas(params.canvasCropRoi);
 
-        cv::divide(croppedRenderedImage, croppedWeightMatrix, cache.normedImage);
-        cache.normedImage.convertTo(cache.u8NormedImage, CV_8UC1);
+        cv::divide(croppedRenderedImage, croppedWeightMatrix, cache.u8NormedImage, 1, CV_8UC1);
         cv::resize(cache.u8NormedImage, dsts[chanIdx], {params.outputWidth, params.outputHeight}, 0.0, 0.0,
                    cv::INTER_LINEAR_EXACT);
     }

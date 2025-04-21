@@ -27,6 +27,7 @@ public:
     static constexpr bool IS_MULTI_FOCUS = IS_MULTI_FOCUS_;
 
     // Typename alias
+    using TError = Error;
     using TCvtConfig = tcfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
@@ -40,10 +41,10 @@ public:
     Manager_& operator=(const Manager_& rhs) = delete;
     Manager_(Manager_&& rhs) noexcept = default;
     Manager_& operator=(Manager_&& rhs) noexcept = default;
-    Manager_(const Manager_::TArrange& arrange, const Manager_::TCvtConfig& cvtCfg);
+    Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
     // Initialize from
-    [[nodiscard]] static Manager_ fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg);
+    [[nodiscard]] static std::expected<Manager_, TError> create(const TArrange& arrange, const TCvtConfig& cvtCfg);
 
     // Const methods
     [[nodiscard]] cv::Size getOutputSize() const noexcept { return {mvParams_.outputWidth, mvParams_.outputHeight}; };
@@ -52,7 +53,7 @@ public:
     void update(const io::YuvPlanarFrame& src);
 
     inline void renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) const {
-        renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mvCache_.f32Srcs, mvCache_.u8OutputImageChannels, arrange_,
+        renderView<TArrange, IS_KEPLER, IS_MULTI_FOCUS>(mvCache_.srcs, mvCache_.u8OutputImageChannels, arrange_,
                                                         mvParams_, patchsizes_, mvCache_, viewRow, viewCol);
 
         if (arrange_.getDirection()) {
@@ -87,23 +88,24 @@ Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange,
 
     prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
-    psizeParams_ = PsizeParams_<TArrange>::fromConfigs(arrange, cvtCfg);
+    psizeParams_ = PsizeParams::create(arrange, cvtCfg).value();
 
-    mvParams_ = MvParams_<TArrange>::fromConfigs(arrange, cvtCfg);
-    mvCache_ = MvCache_<TArrange>::fromParams(mvParams_);
+    mvParams_ = MvParams::create(arrange, cvtCfg).value();
+    mvCache_ = MvCache::create(mvParams_).value();
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
-Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS> Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::fromConfigs(
-    const TArrange& arrange, const TCvtConfig& cvtCfg) {
-    return {arrange, cvtCfg};
+std::expected<Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>,
+              typename Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::TError>
+Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) {
+    return Manager_{arrange, cvtCfg};
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_KEPLER, bool IS_MULTI_FOCUS>
 void Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) {
-    mvCache_.rawSrcs[0] = src.getY().clone();
-    mvCache_.rawSrcs[1] = src.getU().clone();
-    mvCache_.rawSrcs[2] = src.getV().clone();
+    src.getY().copyTo(mvCache_.rawSrcs[0]);
+    src.getU().copyTo(mvCache_.rawSrcs[1]);
+    src.getV().copyTo(mvCache_.rawSrcs[2]);
 
     if (arrange_.getDirection()) {
         for (const int i : rgs::views::iota(0, MvCache::CHANNELS)) {
@@ -130,10 +132,6 @@ void Manager_<TArrange, IS_KEPLER, IS_MULTI_FOCUS>::update(const io::YuvPlanarFr
         cv::resize(mvCache_.rawSrcs[2], mvCache_.srcs[2], {}, vUpsample, vUpsample, cv::INTER_LINEAR_EXACT);
     } else {
         mvCache_.srcs[2] = mvCache_.rawSrcs[2];
-    }
-
-    for (const int i : rgs::views::iota(0, MvCache::CHANNELS)) {
-        mvCache_.srcs[i].convertTo(mvCache_.f32Srcs[i], CV_32FC1);
     }
 
     mis_.update(mvCache_.srcs[0]);

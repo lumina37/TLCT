@@ -23,7 +23,7 @@ static inline void render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& 
     cv::Size srcSize = arrange.getImgSize();
     arrange.upsample(cliCfg.convert.upsample);
 
-    auto manager = TManager::fromConfigs(arrange, cliCfg.convert);
+    auto manager = TManager::create(arrange, cliCfg.convert).value();
 
     cv::Size mvSize = manager.getOutputSize();
     if (arrange.getDirection()) {

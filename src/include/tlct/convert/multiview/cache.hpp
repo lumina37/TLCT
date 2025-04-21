@@ -25,13 +25,12 @@ public:
     MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas)
         : gradBlendingWeight(std::move(gradBlendingWeight)),
           renderCanvas(std::move(renderCanvas)),
-          weightCanvas(std::move(weightCanvas)),
-          u8NormedImage() {}
+          weightCanvas(std::move(weightCanvas)) {}
     MvCache_(MvCache_&& rhs) noexcept = default;
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static MvCache_ fromParams(const MvParams_<TArrange>& params);
+    [[nodiscard]] TLCT_API static std::expected<MvCache_, Error> create(const MvParams_<TArrange>& params) noexcept;
 
     cv::Mat gradBlendingWeight;
     cv::Mat renderCanvas;
@@ -39,9 +38,8 @@ public:
 
     TChannels rawSrcs;
     TChannels srcs;
-    TChannels f32Srcs;
 
-    cv::Mat normedImage;
+    cv::Mat f32Chan;
     cv::Mat u8NormedImage;
     cv::Mat weights;
     TChannels u8OutputImageChannels;

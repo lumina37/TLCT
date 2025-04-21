@@ -1,8 +1,10 @@
 #include <cmath>
+#include <expected>
 #include <numbers>
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/error.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
@@ -18,7 +20,8 @@ namespace tlct::_cvt {
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange>
-MvParams_<TArrange> MvParams_<TArrange>::fromConfigs(const TArrange& arrange, const TCvtConfig& cvtCfg) {
+std::expected<MvParams_<TArrange>, Error> MvParams_<TArrange>::create(const TArrange& arrange,
+                                                                      const TCvtConfig& cvtCfg) noexcept {
     const float psizeInflate = cvtCfg.psizeInflate;
 
     const float f32PatchXShift = 0.3f * arrange.getDiameter();
@@ -43,8 +46,8 @@ MvParams_<TArrange> MvParams_<TArrange>::fromConfigs(const TArrange& arrange, co
     const int outputWidth = _hp::roundTo<2>(_hp::iround((float)colRange.size() / upsample));
     const int outputHeight = _hp::roundTo<2>(_hp::iround((float)rowRange.size() / upsample));
 
-    return {{rowRange, colRange}, psizeInflate, cvtCfg.views, patchXShift, patchYShift, resizedPatchWdt,
-            viewInterval,         canvasWidth,  canvasHeight, outputWidth, outputHeight};
+    return MvParams_{{rowRange, colRange}, psizeInflate, cvtCfg.views, patchXShift, patchYShift, resizedPatchWdt,
+                     viewInterval,         canvasWidth,  canvasHeight, outputWidth, outputHeight};
 }
 
 template class MvParams_<_cfg::CornersArrange>;

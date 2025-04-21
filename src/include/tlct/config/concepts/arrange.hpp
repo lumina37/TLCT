@@ -19,7 +19,7 @@ concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     { Self() } -> std::same_as<Self>;
 } && requires(const ConfigMap& map) {
     // Init from
-    { Self::createWithCfgMap(map) } noexcept -> std::same_as<std::expected<Self, typename Self::ErrTp>>;
+    { Self::createWithCfgMap(map) } noexcept -> std::same_as<std::expected<Self, typename Self::TError>>;
 } && requires(Self self) {
     // Non-const methods
     requires requires(int factor) {

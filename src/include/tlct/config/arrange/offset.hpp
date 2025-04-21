@@ -15,7 +15,7 @@ namespace tlct::_cfg {
 class OffsetArrange {
 public:
     // Typename alias
-    using ErrTp = Error;
+    using TError = Error;
     using TMiCols = std::array<int, 2>;
 
     // Constructor
