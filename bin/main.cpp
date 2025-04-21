@@ -84,8 +84,8 @@ int main(int argc, char* argv[]) {
 
     try {
         const auto& calibFilePath = parser->get<std::string>("calib_file");
-        const auto& cliCfg = cfgFromCliParser(*parser).value();
-        const auto& cfgMap = tlct::ConfigMap::fromPath(calibFilePath);
+        const auto cliCfg = cfgFromCliParser(*parser).value();
+        const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath).value();
         const int pipeline = ((cfgMap.getOr<"IsKepler">(0) << 1) | cfgMap.getOr<"IsMultiFocus">(0)) - 1;
         const auto& handler = handlers[pipeline];
         handler(cliCfg, cfgMap);

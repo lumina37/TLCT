@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <fstream>
 #include <map>
 #include <string>
@@ -7,6 +8,7 @@
 #include <utility>
 
 #include "tlct/common/defines.h"
+#include "tlct/common/error.hpp"
 #include "tlct/helper/constexpr/string.hpp"
 
 namespace tlct::_cfg {
@@ -16,17 +18,20 @@ public:
     // Typename alias
     using TMap = std::map<std::string, std::string>;
 
+private:
+    TLCT_API ConfigMap(TMap&& map) noexcept : map_(std::move(map)) {}
+
+public:
     // Constructor
-    TLCT_API ConfigMap() : map_() {}
+    TLCT_API ConfigMap() noexcept = default;
     TLCT_API ConfigMap(const ConfigMap& rhs) = default;
     TLCT_API ConfigMap& operator=(const ConfigMap& rhs) = default;
-    TLCT_API ConfigMap(ConfigMap&& rhs) noexcept = default;
+    TLCT_API ConfigMap(ConfigMap&& rhs) noexcept : map_(std::move(rhs.map_)) {};
     TLCT_API ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
-    TLCT_API explicit ConfigMap(TMap&& map) noexcept : map_(std::move(map)) {}
 
     // Initialize from
-    [[nodiscard]] TLCT_API static ConfigMap fromFstream(std::ifstream&& ifs);
-    [[nodiscard]] TLCT_API static ConfigMap fromPath(std::string_view path);
+    [[nodiscard]] TLCT_API static std::expected<ConfigMap, Error> createFromFs(std::ifstream&& ifs);
+    [[nodiscard]] TLCT_API static std::expected<ConfigMap, Error> createFromPath(std::string_view path);
 
     // Const methods
     [[nodiscard]] TLCT_API bool isEmpty() const noexcept { return map_.empty(); }
