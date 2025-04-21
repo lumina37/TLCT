@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdlib>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -44,7 +44,7 @@ public:
     };
 
     // Constructor
-    MIBuffers_() noexcept : arrange_(), params_(), miBuffers_(), buffer_(nullptr) {}
+    MIBuffers_() noexcept : arrange_(), params_() {}
     explicit MIBuffers_(const TArrange& arrange);
     MIBuffers_& operator=(const MIBuffers_& rhs) = delete;
     MIBuffers_(const MIBuffers_& rhs) = delete;
@@ -52,15 +52,14 @@ public:
         arrange_ = std::move(rhs.arrange_);
         params_ = std::move(rhs.params_);
         miBuffers_ = std::move(rhs.miBuffers_);
-        buffer_ = std::exchange(rhs.buffer_, nullptr);
+        pBuffer_ = std::move(rhs.pBuffer_);
         return *this;
     }
     MIBuffers_(MIBuffers_&& rhs) noexcept
         : arrange_(std::move(rhs.arrange_)),
           params_(std::move(rhs.params_)),
           miBuffers_(std::move(rhs.miBuffers_)),
-          buffer_(std::exchange(rhs.buffer_, nullptr)) {}
-    ~MIBuffers_() { std::free(buffer_); }
+          pBuffer_(std::move(rhs.pBuffer_)) {}
 
     // Initialize from
     [[nodiscard]] TLCT_API static MIBuffers_ fromArrange(const TArrange& arrange);
@@ -80,7 +79,7 @@ private:
     TArrange arrange_;
     Params params_;
     std::vector<MIBuffer> miBuffers_;
-    void* buffer_;
+    std::unique_ptr<std::byte[]> pBuffer_;
 };
 
 [[nodiscard]] TLCT_API float compare(const MIBuffer& lhsMI, const MIBuffer& rhsMI, cv::Point2f offset) noexcept;

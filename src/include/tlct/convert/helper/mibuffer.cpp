@@ -2,7 +2,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
+#include <memory>
 #include <ranges>
 #include <utility>
 
@@ -38,7 +38,7 @@ MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
 template <tlct::cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::MIBuffers_(const TArrange& arrange) : arrange_(arrange), params_(arrange) {
     miBuffers_.resize(params_.miNum_);
-    buffer_ = std::malloc(params_.bufferSize_ + Params::SIMD_FETCH_SIZE);
+    pBuffer_ = std::make_unique_for_overwrite<std::byte[]>(params_.bufferSize_ + Params::SIMD_FETCH_SIZE);
 }
 
 template <tlct::cfg::concepts::CArrange TArrange>
@@ -55,7 +55,7 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::update(const cv::Mat& src) {
     const cv::Mat srcCircleMask = cv::Mat::zeros(iCensusDiameter, iCensusDiameter, CV_8UC1);
     cv::circle(srcCircleMask, {iCensusRadius, iCensusRadius}, iCensusRadius, cv::Scalar::all(0xff), cv::FILLED);
 
-    uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)buffer_);
+    uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());
     size_t rowBufStep = params_.miMaxCols_ * params_.alignedMISize_;
 #pragma omp parallel for
     for (int rowMIIdx = 0; rowMIIdx < arrange_.getMIRows(); rowMIIdx++) {
