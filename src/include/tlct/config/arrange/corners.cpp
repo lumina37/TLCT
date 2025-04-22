@@ -29,6 +29,7 @@ CornersArrange::CornersArrange(cv::Size imgSize, float diameter, cv::Point2f lef
       miCols_(miCols),
       upsample_(upsample),
       direction_(direction),
+      isKepler_(isKepler),
       isOutShift_(isOutShift) {}
 
 std::expected<CornersArrange, Error> CornersArrange::create(cv::Size imgSize, float diameter, bool direction,
