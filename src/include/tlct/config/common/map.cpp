@@ -44,8 +44,12 @@ std::expected<ConfigMap, Error> ConfigMap::createFromFs(std::ifstream&& ifs) noe
         }
 
 #ifdef _WIN32
-        const std::string& key = _hp::cconv({row.begin(), keyEndIt});
-        const std::string& value = _hp::cconv({valueStartIt, row.end()});
+        auto keyRes = _hp::cconv({row.begin(), keyEndIt});
+        if (!keyRes) return std::unexpected{std::move(keyRes.error())};
+        const std::string& key = keyRes.value();
+        auto valueRes = _hp::cconv({valueStartIt, row.end()});
+        if (!valueRes) return std::unexpected{std::move(valueRes.error())};
+        const std::string& value = valueRes.value();
 #else
         const std::string_view& key{row.begin(), keyEndIt};
         const std::string_view& value{valueStartIt, row.end()};

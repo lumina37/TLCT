@@ -1,19 +1,18 @@
 #pragma once
 
 #ifdef _WIN32
+#    include <expected>
 #    include <string>
-#    include <string_view>
-#endif
 
-#ifdef _WIN32
+#    include "tlct/helper/error.hpp"
 
 namespace tlct::_hp {
 
-[[nodiscard]] std::wstring utf8ToWstring(std::string_view utf8StrView);
+[[nodiscard]] std::expected<std::wstring, Error> utf8ToWstring(std::string_view utf8StrView) noexcept;
 
-[[nodiscard]] std::string wstringToGBK(std::wstring_view wstrView);
+[[nodiscard]] std::expected<std::string, Error> wstringToGBK(std::wstring_view wstrView) noexcept;
 
-[[nodiscard]] std::string cconv(std::string_view utf8StrView);
+[[nodiscard]] std::expected<std::string, Error> cconv(std::string_view utf8StrView) noexcept;
 
 }  // namespace tlct::_hp
 

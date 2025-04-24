@@ -1,10 +1,13 @@
-#include <string>
-
-#ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/helper/charset.hpp"
-#endif
-
 #ifdef _WIN32
+
+#    include <expected>
+#    include <string>
+
+#    include "tlct/helper/error.hpp"
+
+#    ifndef _TLCT_LIB_HEADER_ONLY
+#        include "tlct/helper/charset.hpp"
+#    endif
 
 namespace tlct::_hp {
 
@@ -15,7 +18,7 @@ namespace tlct::_hp {
 #    pragma pop_macro("min")
 #    pragma pop_macro("max")
 
-[[nodiscard]] std::wstring utf8ToWstring(const std::string_view utf8StrView) {
+std::expected<std::wstring, Error> utf8ToWstring(const std::string_view utf8StrView) noexcept {
     int wcharSize = MultiByteToWideChar(CP_UTF8, 0, utf8StrView.data(), (int)utf8StrView.size(), nullptr, 0);
     if (wcharSize == 0) [[unlikely]] {
         return {};
@@ -25,7 +28,7 @@ namespace tlct::_hp {
     return wstr;
 }
 
-[[nodiscard]] std::string wstringToGBK(const std::wstring_view wstrView) {
+std::expected<std::string, Error> wstringToGBK(const std::wstring_view wstrView) noexcept {
     int gbkSize = WideCharToMultiByte(CP_ACP, 0, wstrView.data(), (int)wstrView.size(), nullptr, 0, nullptr, nullptr);
     if (gbkSize == 0) [[unlikely]] {
         return {};
@@ -35,9 +38,10 @@ namespace tlct::_hp {
     return gbkStr;
 }
 
-[[nodiscard]] std::string cconv(const std::string_view utf8StrView) {
-    std::wstring wstr = utf8ToWstring(utf8StrView);
-    return wstringToGBK(wstr);
+std::expected<std::string, Error> cconv(const std::string_view utf8StrView) noexcept {
+    auto wstrRes = utf8ToWstring(utf8StrView);
+    if (!wstrRes) return std::unexpected{std::move(wstrRes.error())};
+    return wstringToGBK(wstrRes.value());
 }
 
 }  // namespace tlct::_hp
