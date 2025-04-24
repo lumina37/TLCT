@@ -87,7 +87,7 @@ private:
 
 private:
     template <size_t... Idx>
-    [[nodiscard]] static consteval auto makeDirections(std::index_sequence<Idx...>) {
+    [[nodiscard]] static consteval auto makeDirections(std::index_sequence<Idx...>) noexcept {
         return std::array<Direction, sizeof...(Idx)>{(Direction)Idx...};
     }
 
@@ -170,7 +170,7 @@ private:
     cv::Point2f selfPt_;
 
     template <size_t... Idx>
-    [[nodiscard]] static consteval auto makeDirections(std::index_sequence<Idx...>) {
+    [[nodiscard]] static consteval auto makeDirections(std::index_sequence<Idx...>) noexcept {
         return std::array<Direction, sizeof...(Idx)>{(Direction)Idx...};
     }
 

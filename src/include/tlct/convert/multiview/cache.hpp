@@ -22,7 +22,7 @@ public:
 
     // Constructor
     MvCache_() noexcept = default;
-    MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas)
+    MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept
         : gradBlendingWeight(std::move(gradBlendingWeight)),
           renderCanvas(std::move(renderCanvas)),
           weightCanvas(std::move(weightCanvas)) {}

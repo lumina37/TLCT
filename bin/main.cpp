@@ -18,7 +18,8 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
-static inline std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) {
+static inline std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg,
+                                                      const tlct::ConfigMap& map) noexcept {
     auto arrange = TManager::TArrange::createWithCfgMap(map).value();
     cv::Size srcSize = arrange.getImgSize();
     arrange.upsample(cliCfg.convert.upsample);

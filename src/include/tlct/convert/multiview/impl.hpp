@@ -7,12 +7,12 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview/cache.hpp"
 #include "tlct/convert/multiview/params.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/helper/math.hpp"
 
 namespace tlct::_cvt {
@@ -22,7 +22,7 @@ namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange>
 static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const MIBuffers_<TArrange>& mis,
-                                                cv::Mat& patchsizes, MvCache_<TArrange>& cache) {
+                                                cv::Mat& patchsizes, MvCache_<TArrange>& cache) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev texMeanStddev{};

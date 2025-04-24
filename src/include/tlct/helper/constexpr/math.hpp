@@ -26,12 +26,12 @@ template <std::unsigned_integral Tv>
 
 template <size_t base, std::integral T>
     requires(isPowOf2(base))
-[[nodiscard]] static constexpr inline bool isMulOf(T v) {
+[[nodiscard]] static constexpr inline bool isMulOf(T v) noexcept {
     return (v & (base - 1)) == 0;
 }
 
 template <std::integral T>
-[[nodiscard]] static constexpr inline bool isMulOf(T v, size_t shift) {
+[[nodiscard]] static constexpr inline bool isMulOf(T v, size_t shift) noexcept {
     return (v & ((1 << shift) - 1)) == 0;
 }
 
@@ -51,7 +51,7 @@ template <size_t to, std::integral Tv>
 [[nodiscard]] static constexpr inline int sgn(bool v) noexcept { return ((int)v) * 2 - 1; }
 
 template <std::floating_point Tv>
-[[nodiscard]] static constexpr inline Tv sigmoid(Tv v) {
+[[nodiscard]] static constexpr inline Tv sigmoid(Tv v) noexcept {
     return (Tv)1 / ((Tv)1 + exp(-v));
 }
 

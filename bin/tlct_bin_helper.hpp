@@ -7,7 +7,7 @@
 
 #include "tlct.hpp"
 
-[[nodiscard]] static inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() {
+[[nodiscard]] static inline std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
     auto parser = std::make_unique<argparse::ArgumentParser>("tlct", std::string("v").append(tlct::version),
                                                              argparse::default_arguments::all);
 
@@ -54,7 +54,7 @@
 }
 
 [[nodiscard]] static inline std::expected<tlct::CliConfig, tlct::Error> cfgFromCliParser(
-    const argparse::ArgumentParser& parser) {
+    const argparse::ArgumentParser& parser) noexcept {
     const tlct::CliConfig::Path path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
     const tlct::CliConfig::Range range{parser.get<int>("--begin"), parser.get<int>("--end")};
     const tlct::CliConfig::Convert convert{parser.get<int>("--views"),

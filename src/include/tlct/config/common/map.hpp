@@ -8,8 +8,8 @@
 #include <utility>
 
 #include "tlct/common/defines.h"
-#include "tlct/helper/error.hpp"
 #include "tlct/helper/constexpr/string.hpp"
+#include "tlct/helper/error.hpp"
 
 namespace tlct::_cfg {
 
@@ -30,8 +30,8 @@ public:
     TLCT_API ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static std::expected<ConfigMap, Error> createFromFs(std::ifstream&& ifs);
-    [[nodiscard]] TLCT_API static std::expected<ConfigMap, Error> createFromPath(std::string_view path);
+    [[nodiscard]] TLCT_API static std::expected<ConfigMap, Error> createFromFs(std::ifstream&& ifs) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<ConfigMap, Error> createFromPath(std::string_view path) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API bool isEmpty() const noexcept { return map_.empty(); }

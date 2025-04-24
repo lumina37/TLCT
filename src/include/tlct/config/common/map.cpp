@@ -6,8 +6,8 @@
 #include <string>
 #include <utility>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/helper/charset.hpp"
+#include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/config/common/map.hpp"
@@ -15,7 +15,7 @@
 
 namespace tlct::_cfg {
 
-std::expected<ConfigMap, Error> ConfigMap::createFromFs(std::ifstream&& ifs) {
+std::expected<ConfigMap, Error> ConfigMap::createFromFs(std::ifstream&& ifs) noexcept {
     const auto isNul = [](const char c) { return c == ' ' || c == '\t'; };
 
     std::map<std::string, std::string> cfgMap;
@@ -56,7 +56,7 @@ std::expected<ConfigMap, Error> ConfigMap::createFromFs(std::ifstream&& ifs) {
     return ConfigMap{std::move(cfgMap)};
 }
 
-std::expected<ConfigMap, Error> ConfigMap::createFromPath(std::string_view path) {
+std::expected<ConfigMap, Error> ConfigMap::createFromPath(std::string_view path) noexcept {
     std::ifstream ifs(path.data());
     if (!ifs.good()) [[unlikely]] {
         auto errMsg = std::format("Failed to load `ConfigMap` from {}. iostate={}", path, (int)ifs.rdstate());
