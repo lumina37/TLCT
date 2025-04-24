@@ -6,7 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"

@@ -6,7 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/io/yuv/planar/extent.hpp"
 

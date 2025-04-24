@@ -6,7 +6,7 @@
 #include "tlct/common/info.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/common/error.hpp"
+#    include "tlct/helper/error.hpp"
 #endif
 
 namespace tlct {

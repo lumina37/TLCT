@@ -1,6 +1,6 @@
 #include <expected>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"

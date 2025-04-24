@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "tlct/common/defines.h"
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/io/yuv/planar/extent.hpp"
 #include "tlct/io/yuv/planar/frame.hpp"
 

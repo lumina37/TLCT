@@ -6,7 +6,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/config/common/map.hpp"
 
 namespace tlct::_cfg::concepts {

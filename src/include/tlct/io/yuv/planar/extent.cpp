@@ -2,7 +2,7 @@
 #include <format>
 #include <utility>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY

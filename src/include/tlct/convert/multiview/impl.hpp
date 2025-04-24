@@ -7,7 +7,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview/cache.hpp"

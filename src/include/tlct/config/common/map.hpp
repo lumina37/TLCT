@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "tlct/common/defines.h"
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/helper/constexpr/string.hpp"
 
 namespace tlct::_cfg {

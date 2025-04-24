@@ -5,7 +5,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/config/common/map.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/helper/constexpr/math.hpp"

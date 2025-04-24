@@ -6,7 +6,7 @@
 #include <string>
 #include <utility>
 
-#include "tlct/common/error.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/helper/charset.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
