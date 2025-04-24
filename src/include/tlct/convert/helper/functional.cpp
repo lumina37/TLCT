@@ -14,7 +14,7 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] cv::Mat circleWithFadeoutBorder(const int diameter, const float borderWidthFactor) {
+[[nodiscard]] cv::Mat circleWithFadeoutBorder(const int diameter, const float borderWidthFactor) noexcept {
     cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
     const float radius = (float)diameter / 2.f;
     const float heap = borderWidthFactor > 0.f ? 1.f + 1.f / borderWidthFactor * (1.f - borderWidthFactor)
@@ -35,7 +35,7 @@ namespace rgs = std::ranges;
     return rect;
 }
 
-[[nodiscard]] float textureIntensity(const cv::Mat& src) {
+[[nodiscard]] float textureIntensity(const cv::Mat& src) noexcept {
     cv::Mat edges;
     float intensity = 0.0;
     cv::Scharr(src, edges, CV_32F, 1, 0);
@@ -48,7 +48,7 @@ namespace rgs = std::ranges;
     return intensity;
 }
 
-[[nodiscard]] TLCT_API int pickByFWHM(const std::span<float> arr) {
+[[nodiscard]] TLCT_API int pickByFWHM(const std::span<float> arr) noexcept {
     const float maxVal = *rgs::max_element(arr);
     const auto& correctedArr = arr | rgs::views::transform([maxVal](const float v) { return maxVal - v; });
 

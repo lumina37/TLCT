@@ -10,11 +10,11 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] TLCT_API cv::Mat circleWithFadeoutBorder(int diameter, float borderWidthFactor);
+[[nodiscard]] TLCT_API cv::Mat circleWithFadeoutBorder(int diameter, float borderWidthFactor) noexcept;
 
-[[nodiscard]] TLCT_API float textureIntensity(const cv::Mat& src);
+[[nodiscard]] TLCT_API float textureIntensity(const cv::Mat& src) noexcept;
 
-[[nodiscard]] TLCT_API int pickByFWHM(std::span<float> arr);
+[[nodiscard]] TLCT_API int pickByFWHM(std::span<float> arr) noexcept;
 
 }  // namespace tlct::_cvt
 
