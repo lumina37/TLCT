@@ -108,14 +108,14 @@ int main(int argc, char* argv[]) {
     }
 
     const auto cliCfgRes = cfgFromCliParser(*parser);
-    if (!cliCfgRes) [[unlikely]] {
+    if (!cliCfgRes) {
         std::println(std::cerr, "{}", cliCfgRes.error().msg);
         std::exit(1);
     }
     const auto& cliCfg = cliCfgRes.value();
 
     const auto cfgMapRes = tlct::ConfigMap::createFromPath(calibFilePath);
-    if (!cfgMapRes) [[unlikely]] {
+    if (!cfgMapRes) {
         std::println(std::cerr, "{}", cfgMapRes.error().msg);
         std::exit(1);
     }
@@ -124,10 +124,9 @@ int main(int argc, char* argv[]) {
     const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
     const auto& handler = handlers[pipeline];
 
-    try {
-        handler(cliCfg, cfgMap);
-    } catch (const std::exception& err) {
-        std::println(std::cerr, "{}", err.what());
+    const auto handleRes = handler(cliCfg, cfgMap);
+    if (!handleRes) {
+        std::println(std::cerr, "{}", handleRes.error().msg);
         std::exit(1);
     }
 }

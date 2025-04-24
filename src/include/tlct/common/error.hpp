@@ -1,5 +1,6 @@
 #pragma once
 
+#include <source_location>
 #include <string>
 
 namespace tlct {
@@ -15,13 +16,14 @@ public:
     ErrCode code;
     std::string msg;
 
-    Error(ErrCode code) : code(code) {}
-    Error(ErrCode code, const std::string& msg) : code(code), msg(msg) {}
-    Error(ErrCode code, std::string&& msg) : code(code), msg(std::move(msg)) {}
-    Error& operator=(const Error& rhs) = default;
+    Error(ErrCode code, const std::source_location& srcLoc = std::source_location::current());
+    Error(ErrCode code, const std::string& msg, const std::source_location& srcLoc = std::source_location::current());
     Error(const Error& rhs) = default;
-    Error& operator=(Error&& rhs) noexcept = default;
     Error(Error&& rhs) noexcept = default;
 };
 
 }  // namespace tlct
+
+#ifdef _TLCT_LIB_HEADER_ONLY
+#    include "tlct/common/error.cpp"
+#endif

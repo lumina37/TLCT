@@ -60,7 +60,7 @@ std::expected<ConfigMap, Error> ConfigMap::createFromPath(std::string_view path)
     std::ifstream ifs(path.data());
     if (!ifs.good()) [[unlikely]] {
         auto errMsg = std::format("Failed to load `ConfigMap` from {}. iostate={}", path, (int)ifs.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, std::move(errMsg)}};
+        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
     return createFromFs(std::move(ifs));
