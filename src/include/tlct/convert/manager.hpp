@@ -5,12 +5,12 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview.hpp"
 #include "tlct/convert/patchsize.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/io.hpp"
 
 namespace tlct {
@@ -20,11 +20,10 @@ namespace _cvt {
 namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CArrange TArrange_, bool IS_MULTI_FOCUS_>
+template <tcfg::concepts::CArrange TArrange_>
 class Manager_ {
 public:
     static constexpr int CHANNELS = 3;
-    static constexpr bool IS_MULTI_FOCUS = IS_MULTI_FOCUS_;
 
     // Typename alias
     using TError = Error;
@@ -55,8 +54,8 @@ public:
     [[nodiscard]] std::expected<void, Error> renderInto(io::YuvPlanarFrame& dst, int viewRow,
                                                         int viewCol) const noexcept {
         {
-            auto res = renderView<TArrange, IS_MULTI_FOCUS>(mvCache_.srcs, mvCache_.u8OutputImageChannels, arrange_,
-                                                            mvParams_, patchsizes_, mvCache_, viewRow, viewCol);
+            auto res = renderView<TArrange>(mvCache_.srcs, mvCache_.u8OutputImageChannels, arrange_, mvParams_,
+                                            patchsizes_, mvCache_, viewRow, viewCol);
             if (!res) return std::unexpected{std::move(res.error())};
         }
 
@@ -86,9 +85,8 @@ private:
     mutable MvCache mvCache_;
 };
 
-template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
-Manager_<TArrange, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg)
-    : arrange_(arrange), cvtCfg_(cvtCfg) {
+template <tcfg::concepts::CArrange TArrange>
+Manager_<TArrange>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg) : arrange_(arrange), cvtCfg_(cvtCfg) {
     mis_ = TMIBuffers::create(arrange).value();
 
     prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
@@ -99,14 +97,14 @@ Manager_<TArrange, IS_MULTI_FOCUS>::Manager_(const TArrange& arrange, const TCvt
     mvCache_ = MvCache::create(mvParams_).value();
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
-std::expected<Manager_<TArrange, IS_MULTI_FOCUS>, typename Manager_<TArrange, IS_MULTI_FOCUS>::TError>
-Manager_<TArrange, IS_MULTI_FOCUS>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) {
+template <tcfg::concepts::CArrange TArrange>
+std::expected<Manager_<TArrange>, typename Manager_<TArrange>::TError> Manager_<TArrange>::create(
+    const TArrange& arrange, const TCvtConfig& cvtCfg) {
     return Manager_{arrange, cvtCfg};
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
-std::expected<void, Error> Manager_<TArrange, IS_MULTI_FOCUS>::update(const io::YuvPlanarFrame& src) noexcept {
+template <tcfg::concepts::CArrange TArrange>
+std::expected<void, Error> Manager_<TArrange>::update(const io::YuvPlanarFrame& src) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     src.getY().copyTo(mvCache_.rawSrcs[0]);
     src.getU().copyTo(mvCache_.rawSrcs[1]);
@@ -147,12 +145,12 @@ std::expected<void, Error> Manager_<TArrange, IS_MULTI_FOCUS>::update(const io::
     std::swap(prevPatchsizes_, patchsizes_);
 
     {
-        auto res = estimatePatchsizes<TArrange, IS_MULTI_FOCUS>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_,
+        auto res = estimatePatchsizes<TArrange>(arrange_, cvtCfg_, psizeParams_, mis_, prevPatchsizes_,
                                                                 patchsizes_);
         if (!res) return std::unexpected{std::move(res.error())};
     }
 
-    if constexpr (IS_MULTI_FOCUS) {
+    if (arrange_.isMultiFocus()) {
         adjustWgtsAndPsizesForMultiFocus(arrange_, mis_, patchsizes_, mvCache_);
     }
 

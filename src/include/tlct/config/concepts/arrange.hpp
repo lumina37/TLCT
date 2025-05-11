@@ -33,7 +33,8 @@ concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     { self.getDiameter() } noexcept -> std::floating_point;
     { self.getRadius() } noexcept -> std::floating_point;
     { self.getDirection() } noexcept -> std::same_as<bool>;
-    { self.getIsKepler() } noexcept -> std::same_as<bool>;
+    { self.isKepler() } noexcept -> std::same_as<bool>;
+    { self.isMultiFocus() } noexcept -> std::same_as<bool>;
     { self.getUpsample() } noexcept -> std::integral;
     { self.getMIRows() } noexcept -> std::integral;
     requires requires(int row) {

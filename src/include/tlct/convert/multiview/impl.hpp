@@ -97,7 +97,7 @@ static void adjustWgtsAndPsizesForMultiFocus(const TArrange& arrange, const MIBu
     }
 }
 
-template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
+template <tcfg::concepts::CArrange TArrange>
 static std::expected<void, Error> renderView(const typename MvCache_<TArrange>::TChannels& srcs,
                                              typename MvCache_<TArrange>::TChannels& dsts, const TArrange& arrange,
                                              const MvParams_<TArrange>& params, const cv::Mat& patchsizes,
@@ -124,7 +124,7 @@ static std::expected<void, Error> renderView(const typename MvCache_<TArrange>::
                 const cv::Mat& patch = getRoiImageByCenter(cache.f32Chan, patchCenter, psize);
 
                 // Paste patch
-                if (arrange.getIsKepler()) {
+                if (arrange.isKepler()) {
                     cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
                     cv::resize(rotatedPatch, resizedPatch, {params.resizedPatchWidth, params.resizedPatchWidth}, 0, 0,
                                cv::INTER_LINEAR_EXACT);
@@ -141,7 +141,7 @@ static std::expected<void, Error> renderView(const typename MvCache_<TArrange>::
                 const cv::Rect roi{col * params.patchXShift + rightShift, row * params.patchYShift,
                                    params.resizedPatchWidth, params.resizedPatchWidth};
 
-                if constexpr (IS_MULTI_FOCUS) {
+                if (arrange.isMultiFocus()) {
                     const float weight = cache.weights.template at<float>(row, col);
                     cache.renderCanvas(roi) += weightedPatch * weight;
                     cache.weightCanvas(roi) += cache.gradBlendingWeight * weight;

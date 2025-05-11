@@ -27,6 +27,8 @@ TEST_CASE("Arrange with four corners", "tlct::cfg#CornersArrange") {
     REQUIRE_THAT(arrange.getDiameter(), Catch::Matchers::WithinAbs(70., eps));
     REQUIRE_THAT(arrange.getRadius(), Catch::Matchers::WithinAbs(35., eps));
     REQUIRE(arrange.getDirection() == true);
+    REQUIRE(arrange.isKepler() == true);
+    REQUIRE(arrange.isMultiFocus() == false);
 
     const cv::Point2f& center_0_0 = arrange.getMICenter(0, 0);
     REQUIRE_THAT(center_0_0.x, Catch::Matchers::WithinAbs(37.5, eps));

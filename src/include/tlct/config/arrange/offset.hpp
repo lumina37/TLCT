@@ -7,8 +7,8 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/helper/error.hpp"
 #include "tlct/config/common/map.hpp"
+#include "tlct/helper/error.hpp"
 
 namespace tlct::_cfg {
 
@@ -25,12 +25,13 @@ public:
     TLCT_API OffsetArrange(OffsetArrange&& rhs) noexcept = default;
     TLCT_API OffsetArrange& operator=(OffsetArrange&& rhs) noexcept = default;
     TLCT_API OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, float xUnitShift, float yUnitShift,
-                           int miRows, TMiCols miCols, int upsample, bool direction, bool isKepler,
+                           int miRows, TMiCols miCols, int upsample, bool direction, bool isKepler, bool isMultiFocus,
                            bool isOutShift) noexcept;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<OffsetArrange, Error> create(cv::Size imgSize, float diameter,
                                                                              bool direction, bool isKepler,
+                                                                             bool isMultiFocus,
                                                                              cv::Point2f offset) noexcept;
     [[nodiscard]] TLCT_API static std::expected<OffsetArrange, Error> createWithCfgMap(const ConfigMap& map) noexcept;
 
@@ -44,7 +45,8 @@ public:
     [[nodiscard]] TLCT_API float getDiameter() const noexcept { return diameter_; }
     [[nodiscard]] TLCT_API float getRadius() const noexcept { return diameter_ / 2.0f; }
     [[nodiscard]] TLCT_API bool getDirection() const noexcept { return direction_; }
-    [[nodiscard]] TLCT_API bool getIsKepler() const noexcept { return isKepler_; }
+    [[nodiscard]] TLCT_API bool isKepler() const noexcept { return isKepler_; }
+    [[nodiscard]] TLCT_API bool isMultiFocus() const noexcept { return isMultiFocus_; }
     [[nodiscard]] TLCT_API int getUpsample() const noexcept { return upsample_; }
     [[nodiscard]] TLCT_API int getMIRows() const noexcept { return miRows_; }
     [[nodiscard]] TLCT_API int getMICols(const int row) const noexcept { return miCols_[row % miCols_.size()]; }
@@ -65,6 +67,7 @@ private:
     int upsample_;
     bool direction_;
     bool isKepler_;
+    bool isMultiFocus_;
     bool isOutShift_;
 };
 

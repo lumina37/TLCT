@@ -8,7 +8,7 @@ namespace tlct {
 namespace tspc {
 
 using Arrange = cfg::CornersArrange;
-using ManagerYuv420 = cvt::Manager_<Arrange, false>;
+using ManagerYuv420 = cvt::Manager_<Arrange>;
 
 static_assert(cvt::concepts::CManager<ManagerYuv420>);
 
@@ -16,7 +16,7 @@ static_assert(cvt::concepts::CManager<ManagerYuv420>);
 
 namespace _cvt {
 
-template class Manager_<cfg::CornersArrange, false>;
+template class Manager_<cfg::CornersArrange>;
 
 }
 

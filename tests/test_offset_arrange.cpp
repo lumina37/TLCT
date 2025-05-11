@@ -27,6 +27,8 @@ TEST_CASE("Arrange with central MI and offset", "tlct::cfg#OffsetArrange") {
     REQUIRE_THAT(arrange.getDiameter(), Catch::Matchers::WithinAbs(37.154060363770, eps));
     REQUIRE_THAT(arrange.getRadius(), Catch::Matchers::WithinAbs(18.577030181885, eps));
     REQUIRE(arrange.getDirection() == false);
+    REQUIRE(arrange.isKepler() == false);
+    REQUIRE(arrange.isMultiFocus() == true);
 
     const cv::Point2f& center_0_0 = arrange.getMICenter(0, 0);
     REQUIRE_THAT(center_0_0.x, Catch::Matchers::WithinAbs(48.4, eps));

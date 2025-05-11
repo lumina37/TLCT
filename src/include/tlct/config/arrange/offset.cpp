@@ -5,10 +5,10 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/common/map.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/config/arrange/offset.hpp"
@@ -17,7 +17,7 @@
 namespace tlct::_cfg {
 
 OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, float xUnitShift, float yUnitShift,
-                             int miRows, TMiCols miCols, int upsample, bool direction, bool isKepler,
+                             int miRows, TMiCols miCols, int upsample, bool direction, bool isKepler, bool isMultiFocus,
                              bool isOutShift) noexcept
     : imgSize_(imgSize),
       diameter_(diameter),
@@ -29,10 +29,12 @@ OffsetArrange::OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftT
       upsample_(upsample),
       direction_(direction),
       isKepler_(isKepler),
+      isMultiFocus_(isMultiFocus),
       isOutShift_(isOutShift) {}
 
 std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, float diameter, bool direction,
-                                                          bool isKepler, cv::Point2f offset) noexcept {
+                                                          bool isKepler, bool isMultiFocus,
+                                                          cv::Point2f offset) noexcept {
     cv::Point2f centerMI{imgSize.width / 2.f + offset.x, imgSize.height / 2.f - offset.y};
 
     if (direction) {
@@ -48,7 +50,7 @@ std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, floa
 
     cv::Point2f leftTop;
     bool isOutShift;
-    const float leftX = centerMI.x - xUnitShift * centerMIXIdx;
+    const float leftX = centerMI.x - xUnitShift * (float)centerMIXIdx;
     if (centerMIYIdx % 2 == 0) {
         leftTop.x = leftX;
         if (leftTop.x > diameter) {
@@ -73,8 +75,8 @@ std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, floa
     miCols[1] = (int)(((float)imgSize.width - mi_1_0_x - xUnitShift / 2.f) / xUnitShift) + 1;
     const int miRows = (int)(((float)imgSize.height - leftTop.y - yUnitShift / 2.f) / yUnitShift) + 1;
 
-    return OffsetArrange{imgSize, diameter, leftTop,   xUnitShift, yUnitShift, miRows,
-                         miCols,  1,        direction, isKepler,   isOutShift};
+    return OffsetArrange{imgSize, diameter, leftTop,   xUnitShift, yUnitShift,   miRows,
+                         miCols,  1,        direction, isKepler,   isMultiFocus, isOutShift};
 }
 
 std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const ConfigMap& map) noexcept {
@@ -82,9 +84,10 @@ std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const Config
     const float diameter = map.get<"MIDiameter", float>();
     const bool direction = map.getOr<"MLADirection">(false);
     const bool isKepler = map.getOr<"IsKepler">(true);
+    const bool isMultiFocus = map.getOr<"IsMultiFocus">(false);
     const cv::Point2f offset = {map.get<"CentralMIOffsetX", float>(), map.get<"CentralMIOffsetY", float>()};
 
-    return create(imgSize, diameter, direction, isKepler, offset);
+    return create(imgSize, diameter, direction, isKepler, isMultiFocus, offset);
 }
 
 OffsetArrange& OffsetArrange::upsample(int factor) noexcept {
