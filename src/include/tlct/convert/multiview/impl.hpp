@@ -21,8 +21,8 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <tcfg::concepts::CArrange TArrange>
-static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const MIBuffers_<TArrange>& mis,
-                                                cv::Mat& patchsizes, MvCache_<TArrange>& cache) noexcept {
+static void adjustWgtsAndPsizesForMultiFocus(const TArrange& arrange, const MIBuffers_<TArrange>& mis,
+                                             cv::Mat& patchsizes, MvCache_<TArrange>& cache) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     cache.weights.create(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     _hp::MeanStddev texMeanStddev{};
@@ -98,11 +98,10 @@ static inline void adjustWgtsAndPsizesForMFocus(const TArrange& arrange, const M
 }
 
 template <tcfg::concepts::CArrange TArrange, bool IS_MULTI_FOCUS>
-static inline std::expected<void, Error> renderView(const typename MvCache_<TArrange>::TChannels& srcs,
-                                                    typename MvCache_<TArrange>::TChannels& dsts,
-                                                    const TArrange& arrange, const MvParams_<TArrange>& params,
-                                                    const cv::Mat& patchsizes, MvCache_<TArrange>& cache, int viewRow,
-                                                    int viewCol) noexcept {
+static std::expected<void, Error> renderView(const typename MvCache_<TArrange>::TChannels& srcs,
+                                             typename MvCache_<TArrange>::TChannels& dsts, const TArrange& arrange,
+                                             const MvParams_<TArrange>& params, const cv::Mat& patchsizes,
+                                             MvCache_<TArrange>& cache, int viewRow, int viewCol) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     const int viewShiftX = (viewCol - params.views / 2) * params.viewInterval;
     const int viewShiftY = (viewRow - params.views / 2) * params.viewInterval;

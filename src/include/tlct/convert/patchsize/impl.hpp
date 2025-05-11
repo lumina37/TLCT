@@ -6,12 +6,12 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/patchsize/params.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 
 namespace tlct::_cvt {
 
@@ -19,8 +19,8 @@ namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
 template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArrange>
-[[nodiscard]] static inline float metricOfPsize(const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
-                                                const MIBuffer& anchorMI, const float psize) {
+[[nodiscard]] static float metricOfPsize(const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
+                                         const MIBuffer& anchorMI, const float psize) {
     float minDiffRatio = std::numeric_limits<float>::max();
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -43,9 +43,9 @@ template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArra
 }
 
 template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArrange>
-[[nodiscard]] static inline PsizeMetric estimateWithNeighbor(const PsizeParams_<TArrange>& params,
-                                                             const MIBuffers_<TArrange>& mis,
-                                                             const TNeighbors& neighbors, const MIBuffer& anchorMI) {
+[[nodiscard]] static PsizeMetric estimateWithNeighbor(const PsizeParams_<TArrange>& params,
+                                                      const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
+                                                      const MIBuffer& anchorMI) {
     float maxIntensity = -1.f;
     typename TNeighbors::Direction maxIntensityDirection{};
     for (const auto direction : TNeighbors::DIRECTIONS) {
@@ -83,10 +83,9 @@ template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArra
 }
 
 template <tcfg::concepts::CArrange TArrange, bool USE_FAR_NEIGHBOR>
-[[nodiscard]] static inline float estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
-                                                    const PsizeParams_<TArrange>& params,
-                                                    const MIBuffers_<TArrange>& mis, const cv::Mat& prevPatchsizes,
-                                                    const cv::Point index) {
+[[nodiscard]] static float estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
+                                             const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
+                                             const cv::Mat& prevPatchsizes, const cv::Point index) {
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
@@ -124,9 +123,10 @@ template <tcfg::concepts::CArrange TArrange, bool USE_FAR_NEIGHBOR>
 }
 
 template <tcfg::concepts::CArrange TArrange, bool USE_FAR_NEIGHBOR>
-static inline std::expected<void, Error> estimatePatchsizes(
-    const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg, const PsizeParams_<TArrange>& params,
-    const MIBuffers_<TArrange>& mis, const cv::Mat& prevPatchsizes, cv::Mat& patchsizes) noexcept {
+static std::expected<void, Error> estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
+                                                     const PsizeParams_<TArrange>& params,
+                                                     const MIBuffers_<TArrange>& mis, const cv::Mat& prevPatchsizes,
+                                                     cv::Mat& patchsizes) noexcept {
 #pragma omp parallel for
     for (int row = 0; row < arrange.getMIRows(); row++) {
         for (int col = 0; col < arrange.getMICols(row); col++) {

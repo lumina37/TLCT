@@ -64,7 +64,7 @@ private:
 };
 
 template <typename Tv>
-static inline Tv stox(const std::string& str) {
+static Tv stox(const std::string& str) {
     if constexpr (std::is_integral_v<Tv>) {
         return (Tv)std::stoi(str);
     } else if constexpr (std::is_floating_point_v<Tv>) {

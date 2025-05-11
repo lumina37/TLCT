@@ -80,7 +80,7 @@ template <tlct::cfg::concepts::CArrange TArrange>
 std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     if (src.type() != CV_8UC1) [[unlikely]] {
-        std::string errMsg = std::format("MIBuffers::update expect CV_8UC1, got {}", src.type());
+        auto errMsg = std::format("MIBuffers::update expect CV_8UC1, got {}", src.type());
         return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
     }
 

@@ -153,7 +153,7 @@ std::expected<void, Error> Manager_<TArrange, IS_MULTI_FOCUS>::update(const io::
     }
 
     if constexpr (IS_MULTI_FOCUS) {
-        adjustWgtsAndPsizesForMFocus(arrange_, mis_, patchsizes_, mvCache_);
+        adjustWgtsAndPsizesForMultiFocus(arrange_, mis_, patchsizes_, mvCache_);
     }
 
     return {};
