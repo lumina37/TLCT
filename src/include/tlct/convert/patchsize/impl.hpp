@@ -42,10 +42,10 @@ template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArra
     return metric;
 }
 
-template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArrange>
-[[nodiscard]] static PsizeMetric estimateWithNeighbor(const PsizeParams_<TArrange>& params,
-                                                      const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
-                                                      const MIBuffer& anchorMI) {
+template <concepts::CNeighbors TNeighbors>
+[[nodiscard]] static PsizeMetric estimateWithNeighbor(const PsizeParams_<typename TNeighbors::TArrange>& params,
+                                                      const MIBuffers_<typename TNeighbors::TArrange>& mis,
+                                                      const TNeighbors& neighbors, const MIBuffer& anchorMI) {
     float maxIntensity = -1.f;
     typename TNeighbors::Direction maxIntensityDirection{};
     for (const auto direction : TNeighbors::DIRECTIONS) {
