@@ -1,11 +1,38 @@
 #pragma once
 
 #include <expected>
+#include <filesystem>
+#include <iostream>
 #include <memory>
+#include <print>
+#include <string>
+#include <type_traits>
+#include <utility>
 
 #include <argparse/argparse.hpp>
 
 #include "tlct.hpp"
+
+namespace fs = std::filesystem;
+
+class Unwrap {
+public:
+    template <typename T>
+    static friend auto operator|(std::expected<T, tlct::Error>&& src, [[maybe_unused]] const Unwrap& _) {
+        if (!src.has_value()) {
+            const auto& err = src.error();
+            const fs::path filePath{err.source.file_name()};
+            const std::string fileName = filePath.filename().string();
+            std::println(std::cerr, "{}:{} msg={} code={}", fileName, err.source.line(), err.msg, (int)err.code);
+            std::exit((int)err.code);
+        }
+        if constexpr (!std::is_void_v<T>) {
+            return std::forward_like<T>(src.value());
+        }
+    }
+};
+
+constexpr auto unwrap = Unwrap();
 
 [[nodiscard]] static std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
     auto parser = std::make_unique<argparse::ArgumentParser>("tlct", std::string("v").append(tlct::version),

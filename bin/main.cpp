@@ -19,21 +19,34 @@ namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
 static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) noexcept {
-    auto arrange = TManager::TArrange::createWithCfgMap(map).value();
+    auto arrangeRes = TManager::TArrange::createWithCfgMap(map);
+    if (!arrangeRes) return std::unexpected{std::move(arrangeRes.error())};
+    auto& arrange = arrangeRes.value();
+
     cv::Size srcSize = arrange.getImgSize();
     arrange.upsample(cliCfg.convert.upsample);
 
-    auto manager = TManager::create(arrange, cliCfg.convert).value();
+    auto managerRes = TManager::create(arrange, cliCfg.convert);
+    if (!managerRes) return std::unexpected{std::move(managerRes.error())};
+    auto& manager = managerRes.value();
 
     cv::Size mvSize = manager.getOutputSize();
     if (arrange.getDirection()) {
         std::swap(srcSize.width, srcSize.height);
         std::swap(mvSize.width, mvSize.height);
     }
-    const auto srcExtent = tlct::io::YuvPlanarExtent::createYuv420p8bit(srcSize.width, srcSize.height).value();
-    const auto mvExtent = tlct::io::YuvPlanarExtent::createYuv420p8bit(mvSize.width, mvSize.height).value();
 
-    auto yuvReader = tlct::io::YuvPlanarReader::create(cliCfg.path.src, srcExtent).value();
+    auto srcExtentRes = tlct::io::YuvPlanarExtent::createYuv420p8bit(srcSize.width, srcSize.height);
+    if (!srcExtentRes) return std::unexpected{std::move(srcExtentRes.error())};
+    auto srcExtent = srcExtentRes.value();
+
+    auto mvExtentRes = tlct::io::YuvPlanarExtent::createYuv420p8bit(mvSize.width, mvSize.height);
+    if (!mvExtentRes) return std::unexpected{std::move(mvExtentRes.error())};
+    auto mvExtent = mvExtentRes.value();
+
+    auto yuvReaderRes = tlct::io::YuvPlanarReader::create(cliCfg.path.src, srcExtent);
+    if (!yuvReaderRes) return std::unexpected{std::move(yuvReaderRes.error())};
+    auto& yuvReader = yuvReaderRes.value();
 
     const fs::path& dstdir = cliCfg.path.dst;
     fs::create_directories(dstdir);
@@ -43,7 +56,9 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
     for (const int i : rgs::views::iota(0, totalWriters)) {
         std::string filename = std::format("v{:03}-{}x{}.yuv", i, mvSize.width, mvSize.height);
         fs::path savetoPath = dstdir / filename;
-        yuvWriters.emplace_back(tlct::io::YuvPlanarWriter::create(savetoPath).value());
+        auto yuvWriterRes = tlct::io::YuvPlanarWriter::create(savetoPath);
+        if (!yuvWriterRes) return std::unexpected{std::move(yuvWriterRes.error())};
+        yuvWriters.push_back(std::move(yuvWriterRes.value()));
     }
 
     {
@@ -107,26 +122,11 @@ int main(int argc, char* argv[]) {
         std::exit(1);
     }
 
-    const auto cliCfgRes = cfgFromCliParser(*parser);
-    if (!cliCfgRes) {
-        std::println(std::cerr, "{}", cliCfgRes.error().msg);
-        std::exit(1);
-    }
-    const auto& cliCfg = cliCfgRes.value();
-
-    const auto cfgMapRes = tlct::ConfigMap::createFromPath(calibFilePath);
-    if (!cfgMapRes) {
-        std::println(std::cerr, "{}", cfgMapRes.error().msg);
-        std::exit(1);
-    }
-    const auto& cfgMap = cfgMapRes.value();
+    const auto cliCfg = cfgFromCliParser(*parser) | unwrap;
+    const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath) | unwrap;
 
     const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
     const auto& handler = handlers[pipeline];
 
-    const auto handleRes = handler(cliCfg, cfgMap);
-    if (!handleRes) {
-        std::println(std::cerr, "{}", handleRes.error().msg);
-        std::exit(1);
-    }
+    handler(cliCfg, cfgMap) | unwrap;
 }
