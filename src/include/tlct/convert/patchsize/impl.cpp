@@ -144,10 +144,10 @@ std::expected<PatchsizeImpl_<TArrange>, typename PatchsizeImpl_<TArrange>::TErro
 }
 
 template <tcfg::concepts::CArrange TArrange_>
-std::expected<void, Error> PatchsizeImpl_<TArrange_>::step(const cv::Mat& newSrc) noexcept {
+std::expected<void, Error> PatchsizeImpl_<TArrange_>::update(const cv::Mat& src) noexcept {
     std::swap(prevPatchsizes_, patchsizes_);
 
-    auto updateRes = mis_.update(newSrc);
+    auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
 #pragma omp parallel for
@@ -162,7 +162,7 @@ std::expected<void, Error> PatchsizeImpl_<TArrange_>::step(const cv::Mat& newSrc
     return {};
 }
 
-template class PatchsizeImpl_<tcfg::CornersArrange>;
-template class PatchsizeImpl_<tcfg::OffsetArrange>;
+template class PatchsizeImpl_<_cfg::CornersArrange>;
+template class PatchsizeImpl_<_cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt

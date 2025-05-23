@@ -128,7 +128,7 @@ std::expected<void, Error> Manager_<TArrange>::update(const io::YuvPlanarFrame& 
     }
 
     {
-        auto res = psizeImpl_.step(mvCache_.srcs[0]);
+        auto res = psizeImpl_.update(mvCache_.srcs[0]);
         if (!res) return std::unexpected{std::move(res.error())};
     }
 

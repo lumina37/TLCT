@@ -59,7 +59,7 @@ public:
     [[nodiscard]] TLCT_API const TMIBuffers& getMIs() const noexcept { return mis_; }
 
     // Non-const methods
-    [[nodiscard]] std::expected<void, Error> step(const cv::Mat& newSrc) noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
 private:
     TArrange arrange_;
