@@ -1,142 +1,77 @@
 #pragma once
 
 #include <expected>
-#include <limits>
-#include <ranges>
 
 #include <opencv2/core.hpp>
 
+#include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/patchsize/params.hpp"
-#include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 
 namespace tlct::_cvt {
 
-namespace rgs = std::ranges;
 namespace tcfg = tlct::cfg;
 
-template <concepts::CNeighbors TNeighbors, typename TArrange = TNeighbors::TArrange>
-[[nodiscard]] static float metricOfPsize(const MIBuffers_<TArrange>& mis, const TNeighbors& neighbors,
-                                         const MIBuffer& anchorMI, const float psize) {
-    float minDiffRatio = std::numeric_limits<float>::max();
-    for (const auto direction : TNeighbors::DIRECTIONS) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(direction));
-
-        const cv::Point2f matchStep = _hp::sgn(mis.getArrange().isKepler()) * TNeighbors::getUnitShift(direction);
-        const cv::Point2f cmpShift = matchStep * psize;
-
-        const float diffRatio = compare(anchorMI, neibMI, cmpShift);
-        if (diffRatio < minDiffRatio) {
-            minDiffRatio = diffRatio;
-        }
-    }
-
-    const float metric = minDiffRatio;
-    return metric;
-}
-
-template <concepts::CNeighbors TNeighbors>
-[[nodiscard]] static PsizeMetric estimateWithNeighbor(const PsizeParams_<typename TNeighbors::TArrange>& params,
-                                                      const MIBuffers_<typename TNeighbors::TArrange>& mis,
-                                                      const TNeighbors& neighbors, const MIBuffer& anchorMI) {
-    float maxIntensity = -1.f;
-    typename TNeighbors::Direction maxIntensityDirection{};
-    for (const auto direction : TNeighbors::DIRECTIONS) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(direction));
-        if (neibMI.intensity > maxIntensity) {
-            maxIntensity = neibMI.intensity;
-            maxIntensityDirection = direction;
-        }
-    }
-
-    const MIBuffer& neibMI = mis.getMI(neighbors.getNeighborIdx(maxIntensityDirection));
-    const cv::Point2f matchStep =
-        _hp::sgn(mis.getArrange().isKepler()) * TNeighbors::getUnitShift(maxIntensityDirection);
-    cv::Point2f cmpShift = matchStep * params.minPsize;
-
-    float minDiffRatio = std::numeric_limits<float>::max();
-    int bestPsize = params.minPsize;
-    for (const int psize : rgs::views::iota(params.minPsize, params.maxPsize)) {
-        cmpShift += matchStep;
-        const float diffRatio = compare(anchorMI, neibMI, cmpShift);
-        if (diffRatio < minDiffRatio) {
-            minDiffRatio = diffRatio;
-            bestPsize = psize;
-        }
-    }
-
-    const float psize = (float)bestPsize / TNeighbors::INFLATE;
-    const float metric = minDiffRatio;
-
-    return {psize, metric};
-}
-
-template <tcfg::concepts::CArrange TArrange>
-[[nodiscard]] static float estimatePatchsize(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
-                                             const PsizeParams_<TArrange>& params, const MIBuffers_<TArrange>& mis,
-                                             const cv::Mat& prevPatchsizes, const cv::Point index) {
-    using NearNeighbors = NearNeighbors_<TArrange>;
-    using FarNeighbors = FarNeighbors_<TArrange>;
+template <tcfg::concepts::CArrange TArrange_>
+class PatchsizeImpl_ {
+public:
+    // Typename alias
+    using TError = Error;
+    using TCvtConfig = tcfg::CliConfig::Convert;
+    using TArrange = TArrange_;
+    using TMIBuffers = MIBuffers_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
 
-    const MIBuffer& anchorMI = mis.getMI(index);
-    const float prevPsize = prevPatchsizes.at<float>(index);
+private:
+    PatchsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& psizeParams);
 
-    float minMetric = std::numeric_limits<float>::max() / 2.f;
-    float prevMetric = minMetric / cvtCfg.psizeShortcutFactor;
-    float bestPsize;
+    template <concepts::CNeighbors TNeighbors>
+    [[nodiscard]] float metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize) const;
 
-    const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange, index);
-    if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        bestPsize = prevPsize;
-        prevMetric = metricOfPsize<NearNeighbors>(mis, nearNeighbors, anchorMI, prevPsize);
-    } else {
-        bestPsize = (float)params.minPsize;
-    }
+    template <concepts::CNeighbors TNeighbors>
+    [[nodiscard]] PsizeMetric estimateWithNeighbor(const TNeighbors& neighbors, const MIBuffer& anchorMI) const;
 
-    const PsizeMetric& nearPsizeMetric = estimateWithNeighbor<NearNeighbors>(params, mis, nearNeighbors, anchorMI);
-    if (nearPsizeMetric.metric < prevMetric * cvtCfg.psizeShortcutFactor) {
-        minMetric = nearPsizeMetric.metric;
-        bestPsize = nearPsizeMetric.psize;
-    }
+    [[nodiscard]] float estimatePatchsize(cv::Point index) const;
 
-    if (arrange.isMultiFocus()) {
-        const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange, index);
-        const PsizeMetric& farPsizeMetric = estimateWithNeighbor<FarNeighbors>(params, mis, farNeighbors, anchorMI);
-        if (farPsizeMetric.metric < minMetric && farPsizeMetric.metric < prevMetric * cvtCfg.psizeShortcutFactor) {
-            bestPsize = farPsizeMetric.psize;
-        }
-    }
+public:
+    // Constructor
+    PatchsizeImpl_() = delete;
+    PatchsizeImpl_(const PatchsizeImpl_& rhs) = delete;
+    PatchsizeImpl_& operator=(const PatchsizeImpl_& rhs) = delete;
+    PatchsizeImpl_(PatchsizeImpl_&& rhs) noexcept = default;
+    PatchsizeImpl_& operator=(PatchsizeImpl_&& rhs) noexcept = default;
 
-    return bestPsize;
-}
+    // Initialize from
+    [[nodiscard]] TLCT_API static std::expected<PatchsizeImpl_, TError> create(const TArrange& arrange,
+                                                                               const TCvtConfig& cvtCfg) noexcept;
 
-template <tcfg::concepts::CArrange TArrange>
-static std::expected<void, Error> estimatePatchsizes(const TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg,
-                                                     const PsizeParams_<TArrange>& params,
-                                                     const MIBuffers_<TArrange>& mis, const cv::Mat& prevPatchsizes,
-                                                     cv::Mat& patchsizes) noexcept {
-#pragma omp parallel for
-    for (int row = 0; row < arrange.getMIRows(); row++) {
-        for (int col = 0; col < arrange.getMICols(row); col++) {
-            const cv::Point index{col, row};
-            const float psize = estimatePatchsize<TArrange>(arrange, cvtCfg, params, mis, prevPatchsizes, index);
-            patchsizes.at<float>(index) = psize;
-        }
-    }
+    // Const methods
+    [[nodiscard]] TLCT_API float getPatchsize(cv::Point index) const noexcept { return patchsizes_.at<float>(index); }
+    [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept { return getPatchsize({col, row}); }
+    [[nodiscard]] TLCT_API float getIntensity(cv::Point index) const noexcept { return mis_.getMI(index).intensity; }
+    [[nodiscard]] TLCT_API float getIntensity(int row, int col) const noexcept { return getIntensity({col, row}); }
 
-    return {};
-}
+    // Temp helper
+    [[nodiscard]] TLCT_API cv::Mat& getPatchsizes() noexcept { return patchsizes_; }
+    [[nodiscard]] TLCT_API const TMIBuffers& getMIs() const noexcept { return mis_; }
+
+    // Non-const methods
+    [[nodiscard]] std::expected<void, Error> step(const cv::Mat& newSrc) noexcept;
+
+private:
+    TArrange arrange_;
+    TMIBuffers mis_;
+    cv::Mat prevPatchsizes_;  // CV_32FC1
+    cv::Mat patchsizes_;      // CV_32FC1
+    cv::Mat weights_;         // CV_32FC1
+    PsizeParams params_;
+};
 
 }  // namespace tlct::_cvt
+
+#ifdef _TLCT_LIB_HEADER_ONLY
+#    include "tlct/convert/patchsize/impl.cpp"
+#endif

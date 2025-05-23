@@ -26,6 +26,7 @@ public:
 
     int minPsize;
     int maxPsize;
+    float psizeShortcutFactor;
 };
 
 }  // namespace tlct::_cvt

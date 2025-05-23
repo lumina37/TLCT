@@ -2,7 +2,7 @@ enable_testing()
 
 set(_TLCT_TEST_TARGETS)
 
-function(tlct_add_test name srcs)
+function(tlct_add_test name lib srcs)
     add_executable(${name} ${srcs})
     target_link_libraries(${name} PRIVATE Catch2::Catch2WithMain tlct::lib::static)
     target_compile_definitions(${name} PRIVATE TLCT_TESTDATA_DIR="${TLCT_TESTDATA_DIR}")
@@ -14,9 +14,13 @@ function(tlct_add_test name srcs)
     tlct_copy_dlls_if_needed(${name})
 endfunction()
 
-tlct_add_test(test_constexpr_math "test_constexpr_math.cpp")
-tlct_add_test(test_functional "test_functional.cpp")
-tlct_add_test(test_corners_arrange "test_corners_arrange.cpp")
-tlct_add_test(test_offset_arrange "test_offset_arrange.cpp")
+tlct_add_test(test_constexpr_math tlct::lib::static "test_constexpr_math.cpp")
+tlct_add_test(test_functional tlct::lib::static "test_functional.cpp")
+
+tlct_add_test(test_corners_arrange tlct::lib::static "test_corners_arrange.cpp")
+tlct_add_test(test_offset_arrange tlct::lib::static "test_offset_arrange.cpp")
+
+tlct_add_test(test_corners_arrange_header_only tlct::lib::header-only "test_corners_arrange.cpp")
+tlct_add_test(test_offset_arrange_header_only tlct::lib::header-only "test_offset_arrange.cpp")
 
 add_custom_target(tlct-tests DEPENDS ${_TLCT_TEST_TARGETS})

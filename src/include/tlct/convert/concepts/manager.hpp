@@ -22,17 +22,15 @@ concept CManager = requires {
     };
 } && requires {
     // Const methods
-    requires requires(const Self self, io::YuvPlanarFrame& dst, int viewRow, int viewCol) {
-        self.renderInto(dst, viewRow, viewCol);
-    };
-} && requires {
-    // Const methods
     requires requires(Self self) {
         { self.getOutputSize() } -> std::same_as<cv::Size>;
     };
 } && requires {
     // Non-const methods
     requires requires(Self self, const io::YuvPlanarFrame& src) { self.update(src); };
+    requires requires(Self self, io::YuvPlanarFrame& dst, int viewRow, int viewCol) {
+        self.renderInto(dst, viewRow, viewCol);
+    };
 };
 
 }  // namespace tlct::_cvt::concepts

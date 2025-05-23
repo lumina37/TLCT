@@ -1,11 +1,11 @@
 #include <expected>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/consts.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/patchsize/params.hpp"
@@ -23,7 +23,7 @@ std::expected<PsizeParams_<TArrange>, Error> PsizeParams_<TArrange>::create(cons
     const int minPsize = _hp::iround(cvtCfg.minPsize * arrange.getDiameter());
     const int maxPsize = _hp::iround(maxPsizeRatio * safeDiameter);
 
-    return PsizeParams_{minPsize, maxPsize};
+    return PsizeParams_{minPsize, maxPsize, cvtCfg.psizeShortcutFactor};
 }
 
 template class PsizeParams_<_cfg::CornersArrange>;
