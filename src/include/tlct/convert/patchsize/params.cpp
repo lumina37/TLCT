@@ -14,8 +14,8 @@
 namespace tlct::_cvt {
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<PsizeParams_<TArrange>, Error> PsizeParams_<TArrange>::create(const TArrange& arrange,
-                                                                            const TCvtConfig& cvtCfg) noexcept {
+auto PsizeParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
+    -> std::expected<PsizeParams_, Error> {
     const float safeDiameter = arrange.getDiameter() * CONTENT_SAFE_RATIO;
     const float maxPsizeRatio = (1.f - cvtCfg.viewShiftRange) * CONTENT_SAFE_RATIO / cvtCfg.psizeInflate;
     const int minPsize = _hp::iround(cvtCfg.minPsize * arrange.getDiameter());

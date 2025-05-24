@@ -22,7 +22,6 @@ template <cfg::concepts::CArrange TArrange_>
 class MvImpl_ {
 public:
     // Typename alias
-    using TError = Error;
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using MvParams = MvParams_<TArrange>;
@@ -40,28 +39,26 @@ public:
     MvImpl_& operator=(MvImpl_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static std::expected<MvImpl_, TError> create(const TArrange& arrange,
-                                                                        const TCvtConfig& cvtCfg) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<MvImpl_, Error> create(const TArrange& arrange,
+                                                                       const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API cv::Size getOutputSize() const noexcept {
         return {params_.outputWidth, params_.outputHeight};
     }
 
-    [[nodiscard]] TLCT_API typename MvCache::TChannels& getSrcChans() noexcept { return cache_.srcs; }
-    [[nodiscard]] TLCT_API const typename MvCache::TChannels& getSrcChans() const noexcept { return cache_.srcs; }
+    [[nodiscard]] TLCT_API auto& getSrcChans() noexcept { return cache_.srcs; }
+    [[nodiscard]] TLCT_API const auto& getSrcChans() const noexcept { return cache_.srcs; }
 
-    [[nodiscard]] TLCT_API typename MvCache::TChannels& getDstChans() noexcept { return cache_.u8OutputImageChannels; }
-    [[nodiscard]] TLCT_API const typename MvCache::TChannels& getDstChans() const noexcept {
-        return cache_.u8OutputImageChannels;
-    }
+    [[nodiscard]] TLCT_API auto& getDstChans() noexcept { return cache_.u8OutputImageChannels; }
+    [[nodiscard]] TLCT_API const auto& getDstChans() const noexcept { return cache_.u8OutputImageChannels; }
 
     template <concepts::CPsizeImpl TPsizeImpl>
-    [[nodiscard]] TLCT_API std::expected<void, TError> renderView(const TPsizeImpl& psizeImpl, int viewRow,
-                                                                  int viewCol) const noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> renderView(const TPsizeImpl& psizeImpl, int viewRow,
+                                                                 int viewCol) const noexcept;
 
     // Non-const methods
-    [[nodiscard]] TLCT_API std::expected<void, TError> update(const io::YuvPlanarFrame& src) noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
 
 private:
     TArrange arrange_;
@@ -71,9 +68,8 @@ private:
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CPsizeImpl TPsizeImpl>
-std::expected<void, typename MvImpl_<TArrange>::TError> MvImpl_<TArrange>::renderView(const TPsizeImpl& psizeImpl,
-                                                                                      int viewRow,
-                                                                                      int viewCol) const noexcept {
+std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psizeImpl, int viewRow,
+                                                         int viewCol) const noexcept {
     // TODO: handle `std::bad_alloc` in this func
     const int viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
     const int viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;

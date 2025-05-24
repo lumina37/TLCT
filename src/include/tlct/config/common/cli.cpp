@@ -9,10 +9,11 @@
 
 namespace tlct::_cfg {
 
-CliConfig::CliConfig(Path&& path, Range range, Convert convert) noexcept
+CliConfig::CliConfig(Path&& path, const Range& range, const Convert& convert) noexcept
     : path(std::move(path)), range(range), convert(convert) {}
 
-std::expected<CliConfig, Error> CliConfig::create(const Path& path, Range range, Convert convert) noexcept {
+std::expected<CliConfig, Error> CliConfig::create(const Path& path, const Range& range,
+                                                  const Convert& convert) noexcept {
     if (range.end <= range.begin) [[unlikely]] {
         auto errMsg = std::format("Expect range.end > range.begin, got: {} <= {}", range.end, range.begin);
         return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};

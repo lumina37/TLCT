@@ -35,11 +35,11 @@ public:
     Range range;
     Convert convert;
 
-    [[nodiscard]] TLCT_API static std::expected<CliConfig, Error> create(const Path& path, Range range,
-                                                                         Convert convert) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<CliConfig, Error> create(const Path& path, const Range& range,
+                                                                         const Convert& convert) noexcept;
 
 private:
-    CliConfig(Path&& path, Range range, Convert convert) noexcept;
+    CliConfig(Path&& path, const Range& range, const Convert& convert) noexcept;
 };
 
 }  // namespace tlct::_cfg

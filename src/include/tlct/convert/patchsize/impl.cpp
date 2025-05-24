@@ -208,8 +208,8 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() {
 }
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<PsizeImpl_<TArrange>, typename PsizeImpl_<TArrange>::TError> PsizeImpl_<TArrange>::create(
-    const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept {
+auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
+    -> std::expected<PsizeImpl_, Error> {
     auto misRes = TMIBuffers::create(arrange);
     if (!misRes) return std::unexpected{std::move(misRes.error())};
     auto& mis = misRes.value();
@@ -222,7 +222,7 @@ std::expected<PsizeImpl_<TArrange>, typename PsizeImpl_<TArrange>::TError> Psize
 }
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<void, typename PsizeImpl_<TArrange>::TError> PsizeImpl_<TArrange>::update(const cv::Mat& src) noexcept {
+std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noexcept {
     std::swap(prevPatchsizes_, patchsizes_);
 
     auto updateRes = mis_.update(src);

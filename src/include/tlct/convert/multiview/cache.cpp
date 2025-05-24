@@ -4,11 +4,10 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/functional.hpp"
-#include "tlct/convert/multiview/params.hpp"
+#include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/multiview/cache.hpp"
@@ -17,7 +16,7 @@
 namespace tlct::_cvt {
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<MvCache_<TArrange>, Error> MvCache_<TArrange>::create(const MvParams_<TArrange>& params) noexcept {
+auto MvCache_<TArrange>::create(const MvParams& params) noexcept -> std::expected<MvCache_, Error> {
     constexpr float GRADIENT_BLENDING_WIDTH = 0.75;
 
     try {

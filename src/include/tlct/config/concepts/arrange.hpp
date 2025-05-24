@@ -6,8 +6,8 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/common/map.hpp"
+#include "tlct/helper/error.hpp"
 
 namespace tlct::_cfg::concepts {
 
@@ -19,7 +19,7 @@ concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     { Self() } -> std::same_as<Self>;
 } && requires(const ConfigMap& map) {
     // Init from
-    { Self::createWithCfgMap(map) } noexcept -> std::same_as<std::expected<Self, typename Self::TError>>;
+    { Self::createWithCfgMap(map) } noexcept -> std::same_as<std::expected<Self, Error>>;
 } && requires(Self self) {
     // Non-const methods
     requires requires(int factor) {

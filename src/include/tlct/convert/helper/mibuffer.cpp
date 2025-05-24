@@ -64,7 +64,7 @@ MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
 }
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<MIBuffers_<TArrange>, Error> MIBuffers_<TArrange>::create(const TArrange& arrange) noexcept {
+auto MIBuffers_<TArrange>::create(const TArrange& arrange) noexcept -> std::expected<MIBuffers_, Error> {
     auto copiedArrange = arrange;
     Params params{arrange};
     try {

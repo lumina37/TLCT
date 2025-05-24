@@ -25,7 +25,6 @@ public:
     static constexpr int CHANNELS = 3;
 
     // Typename alias
-    using TError = Error;
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
@@ -44,8 +43,8 @@ public:
     Manager_& operator=(Manager_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] static std::expected<Manager_, TError> create(const TArrange& arrange,
-                                                                const TCvtConfig& cvtCfg) noexcept;
+    [[nodiscard]] static std::expected<Manager_, Error> create(const TArrange& arrange,
+                                                               const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
     [[nodiscard]] cv::Size getOutputSize() const noexcept { return mvImpl_.getOutputSize(); }
@@ -68,8 +67,8 @@ Manager_<TArrange>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg, 
     : arrange_(arrange), cvtCfg_(cvtCfg), psizeImpl_(std::move(psizeImpl)), mvImpl_(std::move(mvImpl)) {}
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<Manager_<TArrange>, typename Manager_<TArrange>::TError> Manager_<TArrange>::create(
-    const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept {
+auto Manager_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
+    -> std::expected<Manager_, Error> {
     auto psizeImplRes = TPsizeImpl::create(arrange, cvtCfg);
     if (!psizeImplRes) return std::unexpected{std::move(psizeImplRes.error())};
     auto& psizeImpl = psizeImplRes.value();

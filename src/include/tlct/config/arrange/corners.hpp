@@ -15,7 +15,6 @@ namespace tlct::_cfg {
 class CornersArrange {
 public:
     // Typename alias
-    using TError = Error;
     using TMiCols = std::array<int, 2>;
 
     // Constructor

@@ -17,7 +17,6 @@ template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
 public:
     // Typename alias
-    using TError = Error;
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
@@ -45,8 +44,8 @@ public:
     PsizeImpl_& operator=(PsizeImpl_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static std::expected<PsizeImpl_, TError> create(const TArrange& arrange,
-                                                                           const TCvtConfig& cvtCfg) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<PsizeImpl_, Error> create(const TArrange& arrange,
+                                                                          const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API float getPatchsize(cv::Point index) const noexcept { return patchsizes_.at<float>(index); }
@@ -59,7 +58,7 @@ public:
     [[nodiscard]] TLCT_API const TMIBuffers& getMIs() const noexcept { return mis_; }
 
     // Non-const methods
-    [[nodiscard]] TLCT_API std::expected<void, TError> update(const cv::Mat& src) noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
 private:
     TArrange arrange_;

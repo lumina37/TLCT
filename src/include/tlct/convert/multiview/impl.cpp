@@ -7,6 +7,7 @@
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts/psize.hpp"
+#include "tlct/convert/patchsize/impl.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/io.hpp"
 
@@ -23,8 +24,8 @@ MvImpl_<TArrange>::MvImpl_(const TArrange& arrange, const MvParams& params, MvCa
     : arrange_(arrange), params_(params), cache_(std::move(cache)) {}
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<MvImpl_<TArrange>, typename MvImpl_<TArrange>::TError> MvImpl_<TArrange>::create(
-    const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept {
+auto MvImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
+    -> std::expected<MvImpl_, Error> {
     auto paramRes = MvParams::create(arrange, cvtCfg);
     if (!paramRes) return std::unexpected{std::move(paramRes.error())};
     auto& params = paramRes.value();
@@ -37,8 +38,7 @@ std::expected<MvImpl_<TArrange>, typename MvImpl_<TArrange>::TError> MvImpl_<TAr
 }
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<void, typename MvImpl_<TArrange>::TError> MvImpl_<TArrange>::update(
-    const io::YuvPlanarFrame& src) noexcept {
+std::expected<void, Error> MvImpl_<TArrange>::update(const io::YuvPlanarFrame& src) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     src.getY().copyTo(cache_.rawSrcs[0]);
     src.getU().copyTo(cache_.rawSrcs[1]);
@@ -76,5 +76,10 @@ std::expected<void, typename MvImpl_<TArrange>::TError> MvImpl_<TArrange>::updat
 
 template class MvImpl_<cfg::CornersArrange>;
 template class MvImpl_<cfg::OffsetArrange>;
+
+template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(const PsizeImpl_<cfg::CornersArrange>&,
+                                                                             int, int) const noexcept;
+template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(const PsizeImpl_<cfg::OffsetArrange>&, int,
+                                                                            int) const noexcept;
 
 }  // namespace tlct::_cvt

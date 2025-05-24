@@ -1,9 +1,8 @@
 #include <expected>
 #include <format>
-#include <utility>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/io/yuv/planar/extent.hpp"

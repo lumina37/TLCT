@@ -4,12 +4,12 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/consts.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/multiview/params.hpp"
@@ -18,8 +18,8 @@
 namespace tlct::_cvt {
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<MvParams_<TArrange>, Error> MvParams_<TArrange>::create(const TArrange& arrange,
-                                                                      const TCvtConfig& cvtCfg) noexcept {
+auto MvParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
+    -> std::expected<MvParams_, Error> {
     const float psizeInflate = cvtCfg.psizeInflate;
 
     const float f32PatchXShift = 0.3f * arrange.getDiameter();

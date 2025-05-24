@@ -15,8 +15,7 @@ namespace tlct::_cvt {
     return {startX, startY, iWidth, iWidth};
 }
 
-[[nodiscard]] cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2f& center,
-                                                        const float width) noexcept {
+[[nodiscard]] cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2f& center, const float width) noexcept {
     cv::Mat roi = src(getRoiByCenter(center, width));
     return roi;
 }
@@ -30,7 +29,7 @@ namespace tlct::_cvt {
 }
 
 [[nodiscard]] cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point2f& center,
-                                                        const cv::Size2f size) noexcept {
+                                          const cv::Size2f size) noexcept {
     cv::Mat roi = src(getRoiByCenter(center, size));
     return roi;
 }
@@ -41,8 +40,7 @@ namespace tlct::_cvt {
     return {startX, startY, width, width};
 }
 
-[[nodiscard]] cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point& center,
-                                                        const int width) noexcept {
+[[nodiscard]] cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point& center, const int width) noexcept {
     cv::Mat roi = src(getRoiByCenter(center, width));
     return roi;
 }
@@ -53,21 +51,19 @@ namespace tlct::_cvt {
     return {startX, startY, size.width, size.height};
 }
 
-[[nodiscard]] cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point& center,
-                                                        const cv::Size size) noexcept {
+[[nodiscard]] cv::Mat getRoiImageByCenter(const cv::Mat& src, const cv::Point& center, const cv::Size size) noexcept {
     cv::Mat roi = src(getRoiByCenter(center, size));
     return roi;
 }
 
 [[nodiscard]] cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner,
-                                                              const float width) noexcept {
+                                                const float width) noexcept {
     const int iWidth = (int)std::roundf(width);
     cv::Mat roi = src({corner.x, corner.y, iWidth, iWidth});
     return roi;
 }
 
-[[nodiscard]] cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner,
-                                                              const int width) noexcept {
+[[nodiscard]] cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner, const int width) noexcept {
     cv::Mat roi = src({corner.x, corner.y, width, width});
     return roi;
 }

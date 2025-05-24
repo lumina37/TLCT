@@ -19,6 +19,7 @@ public:
     // Typename alias
     using TArrange = TArrange_;
     using TChannels = std::array<cv::Mat, CHANNELS>;
+    using MvParams = MvParams_<TArrange>;
 
     // Constructor
     MvCache_() noexcept = default;
@@ -30,7 +31,7 @@ public:
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static std::expected<MvCache_, Error> create(const MvParams_<TArrange>& params) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<MvCache_, Error> create(const MvParams& params) noexcept;
 
     cv::Mat gradBlendingWeight;
     cv::Mat renderCanvas;
