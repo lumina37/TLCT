@@ -9,16 +9,14 @@
 
 namespace tlct::_cvt {
 
-namespace tcfg = tlct::cfg;
-
-template <tcfg::concepts::CArrange TArrange_>
+template <cfg::concepts::CArrange TArrange_>
 class PsizeParams_ {
 public:
     static constexpr int INVALID_PSIZE = 0;
 
     // Typename alias
     using TArrange = TArrange_;
-    using TCvtConfig = tcfg::CliConfig::Convert;
+    using TCvtConfig = cfg::CliConfig::Convert;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<PsizeParams_, Error> create(const TArrange& arrange,

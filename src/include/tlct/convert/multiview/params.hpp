@@ -11,14 +11,12 @@
 
 namespace tlct::_cvt {
 
-namespace tcfg = tlct::cfg;
-
-template <tcfg::concepts::CArrange TArrange_>
+template <cfg::concepts::CArrange TArrange_>
 class MvParams_ {
 public:
     // Typename alias
     using TArrange = TArrange_;
-    using TCvtConfig = tcfg::CliConfig::Convert;
+    using TCvtConfig = cfg::CliConfig::Convert;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<MvParams_, Error> create(const TArrange& arrange,

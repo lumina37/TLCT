@@ -11,13 +11,11 @@
 
 namespace tlct::_cvt::concepts {
 
-namespace tcfg = tlct::cfg;
-
 template <typename Self>
 concept CManager = requires {
     // Initialize from
-    requires requires(const typename Self::TArrange& arrange, const tcfg::CliConfig::Convert& cvtCfg) {
-        requires tcfg::concepts::CArrange<typename Self::TArrange>;
+    requires requires(const typename Self::TArrange& arrange, const cfg::CliConfig::Convert& cvtCfg) {
+        requires cfg::concepts::CArrange<typename Self::TArrange>;
         { Self::create(arrange, cvtCfg) } -> std::same_as<std::expected<Self, typename Self::TError>>;
     };
 } && requires {

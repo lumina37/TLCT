@@ -1,5 +1,6 @@
 #include <expected>
 #include <limits>
+#include <numeric>
 #include <ranges>
 #include <utility>
 
@@ -10,6 +11,7 @@
 #include "tlct/convert/helper.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
+#include "tlct/helper/math.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/patchsize/impl.hpp"
@@ -18,20 +20,21 @@
 namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
-namespace tcfg = tlct::cfg;
 
-template <tcfg::concepts::CArrange TArrange_>
-PatchsizeImpl_<TArrange_>::PatchsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& psizeParams)
-    : arrange_(arrange), mis_(std::move(mis)), params_(psizeParams) {
+template <cfg::concepts::CArrange TArrange>
+PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept
+    : arrange_(arrange), mis_(std::move(mis)), params_(params) {
     prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
     patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
-    weights_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
+
+    if (arrange_.isMultiFocus()) {
+        weights_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
+    }
 }
 
-template <tcfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-float PatchsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI,
-                                              float psize) const {
+float PsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize) const {
     float minDiffRatio = std::numeric_limits<float>::max();
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -52,10 +55,10 @@ float PatchsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const
     const float metric = minDiffRatio;
     return metric;
 }
-template <tcfg::concepts::CArrange TArrange_>
+
+template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-PsizeMetric PatchsizeImpl_<TArrange_>::estimateWithNeighbor(const TNeighbors& neighbors,
-                                                            const MIBuffer& anchorMI) const {
+PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbor(const TNeighbors& neighbors, const MIBuffer& anchorMI) const {
     float maxIntensity = -1.f;
     typename TNeighbors::Direction maxIntensityDirection{};
     for (const auto direction : TNeighbors::DIRECTIONS) {
@@ -91,8 +94,8 @@ PsizeMetric PatchsizeImpl_<TArrange_>::estimateWithNeighbor(const TNeighbors& ne
     return {psize, metric};
 }
 
-template <tcfg::concepts::CArrange TArrange_>
-float PatchsizeImpl_<TArrange_>::estimatePatchsize(cv::Point index) const {
+template <cfg::concepts::CArrange TArrange>
+float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const {
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
@@ -129,22 +132,97 @@ float PatchsizeImpl_<TArrange_>::estimatePatchsize(cv::Point index) const {
     return bestPsize;
 }
 
-template <tcfg::concepts::CArrange TArrange>
-std::expected<PatchsizeImpl_<TArrange>, typename PatchsizeImpl_<TArrange>::TError> PatchsizeImpl_<TArrange>::create(
+template <cfg::concepts::CArrange TArrange>
+void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() {
+    // TODO: handle `std::bad_alloc` in this func
+    _hp::MeanStddev texMeanStddev{};
+
+    // 1-pass: stat texture intensity
+    for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        const int rowOffset = row * arrange_.getMIMaxCols();
+        for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            const int offset = rowOffset + col;
+            const auto& mi = mis_.getMI(offset);
+            texMeanStddev.update(mi.intensity);
+        }
+    }
+
+    // 2-pass: compute weight
+    const float texIntensityMean = texMeanStddev.getMean();
+    const float texIntensityStddev = texMeanStddev.getStddev();
+    for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            const cv::Point index{col, row};
+            const auto& mi = mis_.getMI(index);
+            const float currIntensity = mi.intensity;
+
+            using TNeighbors = NearNeighbors_<TArrange>;
+            const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, index);
+
+            std::array<float, TNeighbors::DIRECTION_NUM> neibIntensities;
+            std::array<float, TNeighbors::DIRECTION_NUM> neibPsizes;
+            for (const auto direction : TNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) {
+                    neibIntensities[(int)direction] = -1.f;
+                    neibPsizes[(int)direction] = -1.f;
+                    continue;
+                }
+                const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                const MIBuffer& neibMI = mis_.getMI(neibIdx);
+                neibIntensities[(int)direction] = neibMI.intensity;
+                neibPsizes[(int)direction] = patchsizes_.at<float>(neibIdx);
+            }
+
+            const float normedTexIntensity = (mi.intensity - texIntensityMean) / texIntensityStddev;
+            weights_.template at<float>(row, col) = _hp::sigmoid(normedTexIntensity);
+
+            int group0GtCount = 0;
+            int group1GtCount = 0;
+            group0GtCount += (int)(neibIntensities[0] > currIntensity);
+            group1GtCount += (int)(neibIntensities[1] > currIntensity);
+            group0GtCount += (int)(neibIntensities[2] > currIntensity);
+            group1GtCount += (int)(neibIntensities[3] > currIntensity);
+            group0GtCount += (int)(neibIntensities[4] > currIntensity);
+            group1GtCount += (int)(neibIntensities[5] > currIntensity);
+
+            // For blurred MI in far field.
+            // These MI will have the blurest texture (lowest intensity) among all its neighbor MIs.
+            // We should assign a small weight for these MI.
+            if (group0GtCount + group1GtCount == 6) {
+                weights_.template at<float>(row, col) = std::numeric_limits<float>::epsilon();
+                patchsizes_.at<float>(row, col) =
+                    std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
+                continue;
+            }
+
+            // For blurred MI in near field.
+            // These MI will have exactly 3 neighbor MIs that have clearer texture.
+            // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
+            if (group0GtCount == 3 && group1GtCount == 0) {
+                patchsizes_.at<float>(row, col) = (neibPsizes[0] + neibPsizes[2] + neibPsizes[4]) / 3.f;
+            } else if (group0GtCount == 0 && group1GtCount == 3) {
+                patchsizes_.at<float>(row, col) = (neibPsizes[1] + neibPsizes[3] + neibPsizes[5]) / 3.f;
+            }
+        }
+    }
+}
+
+template <cfg::concepts::CArrange TArrange>
+std::expected<PsizeImpl_<TArrange>, typename PsizeImpl_<TArrange>::TError> PsizeImpl_<TArrange>::create(
     const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept {
     auto misRes = TMIBuffers::create(arrange);
     if (!misRes) return std::unexpected{std::move(misRes.error())};
     auto& mis = misRes.value();
 
-    auto psizeParamsRes = PsizeParams::create(arrange, cvtCfg);
-    if (!psizeParamsRes) return std::unexpected{std::move(psizeParamsRes.error())};
-    auto& psizeParams = psizeParamsRes.value();
+    auto paramsRes = PsizeParams::create(arrange, cvtCfg);
+    if (!paramsRes) return std::unexpected{std::move(paramsRes.error())};
+    auto& params = paramsRes.value();
 
-    return PatchsizeImpl_{arrange, std::move(mis), psizeParams};
+    return PsizeImpl_{arrange, std::move(mis), params};
 }
 
-template <tcfg::concepts::CArrange TArrange_>
-std::expected<void, Error> PatchsizeImpl_<TArrange_>::update(const cv::Mat& src) noexcept {
+template <cfg::concepts::CArrange TArrange>
+std::expected<void, typename PsizeImpl_<TArrange>::TError> PsizeImpl_<TArrange>::update(const cv::Mat& src) noexcept {
     std::swap(prevPatchsizes_, patchsizes_);
 
     auto updateRes = mis_.update(src);
@@ -159,10 +237,14 @@ std::expected<void, Error> PatchsizeImpl_<TArrange_>::update(const cv::Mat& src)
         }
     }
 
+    if (arrange_.isMultiFocus()) {
+        adjustWgtsAndPsizesForMultiFocus();
+    }
+
     return {};
 }
 
-template class PatchsizeImpl_<_cfg::CornersArrange>;
-template class PatchsizeImpl_<_cfg::OffsetArrange>;
+template class PsizeImpl_<cfg::CornersArrange>;
+template class PsizeImpl_<cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt

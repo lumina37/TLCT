@@ -20,7 +20,10 @@ tlct_add_test(test_functional tlct::lib::static "test_functional.cpp")
 tlct_add_test(test_corners_arrange tlct::lib::static "test_corners_arrange.cpp")
 tlct_add_test(test_offset_arrange tlct::lib::static "test_offset_arrange.cpp")
 
-tlct_add_test(test_corners_arrange_header_only tlct::lib::header-only "test_corners_arrange.cpp")
-tlct_add_test(test_offset_arrange_header_only tlct::lib::header-only "test_offset_arrange.cpp")
+tlct_add_test(test_corners_arrange_header_only_lib tlct::lib::header-only "test_corners_arrange.cpp")
+tlct_add_test(test_offset_arrange_header_only_lib tlct::lib::header-only "test_offset_arrange.cpp")
+
+tlct_add_test(test_corners_arrange_dynamic_lib tlct::lib::dynamic "test_corners_arrange.cpp")
+tlct_add_test(test_offset_arrange_dynamic_lib tlct::lib::dynamic "test_offset_arrange.cpp")
 
 add_custom_target(tlct-tests DEPENDS ${_TLCT_TEST_TARGETS})

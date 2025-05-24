@@ -8,16 +8,14 @@
 
 namespace tlct::_cvt::concepts {
 
-namespace tcfg = tlct::cfg;
-
 template <typename Self>
 concept CNeighbors = requires {
     // Constant
     { Self::INFLATE } -> std::convertible_to<float>;
 } && requires {
     // Initialize from
-    requires requires(const Self::TArrange& arrange, const cv::Point index) {
-        requires tcfg::concepts::CArrange<typename Self::TArrange>;
+    requires requires(const typename Self::TArrange& arrange, const cv::Point index) {
+        requires cfg::concepts::CArrange<typename Self::TArrange>;
         { Self::fromArrangeAndIndex(arrange, index) } noexcept -> std::same_as<Self>;
     };
 } && requires {

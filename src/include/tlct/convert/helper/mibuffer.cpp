@@ -11,7 +11,6 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/census.hpp"
@@ -19,6 +18,7 @@
 #include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/helper/mibuffer.hpp"
@@ -28,15 +28,15 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-template <tlct::cfg::concepts::CArrange TArrange_>
-MIBuffers_<TArrange_>::MIBuffers_(TArrange&& arrange, Params&& params, std::vector<MIBuffer>&& miBuffers,
-                                  std::unique_ptr<std::byte[]>&& pBuffer) noexcept
+template <cfg::concepts::CArrange TArrange>
+MIBuffers_<TArrange>::MIBuffers_(TArrange&& arrange, Params&& params, std::vector<MIBuffer>&& miBuffers,
+                                 std::unique_ptr<std::byte[]>&& pBuffer) noexcept
     : arrange_(std::move(arrange)),
       params_(std::move(params)),
       miBuffers_(std::move(miBuffers)),
       pBuffer_(std::move(pBuffer)) {}
 
-template <tlct::cfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>& MIBuffers_<TArrange>::operator=(MIBuffers_&& rhs) noexcept {
     arrange_ = std::move(rhs.arrange_);
     params_ = std::move(rhs.params_);
@@ -45,14 +45,14 @@ MIBuffers_<TArrange>& MIBuffers_<TArrange>::operator=(MIBuffers_&& rhs) noexcept
     return *this;
 }
 
-template <tlct::cfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::MIBuffers_(MIBuffers_&& rhs) noexcept
     : arrange_(std::move(rhs.arrange_)),
       params_(std::move(rhs.params_)),
       miBuffers_(std::move(rhs.miBuffers_)),
       pBuffer_(std::move(rhs.pBuffer_)) {}
 
-template <tlct::cfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
     censusDiameter_ = arrange.getDiameter() * CENSUS_SAFE_RATIO;
     int iCensusDiameter = _hp::iround(censusDiameter_);
@@ -63,7 +63,7 @@ MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
     bufferSize_ = miNum_ * alignedMISize_;
 }
 
-template <tlct::cfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 std::expected<MIBuffers_<TArrange>, Error> MIBuffers_<TArrange>::create(const TArrange& arrange) noexcept {
     auto copiedArrange = arrange;
     Params params{arrange};
@@ -76,7 +76,7 @@ std::expected<MIBuffers_<TArrange>, Error> MIBuffers_<TArrange>::create(const TA
     }
 }
 
-template <tlct::cfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     if (src.type() != CV_8UC1) [[unlikely]] {
@@ -179,7 +179,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
     return diffRatio;
 }
 
-template class MIBuffers_<_cfg::CornersArrange>;
-template class MIBuffers_<_cfg::OffsetArrange>;
+template class MIBuffers_<cfg::CornersArrange>;
+template class MIBuffers_<cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt

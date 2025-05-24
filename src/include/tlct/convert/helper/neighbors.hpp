@@ -11,7 +11,7 @@
 
 namespace tlct::_cvt {
 
-template <tlct::cfg::concepts::CArrange TArrange_>
+template <cfg::concepts::CArrange TArrange_>
 class NearNeighbors_ {
 public:
     enum class Direction {
@@ -95,7 +95,7 @@ public:
     static constexpr std::array DIRECTIONS{makeDirections(std::make_index_sequence<DIRECTION_NUM>{})};
 };
 
-template <tlct::cfg::concepts::CArrange TArrange_>
+template <cfg::concepts::CArrange TArrange_>
 class FarNeighbors_ {
 public:
     enum class Direction {

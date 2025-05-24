@@ -11,7 +11,7 @@
 
 namespace tlct::_cvt {
 
-template <tcfg::concepts::CArrange TArrange_>
+template <cfg::concepts::CArrange TArrange_>
 class MvCache_ {
 public:
     static constexpr int CHANNELS = 3;
@@ -41,7 +41,6 @@ public:
 
     cv::Mat f32Chan;
     cv::Mat u8NormedImage;
-    cv::Mat weights;
     TChannels u8OutputImageChannels;
 };
 

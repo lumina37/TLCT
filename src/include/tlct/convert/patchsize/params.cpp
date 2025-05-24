@@ -13,9 +13,7 @@
 
 namespace tlct::_cvt {
 
-namespace tcfg = tlct::cfg;
-
-template <tcfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 std::expected<PsizeParams_<TArrange>, Error> PsizeParams_<TArrange>::create(const TArrange& arrange,
                                                                             const TCvtConfig& cvtCfg) noexcept {
     const float safeDiameter = arrange.getDiameter() * CONTENT_SAFE_RATIO;
@@ -26,7 +24,7 @@ std::expected<PsizeParams_<TArrange>, Error> PsizeParams_<TArrange>::create(cons
     return PsizeParams_{minPsize, maxPsize, cvtCfg.psizeShortcutFactor};
 }
 
-template class PsizeParams_<_cfg::CornersArrange>;
-template class PsizeParams_<_cfg::OffsetArrange>;
+template class PsizeParams_<cfg::CornersArrange>;
+template class PsizeParams_<cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt

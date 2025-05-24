@@ -9,8 +9,8 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
-#include "tlct/helper/error.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/helper/error.hpp"
 
 namespace tlct::_cvt {
 
@@ -22,7 +22,7 @@ struct MIBuffer {
     float intensity;
 };
 
-template <tlct::cfg::concepts::CArrange TArrange_>
+template <cfg::concepts::CArrange TArrange_>
 class MIBuffers_ {
 public:
     // Typename alias

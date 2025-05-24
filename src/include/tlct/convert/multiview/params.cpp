@@ -17,9 +17,7 @@
 
 namespace tlct::_cvt {
 
-namespace tcfg = tlct::cfg;
-
-template <tcfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 std::expected<MvParams_<TArrange>, Error> MvParams_<TArrange>::create(const TArrange& arrange,
                                                                       const TCvtConfig& cvtCfg) noexcept {
     const float psizeInflate = cvtCfg.psizeInflate;
@@ -50,7 +48,7 @@ std::expected<MvParams_<TArrange>, Error> MvParams_<TArrange>::create(const TArr
                      viewInterval,         canvasWidth,  canvasHeight, outputWidth, outputHeight};
 }
 
-template class MvParams_<_cfg::CornersArrange>;
-template class MvParams_<_cfg::OffsetArrange>;
+template class MvParams_<cfg::CornersArrange>;
+template class MvParams_<cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt

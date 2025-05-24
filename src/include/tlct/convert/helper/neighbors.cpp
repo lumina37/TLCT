@@ -9,7 +9,7 @@
 
 namespace tlct::_cvt {
 
-template <tlct::cfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TArrange& arrange,
                                                                        cv::Point index) noexcept {
     cv::Point leftIdx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
@@ -70,7 +70,7 @@ NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TAr
     return {indices, index, points, selfPt};
 }
 
-template <tlct::cfg::concepts::CArrange TArrange>
+template <cfg::concepts::CArrange TArrange>
 FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArrange& arrange,
                                                                      cv::Point index) noexcept {
     cv::Point upIdx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
@@ -132,9 +132,9 @@ FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArra
     return {indices, index, points, selfPt};
 }
 
-template class NearNeighbors_<_cfg::CornersArrange>;
-template class NearNeighbors_<_cfg::OffsetArrange>;
-template class FarNeighbors_<_cfg::CornersArrange>;
-template class FarNeighbors_<_cfg::OffsetArrange>;
+template class NearNeighbors_<cfg::CornersArrange>;
+template class NearNeighbors_<cfg::OffsetArrange>;
+template class FarNeighbors_<cfg::CornersArrange>;
+template class FarNeighbors_<cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt
