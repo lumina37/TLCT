@@ -2,7 +2,6 @@
 
 #include <expected>
 #include <ranges>
-#include <utility>
 
 #include <opencv2/imgproc.hpp>
 
@@ -49,14 +48,12 @@ public:
         return {params_.outputWidth, params_.outputHeight};
     }
 
-    template <typename Self>
-    [[nodiscard]] TLCT_API auto&& getSrcChans(this Self&& self) noexcept {
-        return std::forward_like<Self>(self).cache_.srcs;
-    }
+    [[nodiscard]] TLCT_API typename MvCache::TChannels& getSrcChans() noexcept { return cache_.srcs; }
+    [[nodiscard]] TLCT_API const typename MvCache::TChannels& getSrcChans() const noexcept { return cache_.srcs; }
 
-    template <typename Self>
-    [[nodiscard]] TLCT_API auto&& getDstChans(this Self&& self) noexcept {
-        return std::forward_like<Self>(self).cache_.u8OutputImageChannels;
+    [[nodiscard]] TLCT_API typename MvCache::TChannels& getDstChans() noexcept { return cache_.u8OutputImageChannels; }
+    [[nodiscard]] TLCT_API const typename MvCache::TChannels& getDstChans() const noexcept {
+        return cache_.u8OutputImageChannels;
     }
 
     template <concepts::CPsizeImpl TPsizeImpl>

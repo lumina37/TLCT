@@ -174,7 +174,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() {
             }
 
             const float normedTexIntensity = (mi.intensity - texIntensityMean) / texIntensityStddev;
-            weights_.template at<float>(row, col) = _hp::sigmoid(normedTexIntensity);
+            weights_.at<float>(row, col) = _hp::sigmoid(normedTexIntensity);
 
             int group0GtCount = 0;
             int group1GtCount = 0;
@@ -189,7 +189,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() {
             // These MI will have the blurest texture (lowest intensity) among all its neighbor MIs.
             // We should assign a small weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
-                weights_.template at<float>(row, col) = std::numeric_limits<float>::epsilon();
+                weights_.at<float>(row, col) = std::numeric_limits<float>::epsilon();
                 patchsizes_.at<float>(row, col) =
                     std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
                 continue;
