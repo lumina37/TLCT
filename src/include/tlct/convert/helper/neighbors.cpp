@@ -12,20 +12,20 @@ namespace tlct::_cvt {
 template <cfg::concepts::CArrange TArrange>
 NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TArrange& arrange,
                                                                        cv::Point index) noexcept {
-    cv::Point leftIdx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
-    cv::Point rightIdx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
-    cv::Point upleftIdx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
-    cv::Point uprightIdx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
-    cv::Point downleftIdx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
-    cv::Point downrightIdx{NearNeighbors_::DEFAULT_INDEX, NearNeighbors_::DEFAULT_INDEX};
+    cv::Point leftIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point rightIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point upleftIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point uprightIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point downleftIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point downrightIdx{DEFAULT_INDEX, DEFAULT_INDEX};
 
     cv::Point2f selfPt = arrange.getMICenter(index);
-    cv::Point2f leftPt{NearNeighbors_::DEFAULT_COORD, NearNeighbors_::DEFAULT_COORD};
-    cv::Point2f rightPt{NearNeighbors_::DEFAULT_COORD, NearNeighbors_::DEFAULT_COORD};
-    cv::Point2f upleftPt{NearNeighbors_::DEFAULT_COORD, NearNeighbors_::DEFAULT_COORD};
-    cv::Point2f uprightPt{NearNeighbors_::DEFAULT_COORD, NearNeighbors_::DEFAULT_COORD};
-    cv::Point2f downleftPt{NearNeighbors_::DEFAULT_COORD, NearNeighbors_::DEFAULT_COORD};
-    cv::Point2f downrightPt{NearNeighbors_::DEFAULT_COORD, NearNeighbors_::DEFAULT_COORD};
+    cv::Point2f leftPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f rightPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f upleftPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f uprightPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f downleftPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f downrightPt{DEFAULT_COORD, DEFAULT_COORD};
 
     if (index.x > 0) [[likely]] {
         leftIdx = {index.x - 1, index.y};
@@ -73,20 +73,20 @@ NearNeighbors_<TArrange> NearNeighbors_<TArrange>::fromArrangeAndIndex(const TAr
 template <cfg::concepts::CArrange TArrange>
 FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArrange& arrange,
                                                                      cv::Point index) noexcept {
-    cv::Point upIdx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
-    cv::Point downIdx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
-    cv::Point upleftIdx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
-    cv::Point uprightIdx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
-    cv::Point downleftIdx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
-    cv::Point downrightIdx{FarNeighbors_::DEFAULT_INDEX, FarNeighbors_::DEFAULT_INDEX};
+    cv::Point upIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point downIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point upleftIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point uprightIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point downleftIdx{DEFAULT_INDEX, DEFAULT_INDEX};
+    cv::Point downrightIdx{DEFAULT_INDEX, DEFAULT_INDEX};
 
     cv::Point2f selfPt = arrange.getMICenter(index);
-    cv::Point2f upPt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
-    cv::Point2f downPt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
-    cv::Point2f upleftPt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
-    cv::Point2f uprightPt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
-    cv::Point2f downleftPt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
-    cv::Point2f downrightPt{FarNeighbors_::DEFAULT_COORD, FarNeighbors_::DEFAULT_COORD};
+    cv::Point2f upPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f downPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f upleftPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f uprightPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f downleftPt{DEFAULT_COORD, DEFAULT_COORD};
+    cv::Point2f downrightPt{DEFAULT_COORD, DEFAULT_COORD};
 
     const int isLeftRow = arrange.isOutShift() ^ (index.y % 2 == 0);  // this row is on the left side of up/down row
     const int udLeftXIdx = index.x - isLeftRow - 1;                   // x index of the up/down-left MI
