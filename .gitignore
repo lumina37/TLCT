@@ -2,5 +2,3 @@
 .vscode/
 
 *build*/
-
-config.h
