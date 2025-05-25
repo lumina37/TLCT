@@ -91,7 +91,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
 
     uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());
     size_t rowBufStep = params_.miMaxCols_ * params_.alignedMISize_;
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int rowMIIdx = 0; rowMIIdx < arrange_.getMIRows(); rowMIIdx++) {
         uint8_t* colBufCursor = bufBase + rowMIIdx * rowBufStep;
         auto miBufIterator = miBuffers_.begin() + rowMIIdx * arrange_.getMIMaxCols();
@@ -112,11 +112,13 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
             cv::Mat censusMask = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
             censusTransform5x5(tmpY, srcCircleMask, censusMap, censusMask);
 
+            miBufIterator->censusMap = std::move(censusMap);
+            miBufIterator->censusMask = std::move(censusMask);
+
             const Grads grads = computeGrads(tmpY);
             miBufIterator->grads = grads;
 
-            miBufIterator->censusMap = std::move(censusMap);
-            miBufIterator->censusMask = std::move(censusMask);
+            miBufIterator->dhash = dhash(tmpY);
 
             miBufIterator++;
             colBufCursor += params_.alignedMISize_;

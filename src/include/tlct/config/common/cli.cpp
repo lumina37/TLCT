@@ -44,8 +44,8 @@ std::expected<CliConfig, Error> CliConfig::create(const Path& path, const Range&
         return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
     }
 
-    if (convert.psizeShortcutFactor < 0.0f) [[unlikely]] {
-        auto errMsg = std::format("Expect psizeShortcutFactor >= 0, got: {}", convert.psizeShortcutFactor);
+    if (convert.psizeShortcutThreshold < 0) [[unlikely]] {
+        auto errMsg = std::format("Expect psizeShortcutThreshold >= 0, got: {}", convert.psizeShortcutThreshold);
         return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
     }
 

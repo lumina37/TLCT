@@ -17,10 +17,11 @@ namespace tlct::_cvt {
 
 struct MIBuffer {
     static constexpr int C3_COUNT = 2;
-    Grads grads;
-
     cv::Mat censusMap;   // 8UC3
     cv::Mat censusMask;  // 8UC3
+
+    Grads grads;
+    uint16_t dhash;
 };
 
 template <cfg::concepts::CArrange TArrange_>

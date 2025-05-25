@@ -21,7 +21,7 @@ auto PsizeParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& c
     const int minPsize = _hp::iround(cvtCfg.minPsize * arrange.getDiameter());
     const int maxPsize = _hp::iround(maxPsizeRatio * safeDiameter);
 
-    return PsizeParams_{minPsize, maxPsize, cvtCfg.psizeShortcutFactor};
+    return PsizeParams_{minPsize, maxPsize, cvtCfg.psizeShortcutThreshold};
 }
 
 template class PsizeParams_<cfg::CornersArrange>;

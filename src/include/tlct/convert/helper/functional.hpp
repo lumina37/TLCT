@@ -24,6 +24,8 @@ struct Grads {
 
 [[nodiscard]] TLCT_API int pickByFWHM(std::span<float> arr) noexcept;
 
+[[nodiscard]] TLCT_API uint16_t dhash(const cv::Mat& src);
+
 }  // namespace tlct::_cvt
 
 #ifdef _TLCT_LIB_HEADER_ONLY

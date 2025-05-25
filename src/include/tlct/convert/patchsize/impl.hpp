@@ -1,6 +1,7 @@
 #pragma once
 
 #include <expected>
+#include <vector>
 
 #include <opencv2/core.hpp>
 
@@ -34,16 +35,13 @@ private:
         const FarNeighbors& neighbors) const noexcept;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] float metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize,
-                                      typename TNeighbors::Direction direction) const noexcept;
-
-    template <concepts::CNeighbors TNeighbors>
     [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
                                                     typename TNeighbors::Direction direction) const noexcept;
 
     [[nodiscard]] float estimatePatchsize(cv::Point index) const noexcept;
 
     void adjustWgtsAndPsizesForMultiFocus() noexcept;
+    void dumpDhashes() noexcept;
 
 public:
     // Constructor
@@ -58,14 +56,19 @@ public:
                                                                           const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API float getPatchsize(cv::Point index) const noexcept { return patchsizes_.at<float>(index); }
-    [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept { return getPatchsize({col, row}); }
-    [[nodiscard]] TLCT_API float getWeight(cv::Point index) const noexcept { return weights_.at<float>(index); }
-    [[nodiscard]] TLCT_API float getWeight(int row, int col) const noexcept { return getWeight({col, row}); }
+    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return patchsizes_[offset]; }
+    [[nodiscard]] TLCT_API float getPatchsize(cv::Point index) const noexcept { return getPatchsize(index.y, index.x); }
+    [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept {
+        const int offset = row * arrange_.getMIMaxCols() + col;
+        return getPatchsize(offset);
+    }
 
-    // Temp helper
-    [[nodiscard]] TLCT_API cv::Mat& getPatchsizes() noexcept { return patchsizes_; }
-    [[nodiscard]] TLCT_API const TMIBuffers& getMIs() const noexcept { return mis_; }
+    [[nodiscard]] TLCT_API float getWeight(int offset) const noexcept { return weights_[offset]; }
+    [[nodiscard]] TLCT_API float getWeight(cv::Point index) const noexcept { return getWeight(index.y, index.x); }
+    [[nodiscard]] TLCT_API float getWeight(int row, int col) const noexcept {
+        const int offset = row * arrange_.getMIMaxCols() + col;
+        return getWeight(offset);
+    }
 
     // Non-const methods
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
@@ -73,9 +76,10 @@ public:
 private:
     TArrange arrange_;
     TMIBuffers mis_;
-    cv::Mat prevPatchsizes_;  // CV_32FC1
-    cv::Mat patchsizes_;      // CV_32FC1
-    cv::Mat weights_;         // CV_32FC1
+    std::vector<float> prevPatchsizes_;
+    std::vector<float> patchsizes_;
+    std::vector<float> weights_;
+    std::vector<uint16_t> prevDhashes_;
     PsizeParams params_;
 };
 

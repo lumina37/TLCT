@@ -1,3 +1,4 @@
+#include <bit>
 #include <expected>
 #include <limits>
 #include <numeric>
@@ -24,11 +25,12 @@ namespace rgs = std::ranges;
 template <cfg::concepts::CArrange TArrange>
 PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept
     : arrange_(arrange), mis_(std::move(mis)), params_(params) {
-    prevPatchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
-    patchsizes_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
+    prevPatchsizes_.resize(arrange.getMIRows() * arrange.getMIMaxCols());
+    patchsizes_.resize(prevPatchsizes_.size());
+    prevDhashes_.resize(prevPatchsizes_.size());
 
     if (arrange_.isMultiFocus()) {
-        weights_ = cv::Mat::zeros(arrange.getMIRows(), arrange.getMIMaxCols(), CV_32FC1);
+        weights_.resize(prevPatchsizes_.size());
     }
 }
 
@@ -100,21 +102,6 @@ auto PsizeImpl_<TArrange>::maxGradDirectionWithFarNeighbors(const FarNeighbors& 
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-float PsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize,
-                                          typename TNeighbors::Direction direction) const noexcept {
-    const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-
-    const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
-    const cv::Point2f cmpShift = matchStep * psize;
-
-    const float diffRatio = compare(anchorMI, neibMI, cmpShift);
-
-    const float metric = diffRatio;
-    return metric;
-}
-
-template <cfg::concepts::CArrange TArrange>
-template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
                                                         typename TNeighbors::Direction direction) const noexcept {
     const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
@@ -141,35 +128,31 @@ template <cfg::concepts::CArrange TArrange>
 float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const noexcept {
     using PsizeParams = PsizeParams_<TArrange>;
 
-    const MIBuffer& anchorMI = mis_.getMI(index);
-    const float prevPsize = prevPatchsizes_.at<float>(index);
+    const int offset = index.y * arrange_.getMIMaxCols() + index.x;
+    const MIBuffer& anchorMI = mis_.getMI(offset);
+    const float prevPsize = prevPatchsizes_[offset];
 
-    float minMetric = std::numeric_limits<float>::max() / 2.f;
-    float prevMetric = minMetric / params_.psizeShortcutFactor;
-    float bestPsize;
+    if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
+        // Early return if dhash is only slightly different
+        const uint16_t prevDhash = prevDhashes_[offset];
+        const int dhashDiff = std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
+        if (dhashDiff <= params_.psizeShortcutThreshold) {
+            return prevPsize;
+        }
+    }
 
     const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
     const auto nearDirection = maxGradDirectionWithNearNeighbors(nearNeighbors);
 
-    if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        bestPsize = prevPsize;
-        prevMetric = metricOfPsize<NearNeighbors>(nearNeighbors, anchorMI, prevPsize, nearDirection);
-    } else {
-        bestPsize = (float)params_.minPsize;
-    }
-
-    const float prevMetricForCmp = prevMetric * params_.psizeShortcutFactor;
     const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(nearNeighbors, anchorMI, nearDirection);
-    if (nearPsizeMetric.metric < prevMetricForCmp) {
-        minMetric = nearPsizeMetric.metric;
-        bestPsize = nearPsizeMetric.psize;
-    }
+    float minMetric = nearPsizeMetric.metric;
+    float bestPsize = nearPsizeMetric.psize;
 
     if (arrange_.isMultiFocus()) {
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
         const auto farDirection = maxGradDirectionWithFarNeighbors(farNeighbors);
         const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, anchorMI, farDirection);
-        if (farPsizeMetric.metric < minMetric && farPsizeMetric.metric < prevMetricForCmp) {
+        if (farPsizeMetric.metric < minMetric) {
             bestPsize = farPsizeMetric.psize;
         }
     }
@@ -197,8 +180,10 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
     const float texGradStddev = texMeanStddev.getStddev();
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            const int offset = row * arrange_.getMIMaxCols() + col;
             const cv::Point index{col, row};
-            const auto& mi = mis_.getMI(index);
+
+            const auto& mi = mis_.getMI(offset);
             const float currGrad = mi.grads.normed;
 
             using TNeighbors = NearNeighbors_<TArrange>;
@@ -213,13 +198,14 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                     continue;
                 }
                 const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
-                const MIBuffer& neibMI = mis_.getMI(neibIdx);
+                const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
+                const MIBuffer& neibMI = mis_.getMI(neibOffset);
                 neibGrads[(int)direction] = neibMI.grads.normed;
-                neibPsizes[(int)direction] = patchsizes_.at<float>(neibIdx);
+                neibPsizes[(int)direction] = patchsizes_[neibOffset];
             }
 
             const float normedGrad = (mi.grads.normed - texGradMean) / texGradStddev;
-            weights_.at<float>(row, col) = _hp::sigmoid(normedGrad);
+            weights_[offset] = _hp::sigmoid(normedGrad);
 
             int group0GtCount = 0;
             int group1GtCount = 0;
@@ -234,8 +220,8 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have the blurrest texture (smallest gradient) among all its neighbor MIs.
             // We should assign a small weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
-                weights_.at<float>(row, col) = std::numeric_limits<float>::epsilon();
-                patchsizes_.at<float>(row, col) =
+                weights_[offset] = std::numeric_limits<float>::epsilon();
+                patchsizes_[offset] =
                     std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
                 continue;
             }
@@ -244,11 +230,18 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have exactly 3 neighbor MIs that have clearer texture.
             // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
             if (group0GtCount == 3 && group1GtCount == 0) {
-                patchsizes_.at<float>(row, col) = (neibPsizes[0] + neibPsizes[2] + neibPsizes[4]) / 3.f;
+                patchsizes_[offset] = (neibPsizes[0] + neibPsizes[2] + neibPsizes[4]) / 3.f;
             } else if (group0GtCount == 0 && group1GtCount == 3) {
-                patchsizes_.at<float>(row, col) = (neibPsizes[1] + neibPsizes[3] + neibPsizes[5]) / 3.f;
+                patchsizes_[offset] = (neibPsizes[1] + neibPsizes[3] + neibPsizes[5]) / 3.f;
             }
         }
+    }
+}
+
+template <cfg::concepts::CArrange TArrange>
+void PsizeImpl_<TArrange>::dumpDhashes() noexcept {
+    for (const int idx : rgs::views::iota(0, (int)prevDhashes_.size())) {
+        prevDhashes_[idx] = mis_.getMI(idx).dhash;
     }
 }
 
@@ -273,18 +266,23 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
     auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
-    // #pragma omp parallel for
-    for (int row = 0; row < arrange_.getMIRows(); row++) {
-        for (int col = 0; col < arrange_.getMICols(row); col++) {
-            const cv::Point index{col, row};
-            const float psize = estimatePatchsize(index);
-            patchsizes_.at<float>(index) = psize;
+#pragma omp parallel for
+    for (int idx = 0; idx < patchsizes_.size(); idx++) {
+        const int row = idx / arrange_.getMIMaxCols();
+        const int col = idx % arrange_.getMIMaxCols();
+        if (col >= arrange_.getMICols(row)) {
+            continue;
         }
+        const cv::Point index{col, row};
+        const float psize = estimatePatchsize(index);
+        patchsizes_[idx] = psize;
     }
 
     if (arrange_.isMultiFocus()) {
         adjustWgtsAndPsizesForMultiFocus();
     }
+
+    dumpDhashes();
 
     return {};
 }

@@ -24,7 +24,7 @@ public:
             const fs::path filePath{err.source.file_name()};
             const std::string fileName = filePath.filename().string();
             std::println(std::cerr, "{}:{} msg={} code={}", fileName, err.source.line(), err.msg, (int)err.code);
-            std::exit((int)err.code);
+            std::exit(1);
         }
         if constexpr (!std::is_void_v<T>) {
             return std::forward_like<T>(src.value());
@@ -70,10 +70,10 @@ constexpr auto unwrap = Unwrap();
         .help("reserve `viewShiftRange*diameter` for view shifting")
         .scan<'g', float>()
         .default_value(0.1f);
-    parser->add_argument("--psizeShortcutFactor")
-        .help("if the metric of new patch size is larger than `prevMetric*factor`, then use the prev. one")
-        .scan<'g', float>()
-        .default_value(0.85f);
+    parser->add_argument("--psizeShortcutThreshold")
+        .help("if the bit diff of `dhash` is smaller than this threshold, then use the prev. patchsize")
+        .scan<'i', int>()
+        .default_value(4);
 
     parser->add_epilog(std::string{tlct::compileInfo});
 
@@ -89,6 +89,6 @@ constexpr auto unwrap = Unwrap();
                                            parser.get<float>("--minPsize"),
                                            parser.get<float>("--psizeInflate"),
                                            parser.get<float>("--viewShiftRange"),
-                                           parser.get<float>("--psizeShortcutFactor")};
+                                           parser.get<int>("--psizeShortcutThreshold")};
     return tlct::CliConfig::create(path, range, convert);
 }

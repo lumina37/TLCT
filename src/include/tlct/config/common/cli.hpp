@@ -28,7 +28,7 @@ public:
         float minPsize;
         float psizeInflate;
         float viewShiftRange;
-        float psizeShortcutFactor;
+        int psizeShortcutThreshold;
     };
 
     Path path;

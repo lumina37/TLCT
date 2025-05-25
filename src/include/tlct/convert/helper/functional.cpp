@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <numbers>
@@ -38,7 +39,7 @@ namespace rgs = std::ranges;
 
 [[nodiscard]] Grads computeGrads(const cv::Mat& src) noexcept {
     cv::Mat edges;
-    const float pixCount = (float)edges.total();
+    const float pixCount = (float)src.total();
 
     cv::Scharr(src, edges, CV_32F, 1, 0);
     edges = cv::abs(edges);
@@ -90,6 +91,30 @@ namespace rgs = std::ranges;
     }
 
     return maxAreaIdx;
+}
+
+uint16_t dhash(const cv::Mat& src) {
+    constexpr int thumbnail_width = 4;
+    constexpr int thumbnail_size = thumbnail_width * (thumbnail_width + 1);
+    std::array<uint8_t, thumbnail_size> thumbnail_buffer;
+    cv::Mat thumbnail(thumbnail_width, thumbnail_width, CV_8UC1, thumbnail_buffer.data());
+    cv::resize(src, thumbnail, {thumbnail_width + 1, thumbnail_width});
+
+    uint16_t dhash = 0;
+    uint16_t mask = 1;
+    for (const int row : rgs::views::iota(0, thumbnail_width)) {
+        const auto prow = thumbnail.ptr<uint8_t>(row);
+        for (const int col : rgs::views::iota(0, thumbnail_width)) {
+            const uint8_t currVal = prow[col];
+            const uint8_t nextVal = prow[col + 1];
+            if (nextVal > currVal) {
+                dhash |= mask;
+            }
+            mask <<= 1;
+        }
+    }
+
+    return dhash;
 }
 
 }  // namespace tlct::_cvt
