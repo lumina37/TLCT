@@ -33,56 +33,97 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, cons
 }
 
 template <cfg::concepts::CArrange TArrange>
-template <concepts::CNeighbors TNeighbors>
-float PsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI,
-                                          float psize) const noexcept {
-    float minDiffRatio = std::numeric_limits<float>::max();
-    for (const auto direction : TNeighbors::DIRECTIONS) {
+auto PsizeImpl_<TArrange>::maxGradDirectionWithNearNeighbors(const NearNeighbors& neighbors) const noexcept ->
+    typename NearNeighbors::Direction {
+    float maxGrad = -1.f;
+    typename NearNeighbors::Direction maxGradDirection{};
+    for (const auto direction : {NearNeighbors::Direction::UPLEFT, NearNeighbors::Direction::UPRIGHT,
+                                 NearNeighbors::Direction::DOWNLEFT, NearNeighbors::Direction::DOWNRIGHT}) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
             continue;
         }
 
         const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-
-        const cv::Point2f matchStep = _hp::sgn(mis_.getArrange().isKepler()) * TNeighbors::getUnitShift(direction);
-        const cv::Point2f cmpShift = matchStep * psize;
-
-        const float diffRatio = compare(anchorMI, neibMI, cmpShift);
-        if (diffRatio < minDiffRatio) {
-            minDiffRatio = diffRatio;
+        if (neibMI.grads.deg60 > maxGrad) {
+            maxGrad = neibMI.grads.deg60;
+            maxGradDirection = direction;
         }
     }
 
-    const float metric = minDiffRatio;
+    for (const auto direction : {NearNeighbors::Direction::LEFT, NearNeighbors::Direction::RIGHT}) {
+        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
+        }
+
+        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+        if (neibMI.grads.deg0 > maxGrad) {
+            maxGrad = neibMI.grads.deg0;
+            maxGradDirection = direction;
+        }
+    }
+
+    return maxGradDirection;
+}
+
+template <cfg::concepts::CArrange TArrange>
+auto PsizeImpl_<TArrange>::maxGradDirectionWithFarNeighbors(const FarNeighbors& neighbors) const noexcept ->
+    typename FarNeighbors::Direction {
+    float maxGrad = -1.f;
+    typename FarNeighbors::Direction maxGradDirection{};
+    for (const auto direction : {FarNeighbors::Direction::UPLEFT, FarNeighbors::Direction::UPRIGHT,
+                                 FarNeighbors::Direction::DOWNLEFT, FarNeighbors::Direction::DOWNRIGHT}) {
+        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
+        }
+
+        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+        if (neibMI.grads.deg30 > maxGrad) {
+            maxGrad = neibMI.grads.deg30;
+            maxGradDirection = direction;
+        }
+    }
+
+    for (const auto direction : {FarNeighbors::Direction::UP, FarNeighbors::Direction::DOWN}) {
+        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
+        }
+
+        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+        if (neibMI.grads.deg90 > maxGrad) {
+            maxGrad = neibMI.grads.deg90;
+            maxGradDirection = direction;
+        }
+    }
+
+    return maxGradDirection;
+}
+
+template <cfg::concepts::CArrange TArrange>
+template <concepts::CNeighbors TNeighbors>
+float PsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize,
+                                          typename TNeighbors::Direction direction) const noexcept {
+    const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+
+    const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
+    const cv::Point2f cmpShift = matchStep * psize;
+
+    const float diffRatio = compare(anchorMI, neibMI, cmpShift);
+
+    const float metric = diffRatio;
     return metric;
 }
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbor(const TNeighbors& neighbors,
-                                                       const MIBuffer& anchorMI) const noexcept {
-    float maxIntensity = -1.f;
-    typename TNeighbors::Direction maxIntensityDirection{};
-    for (const auto direction : TNeighbors::DIRECTIONS) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        if (neibMI.intensity > maxIntensity) {
-            maxIntensity = neibMI.intensity;
-            maxIntensityDirection = direction;
-        }
-    }
-
-    const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(maxIntensityDirection));
-    const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(maxIntensityDirection);
-    cv::Point2f cmpShift = matchStep * params_.minPsize;
+PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
+                                                        typename TNeighbors::Direction direction) const noexcept {
+    const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+    const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
 
     float minDiffRatio = std::numeric_limits<float>::max();
     int bestPsize = params_.minPsize;
     for (const int psize : rgs::views::iota(params_.minPsize, params_.maxPsize)) {
-        cmpShift += matchStep;
+        const cv::Point2f cmpShift = matchStep * psize;
         const float diffRatio = compare(anchorMI, neibMI, cmpShift);
         if (diffRatio < minDiffRatio) {
             minDiffRatio = diffRatio;
@@ -98,8 +139,6 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbor(const TNeighbors& neighbo
 
 template <cfg::concepts::CArrange TArrange>
 float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const noexcept {
-    using NearNeighbors = NearNeighbors_<TArrange>;
-    using FarNeighbors = FarNeighbors_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
 
     const MIBuffer& anchorMI = mis_.getMI(index);
@@ -110,23 +149,27 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const noexcept {
     float bestPsize;
 
     const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
+    const auto nearDirection = maxGradDirectionWithNearNeighbors(nearNeighbors);
+
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         bestPsize = prevPsize;
-        prevMetric = metricOfPsize<NearNeighbors>(nearNeighbors, anchorMI, prevPsize);
+        prevMetric = metricOfPsize<NearNeighbors>(nearNeighbors, anchorMI, prevPsize, nearDirection);
     } else {
         bestPsize = (float)params_.minPsize;
     }
 
-    const PsizeMetric& nearPsizeMetric = estimateWithNeighbor<NearNeighbors>(nearNeighbors, anchorMI);
-    if (nearPsizeMetric.metric < prevMetric * params_.psizeShortcutFactor) {
+    const float prevMetricForCmp = prevMetric * params_.psizeShortcutFactor;
+    const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(nearNeighbors, anchorMI, nearDirection);
+    if (nearPsizeMetric.metric < prevMetricForCmp) {
         minMetric = nearPsizeMetric.metric;
         bestPsize = nearPsizeMetric.psize;
     }
 
     if (arrange_.isMultiFocus()) {
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
-        const PsizeMetric& farPsizeMetric = estimateWithNeighbor<FarNeighbors>(farNeighbors, anchorMI);
-        if (farPsizeMetric.metric < minMetric && farPsizeMetric.metric < prevMetric * params_.psizeShortcutFactor) {
+        const auto farDirection = maxGradDirectionWithFarNeighbors(farNeighbors);
+        const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, anchorMI, farDirection);
+        if (farPsizeMetric.metric < minMetric && farPsizeMetric.metric < prevMetricForCmp) {
             bestPsize = farPsizeMetric.psize;
         }
     }
@@ -139,56 +182,56 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
     // TODO: handle `std::bad_alloc` in this func
     _hp::MeanStddev texMeanStddev{};
 
-    // 1-pass: stat texture intensity
+    // 1-pass: stat texture gradient
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         const int rowOffset = row * arrange_.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             const int offset = rowOffset + col;
             const auto& mi = mis_.getMI(offset);
-            texMeanStddev.update(mi.intensity);
+            texMeanStddev.update(mi.grads.normed);
         }
     }
 
     // 2-pass: compute weight
-    const float texIntensityMean = texMeanStddev.getMean();
-    const float texIntensityStddev = texMeanStddev.getStddev();
+    const float texGradMean = texMeanStddev.getMean();
+    const float texGradStddev = texMeanStddev.getStddev();
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             const cv::Point index{col, row};
             const auto& mi = mis_.getMI(index);
-            const float currIntensity = mi.intensity;
+            const float currGrad = mi.grads.normed;
 
             using TNeighbors = NearNeighbors_<TArrange>;
             const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, index);
 
-            std::array<float, TNeighbors::DIRECTION_NUM> neibIntensities;
+            std::array<float, TNeighbors::DIRECTION_NUM> neibGrads;
             std::array<float, TNeighbors::DIRECTION_NUM> neibPsizes;
             for (const auto direction : TNeighbors::DIRECTIONS) {
                 if (!neighbors.hasNeighbor(direction)) {
-                    neibIntensities[(int)direction] = -1.f;
+                    neibGrads[(int)direction] = -1.f;
                     neibPsizes[(int)direction] = -1.f;
                     continue;
                 }
                 const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
                 const MIBuffer& neibMI = mis_.getMI(neibIdx);
-                neibIntensities[(int)direction] = neibMI.intensity;
+                neibGrads[(int)direction] = neibMI.grads.normed;
                 neibPsizes[(int)direction] = patchsizes_.at<float>(neibIdx);
             }
 
-            const float normedTexIntensity = (mi.intensity - texIntensityMean) / texIntensityStddev;
-            weights_.at<float>(row, col) = _hp::sigmoid(normedTexIntensity);
+            const float normedGrad = (mi.grads.normed - texGradMean) / texGradStddev;
+            weights_.at<float>(row, col) = _hp::sigmoid(normedGrad);
 
             int group0GtCount = 0;
             int group1GtCount = 0;
-            group0GtCount += (int)(neibIntensities[0] > currIntensity);
-            group1GtCount += (int)(neibIntensities[1] > currIntensity);
-            group0GtCount += (int)(neibIntensities[2] > currIntensity);
-            group1GtCount += (int)(neibIntensities[3] > currIntensity);
-            group0GtCount += (int)(neibIntensities[4] > currIntensity);
-            group1GtCount += (int)(neibIntensities[5] > currIntensity);
+            group0GtCount += (int)(neibGrads[0] > currGrad);
+            group1GtCount += (int)(neibGrads[1] > currGrad);
+            group0GtCount += (int)(neibGrads[2] > currGrad);
+            group1GtCount += (int)(neibGrads[3] > currGrad);
+            group0GtCount += (int)(neibGrads[4] > currGrad);
+            group1GtCount += (int)(neibGrads[5] > currGrad);
 
             // For blurred MI in far field.
-            // These MI will have the blurest texture (lowest intensity) among all its neighbor MIs.
+            // These MI will have the blurrest texture (smallest gradient) among all its neighbor MIs.
             // We should assign a small weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
                 weights_.at<float>(row, col) = std::numeric_limits<float>::epsilon();
@@ -230,7 +273,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
     auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
-#pragma omp parallel for
+    // #pragma omp parallel for
     for (int row = 0; row < arrange_.getMIRows(); row++) {
         for (int col = 0; col < arrange_.getMICols(row); col++) {
             const cv::Point index{col, row};

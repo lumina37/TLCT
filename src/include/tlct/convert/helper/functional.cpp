@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <numbers>
 #include <ranges>
 #include <span>
 
@@ -35,17 +36,24 @@ namespace rgs = std::ranges;
     return rect;
 }
 
-[[nodiscard]] float textureIntensity(const cv::Mat& src) noexcept {
+[[nodiscard]] Grads computeGrads(const cv::Mat& src) noexcept {
     cv::Mat edges;
-    float intensity = 0.0;
+    const float pixCount = (float)edges.total();
+
     cv::Scharr(src, edges, CV_32F, 1, 0);
     edges = cv::abs(edges);
-    intensity += (float)cv::sum(edges)[0];
+    const float gradX = (float)cv::sum(edges)[0] / pixCount;
     cv::Scharr(src, edges, CV_32F, 0, 1);
     edges = cv::abs(edges);
-    intensity += (float)cv::sum(edges)[0];
-    intensity /= (float)edges.total();
-    return intensity;
+    const float gradY = (float)cv::sum(edges)[0] / pixCount;
+
+    const float sqrX = gradX * gradX;
+    const float sqrY = gradY * gradY;
+    const float gradDeg30 = std::sqrtf(sqrX * 0.75f + sqrY * 0.25f);
+    const float gradDeg60 = std::sqrtf(sqrX * 0.25f + sqrY * 0.75f);
+    const float gradNormed = std::sqrtf(sqrX * 0.5f + sqrY * 0.5f);
+
+    return {gradX, gradDeg30, gradDeg60, sqrY, gradNormed};
 }
 
 [[nodiscard]] TLCT_API int pickByFWHM(const std::span<float> arr) noexcept {

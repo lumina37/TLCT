@@ -12,7 +12,15 @@ namespace rgs = std::ranges;
 
 [[nodiscard]] TLCT_API cv::Mat circleWithFadeoutBorder(int diameter, float borderWidthFactor) noexcept;
 
-[[nodiscard]] TLCT_API float textureIntensity(const cv::Mat& src) noexcept;
+struct Grads {
+    float deg0;
+    float deg30;
+    float deg60;
+    float deg90;
+    float normed;
+};
+
+[[nodiscard]] TLCT_API Grads computeGrads(const cv::Mat& src) noexcept;
 
 [[nodiscard]] TLCT_API int pickByFWHM(std::span<float> arr) noexcept;
 

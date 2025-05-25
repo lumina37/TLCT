@@ -112,9 +112,12 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
             cv::Mat censusMask = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
             censusTransform5x5(tmpY, srcCircleMask, censusMap, censusMask);
 
-            const float intensity = textureIntensity(tmpY);
+            const Grads grads = computeGrads(tmpY);
+            miBufIterator->grads = grads;
 
-            *miBufIterator = {std::move(censusMap), std::move(censusMask), intensity};
+            miBufIterator->censusMap = std::move(censusMap);
+            miBufIterator->censusMask = std::move(censusMask);
+
             miBufIterator++;
             colBufCursor += params_.alignedMISize_;
         }

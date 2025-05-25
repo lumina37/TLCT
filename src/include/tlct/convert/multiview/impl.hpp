@@ -75,7 +75,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
     const int viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
 
     cv::Mat resizedPatch;
-    [[maybe_unused]] cv::Mat rotatedPatch;
+    cv::Mat rotatedPatch;
     cv::Mat weightedPatch;
 
     for (const int chanIdx : rgs::views::iota(0, (int)cache_.srcs.size())) {

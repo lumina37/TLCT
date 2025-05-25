@@ -25,13 +25,21 @@ public:
 private:
     PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept;
 
-    template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] float metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI,
-                                      float psize) const noexcept;
+    using NearNeighbors = NearNeighbors_<TArrange>;
+    using FarNeighbors = FarNeighbors_<TArrange>;
+
+    [[nodiscard]] typename NearNeighbors::Direction maxGradDirectionWithNearNeighbors(
+        const NearNeighbors& neighbors) const noexcept;
+    [[nodiscard]] typename FarNeighbors::Direction maxGradDirectionWithFarNeighbors(
+        const FarNeighbors& neighbors) const noexcept;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] PsizeMetric estimateWithNeighbor(const TNeighbors& neighbors,
-                                                   const MIBuffer& anchorMI) const noexcept;
+    [[nodiscard]] float metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize,
+                                      typename TNeighbors::Direction direction) const noexcept;
+
+    template <concepts::CNeighbors TNeighbors>
+    [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
+                                                    typename TNeighbors::Direction direction) const noexcept;
 
     [[nodiscard]] float estimatePatchsize(cv::Point index) const noexcept;
 

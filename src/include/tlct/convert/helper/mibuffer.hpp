@@ -10,16 +10,17 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/helper/functional.hpp"
 #include "tlct/helper/error.hpp"
 
 namespace tlct::_cvt {
 
 struct MIBuffer {
     static constexpr int C3_COUNT = 2;
+    Grads grads;
+
     cv::Mat censusMap;   // 8UC3
     cv::Mat censusMask;  // 8UC3
-
-    float intensity;
 };
 
 template <cfg::concepts::CArrange TArrange_>
@@ -60,7 +61,6 @@ public:
     [[nodiscard]] TLCT_API static std::expected<MIBuffers_, Error> create(const TArrange& arrange) noexcept;
 
     // Const methods
-    [[nodiscard]] const TArrange& getArrange() const noexcept { return arrange_; }
     [[nodiscard]] const MIBuffer& getMI(const int row, const int col) const noexcept {
         const int offset = row * params_.miMaxCols_ + col;
         return miBuffers_.at(offset);
