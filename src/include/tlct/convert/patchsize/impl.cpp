@@ -204,8 +204,10 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 neibPsizes[(int)direction] = patchsizes_[neibOffset];
             }
 
-            const float normedGrad = (mi.grads.normed - texGradMean) / texGradStddev;
-            weights_[offset] = _hp::sigmoid(normedGrad);
+            const float normedGrad = (mi.grads.normed - texGradMean) / (texGradStddev * 2.0f);
+            const float clippedGrad = _hp::clip(normedGrad, -1.0f, 1.0f);
+            const float poweredGrad = clippedGrad * clippedGrad * clippedGrad;
+            weights_[offset] = poweredGrad + 1.0f;
 
             int group0GtCount = 0;
             int group1GtCount = 0;
