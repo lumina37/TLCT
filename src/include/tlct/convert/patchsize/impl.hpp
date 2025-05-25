@@ -26,14 +26,16 @@ private:
     PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] float metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize) const;
+    [[nodiscard]] float metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI,
+                                      float psize) const noexcept;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] PsizeMetric estimateWithNeighbor(const TNeighbors& neighbors, const MIBuffer& anchorMI) const;
+    [[nodiscard]] PsizeMetric estimateWithNeighbor(const TNeighbors& neighbors,
+                                                   const MIBuffer& anchorMI) const noexcept;
 
-    [[nodiscard]] float estimatePatchsize(cv::Point index) const;
+    [[nodiscard]] float estimatePatchsize(cv::Point index) const noexcept;
 
-    void adjustWgtsAndPsizesForMultiFocus();
+    void adjustWgtsAndPsizesForMultiFocus() noexcept;
 
 public:
     // Constructor

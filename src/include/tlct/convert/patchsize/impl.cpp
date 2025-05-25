@@ -34,7 +34,8 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, cons
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-float PsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI, float psize) const {
+float PsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIBuffer& anchorMI,
+                                          float psize) const noexcept {
     float minDiffRatio = std::numeric_limits<float>::max();
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -58,7 +59,8 @@ float PsizeImpl_<TArrange>::metricOfPsize(const TNeighbors& neighbors, const MIB
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbor(const TNeighbors& neighbors, const MIBuffer& anchorMI) const {
+PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbor(const TNeighbors& neighbors,
+                                                       const MIBuffer& anchorMI) const noexcept {
     float maxIntensity = -1.f;
     typename TNeighbors::Direction maxIntensityDirection{};
     for (const auto direction : TNeighbors::DIRECTIONS) {
@@ -95,7 +97,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbor(const TNeighbors& neighbo
 }
 
 template <cfg::concepts::CArrange TArrange>
-float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const {
+float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const noexcept {
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
@@ -133,7 +135,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const {
 }
 
 template <cfg::concepts::CArrange TArrange>
-void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() {
+void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
     // TODO: handle `std::bad_alloc` in this func
     _hp::MeanStddev texMeanStddev{};
 
