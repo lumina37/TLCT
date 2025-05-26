@@ -95,39 +95,38 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
         getRoiByCenter({censusRadius, censusRadius}, params_.censusDiameter_ / std::numbers::sqrt2_v<float>);
 
     uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());
-    size_t rowBufStep = params_.miMaxCols_ * params_.alignedMISize_;
-    // #pragma omp parallel for
-    for (int rowMIIdx = 0; rowMIIdx < arrange_.getMIRows(); rowMIIdx++) {
-        uint8_t* colBufCursor = bufBase + rowMIIdx * rowBufStep;
-        auto miBufIterator = miBuffers_.begin() + rowMIIdx * arrange_.getMIMaxCols();
-
-        cv::Mat tmpY = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC1);
-        const int miCols = arrange_.getMICols(rowMIIdx);
-        for (int colMIIdx = 0; colMIIdx < miCols; colMIIdx++) {
-            const cv::Point2f& miCenter = arrange_.getMICenter(rowMIIdx, colMIIdx);
-            const cv::Rect miRoi = getRoiByCenter(miCenter, params_.censusDiameter_);
-
-            uint8_t* matBufCursor = colBufCursor;
-
-            const cv::Mat& srcY = src(miRoi);
-            srcY.copyTo(tmpY);
-
-            cv::Mat censusMap = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
-            matBufCursor += params_.alignedMatSizeC3_;
-            cv::Mat censusMask = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
-            censusTransform5x5(tmpY, srcCircleMask, censusMap, censusMask);
-
-            miBufIterator->censusMap = std::move(censusMap);
-            miBufIterator->censusMask = std::move(censusMask);
-
-            const Grads grads = computeGrads(tmpY(dhashRoi));
-            miBufIterator->grads = grads;
-
-            miBufIterator->dhash = dhash(tmpY(dhashRoi));
-
-            miBufIterator++;
-            colBufCursor += params_.alignedMISize_;
+#pragma omp parallel for
+    for (int idx = 0; idx < params_.miNum_; idx++) {
+        const int rowMIIdx = idx / params_.miMaxCols_;
+        const int colMIIdx = idx % params_.miMaxCols_;
+        if (colMIIdx >= arrange_.getMICols(rowMIIdx)) {
+            continue;
         }
+
+        auto miBufIterator = miBuffers_.begin() + idx;
+        cv::Mat tmpY = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC1);
+
+        const cv::Point2f& miCenter = arrange_.getMICenter(rowMIIdx, colMIIdx);
+        const cv::Rect miRoi = getRoiByCenter(miCenter, params_.censusDiameter_);
+
+        uint8_t* matBufCursor = bufBase + idx * params_.alignedMISize_;
+
+        const cv::Mat& srcY = src(miRoi);
+        srcY.copyTo(tmpY);
+        cv::Mat centralY = tmpY(dhashRoi);
+
+        cv::Mat censusMap = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
+        matBufCursor += params_.alignedMatSizeC3_;
+        cv::Mat censusMask = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
+        censusTransform5x5(tmpY, srcCircleMask, censusMap, censusMask);
+
+        miBufIterator->censusMap = std::move(censusMap);
+        miBufIterator->censusMask = std::move(censusMask);
+
+        const Grads grads = computeGrads(centralY);
+        miBufIterator->grads = grads;
+
+        miBufIterator->dhash = dhash(centralY);
     }
 
     return {};

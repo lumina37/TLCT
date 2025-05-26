@@ -275,7 +275,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
 #pragma omp parallel for
-    for (int idx = 0; idx < patchsizes_.size(); idx++) {
+    for (int idx = 0; idx < (int)patchsizes_.size(); idx++) {
         const int row = idx / arrange_.getMIMaxCols();
         const int col = idx % arrange_.getMIMaxCols();
         if (col >= arrange_.getMICols(row)) {
