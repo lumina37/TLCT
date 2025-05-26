@@ -187,6 +187,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             const float currGrad = mi.grads.normed;
 
             using TNeighbors = NearNeighbors_<TArrange>;
+            using Direction = typename TNeighbors::Direction;
             const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, index);
 
             std::array<float, TNeighbors::DIRECTION_NUM> neibGrads;
@@ -211,18 +212,19 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
 
             int group0GtCount = 0;
             int group1GtCount = 0;
-            group0GtCount += (int)(neibGrads[0] > currGrad);
-            group1GtCount += (int)(neibGrads[1] > currGrad);
-            group0GtCount += (int)(neibGrads[2] > currGrad);
-            group1GtCount += (int)(neibGrads[3] > currGrad);
-            group0GtCount += (int)(neibGrads[4] > currGrad);
-            group1GtCount += (int)(neibGrads[5] > currGrad);
+            const float currGradForCmp = currGrad * 1.15f;
+            group0GtCount += (int)(neibGrads[(int)Direction::UPLEFT] > currGradForCmp);
+            group0GtCount += (int)(neibGrads[(int)Direction::RIGHT] > currGradForCmp);
+            group0GtCount += (int)(neibGrads[(int)Direction::DOWNLEFT] > currGradForCmp);
+            group1GtCount += (int)(neibGrads[(int)Direction::UPRIGHT] > currGradForCmp);
+            group1GtCount += (int)(neibGrads[(int)Direction::LEFT] > currGradForCmp);
+            group1GtCount += (int)(neibGrads[(int)Direction::DOWNRIGHT] > currGradForCmp);
 
             // For blurred MI in far field.
             // These MI will have the blurrest texture (smallest gradient) among all its neighbor MIs.
-            // We should assign a small weight for these MI.
+            // We should assign a smaller weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
-                weights_[offset] = std::numeric_limits<float>::epsilon();
+                weights_[offset] /= 2.5f;
                 patchsizes_[offset] =
                     std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
                 continue;
@@ -232,9 +234,13 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have exactly 3 neighbor MIs that have clearer texture.
             // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
             if (group0GtCount == 3 && group1GtCount == 0) {
-                patchsizes_[offset] = (neibPsizes[0] + neibPsizes[2] + neibPsizes[4]) / 3.f;
+                patchsizes_[offset] = (neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
+                                       neibPsizes[(int)Direction::DOWNLEFT]) /
+                                      3.f;
             } else if (group0GtCount == 0 && group1GtCount == 3) {
-                patchsizes_[offset] = (neibPsizes[1] + neibPsizes[3] + neibPsizes[5]) / 3.f;
+                patchsizes_[offset] = (neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
+                                       neibPsizes[(int)Direction::DOWNLEFT]) /
+                                      3.f;
             }
         }
     }
