@@ -14,6 +14,5 @@ We've already fine-tuned the calibration configs for all CTC sequences. You can 
 
 ## Tested Complier Version
 
-+ gcc v13
-+ clang v18
-+ msvc v19.29* (*hard to test different version of msvc)
++ gcc v14
++ msvc v19.43* (*hard to test different version of msvc)
