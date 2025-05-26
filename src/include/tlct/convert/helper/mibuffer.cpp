@@ -5,6 +5,7 @@
 #include <expected>
 #include <format>
 #include <memory>
+#include <numbers>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -85,13 +86,17 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
     }
 
     const int iCensusDiameter = _hp::iround(params_.censusDiameter_);
+    const float censusRadius = params_.censusDiameter_ / 2.f;
     const int iCensusRadius = _hp::iround(params_.censusDiameter_ / 2.f);
     const cv::Mat srcCircleMask = cv::Mat::zeros(iCensusDiameter, iCensusDiameter, CV_8UC1);
     cv::circle(srcCircleMask, {iCensusRadius, iCensusRadius}, iCensusRadius, cv::Scalar::all(0xff), cv::FILLED);
 
+    const cv::Rect dhashRoi =
+        getRoiByCenter({censusRadius, censusRadius}, params_.censusDiameter_ / std::numbers::sqrt2_v<float>);
+
     uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());
     size_t rowBufStep = params_.miMaxCols_ * params_.alignedMISize_;
-//#pragma omp parallel for
+    // #pragma omp parallel for
     for (int rowMIIdx = 0; rowMIIdx < arrange_.getMIRows(); rowMIIdx++) {
         uint8_t* colBufCursor = bufBase + rowMIIdx * rowBufStep;
         auto miBufIterator = miBuffers_.begin() + rowMIIdx * arrange_.getMIMaxCols();
@@ -118,7 +123,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
             const Grads grads = computeGrads(tmpY);
             miBufIterator->grads = grads;
 
-            miBufIterator->dhash = dhash(tmpY);
+            miBufIterator->dhash = dhash(tmpY(dhashRoi));
 
             miBufIterator++;
             colBufCursor += params_.alignedMISize_;
