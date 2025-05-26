@@ -224,7 +224,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have the blurrest texture (smallest gradient) among all its neighbor MIs.
             // We should assign a smaller weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
-                weights_[offset] /= 2.5f;
+                weights_[offset] /= 2.0f;
                 patchsizes_[offset] =
                     std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
                 continue;

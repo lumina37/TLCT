@@ -120,7 +120,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
             miBufIterator->censusMap = std::move(censusMap);
             miBufIterator->censusMask = std::move(censusMask);
 
-            const Grads grads = computeGrads(tmpY);
+            const Grads grads = computeGrads(tmpY(dhashRoi));
             miBufIterator->grads = grads;
 
             miBufIterator->dhash = dhash(tmpY(dhashRoi));

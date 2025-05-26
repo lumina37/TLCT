@@ -2,7 +2,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
-#include <numbers>
 #include <ranges>
 #include <span>
 
