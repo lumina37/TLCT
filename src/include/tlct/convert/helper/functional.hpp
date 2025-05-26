@@ -1,7 +1,5 @@
 #pragma once
 
-#include <span>
-
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
@@ -21,8 +19,6 @@ struct Grads {
 };
 
 [[nodiscard]] TLCT_API Grads computeGrads(const cv::Mat& src) noexcept;
-
-[[nodiscard]] TLCT_API int pickByFWHM(std::span<float> arr) noexcept;
 
 [[nodiscard]] TLCT_API uint16_t dhash(const cv::Mat& src);
 

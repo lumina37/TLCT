@@ -15,7 +15,6 @@ function(tlct_add_test name lib srcs)
 endfunction()
 
 tlct_add_test(test_constexpr_math tlct::lib::static "test_constexpr_math.cpp")
-tlct_add_test(test_functional tlct::lib::static "test_functional.cpp")
 
 tlct_add_test(test_corners_arrange tlct::lib::static "test_corners_arrange.cpp")
 tlct_add_test(test_offset_arrange tlct::lib::static "test_offset_arrange.cpp")
