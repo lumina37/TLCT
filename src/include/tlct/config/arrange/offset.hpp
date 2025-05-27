@@ -18,11 +18,11 @@ public:
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API OffsetArrange() noexcept = default;
-    TLCT_API OffsetArrange(const OffsetArrange& rhs) noexcept = default;
-    TLCT_API OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
-    TLCT_API OffsetArrange(OffsetArrange&& rhs) noexcept = default;
-    TLCT_API OffsetArrange& operator=(OffsetArrange&& rhs) noexcept = default;
+    OffsetArrange() noexcept = default;
+    OffsetArrange(const OffsetArrange& rhs) noexcept = default;
+    OffsetArrange& operator=(const OffsetArrange& rhs) noexcept = default;
+    OffsetArrange(OffsetArrange&& rhs) noexcept = default;
+    OffsetArrange& operator=(OffsetArrange&& rhs) noexcept = default;
     TLCT_API OffsetArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, float xUnitShift, float yUnitShift,
                            int miRows, TMiCols miCols, int upsample, bool direction, bool isKepler, bool isMultiFocus,
                            bool isOutShift) noexcept;

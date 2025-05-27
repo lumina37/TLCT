@@ -23,11 +23,11 @@ private:
 
 public:
     // Constructor
-    TLCT_API ConfigMap() noexcept = default;
-    TLCT_API ConfigMap(const ConfigMap& rhs) = default;
-    TLCT_API ConfigMap& operator=(const ConfigMap& rhs) = default;
-    TLCT_API ConfigMap(ConfigMap&& rhs) noexcept : map_(std::move(rhs.map_)) {};
-    TLCT_API ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
+    ConfigMap() noexcept = default;
+    ConfigMap(const ConfigMap& rhs) = default;
+    ConfigMap& operator=(const ConfigMap& rhs) = default;
+    ConfigMap(ConfigMap&& rhs) noexcept = default;
+    ConfigMap& operator=(ConfigMap&& rhs) noexcept = default;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<ConfigMap, Error> createFromFs(std::ifstream&& ifs) noexcept;

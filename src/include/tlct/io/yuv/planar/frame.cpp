@@ -6,8 +6,8 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/error.hpp"
 #include "tlct/helper/constexpr/math.hpp"
+#include "tlct/helper/error.hpp"
 #include "tlct/io/yuv/planar/extent.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
@@ -19,22 +19,6 @@ namespace tlct::_io {
 YuvPlanarFrame::YuvPlanarFrame(const YuvPlanarExtent& extent, std::unique_ptr<std::byte[]>&& pBuffer, cv::Mat&& y,
                                cv::Mat&& u, cv::Mat&& v) noexcept
     : extent_(extent), pBuffer_(std::move(pBuffer)), y_(std::move(y)), u_(std::move(u)), v_(std::move(v)) {}
-
-YuvPlanarFrame::YuvPlanarFrame(YuvPlanarFrame&& rhs) noexcept
-    : extent_(rhs.extent_),
-      pBuffer_(std::move(rhs.pBuffer_)),
-      y_(std::move(rhs.y_)),
-      u_(std::move(rhs.u_)),
-      v_(std::move(rhs.v_)) {}
-
-YuvPlanarFrame& YuvPlanarFrame::operator=(YuvPlanarFrame&& rhs) noexcept {
-    extent_ = rhs.extent_;
-    pBuffer_ = std::move(rhs.pBuffer_);
-    y_ = std::move(rhs.y_);
-    u_ = std::move(rhs.u_);
-    v_ = std::move(rhs.v_);
-    return *this;
-}
 
 std::expected<YuvPlanarFrame, Error> YuvPlanarFrame::create(const YuvPlanarExtent& extent) noexcept {
     int cvTp;

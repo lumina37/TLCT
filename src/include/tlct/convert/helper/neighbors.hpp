@@ -50,10 +50,10 @@ public:
 
     // Constructor
     NearNeighbors_() = delete;
-    TLCT_API NearNeighbors_(const NearNeighbors_& rhs) noexcept = default;
-    TLCT_API NearNeighbors_& operator=(const NearNeighbors_& rhs) noexcept = default;
-    TLCT_API NearNeighbors_(NearNeighbors_&& rhs) noexcept = default;
-    TLCT_API NearNeighbors_& operator=(NearNeighbors_&& rhs) noexcept = default;
+    NearNeighbors_(const NearNeighbors_& rhs) noexcept = default;
+    NearNeighbors_& operator=(const NearNeighbors_& rhs) noexcept = default;
+    NearNeighbors_(NearNeighbors_&& rhs) noexcept = default;
+    NearNeighbors_& operator=(NearNeighbors_&& rhs) noexcept = default;
     TLCT_API NearNeighbors_(TIndices indices, cv::Point selfIdx, TPoints points, cv::Point2f selfPt) noexcept
         : indices_(indices), selfIdx_(selfIdx), points_(points), selfPt_(selfPt) {}
 
@@ -134,10 +134,10 @@ public:
 
     // Constructor
     FarNeighbors_() = delete;
-    TLCT_API FarNeighbors_(const FarNeighbors_& rhs) noexcept = default;
-    TLCT_API FarNeighbors_& operator=(const FarNeighbors_& rhs) noexcept = default;
-    TLCT_API FarNeighbors_(FarNeighbors_&& rhs) noexcept = default;
-    TLCT_API FarNeighbors_& operator=(FarNeighbors_&& rhs) noexcept = default;
+    FarNeighbors_(const FarNeighbors_& rhs) noexcept = default;
+    FarNeighbors_& operator=(const FarNeighbors_& rhs) noexcept = default;
+    FarNeighbors_(FarNeighbors_&& rhs) noexcept = default;
+    FarNeighbors_& operator=(FarNeighbors_&& rhs) noexcept = default;
     TLCT_API FarNeighbors_(TIndices indices, cv::Point selfIdx, TPoints points, cv::Point2f selfPt) noexcept
         : indices_(indices), selfIdx_(selfIdx), points_(points), selfPt_(selfPt) {}
 

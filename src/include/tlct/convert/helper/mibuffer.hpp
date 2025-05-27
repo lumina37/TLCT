@@ -55,8 +55,8 @@ public:
     MIBuffers_() noexcept = default;
     MIBuffers_& operator=(const MIBuffers_& rhs) = delete;
     MIBuffers_(const MIBuffers_& rhs) = delete;
-    TLCT_API MIBuffers_& operator=(MIBuffers_&& rhs) noexcept;
-    TLCT_API MIBuffers_(MIBuffers_&& rhs) noexcept;
+    MIBuffers_& operator=(MIBuffers_&& rhs) noexcept = default;
+    MIBuffers_(MIBuffers_&& rhs) noexcept = default;
 
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<MIBuffers_, Error> create(const TArrange& arrange) noexcept;

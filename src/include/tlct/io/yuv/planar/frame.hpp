@@ -23,8 +23,8 @@ public:
     YuvPlanarFrame() = delete;
     YuvPlanarFrame(const YuvPlanarFrame& rhs) = delete;
     YuvPlanarFrame operator=(const YuvPlanarFrame& rhs) = delete;
-    TLCT_API YuvPlanarFrame(YuvPlanarFrame&& rhs) noexcept;
-    TLCT_API YuvPlanarFrame& operator=(YuvPlanarFrame&& rhs) noexcept;
+    YuvPlanarFrame(YuvPlanarFrame&& rhs) noexcept = default;
+    YuvPlanarFrame& operator=(YuvPlanarFrame&& rhs) noexcept = default;
 
     [[nodiscard]] TLCT_API static std::expected<YuvPlanarFrame, Error> create(const YuvPlanarExtent& extent) noexcept;
 

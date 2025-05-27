@@ -18,11 +18,11 @@ public:
     using TMiCols = std::array<int, 2>;
 
     // Constructor
-    TLCT_API CornersArrange() noexcept = default;
-    TLCT_API CornersArrange(const CornersArrange& rhs) noexcept = default;
-    TLCT_API CornersArrange& operator=(const CornersArrange& rhs) noexcept = default;
-    TLCT_API CornersArrange(CornersArrange&& rhs) noexcept = default;
-    TLCT_API CornersArrange& operator=(CornersArrange&& rhs) noexcept = default;
+    CornersArrange() noexcept = default;
+    CornersArrange(const CornersArrange& rhs) noexcept = default;
+    CornersArrange& operator=(const CornersArrange& rhs) noexcept = default;
+    CornersArrange(CornersArrange&& rhs) noexcept = default;
+    CornersArrange& operator=(CornersArrange&& rhs) noexcept = default;
     TLCT_API CornersArrange(cv::Size imgSize, float diameter, cv::Point2f leftTop, cv::Point2f rightTop,
                             cv::Point2f leftYUnitShift, cv::Point2f rightYUnitShift, int miRows, TMiCols miCols,
                             int upsample, bool direction, bool isKepler, bool isMultiFocus, bool isOutShift) noexcept;

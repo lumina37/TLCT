@@ -38,22 +38,6 @@ MIBuffers_<TArrange>::MIBuffers_(TArrange&& arrange, Params&& params, std::vecto
       pBuffer_(std::move(pBuffer)) {}
 
 template <cfg::concepts::CArrange TArrange>
-MIBuffers_<TArrange>& MIBuffers_<TArrange>::operator=(MIBuffers_&& rhs) noexcept {
-    arrange_ = std::move(rhs.arrange_);
-    params_ = std::move(rhs.params_);
-    miBuffers_ = std::move(rhs.miBuffers_);
-    pBuffer_ = std::move(rhs.pBuffer_);
-    return *this;
-}
-
-template <cfg::concepts::CArrange TArrange>
-MIBuffers_<TArrange>::MIBuffers_(MIBuffers_&& rhs) noexcept
-    : arrange_(std::move(rhs.arrange_)),
-      params_(std::move(rhs.params_)),
-      miBuffers_(std::move(rhs.miBuffers_)),
-      pBuffer_(std::move(rhs.pBuffer_)) {}
-
-template <cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
     censusDiameter_ = arrange.getDiameter() * CENSUS_SAFE_RATIO;
     int iCensusDiameter = _hp::iround(censusDiameter_);

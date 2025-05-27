@@ -19,10 +19,10 @@ public:
 
     // Constructor
     TLCT_API MITypes() noexcept : idx2type_() {}
-    TLCT_API MITypes(const MITypes& rhs) noexcept = default;
-    TLCT_API MITypes& operator=(const MITypes& rhs) noexcept = default;
-    TLCT_API MITypes(MITypes&& rhs) noexcept = default;
-    TLCT_API MITypes& operator=(MITypes&& rhs) noexcept = default;
+    MITypes(const MITypes& rhs) noexcept = default;
+    MITypes& operator=(const MITypes& rhs) noexcept = default;
+    MITypes(MITypes&& rhs) noexcept = default;
+    MITypes& operator=(MITypes&& rhs) noexcept = default;
     TLCT_API MITypes(bool isOutShift) noexcept;
 
     [[nodiscard]] TLCT_API int getMIType(int row, int col) const noexcept;
