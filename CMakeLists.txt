@@ -82,7 +82,6 @@ function(tlct_copy_dlls_if_needed name)
 endfunction()
 
 set(TLCT_COMPILE_INFO "[TLCT v${TLCT_VERSION}] [OpenCV v${OpenCV_VERSION}] by [${CMAKE_CXX_COMPILER_ID} v${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_SYSTEM_PROCESSOR})]")
-set(TLCT_INCLUDE_BASE ${PROJECT_SOURCE_DIR}/src/include)
 
 set(TLCT_CONFIGURE_DIR "${PROJECT_SOURCE_DIR}/src/include/tlct/common")
 configure_file("${TLCT_CONFIGURE_DIR}/config.h.in" "${TLCT_CONFIGURE_DIR}/config.h" @ONLY)
