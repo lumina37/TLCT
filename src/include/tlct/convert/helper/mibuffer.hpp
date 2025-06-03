@@ -62,12 +62,12 @@ public:
     [[nodiscard]] TLCT_API static std::expected<MIBuffers_, Error> create(const TArrange& arrange) noexcept;
 
     // Const methods
+    [[nodiscard]] const MIBuffer& getMI(const int offset) const noexcept { return miBuffers_.at(offset); }
     [[nodiscard]] const MIBuffer& getMI(const int row, const int col) const noexcept {
         const int offset = row * params_.miMaxCols_ + col;
-        return miBuffers_.at(offset);
+        return getMI(offset);
     }
     [[nodiscard]] const MIBuffer& getMI(const cv::Point index) const noexcept { return getMI(index.y, index.x); }
-    [[nodiscard]] const MIBuffer& getMI(const int offset) const noexcept { return miBuffers_.at(offset); }
 
     // Non-const methods
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
