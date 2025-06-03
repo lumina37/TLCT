@@ -1,42 +1,46 @@
-function(tlct_common_lib_setting name)
-    get_target_property(__TYPE ${name} TYPE)
+function(tlct_get_dep_scope lib dep_scope)
+    get_target_property(__TYPE ${lib} TYPE)
     if (${__TYPE} STREQUAL "INTERFACE_LIBRARY")
-        set(__PUB_DEP_SCOPE "INTERFACE")
+        set(${dep_scope} "INTERFACE" PARENT_SCOPE)
     else ()
-        set(__PUB_DEP_SCOPE "PUBLIC")
+        set(${dep_scope} "PUBLIC" PARENT_SCOPE)
     endif ()
+endfunction()
 
-    target_compile_features(${name} ${__PUB_DEP_SCOPE} cxx_std_23)
+function(tlct_common_lib_setting lib)
+    tlct_get_dep_scope(${lib} __PUB_DEP_SCOPE)
 
-    target_include_directories(${name} ${__PUB_DEP_SCOPE}
+    target_compile_features(${lib} ${__PUB_DEP_SCOPE} cxx_std_23)
+
+    target_include_directories(${lib} ${__PUB_DEP_SCOPE}
             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
             $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
     )
-    target_link_libraries(${name} ${__PUB_DEP_SCOPE}
+    target_link_libraries(${lib} ${__PUB_DEP_SCOPE}
             ${OpenCV_LIBS}
             OpenMP::OpenMP_CXX
     )
 
     if (MSVC)
-        target_compile_options(${name} ${__PUB_DEP_SCOPE} /arch:AVX2)
+        target_compile_options(${lib} ${__PUB_DEP_SCOPE} /arch:AVX2)
     else ()
-        target_compile_options(${name} ${__PUB_DEP_SCOPE} -mavx2)
+        target_compile_options(${lib} ${__PUB_DEP_SCOPE} -mavx2)
     endif ()
 
     if (TLCT_ENABLE_FAST_MATH)
         if (MSVC)
-            target_compile_options(${name} ${__PUB_DEP_SCOPE} /fp:fast)
+            target_compile_options(${lib} ${__PUB_DEP_SCOPE} /fp:fast)
         else ()
-            target_compile_options(${name} ${__PUB_DEP_SCOPE} -ffast-math)
+            target_compile_options(${lib} ${__PUB_DEP_SCOPE} -ffast-math)
         endif ()
     endif ()
 
     if (TLCT_VERBOSE_WARNING)
         if (MSVC)
-            target_compile_options(${name} ${__PUB_DEP_SCOPE} /W4)
+            target_compile_options(${lib} ${__PUB_DEP_SCOPE} /W4)
         else ()
-            target_compile_options(${name} ${__PUB_DEP_SCOPE} -Wall -Wextra)
+            target_compile_options(${lib} ${__PUB_DEP_SCOPE} -Wall -Wextra)
         endif ()
     endif ()
 endfunction()

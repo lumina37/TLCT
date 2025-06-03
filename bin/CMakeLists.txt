@@ -1,23 +1,23 @@
-function(tlct_add_executable name srcs)
-    add_executable(${name} ${srcs})
-    target_link_libraries(${name} PRIVATE
+function(tlct_add_executable bin_name srcs)
+    add_executable(${bin_name} ${srcs})
+    target_link_libraries(${bin_name} PRIVATE
             tlct::lib::static
             argparse::argparse
     )
 
     if (TLCT_ENABLE_LTO)
-        set_target_properties(${name} PROPERTIES
+        set_target_properties(${bin_name} PROPERTIES
                 INTERPROCEDURAL_OPTIMIZATION ON
         )
     endif ()
 
     if (MSVC)
-        set_target_properties(${name} PROPERTIES
+        set_target_properties(${bin_name} PROPERTIES
                 MSVC_RUNTIME_LIBRARY ${_TLCT_MSVC_RUNTIME_LIBRARY}
         )
     endif ()
 
-    tlct_copy_dlls_if_needed(${name})
+    tlct_copy_dlls_if_needed(${bin_name})
 endfunction()
 
 tlct_add_executable(tlct-bin "convertor.cpp")

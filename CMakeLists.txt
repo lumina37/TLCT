@@ -75,10 +75,10 @@ if (TLCT_ENABLE_TESTS)
 endif ()
 
 # Helper
-function(tlct_copy_dlls_if_needed name)
+function(tlct_copy_dlls_if_needed bin)
     if (WIN32)
-        add_custom_command(TARGET ${name} POST_BUILD COMMAND ${CMAKE_COMMAND} -E
-                copy_if_different $<TARGET_RUNTIME_DLLS:${name}> $<TARGET_FILE:${name}> $<TARGET_FILE_DIR:${name}> COMMAND_EXPAND_LISTS)
+        add_custom_command(TARGET ${bin} POST_BUILD COMMAND ${CMAKE_COMMAND} -E
+                copy_if_different $<TARGET_RUNTIME_DLLS:${bin}> $<TARGET_FILE:${bin}> $<TARGET_FILE_DIR:${bin}> COMMAND_EXPAND_LISTS)
     endif ()
 endfunction()
 

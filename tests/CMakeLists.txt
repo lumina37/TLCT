@@ -2,16 +2,16 @@ enable_testing()
 
 set(_TLCT_TEST_TARGETS)
 
-function(tlct_add_test name lib srcs)
-    add_executable(${name} ${srcs})
-    target_link_libraries(${name} PRIVATE Catch2::Catch2WithMain tlct::lib::static)
-    target_compile_definitions(${name} PRIVATE TLCT_TESTDATA_DIR="${TLCT_TESTDATA_DIR}")
+function(tlct_add_test bin lib srcs)
+    add_executable(${bin} ${srcs})
+    target_link_libraries(${bin} PRIVATE Catch2::Catch2WithMain tlct::lib::static)
+    target_compile_definitions(${bin} PRIVATE TLCT_TESTDATA_DIR="${TLCT_TESTDATA_DIR}")
 
-    catch_discover_tests(${name})
-    list(APPEND _TLCT_TEST_TARGETS ${name})
+    catch_discover_tests(${bin})
+    list(APPEND _TLCT_TEST_TARGETS ${bin})
     set(_TLCT_TEST_TARGETS ${_TLCT_TEST_TARGETS} PARENT_SCOPE)
 
-    tlct_copy_dlls_if_needed(${name})
+    tlct_copy_dlls_if_needed(${bin})
 endfunction()
 
 tlct_add_test(test_constexpr_math tlct::lib::static "test_constexpr_math.cpp")
