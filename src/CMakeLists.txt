@@ -1,4 +1,4 @@
-function(tlct_get_dep_scope lib dep_scope)
+function(tlct_eval_dep_scope lib dep_scope)
     get_target_property(__TYPE ${lib} TYPE)
     if (${__TYPE} STREQUAL "INTERFACE_LIBRARY")
         set(${dep_scope} "INTERFACE" PARENT_SCOPE)
@@ -8,7 +8,7 @@ function(tlct_get_dep_scope lib dep_scope)
 endfunction()
 
 function(tlct_common_lib_setting lib)
-    tlct_get_dep_scope(${lib} __PUB_DEP_SCOPE)
+    tlct_eval_dep_scope(${lib} __PUB_DEP_SCOPE)
 
     target_compile_features(${lib} ${__PUB_DEP_SCOPE} cxx_std_23)
 
