@@ -145,12 +145,14 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
 
     if constexpr (ENABLE_DEBUG) {
         patchRecords_[offset] = {};
-        patchRecords_[offset].dhash = anchorMI.dhash;
     }
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         // Early return if dhash is only slightly different
         const uint16_t prevDhash = prevDhashes_[offset];
         const int dhashDiff = std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
+        if constexpr (ENABLE_DEBUG) {
+            patchRecords_[offset].dhashDiff = dhashDiff;
+        }
         if (dhashDiff <= params_.psizeShortcutThreshold) {
             return prevPsize;
         }

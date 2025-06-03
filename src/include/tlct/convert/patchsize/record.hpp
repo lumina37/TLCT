@@ -10,7 +10,7 @@ public:
     bool isBlurredNear;
     bool isBlurredFar;
     bool estimatedByFar;
-    uint16_t dhash;
+    int dhashDiff;
     std::vector<float> nearMetrics;
     std::vector<float> farMetrics;
 };
