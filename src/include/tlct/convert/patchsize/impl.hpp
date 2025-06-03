@@ -10,6 +10,7 @@
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/patchsize/params.hpp"
+#include "tlct/convert/patchsize/record.hpp"
 #include "tlct/helper/error.hpp"
 
 namespace tlct::_cvt {
@@ -17,6 +18,12 @@ namespace tlct::_cvt {
 template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
 public:
+#ifdef _DEBUG
+    static constexpr bool ENABLE_DEBUG = true;
+#else
+    static constexpr bool ENABLE_DEBUG = false;
+#endif
+
     // Typename alias
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
@@ -36,9 +43,9 @@ private:
 
     template <concepts::CNeighbors TNeighbors>
     [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
-                                                    typename TNeighbors::Direction direction) const noexcept;
+                                                    typename TNeighbors::Direction direction) noexcept;
 
-    [[nodiscard]] float estimatePatchsize(cv::Point index) const noexcept;
+    [[nodiscard]] float estimatePatchsize(cv::Point index) noexcept;
 
     void adjustWgtsAndPsizesForMultiFocus() noexcept;
     void dumpDhashes() noexcept;
@@ -56,7 +63,7 @@ public:
                                                                           const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return patchsizes_[offset]; }
+    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return patchRecords_[offset].psize; }
     [[nodiscard]] TLCT_API float getPatchsize(cv::Point index) const noexcept { return getPatchsize(index.y, index.x); }
     [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
@@ -74,10 +81,17 @@ public:
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
 private:
+    [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchRecords_[offset].psize; }
+    [[nodiscard]] float getPrevPatchsize(cv::Point index) const noexcept { return getPrevPatchsize(index.y, index.x); }
+    [[nodiscard]] float getPrevPatchsize(int row, int col) const noexcept {
+        const int offset = row * arrange_.getMIMaxCols() + col;
+        return getPrevPatchsize(offset);
+    }
+
     TArrange arrange_;
     TMIBuffers mis_;
-    std::vector<float> prevPatchsizes_;
-    std::vector<float> patchsizes_;
+    std::vector<PatchRecord_<ENABLE_DEBUG>> prevPatchRecords_;
+    std::vector<PatchRecord_<ENABLE_DEBUG>> patchRecords_;
     std::vector<float> weights_;
     std::vector<uint16_t> prevDhashes_;
     PsizeParams params_;

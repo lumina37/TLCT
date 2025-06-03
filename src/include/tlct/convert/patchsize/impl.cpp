@@ -25,12 +25,12 @@ namespace rgs = std::ranges;
 template <cfg::concepts::CArrange TArrange>
 PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept
     : arrange_(arrange), mis_(std::move(mis)), params_(params) {
-    prevPatchsizes_.resize(arrange.getMIRows() * arrange.getMIMaxCols());
-    patchsizes_.resize(prevPatchsizes_.size());
-    prevDhashes_.resize(prevPatchsizes_.size());
+    prevPatchRecords_.resize(arrange.getMIRows() * arrange.getMIMaxCols());
+    patchRecords_.resize(prevPatchRecords_.size());
+    prevDhashes_.resize(prevPatchRecords_.size());
 
     if (arrange_.isMultiFocus()) {
-        weights_.resize(prevPatchsizes_.size());
+        weights_.resize(prevPatchRecords_.size());
     }
 }
 
@@ -103,7 +103,7 @@ auto PsizeImpl_<TArrange>::maxGradDirectionWithFarNeighbors(const FarNeighbors& 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
-                                                        typename TNeighbors::Direction direction) const noexcept {
+                                                        typename TNeighbors::Direction direction) noexcept {
     const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
     const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
 
@@ -112,6 +112,17 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
     for (const int psize : rgs::views::iota(params_.minPsize, params_.maxPsize)) {
         const cv::Point2f cmpShift = matchStep * psize;
         const float diffRatio = compare(anchorMI, neibMI, cmpShift);
+
+        if constexpr (ENABLE_DEBUG) {
+            const auto index = neighbors.getSelfIdx();
+            const int offset = index.y * arrange_.getMIMaxCols() + index.x;
+            if constexpr (std::is_same_v<TNeighbors, FarNeighbors>) {
+                patchRecords_[offset].farMetrics.push_back(diffRatio);
+            } else {
+                patchRecords_[offset].nearMetrics.push_back(diffRatio);
+            }
+        }
+
         if (diffRatio < minDiffRatio) {
             minDiffRatio = diffRatio;
             bestPsize = psize;
@@ -125,13 +136,17 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
 }
 
 template <cfg::concepts::CArrange TArrange>
-float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const noexcept {
+float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
     using PsizeParams = PsizeParams_<TArrange>;
 
     const int offset = index.y * arrange_.getMIMaxCols() + index.x;
     const MIBuffer& anchorMI = mis_.getMI(offset);
-    const float prevPsize = prevPatchsizes_[offset];
+    const float prevPsize = getPrevPatchsize(offset);
 
+    if constexpr (ENABLE_DEBUG) {
+        patchRecords_[offset] = {};
+        patchRecords_[offset].dhash = anchorMI.dhash;
+    }
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         // Early return if dhash is only slightly different
         const uint16_t prevDhash = prevDhashes_[offset];
@@ -154,6 +169,9 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) const noexcept {
         const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, anchorMI, farDirection);
         if (farPsizeMetric.metric < minMetric) {
             bestPsize = farPsizeMetric.psize;
+            if constexpr (ENABLE_DEBUG) {
+                patchRecords_[offset].estimatedByFar = true;
+            }
         }
     }
 
@@ -202,7 +220,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
                 const MIBuffer& neibMI = mis_.getMI(neibOffset);
                 neibGrads[(int)direction] = neibMI.grads.normed;
-                neibPsizes[(int)direction] = patchsizes_[neibOffset];
+                neibPsizes[(int)direction] = getPatchsize(neibOffset);
             }
 
             const float normedGrad = (mi.grads.normed - texGradMean) / (texGradStddev * 2.0f);
@@ -225,8 +243,13 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // We should assign a smaller weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
                 weights_[offset] /= 2.0f;
-                patchsizes_[offset] =
+                patchRecords_[offset].psize =
                     std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
+
+                if constexpr (ENABLE_DEBUG) {
+                    patchRecords_[offset].isBlurredFar = true;
+                }
+
                 continue;
             }
 
@@ -234,13 +257,19 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have exactly 3 neighbor MIs that have clearer texture.
             // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
             if (group0GtCount == 3 && group1GtCount == 0) {
-                patchsizes_[offset] = (neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
-                                       neibPsizes[(int)Direction::DOWNLEFT]) /
-                                      3.f;
+                patchRecords_[offset].psize = (neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
+                                               neibPsizes[(int)Direction::DOWNLEFT]) /
+                                              3.f;
+                if constexpr (ENABLE_DEBUG) {
+                    patchRecords_[offset].isBlurredNear = true;
+                }
             } else if (group0GtCount == 0 && group1GtCount == 3) {
-                patchsizes_[offset] = (neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
-                                       neibPsizes[(int)Direction::DOWNLEFT]) /
-                                      3.f;
+                patchRecords_[offset].psize = (neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
+                                               neibPsizes[(int)Direction::DOWNLEFT]) /
+                                              3.f;
+                if constexpr (ENABLE_DEBUG) {
+                    patchRecords_[offset].isBlurredNear = true;
+                }
             }
         }
     }
@@ -269,13 +298,13 @@ auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvt
 
 template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noexcept {
-    std::swap(prevPatchsizes_, patchsizes_);
+    std::swap(prevPatchRecords_, patchRecords_);
 
     auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
 #pragma omp parallel for
-    for (int idx = 0; idx < (int)patchsizes_.size(); idx++) {
+    for (int idx = 0; idx < (int)patchRecords_.size(); idx++) {
         const int row = idx / arrange_.getMIMaxCols();
         const int col = idx % arrange_.getMIMaxCols();
         if (col >= arrange_.getMICols(row)) {
@@ -283,7 +312,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
         }
         const cv::Point index{col, row};
         const float psize = estimatePatchsize(index);
-        patchsizes_[idx] = psize;
+        patchRecords_[idx].psize = psize;
     }
 
     if (arrange_.isMultiFocus()) {
