@@ -95,10 +95,10 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
                 if (arrange_.isKepler()) {
                     cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
                     cv::resize(rotatedPatch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                               cv::INTER_LINEAR_EXACT);
+                               cv::INTER_LINEAR);
                 } else {
                     cv::resize(patch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                               cv::INTER_LINEAR_EXACT);
+                               cv::INTER_LINEAR);
                 }
 
                 cv::multiply(resizedPatch, cache_.gradBlendingWeight, weightedPatch);
@@ -125,7 +125,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
 
         cv::divide(croppedRenderedImage, croppedWeightMatrix, cache_.u8NormedImage, 1, CV_8UC1);
         cv::resize(cache_.u8NormedImage, cache_.u8OutputImageChannels[chanIdx],
-                   {params_.outputWidth, params_.outputHeight}, 0.0, 0.0, cv::INTER_LINEAR_EXACT);
+                   {params_.outputWidth, params_.outputHeight}, 0.0, 0.0, cv::INTER_LINEAR);
     }
 
     return {};

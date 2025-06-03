@@ -110,9 +110,9 @@ std::expected<void, Error> Manager_<TArrange>::renderInto(io::YuvPlanarFrame& ds
 
     mvImpl_.getDstChans()[0].copyTo(dst.getY());
     cv::resize(mvImpl_.getDstChans()[1], dst.getU(), {dst.getExtent().getUWidth(), dst.getExtent().getUHeight()}, 0.0,
-               0.0, cv::INTER_LINEAR_EXACT);
+               0.0, cv::INTER_LINEAR);
     cv::resize(mvImpl_.getDstChans()[2], dst.getV(), {dst.getExtent().getVWidth(), dst.getExtent().getVHeight()}, 0.0,
-               0.0, cv::INTER_LINEAR_EXACT);
+               0.0, cv::INTER_LINEAR);
 
     return {};
 }

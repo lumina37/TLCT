@@ -52,21 +52,21 @@ std::expected<void, Error> MvImpl_<TArrange>::update(const io::YuvPlanarFrame& s
 
     const int upsample = arrange_.getUpsample();
     if (upsample != 1) [[likely]] {
-        cv::resize(cache_.rawSrcs[0], cache_.srcs[0], {}, upsample, upsample, cv::INTER_LINEAR_EXACT);
+        cv::resize(cache_.rawSrcs[0], cache_.srcs[0], {}, upsample, upsample, cv::INTER_LINEAR);
     } else {
         cache_.srcs[0] = cache_.rawSrcs[0];
     }
 
     if (src.getExtent().getUShift() != 0) {
         const int uUpsample = upsample << src.getExtent().getUShift();
-        cv::resize(cache_.rawSrcs[1], cache_.srcs[1], {}, uUpsample, uUpsample, cv::INTER_LINEAR_EXACT);
+        cv::resize(cache_.rawSrcs[1], cache_.srcs[1], {}, uUpsample, uUpsample, cv::INTER_LINEAR);
     } else {
         cache_.srcs[1] = cache_.rawSrcs[1];
     }
 
     if (src.getExtent().getVShift() != 0) {
         const int vUpsample = upsample << src.getExtent().getVShift();
-        cv::resize(cache_.rawSrcs[2], cache_.srcs[2], {}, vUpsample, vUpsample, cv::INTER_LINEAR_EXACT);
+        cv::resize(cache_.rawSrcs[2], cache_.srcs[2], {}, vUpsample, vUpsample, cv::INTER_LINEAR);
     } else {
         cache_.srcs[2] = cache_.rawSrcs[2];
     }

@@ -12,7 +12,7 @@ project(tlct
         LANGUAGES CXX
 )
 
-set(TLCT_VERSION_BETA_SUFFIX "alpha.3")
+set(TLCT_VERSION_BETA_SUFFIX "alpha.4")
 if (NOT TLCT_VERSION_BETA_SUFFIX)
     set(TLCT_VERSION ${PROJECT_VERSION})
 else ()
@@ -25,6 +25,7 @@ include(CMakeDependentOption)
 option(TLCT_ENABLE_TESTS "Enable tests" OFF)
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
         "DEFINED PROJECT_NAME" OFF)
+option(TLCT_ENABLE_FAST_MATH "Enable fast-math" OFF)
 option(TLCT_VERBOSE_WARNING "Show verbose compiler warnings" OFF)
 
 if (MSVC)
