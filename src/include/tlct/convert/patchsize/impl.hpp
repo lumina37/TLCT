@@ -90,8 +90,8 @@ private:
 
     TArrange arrange_;
     TMIBuffers mis_;
-    std::vector<PatchRecord_<ENABLE_DEBUG>> prevPatchRecords_;
-    std::vector<PatchRecord_<ENABLE_DEBUG>> patchRecords_;
+    std::vector<PatchRecord> prevPatchRecords_;
+    std::vector<PatchRecord> patchRecords_;
     std::vector<float> weights_;
     std::vector<uint16_t> prevDhashes_;
     PsizeParams params_;

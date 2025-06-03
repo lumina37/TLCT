@@ -4,17 +4,7 @@
 
 namespace tlct::_cvt {
 
-template <bool DEBUG>
-class PatchRecord_;
-
-template <>
-class PatchRecord_<false> {
-public:
-    float psize;
-};
-
-template <>
-class PatchRecord_<true> {
+class PatchRecord {
 public:
     float psize;
     bool isBlurredNear;
