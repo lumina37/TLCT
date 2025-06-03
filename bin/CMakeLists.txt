@@ -20,8 +20,11 @@ function(tlct_add_executable name srcs)
     tlct_copy_dlls_if_needed(${name})
 endfunction()
 
-tlct_add_executable(tlct-bin "main.cpp")
+tlct_add_executable(tlct-bin "convertor.cpp")
 set_target_properties(tlct-bin PROPERTIES
         OUTPUT_NAME ${PROJECT_NAME}
 )
 add_executable(tlct::bin ALIAS tlct-bin)
+
+# Debug Only
+tlct_add_executable(tlct-painter "painter.cpp")
