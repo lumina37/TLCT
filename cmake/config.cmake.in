@@ -1,9 +1,27 @@
 @PACKAGE_INIT@
 
+cmake_minimum_required(VERSION 3.12)
+
 include(CMakeFindDependencyMacro)
 find_dependency(OpenCV REQUIRED COMPONENTS imgproc)
-find_dependency(argparse)
+if(NOT OpenCV_FOUND)
+    set(@PROJECT_NAME@_FOUND FALSE)
+    return()
+endif()
 
-include(${PACKAGE_PREFIX_DIR}/lib/cmake/@PROJECT_NAME@/@PROJECT_NAME@Targets.cmake)
+find_dependency(argparse)
+if(NOT argparse_FOUND)
+    set(@PROJECT_NAME@_FOUND FALSE)
+    return()
+endif()
+
+set(@PROJECT_NAME@_TARGETS_FILE "${PACKAGE_PREFIX_DIR}/lib/cmake/@PROJECT_NAME@/@PROJECT_NAME@Targets.cmake")
+if(EXISTS "${@PROJECT_NAME@_TARGETS_FILE}")
+    include("${@PROJECT_NAME@_TARGETS_FILE}")
+else()
+    message(FATAL_ERROR "The @PROJECT_NAME@ targets file does not exist: ${@PROJECT_NAME@_TARGETS_FILE}")
+endif()
 
 check_required_components(@PROJECT_NAME@)
+
+set(@PROJECT_NAME@_FOUND TRUE)
