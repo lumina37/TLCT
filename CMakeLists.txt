@@ -102,17 +102,15 @@ include(GNUInstallDirs)
 if (DEFINED PROJECT_NAME)
     include(CMakePackageConfigHelpers)
 
-    install(TARGETS ${PROJECT_NAME}-lib-dynamic argparse
+    install(TARGETS
+            ${PROJECT_NAME}-lib-dynamic
+            ${PROJECT_NAME}-lib-static
+            argparse
             EXPORT ${PROJECT_NAME}Targets
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
-    install(TARGETS ${PROJECT_NAME}-lib-static
-            EXPORT ${PROJECT_NAME}Targets
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
     )
     install(EXPORT ${PROJECT_NAME}Targets
             FILE ${PROJECT_NAME}Targets.cmake
