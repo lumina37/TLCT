@@ -18,7 +18,7 @@ namespace tlct::_hp {
 std::expected<std::wstring, Error> utf8ToWstring(const std::string_view utf8StrView) noexcept {
     int wcharSize = MultiByteToWideChar(CP_UTF8, 0, utf8StrView.data(), (int)utf8StrView.size(), nullptr, 0);
     if (wcharSize == 0) [[unlikely]] {
-        return {};
+        return std::unexpected{Error{ErrCode::InvalidParam, "utf8ToWstring failed"}};
     }
     std::wstring wstr(wcharSize, 0);
     MultiByteToWideChar(CP_UTF8, 0, utf8StrView.data(), (int)utf8StrView.size(), wstr.data(), wcharSize);
@@ -28,7 +28,7 @@ std::expected<std::wstring, Error> utf8ToWstring(const std::string_view utf8StrV
 std::expected<std::string, Error> wstringToLocal(const std::wstring_view wstrView) noexcept {
     int localSize = WideCharToMultiByte(CP_ACP, 0, wstrView.data(), (int)wstrView.size(), nullptr, 0, nullptr, nullptr);
     if (localSize == 0) [[unlikely]] {
-        return {};
+        return std::unexpected{Error{ErrCode::InvalidParam, "wstringToLocal failed"}};
     }
     std::string localStr(localSize, 0);
     WideCharToMultiByte(CP_ACP, 0, wstrView.data(), (int)wstrView.size(), localStr.data(), localSize, nullptr, nullptr);
