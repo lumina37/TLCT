@@ -8,10 +8,6 @@
 
 namespace tlct::_hp {
 
-[[nodiscard]] std::expected<std::wstring, Error> utf8ToWstring(std::string_view utf8StrView) noexcept;
-
-[[nodiscard]] std::expected<std::string, Error> wstringToGBK(std::wstring_view wstrView) noexcept;
-
 [[nodiscard]] std::expected<std::string, Error> cconv(std::string_view utf8StrView) noexcept;
 
 }  // namespace tlct::_hp
