@@ -4,7 +4,7 @@ set(_TLCT_TEST_TARGETS)
 
 function(tlct_add_test bin lib srcs)
     add_executable(${bin} ${srcs})
-    target_link_libraries(${bin} PRIVATE Catch2::Catch2WithMain tlct::lib::static)
+    target_link_libraries(${bin} PRIVATE Catch2::Catch2WithMain ${lib})
     target_compile_definitions(${bin} PRIVATE TLCT_TESTDATA_DIR="${TLCT_TESTDATA_DIR}")
 
     catch_discover_tests(${bin})

@@ -54,8 +54,8 @@ public:
     [[nodiscard]] TLCT_API const auto& getDstChans() const noexcept { return cache_.u8OutputImageChannels; }
 
     template <concepts::CPsizeImpl TPsizeImpl>
-    [[nodiscard]] TLCT_API std::expected<void, Error> renderView(const TPsizeImpl& psizeImpl, int viewRow,
-                                                                 int viewCol) const noexcept;
+    [[nodiscard]] std::expected<void, Error> renderView(const TPsizeImpl& psizeImpl, int viewRow,
+                                                        int viewCol) const noexcept;
 
     // Non-const methods
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
