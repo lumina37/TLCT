@@ -14,15 +14,15 @@ function(tlct_add_test bin lib srcs)
     tlct_copy_dlls_if_needed(${bin})
 endfunction()
 
-tlct_add_test(test_constexpr_math tlct::lib::static "test_constexpr_math.cpp")
+tlct_add_test(test-constexpr-math tlct::lib::static "test_constexpr_math.cpp")
 
-tlct_add_test(test_corners_arrange tlct::lib::static "test_corners_arrange.cpp")
-tlct_add_test(test_offset_arrange tlct::lib::static "test_offset_arrange.cpp")
+tlct_add_test(test-corners-arrange tlct::lib::static "test_corners_arrange.cpp")
+tlct_add_test(test-offset-arrange tlct::lib::static "test_offset_arrange.cpp")
 
-tlct_add_test(test_corners_arrange_header_only_lib tlct::lib::header-only "test_corners_arrange.cpp")
-tlct_add_test(test_offset_arrange_header_only_lib tlct::lib::header-only "test_offset_arrange.cpp")
+tlct_add_test(test-corners-arrange_header_only_lib tlct::lib::header-only "test_corners_arrange.cpp")
+tlct_add_test(test-offset-arrange_header_only_lib tlct::lib::header-only "test_offset_arrange.cpp")
 
-tlct_add_test(test_corners_arrange_dynamic_lib tlct::lib::dynamic "test_corners_arrange.cpp")
-tlct_add_test(test_offset_arrange_dynamic_lib tlct::lib::dynamic "test_offset_arrange.cpp")
+tlct_add_test(test-corners-arrange_dynamic_lib tlct::lib::dynamic "test_corners_arrange.cpp")
+tlct_add_test(test-offset-arrange_dynamic_lib tlct::lib::dynamic "test_offset_arrange.cpp")
 
 add_custom_target(tlct-tests DEPENDS ${_TLCT_TEST_TARGETS})
