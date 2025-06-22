@@ -107,22 +107,16 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
     const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
     const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
 
+    std::vector<float> metrics;
+    metrics.reserve(params_.maxPsize - params_.minPsize);
     float minDiffRatio = std::numeric_limits<float>::max();
     int bestPsize = params_.minPsize;
     for (const int psize : rgs::views::iota(params_.minPsize, params_.maxPsize)) {
         const cv::Point2f cmpShift = matchStep * psize;
         const float diffRatio = compare(anchorMI, neibMI, cmpShift);
-
         if constexpr (ENABLE_DEBUG) {
-            const auto index = neighbors.getSelfIdx();
-            const int offset = index.y * arrange_.getMIMaxCols() + index.x;
-            if constexpr (std::is_same_v<TNeighbors, FarNeighbors>) {
-                patchRecords_[offset].farMetrics.push_back(diffRatio);
-            } else {
-                patchRecords_[offset].nearMetrics.push_back(diffRatio);
-            }
+            metrics.push_back(diffRatio);
         }
-
         if (diffRatio < minDiffRatio) {
             minDiffRatio = diffRatio;
             bestPsize = psize;
@@ -131,6 +125,16 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
 
     const float psize = (float)bestPsize / TNeighbors::INFLATE;
     const float metric = minDiffRatio;
+
+    if constexpr (ENABLE_DEBUG) {
+        const auto index = neighbors.getSelfIdx();
+        const int offset = index.y * arrange_.getMIMaxCols() + index.x;
+        if constexpr (std::is_same_v<TNeighbors, FarNeighbors>) {
+            patchRecords_[offset].setFarMetrics(std::move(metrics));
+        } else {
+            patchRecords_[offset].setNearMetrics(std::move(metrics));
+        }
+    }
 
     return {psize, metric};
 }
@@ -148,11 +152,12 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
     }
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         // Early return if dhash is only slightly different
-        const uint16_t prevDhash = prevDhashes_[offset];
-        const int dhashDiff = std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
+        const uint16_t prevDhash = prevPatchRecords_[offset].getDhash();
+        const uint16_t dhashDiff = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
         if constexpr (ENABLE_DEBUG) {
-            patchRecords_[offset].dhashDiff = dhashDiff;
+            patchRecords_[offset].setDhashDiff(dhashDiff);
         }
+        patchRecords_[offset].setDhash(anchorMI.dhash);
         if (dhashDiff <= params_.psizeShortcutThreshold) {
             return prevPsize;
         }
@@ -171,9 +176,6 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
         const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, anchorMI, farDirection);
         if (farPsizeMetric.metric < minMetric) {
             bestPsize = farPsizeMetric.psize;
-            if constexpr (ENABLE_DEBUG) {
-                patchRecords_[offset].estimatedByFar = true;
-            }
         }
     }
 
@@ -245,11 +247,11 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // We should assign a smaller weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
                 weights_[offset] /= 2.0f;
-                patchRecords_[offset].psize =
-                    std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
+                patchRecords_[offset].setPsize(std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) /
+                                               TNeighbors::DIRECTION_NUM);
 
                 if constexpr (ENABLE_DEBUG) {
-                    patchRecords_[offset].isBlurredFar = true;
+                    patchRecords_[offset].setIsBlurredFar(true);
                 }
 
                 continue;
@@ -259,18 +261,18 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have exactly 3 neighbor MIs that have clearer texture.
             // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
             if (group0GtCount == 3 && group1GtCount == 0) {
-                patchRecords_[offset].psize = (neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
-                                               neibPsizes[(int)Direction::DOWNLEFT]) /
-                                              3.f;
+                patchRecords_[offset].setPsize((neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
+                                                neibPsizes[(int)Direction::DOWNLEFT]) /
+                                               3.f);
                 if constexpr (ENABLE_DEBUG) {
-                    patchRecords_[offset].isBlurredNear = true;
+                    patchRecords_[offset].setIsBlurredNear(true);
                 }
             } else if (group0GtCount == 0 && group1GtCount == 3) {
-                patchRecords_[offset].psize = (neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
-                                               neibPsizes[(int)Direction::DOWNLEFT]) /
-                                              3.f;
+                patchRecords_[offset].setPsize((neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
+                                                neibPsizes[(int)Direction::DOWNLEFT]) /
+                                               3.f);
                 if constexpr (ENABLE_DEBUG) {
-                    patchRecords_[offset].isBlurredNear = true;
+                    patchRecords_[offset].setIsBlurredNear(true);
                 }
             }
         }
@@ -314,7 +316,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
         }
         const cv::Point index{col, row};
         const float psize = estimatePatchsize(index);
-        patchRecords_[idx].psize = psize;
+        patchRecords_[idx].setPsize(psize);
     }
 
     if (arrange_.isMultiFocus()) {

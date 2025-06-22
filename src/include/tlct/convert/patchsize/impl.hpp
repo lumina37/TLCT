@@ -63,7 +63,7 @@ public:
                                                                           const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return patchRecords_[offset].psize; }
+    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return patchRecords_[offset].getPsize(); }
     [[nodiscard]] TLCT_API float getPatchsize(cv::Point index) const noexcept { return getPatchsize(index.y, index.x); }
     [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
@@ -81,7 +81,7 @@ public:
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
 private:
-    [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchRecords_[offset].psize; }
+    [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchRecords_[offset].getPsize(); }
     [[nodiscard]] float getPrevPatchsize(cv::Point index) const noexcept { return getPrevPatchsize(index.y, index.x); }
     [[nodiscard]] float getPrevPatchsize(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
@@ -90,8 +90,8 @@ private:
 
     TArrange arrange_;
     TMIBuffers mis_;
-    std::vector<PatchRecord> prevPatchRecords_;
-    std::vector<PatchRecord> patchRecords_;
+    std::vector<PatchRecord_<ENABLE_DEBUG>> prevPatchRecords_;
+    std::vector<PatchRecord_<ENABLE_DEBUG>> patchRecords_;
     std::vector<float> weights_;
     std::vector<uint16_t> prevDhashes_;
     PsizeParams params_;
