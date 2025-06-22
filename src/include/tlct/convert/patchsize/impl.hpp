@@ -1,6 +1,7 @@
 #pragma once
 
 #include <expected>
+#include <filesystem>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -14,6 +15,8 @@
 #include "tlct/helper/error.hpp"
 
 namespace tlct::_cvt {
+
+namespace fs = std::filesystem;
 
 template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
@@ -29,6 +32,7 @@ public:
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
     using PsizeParams = PsizeParams_<TArrange>;
+    using PatchRecord = PatchRecord_<ENABLE_DEBUG>;
 
 private:
     PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept;
@@ -48,7 +52,6 @@ private:
     [[nodiscard]] float estimatePatchsize(cv::Point index) noexcept;
 
     void adjustWgtsAndPsizesForMultiFocus() noexcept;
-    void dumpDhashes() noexcept;
 
 public:
     // Constructor
@@ -77,8 +80,12 @@ public:
         return getWeight(offset);
     }
 
+    [[nodiscard]] TLCT_API std::expected<void, Error> dumpRecords(const fs::path& dumpTo) const noexcept;
+
     // Non-const methods
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
+
+    [[nodiscard]] TLCT_API std::expected<void, Error> loadRecords(const fs::path& loadFrom) noexcept;
 
 private:
     [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchRecords_[offset].getPsize(); }
@@ -90,10 +97,9 @@ private:
 
     TArrange arrange_;
     TMIBuffers mis_;
-    std::vector<PatchRecord_<ENABLE_DEBUG>> prevPatchRecords_;
-    std::vector<PatchRecord_<ENABLE_DEBUG>> patchRecords_;
+    std::vector<PatchRecord> prevPatchRecords_;
+    std::vector<PatchRecord> patchRecords_;
     std::vector<float> weights_;
-    std::vector<uint16_t> prevDhashes_;
     PsizeParams params_;
 };
 

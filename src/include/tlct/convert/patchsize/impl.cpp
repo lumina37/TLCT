@@ -1,5 +1,7 @@
 #include <bit>
 #include <expected>
+#include <filesystem>
+#include <fstream>
 #include <limits>
 #include <numeric>
 #include <ranges>
@@ -20,6 +22,7 @@
 
 namespace tlct::_cvt {
 
+namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <cfg::concepts::CArrange TArrange>
@@ -27,7 +30,6 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, cons
     : arrange_(arrange), mis_(std::move(mis)), params_(params) {
     prevPatchRecords_.resize(arrange.getMIRows() * arrange.getMIMaxCols());
     patchRecords_.resize(prevPatchRecords_.size());
-    prevDhashes_.resize(prevPatchRecords_.size());
 
     if (arrange_.isMultiFocus()) {
         weights_.resize(prevPatchRecords_.size());
@@ -280,13 +282,6 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
 }
 
 template <cfg::concepts::CArrange TArrange>
-void PsizeImpl_<TArrange>::dumpDhashes() noexcept {
-    for (const int idx : rgs::views::iota(0, (int)prevDhashes_.size())) {
-        prevDhashes_[idx] = mis_.getMI(idx).dhash;
-    }
-}
-
-template <cfg::concepts::CArrange TArrange>
 auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
     -> std::expected<PsizeImpl_, Error> {
     auto misRes = TMIBuffers::create(arrange);
@@ -298,6 +293,18 @@ auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvt
     auto& params = paramsRes.value();
 
     return PsizeImpl_{arrange, std::move(mis), params};
+}
+
+template <cfg::concepts::CArrange TArrange>
+std::expected<void, Error> PsizeImpl_<TArrange>::dumpRecords(const fs::path& dumpTo) const noexcept {
+    std::ofstream ofs{dumpTo, std::ios::binary};
+    if (!ofs.good()) [[unlikely]] {
+        auto errMsg = std::format("failed to open file. path={}, iostate={}", dumpTo.string(), ofs.rdstate());
+        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+    }
+
+    ofs.write((char*)patchRecords_.data(), patchRecords_.size() * sizeof(PatchRecord));
+    return {};
 }
 
 template <cfg::concepts::CArrange TArrange>
@@ -323,8 +330,18 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
         adjustWgtsAndPsizesForMultiFocus();
     }
 
-    dumpDhashes();
+    return {};
+}
 
+template <cfg::concepts::CArrange TArrange>
+std::expected<void, Error> PsizeImpl_<TArrange>::loadRecords(const fs::path& loadFrom) noexcept {
+    std::ifstream ifs{loadFrom, std::ios::binary};
+    if (!ifs.good()) [[unlikely]] {
+        auto errMsg = std::format("failed to open file. path={}, iostate={}", loadFrom.string(), ifs.rdstate());
+        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+    }
+
+    ifs.read((char*)patchRecords_.data(), patchRecords_.size() * sizeof(PatchRecord));
     return {};
 }
 

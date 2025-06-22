@@ -31,7 +31,7 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarFrame::create(const YuvPlanarExten
             break;
         default:
             [[unlikely]] {
-                auto errMsg = std::format("Expect depth 1(8bit) or 2(16bit), got {}", extent.getDepth());
+                auto errMsg = std::format("expect depth 1(8bit) or 2(16bit), got {}", extent.getDepth());
                 return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
             }
     }
