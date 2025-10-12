@@ -299,7 +299,7 @@ template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> PsizeImpl_<TArrange>::dumpRecords(const fs::path& dumpTo) const noexcept {
     std::ofstream ofs{dumpTo, std::ios::binary};
     if (!ofs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}, iostate={}", dumpTo.string(), ofs.rdstate());
+        auto errMsg = std::format("failed to open file. path={}, iostate={}", dumpTo.string(), (int)ofs.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
@@ -337,7 +337,7 @@ template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> PsizeImpl_<TArrange>::loadRecords(const fs::path& loadFrom) noexcept {
     std::ifstream ifs{loadFrom, std::ios::binary};
     if (!ifs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}, iostate={}", loadFrom.string(), ifs.rdstate());
+        auto errMsg = std::format("failed to open file. path={}, iostate={}", loadFrom.string(), (int)ifs.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 

@@ -20,7 +20,7 @@ std::expected<YuvPlanarReader, Error> YuvPlanarReader::create(const fs::path& fp
                                                               const YuvPlanarExtent& extent) noexcept {
     std::ifstream ifs{fpath, std::ios::binary};
     if (!ifs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open read-only file. path={}, iostate={}", fpath.string(), ifs.rdstate());
+        auto errMsg = std::format("failed to open read-only file. path={}, iostate={}", fpath.string(), (int)ifs.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
@@ -31,7 +31,7 @@ std::expected<void, Error> YuvPlanarReader::skip(int frameCount) noexcept {
     ifs_.seekg(frameCount * extent_.getTotalSize());
 
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to skip {} frames. iostate={}", frameCount, ifs_.rdstate());
+        auto errMsg = std::format("failed to skip {} frames. iostate={}", frameCount, (int)ifs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
@@ -47,19 +47,19 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarReader::read() noexcept {
 
     ifs_.read((char*)frame.getY().data, extent_.getYSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", ifs_.rdstate());
+        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
     ifs_.read((char*)frame.getU().data, extent_.getUSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", ifs_.rdstate());
+        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
     ifs_.read((char*)frame.getV().data, extent_.getVSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", ifs_.rdstate());
+        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
@@ -69,19 +69,19 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarReader::read() noexcept {
 std::expected<void, Error> YuvPlanarReader::readInto(YuvPlanarFrame& frame) noexcept {
     ifs_.read((char*)frame.getY().data, frame.getExtent().getYSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", ifs_.rdstate());
+        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
     ifs_.read((char*)frame.getU().data, frame.getExtent().getUSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", ifs_.rdstate());
+        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
     ifs_.read((char*)frame.getV().data, frame.getExtent().getVSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", ifs_.rdstate());
+        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 

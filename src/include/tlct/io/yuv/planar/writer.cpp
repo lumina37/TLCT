@@ -15,7 +15,8 @@ YuvPlanarWriter::YuvPlanarWriter(std::ofstream&& ofs) noexcept : ofs_(std::move(
 std::expected<YuvPlanarWriter, Error> YuvPlanarWriter::create(const fs::path& fpath) noexcept {
     std::ofstream ofs{fpath, std::ios::binary};
     if (!ofs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open read-only file. path={}, iostate={}", fpath.string(), ofs.rdstate());
+        auto errMsg =
+            std::format("failed to open read-only file. path={}, iostate={}", fpath.string(), (int)ofs.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
     return YuvPlanarWriter{std::move(ofs)};
@@ -24,19 +25,19 @@ std::expected<YuvPlanarWriter, Error> YuvPlanarWriter::create(const fs::path& fp
 std::expected<void, Error> YuvPlanarWriter::write(YuvPlanarFrame& frame) noexcept {
     ofs_.write((char*)frame.getY().data, frame.getExtent().getYSize());
     if (!ofs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to write. iostate={}", ofs_.rdstate());
+        auto errMsg = std::format("failed to write. iostate={}", (int)ofs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
     ofs_.write((char*)frame.getU().data, frame.getExtent().getUSize());
     if (!ofs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to write. iostate={}", ofs_.rdstate());
+        auto errMsg = std::format("failed to write. iostate={}", (int)ofs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
     ofs_.write((char*)frame.getV().data, frame.getExtent().getVSize());
     if (!ofs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to write. iostate={}", ofs_.rdstate());
+        auto errMsg = std::format("failed to write. iostate={}", (int)ofs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
