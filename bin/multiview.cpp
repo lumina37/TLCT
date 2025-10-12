@@ -78,8 +78,9 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
             if (!res) return std::unexpected{std::move(res.error())};
         }
 
-        // manager.getPsizeImpl().dumpRecords("psize.bin") | unwrap;
-        manager.getPsizeImpl().loadRecords("psize.bin") | unwrap;
+        std::string filename = std::format("v{:03}.bin", fid);
+        fs::path psizePath = dstdir / filename;
+        manager.getPsizeImpl().loadRecords(psizePath) | unwrap;
 
         int view = 0;
         for (const int viewRow : rgs::views::iota(0, cliCfg.convert.views)) {

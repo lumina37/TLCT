@@ -50,16 +50,6 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
 
     const fs::path& dstdir = cliCfg.path.dst;
     fs::create_directories(dstdir);
-    std::vector<tlct::io::YuvPlanarWriter> yuvWriters;
-    const int totalWriters = cliCfg.convert.views * cliCfg.convert.views;
-    yuvWriters.reserve(totalWriters);
-    for (const int i : rgs::views::iota(0, totalWriters)) {
-        std::string filename = std::format("v{:03}-{}x{}.yuv", i, mvSize.width, mvSize.height);
-        fs::path savetoPath = dstdir / filename;
-        auto yuvWriterRes = tlct::io::YuvPlanarWriter::create(savetoPath);
-        if (!yuvWriterRes) return std::unexpected{std::move(yuvWriterRes.error())};
-        yuvWriters.push_back(std::move(yuvWriterRes.value()));
-    }
 
     {
         auto res = yuvReader.skip(cliCfg.range.begin);
@@ -78,24 +68,9 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
             if (!res) return std::unexpected{std::move(res.error())};
         }
 
-        // manager.getPsizeImpl().dumpRecords("psize.bin") | unwrap;
-        manager.getPsizeImpl().loadRecords("psize.bin") | unwrap;
-
-        int view = 0;
-        for (const int viewRow : rgs::views::iota(0, cliCfg.convert.views)) {
-            for (const int viewCol : rgs::views::iota(0, cliCfg.convert.views)) {
-                auto& yuvWriter = yuvWriters[view];
-                {
-                    auto res = manager.renderInto(mvFrame, viewRow, viewCol);
-                    if (!res) return std::unexpected{std::move(res.error())};
-                }
-                {
-                    auto res = yuvWriter.write(mvFrame);
-                    if (!res) return std::unexpected{std::move(res.error())};
-                }
-                view++;
-            }
-        }
+        std::string filename = std::format("v{:03}.bin", fid);
+        fs::path psizePath = dstdir / filename;
+        manager.getPsizeImpl().dumpRecords(psizePath) | unwrap;
     }
 
     return {};

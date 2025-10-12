@@ -28,3 +28,5 @@ add_executable(tlct::bin ALIAS tlct-bin)
 
 # Debug Only
 tlct_add_executable(tlct-painter "painter.cpp")
+tlct_add_executable(tlct-patchsize "patchsize.cpp")
+tlct_add_executable(tlct-multiview "multiview.cpp")
