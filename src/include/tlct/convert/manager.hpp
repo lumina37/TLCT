@@ -51,6 +51,7 @@ public:
 
     // Non-const methods
     [[nodiscard]] TPsizeImpl& getPsizeImpl() noexcept { return psizeImpl_; }
+    [[nodiscard]] TMvImpl& getMvImpl() noexcept { return mvImpl_; }
     [[nodiscard]] std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
     [[nodiscard]] std::expected<void, Error> renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) noexcept;
 

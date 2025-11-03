@@ -74,7 +74,7 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
             if (!res) return std::unexpected{std::move(res.error())};
         }
         {
-            auto res = manager.update(srcFrame);
+            auto res = manager.getMvImpl().update(srcFrame);
             if (!res) return std::unexpected{std::move(res.error())};
         }
 
