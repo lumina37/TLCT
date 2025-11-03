@@ -111,8 +111,10 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
 
                 if (arrange_.isMultiFocus()) {
                     const float weight = psizeImpl.getWeight(row, col);
-                    cache_.renderCanvas(roi) += weightedPatch * weight;
-                    cache_.weightCanvas(roi) += cache_.gradBlendingWeight * weight;
+                    cv::addWeighted(cache_.renderCanvas(roi), 1.f, weightedPatch, weight, 0.f,
+                                    cache_.renderCanvas(roi));
+                    cv::addWeighted(cache_.weightCanvas(roi), 1.f, cache_.gradBlendingWeight, weight, 0.f,
+                                    cache_.weightCanvas(roi));
                 } else {
                     cache_.renderCanvas(roi) += weightedPatch;
                     cache_.weightCanvas(roi) += cache_.gradBlendingWeight;
