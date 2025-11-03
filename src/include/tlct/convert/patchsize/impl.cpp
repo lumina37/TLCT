@@ -1,6 +1,7 @@
 #include <bit>
 #include <expected>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <limits>
 #include <numeric>
