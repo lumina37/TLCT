@@ -88,7 +88,7 @@ std::expected<CornersArrange, Error> CornersArrange::create(cv::Size imgSize, fl
 }
 
 std::expected<CornersArrange, Error> CornersArrange::createWithCfgMap(const ConfigMap& map) noexcept {
-    cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
+    const cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const float diameter = map.get<"MIDiameter", float>();
     const bool direction = map.getOr<"MLADirection">(false);
     const bool isKepler = map.getOr<"IsKepler">(true);
@@ -114,9 +114,9 @@ CornersArrange& CornersArrange::upsample(int factor) noexcept {
 }
 
 cv::Point2f CornersArrange::getMICenter(int row, int col) const noexcept {
-    cv::Point2f left = leftTop_ + leftYUnitShift_ * row;
-    cv::Point2f right = rightTop_ + rightYUnitShift_ * row;
-    cv::Point2f xUnitShift = (right - left) / (miCols_[0] - 1);
+    const cv::Point2f left = leftTop_ + leftYUnitShift_ * row;
+    const cv::Point2f right = rightTop_ + rightYUnitShift_ * row;
+    const cv::Point2f xUnitShift = (right - left) / (miCols_[0] - 1);
     cv::Point2f center = left + xUnitShift * col;
 
     if (row % 2 == 1) {

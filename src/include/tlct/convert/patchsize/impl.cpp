@@ -170,7 +170,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
     const auto nearDirection = maxGradDirectionWithNearNeighbors(nearNeighbors);
 
     const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(nearNeighbors, anchorMI, nearDirection);
-    float minMetric = nearPsizeMetric.metric;
+    const float minMetric = nearPsizeMetric.metric;
     float bestPsize = nearPsizeMetric.psize;
 
     if (arrange_.isMultiFocus()) {

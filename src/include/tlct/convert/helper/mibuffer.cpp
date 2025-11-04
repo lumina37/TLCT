@@ -40,7 +40,7 @@ MIBuffers_<TArrange>::MIBuffers_(TArrange&& arrange, Params&& params, std::vecto
 template <cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::Params::Params(const TArrange& arrange) noexcept {
     censusDiameter_ = arrange.getDiameter() * CENSUS_SAFE_RATIO;
-    int iCensusDiameter = _hp::iround(censusDiameter_);
+    const int iCensusDiameter = _hp::iround(censusDiameter_);
     alignedMatSizeC3_ = _hp::alignUp<SIMD_FETCH_SIZE>(iCensusDiameter * iCensusDiameter * 3);
     alignedMISize_ = alignedMatSizeC3_ * MIBuffer::C3_COUNT;
     miMaxCols_ = arrange.getMIMaxCols();

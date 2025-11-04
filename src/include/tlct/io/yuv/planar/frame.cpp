@@ -36,9 +36,9 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarFrame::create(const YuvPlanarExten
             }
     }
 
-    size_t alignedYSize = _hp::alignUp<SIMD_FETCH_SIZE>(extent.getYByteSize());
-    size_t alignedUSize = _hp::alignUp<SIMD_FETCH_SIZE>(extent.getUByteSize());
-    size_t alignedVSize = _hp::alignUp<SIMD_FETCH_SIZE>(extent.getVByteSize());
+    const size_t alignedYSize = _hp::alignUp<SIMD_FETCH_SIZE>(extent.getYByteSize());
+    const size_t alignedUSize = _hp::alignUp<SIMD_FETCH_SIZE>(extent.getUByteSize());
+    const size_t alignedVSize = _hp::alignUp<SIMD_FETCH_SIZE>(extent.getVByteSize());
 
     const size_t totalSize = alignedYSize + alignedUSize + alignedVSize;
     std::unique_ptr<std::byte[]> pBuffer;

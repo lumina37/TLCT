@@ -5,7 +5,7 @@
 
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts/arrange.hpp"
-#include "tlct/convert/common.hpp"
+#include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview.hpp"
 #include "tlct/convert/patchsize.hpp"
@@ -31,7 +31,7 @@ public:
 
 private:
     Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg, std::shared_ptr<TCommonCache>&& pCommonCache,
-             TPsizeImpl&& psizeImpl, TMvImpl&& MvImpl) noexcept;
+             TPsizeImpl&& psizeImpl, TMvImpl&& mvImpl) noexcept;
 
 public:
     // Constructor

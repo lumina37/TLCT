@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <expected>
 #include <memory>
-#include <utility>
 
 #include <opencv2/core.hpp>
 

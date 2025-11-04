@@ -80,7 +80,7 @@ std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, floa
 }
 
 std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const ConfigMap& map) noexcept {
-    cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
+    const cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
     const float diameter = map.get<"MIDiameter", float>();
     const bool direction = map.getOr<"MLADirection">(false);
     const bool isKepler = map.getOr<"IsKepler">(true);

@@ -3,8 +3,6 @@
 #include <source_location>
 #include <string>
 
-#include "tlct/common/defines.h"
-
 namespace tlct {
 
 enum class ECode {
