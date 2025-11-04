@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <utility>
 
 #include <opencv2/imgproc.hpp>
@@ -93,8 +94,8 @@ auto Manager_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCf
 
 template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> Manager_<TArrange>::update(const io::YuvPlanarFrame& src) noexcept {
-    auto commonCacheRes = pCommonCache_->update(src);
-    if (!commonCacheRes) return std::unexpected{std::move(commonCacheRes.error())};
+    auto commonCacheUpdateRes = pCommonCache_->update(src);
+    if (!commonCacheUpdateRes) return std::unexpected{std::move(commonCacheUpdateRes.error())};
 
     auto psizeUpdateRes = psizeImpl_.update(pCommonCache_->srcs[0]);
     if (!psizeUpdateRes) return std::unexpected{std::move(psizeUpdateRes.error())};

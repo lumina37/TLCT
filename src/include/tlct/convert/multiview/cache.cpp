@@ -16,6 +16,12 @@
 namespace tlct::_cvt {
 
 template <cfg::concepts::CArrange TArrange>
+MvCache_<TArrange>::MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept
+    : gradBlendingWeight(std::move(gradBlendingWeight)),
+      renderCanvas(std::move(renderCanvas)),
+      weightCanvas(std::move(weightCanvas)) {}
+
+template <cfg::concepts::CArrange TArrange>
 auto MvCache_<TArrange>::create(const TMvParams& params) noexcept -> std::expected<MvCache_, Error> {
     constexpr float GRADIENT_BLENDING_WIDTH = 0.75;
 

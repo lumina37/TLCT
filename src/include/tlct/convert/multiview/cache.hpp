@@ -21,12 +21,14 @@ public:
     using TChannels = std::array<cv::Mat, CHANNELS>;
     using TMvParams = MvParams_<TArrange>;
 
+private:
+    MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept;
+
+public:
     // Constructor
     MvCache_() noexcept = default;
-    MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept
-        : gradBlendingWeight(std::move(gradBlendingWeight)),
-          renderCanvas(std::move(renderCanvas)),
-          weightCanvas(std::move(weightCanvas)) {}
+    MvCache_(const MvCache_& rhs) = delete;
+    MvCache_& operator=(const MvCache_& rhs) = delete;
     MvCache_(MvCache_&& rhs) noexcept = default;
     MvCache_& operator=(MvCache_&& rhs) noexcept = default;
 
