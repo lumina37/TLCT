@@ -13,6 +13,7 @@
 #include "tlct/convert/multiview/cache.hpp"
 #include "tlct/convert/multiview/params.hpp"
 #include "tlct/helper/error.hpp"
+#include "tlct/io.hpp"
 
 namespace tlct::_cvt {
 
@@ -49,12 +50,9 @@ public:
         return {params_.outputWidth, params_.outputHeight};
     }
 
-    [[nodiscard]] TLCT_API auto& getDstChans() noexcept { return mvCache_.u8OutputImageChannels; }
-    [[nodiscard]] TLCT_API const auto& getDstChans() const noexcept { return mvCache_.u8OutputImageChannels; }
-
     template <concepts::CPsizeImpl TPsizeImpl>
-    [[nodiscard]] std::expected<void, Error> renderView(const TPsizeImpl& psizeImpl, int viewRow,
-                                                        int viewCol) const noexcept;
+    [[nodiscard]] std::expected<void, Error> renderView(const TPsizeImpl& psizeImpl, io::YuvPlanarFrame& dst,
+                                                        int viewRow, int viewCol) const noexcept;
 
 private:
     TArrange arrange_;
@@ -65,17 +63,26 @@ private:
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CPsizeImpl TPsizeImpl>
-std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psizeImpl, int viewRow,
-                                                         int viewCol) const noexcept {
+std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psizeImpl, io::YuvPlanarFrame& dst,
+                                                         int viewRow, int viewCol) const noexcept {
     // TODO: handle `std::bad_alloc` in this func
     const int viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
     const int viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
+
+    std::array<std::reference_wrapper<cv::Mat>, TCommonCache::CHANNELS> channels{
+        std::ref(dst.getY()), std::ref(dst.getU()), std::ref(dst.getV())};
+    const io::YuvPlanarExtent& frameExtent = dst.getExtent();
+    std::array<cv::Size, TCommonCache::CHANNELS> channelSizes{
+        cv::Size{frameExtent.getYHeight(), frameExtent.getYWidth()},
+        cv::Size{frameExtent.getUHeight(), frameExtent.getUWidth()},
+        cv::Size{frameExtent.getVHeight(), frameExtent.getVWidth()},
+    };
 
     cv::Mat resizedPatch;
     cv::Mat rotatedPatch;
     cv::Mat weightedPatch;
 
-    for (const int chanIdx : rgs::views::iota(0, (int)pCommonCache_->srcs.size())) {
+    for (const int chanIdx : rgs::views::iota(0, TCommonCache::CHANNELS)) {
         mvCache_.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
         mvCache_.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
         pCommonCache_->srcs[chanIdx].convertTo(mvCache_.f32Chan, CV_32FC1);
@@ -123,8 +130,13 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
         cv::Mat croppedWeightMatrix = mvCache_.weightCanvas(params_.canvasCropRoi);
 
         cv::divide(croppedRenderedImage, croppedWeightMatrix, mvCache_.u8NormedImage, 1, CV_8UC1);
-        cv::resize(mvCache_.u8NormedImage, mvCache_.u8OutputImageChannels[chanIdx],
-                   {params_.outputWidth, params_.outputHeight}, 0.0, 0.0, cv::INTER_LINEAR);
+        cv::resize(mvCache_.u8NormedImage, channels[chanIdx].get(), channelSizes[chanIdx], 0.0, 0.0, cv::INTER_LINEAR);
+    }
+
+    if (arrange_.getDirection()) {
+        cv::transpose(dst.getY(), dst.getY());
+        cv::transpose(dst.getU(), dst.getU());
+        cv::transpose(dst.getV(), dst.getV());
     }
 
     return {};

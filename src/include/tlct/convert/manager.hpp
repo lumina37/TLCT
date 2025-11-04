@@ -105,23 +105,8 @@ std::expected<void, Error> Manager_<TArrange>::update(const io::YuvPlanarFrame& 
 
 template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> Manager_<TArrange>::renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) noexcept {
-    {
-        auto res = mvImpl_.renderView(psizeImpl_, viewRow, viewCol);
-        if (!res) return std::unexpected{std::move(res.error())};
-    }
-
-    if (arrange_.getDirection()) {
-        for (auto& dstChan : mvImpl_.getDstChans()) {
-            cv::transpose(dstChan, dstChan);
-        }
-    }
-
-    mvImpl_.getDstChans()[0].copyTo(dst.getY());
-    cv::resize(mvImpl_.getDstChans()[1], dst.getU(), {dst.getExtent().getUWidth(), dst.getExtent().getUHeight()}, 0.0,
-               0.0, cv::INTER_LINEAR);
-    cv::resize(mvImpl_.getDstChans()[2], dst.getV(), {dst.getExtent().getVWidth(), dst.getExtent().getVHeight()}, 0.0,
-               0.0, cv::INTER_LINEAR);
-
+    auto renderRes = mvImpl_.renderView(psizeImpl_, dst, viewRow, viewCol);
+    if (!renderRes) return std::unexpected{std::move(renderRes.error())};
     return {};
 }
 

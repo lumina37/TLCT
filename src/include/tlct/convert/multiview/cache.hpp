@@ -1,8 +1,5 @@
 #pragma once
 
-#include <array>
-#include <utility>
-
 #include <opencv2/core.hpp>
 
 #include "tlct/common/defines.h"
@@ -14,11 +11,8 @@ namespace tlct::_cvt {
 template <cfg::concepts::CArrange TArrange_>
 class MvCache_ {
 public:
-    static constexpr int CHANNELS = 3;
-
     // Typename alias
     using TArrange = TArrange_;
-    using TChannels = std::array<cv::Mat, CHANNELS>;
     using TMvParams = MvParams_<TArrange>;
 
 private:
@@ -41,7 +35,6 @@ public:
 
     cv::Mat f32Chan;
     cv::Mat u8NormedImage;
-    TChannels u8OutputImageChannels;
 };
 
 }  // namespace tlct::_cvt

@@ -11,7 +11,7 @@
 namespace tlct::_io {
 
 YuvPlanarExtent::YuvPlanarExtent(int yWidth, int yHeight, int depth, int uShift, int vShift, int ySize) noexcept
-    : yWidth_(yWidth), yHeight_(yHeight), depth_(depth), uShift_(uShift), vShift_(vShift), ySize_(ySize) {}
+    : yWidth_(yWidth), yHeight_(yHeight), depth_(depth), uShift_(uShift), vShift_(vShift), yByteSize_(ySize) {}
 
 std::expected<YuvPlanarExtent, Error> YuvPlanarExtent::create(int yWidth, int yHeight, int depth, int uShift,
                                                               int vShift) noexcept {

@@ -80,11 +80,11 @@ public:
         return getWeight(offset);
     }
 
-    [[nodiscard]] TLCT_API std::expected<void, Error> dumpRecords(const fs::path& dumpTo) const noexcept;
-
     // Non-const methods
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
+    // Debug only
+    [[nodiscard]] TLCT_API std::expected<void, Error> dumpRecords(const fs::path& dumpTo) const noexcept;
     [[nodiscard]] TLCT_API std::expected<void, Error> loadRecords(const fs::path& loadFrom) noexcept;
 
 private:

@@ -6,6 +6,7 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/patchsize/impl.hpp"
 #include "tlct/helper/error.hpp"
+#include "tlct/io.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/multiview/impl.hpp"
@@ -38,8 +39,10 @@ template class MvImpl_<cfg::CornersArrange>;
 template class MvImpl_<cfg::OffsetArrange>;
 
 template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(const PsizeImpl_<cfg::CornersArrange>&,
-                                                                             int, int) const noexcept;
-template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(const PsizeImpl_<cfg::OffsetArrange>&, int,
+                                                                             io::YuvPlanarFrame&, int,
+                                                                             int) const noexcept;
+template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(const PsizeImpl_<cfg::OffsetArrange>&,
+                                                                            io::YuvPlanarFrame&, int,
                                                                             int) const noexcept;
 
 }  // namespace tlct::_cvt

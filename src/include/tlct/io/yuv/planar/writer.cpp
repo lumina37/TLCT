@@ -23,19 +23,19 @@ std::expected<YuvPlanarWriter, Error> YuvPlanarWriter::create(const fs::path& fp
 }
 
 std::expected<void, Error> YuvPlanarWriter::write(YuvPlanarFrame& frame) noexcept {
-    ofs_.write((char*)frame.getY().data, frame.getExtent().getYSize());
+    ofs_.write((char*)frame.getY().data, frame.getExtent().getYByteSize());
     if (!ofs_.good()) [[unlikely]] {
         auto errMsg = std::format("failed to write. iostate={}", (int)ofs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
-    ofs_.write((char*)frame.getU().data, frame.getExtent().getUSize());
+    ofs_.write((char*)frame.getU().data, frame.getExtent().getUByteSize());
     if (!ofs_.good()) [[unlikely]] {
         auto errMsg = std::format("failed to write. iostate={}", (int)ofs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
-    ofs_.write((char*)frame.getV().data, frame.getExtent().getVSize());
+    ofs_.write((char*)frame.getV().data, frame.getExtent().getVByteSize());
     if (!ofs_.good()) [[unlikely]] {
         auto errMsg = std::format("failed to write. iostate={}", (int)ofs_.rdstate());
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
