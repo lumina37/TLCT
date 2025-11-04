@@ -8,7 +8,6 @@
 #include <print>
 #include <ranges>
 #include <string>
-#include <vector>
 
 #include "tlct.hpp"
 #include "tlct_cli.hpp"

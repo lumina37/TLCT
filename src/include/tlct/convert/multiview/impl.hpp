@@ -61,7 +61,7 @@ public:
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
 
 private:
-    TArrange arrange_;
+    const TArrange& arrange_;
     MvParams params_;
     mutable MvCache cache_;
 };

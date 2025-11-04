@@ -95,7 +95,7 @@ private:
         return getPrevPatchsize(offset);
     }
 
-    TArrange arrange_;
+    const TArrange& arrange_;
     TMIBuffers mis_;
     std::vector<PatchRecord> prevPatchRecords_;
     std::vector<PatchRecord> patchRecords_;
