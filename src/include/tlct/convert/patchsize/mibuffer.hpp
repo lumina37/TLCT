@@ -20,7 +20,7 @@ struct MIBuffer {
     cv::Mat censusMap;   // 8UC3
     cv::Mat censusMask;  // 8UC3
 
-    Grads grads;
+    float grads;
     uint16_t dhash;
 };
 
@@ -84,5 +84,5 @@ private:
 }  // namespace tlct::_cvt
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/helper/mibuffer.cpp"
+#    include "tlct/convert/patchsize/mibuffer.cpp"
 #endif

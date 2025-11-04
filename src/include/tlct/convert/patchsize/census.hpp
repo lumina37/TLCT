@@ -12,5 +12,5 @@ TLCT_API void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv:
 }  // namespace tlct::_cvt
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/helper/census.cpp"
+#    include "tlct/convert/patchsize/census.cpp"
 #endif

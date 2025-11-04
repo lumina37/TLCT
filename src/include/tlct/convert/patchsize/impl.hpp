@@ -10,6 +10,8 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/patchsize/mibuffer.hpp"
+#include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/convert/patchsize/params.hpp"
 #include "tlct/convert/patchsize/record.hpp"
 #include "tlct/helper/error.hpp"
@@ -17,6 +19,11 @@
 namespace tlct::_cvt {
 
 namespace fs = std::filesystem;
+
+struct PsizeMetric {
+    float psize;
+    float metric;
+};
 
 template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
@@ -40,10 +47,8 @@ private:
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
 
-    [[nodiscard]] typename NearNeighbors::Direction maxGradDirectionWithNearNeighbors(
-        const NearNeighbors& neighbors) const noexcept;
-    [[nodiscard]] typename FarNeighbors::Direction maxGradDirectionWithFarNeighbors(
-        const FarNeighbors& neighbors) const noexcept;
+    template <concepts::CNeighbors TNeighbors>
+    [[nodiscard]] typename TNeighbors::Direction maxGradDirection(const TNeighbors& neighbors) const noexcept;
 
     template <concepts::CNeighbors TNeighbors>
     [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,

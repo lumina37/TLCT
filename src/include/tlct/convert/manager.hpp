@@ -24,7 +24,6 @@ public:
     // Typename alias
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
-    using TMIBuffers = MIBuffers_<TArrange>;
     using TCommonCache = CommonCache_<TArrange>;
     using TPsizeImpl = PsizeImpl_<TArrange>;
     using TMvImpl = MvImpl_<TArrange>;

@@ -13,6 +13,8 @@
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/patchsize/mibuffer.hpp"
+#include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/math.hpp"
@@ -38,64 +40,19 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, cons
 }
 
 template <cfg::concepts::CArrange TArrange>
-auto PsizeImpl_<TArrange>::maxGradDirectionWithNearNeighbors(const NearNeighbors& neighbors) const noexcept ->
-    typename NearNeighbors::Direction {
+template <concepts::CNeighbors TNeighbors>
+auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const noexcept ->
+    typename TNeighbors::Direction {
     float maxGrad = -1.f;
-    typename NearNeighbors::Direction maxGradDirection{};
-    for (const auto direction : {NearNeighbors::Direction::UPLEFT, NearNeighbors::Direction::UPRIGHT,
-                                 NearNeighbors::Direction::DOWNLEFT, NearNeighbors::Direction::DOWNRIGHT}) {
+    typename TNeighbors::Direction maxGradDirection{};
+    for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
             continue;
         }
 
         const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        if (neibMI.grads.deg60 > maxGrad) {
-            maxGrad = neibMI.grads.deg60;
-            maxGradDirection = direction;
-        }
-    }
-
-    for (const auto direction : {NearNeighbors::Direction::LEFT, NearNeighbors::Direction::RIGHT}) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        if (neibMI.grads.deg0 > maxGrad) {
-            maxGrad = neibMI.grads.deg0;
-            maxGradDirection = direction;
-        }
-    }
-
-    return maxGradDirection;
-}
-
-template <cfg::concepts::CArrange TArrange>
-auto PsizeImpl_<TArrange>::maxGradDirectionWithFarNeighbors(const FarNeighbors& neighbors) const noexcept ->
-    typename FarNeighbors::Direction {
-    float maxGrad = -1.f;
-    typename FarNeighbors::Direction maxGradDirection{};
-    for (const auto direction : {FarNeighbors::Direction::UPLEFT, FarNeighbors::Direction::UPRIGHT,
-                                 FarNeighbors::Direction::DOWNLEFT, FarNeighbors::Direction::DOWNRIGHT}) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        if (neibMI.grads.deg30 > maxGrad) {
-            maxGrad = neibMI.grads.deg30;
-            maxGradDirection = direction;
-        }
-    }
-
-    for (const auto direction : {FarNeighbors::Direction::UP, FarNeighbors::Direction::DOWN}) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        if (neibMI.grads.deg90 > maxGrad) {
-            maxGrad = neibMI.grads.deg90;
+        if (neibMI.grads > maxGrad) {
+            maxGrad = neibMI.grads;
             maxGradDirection = direction;
         }
     }
@@ -167,7 +124,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
     }
 
     const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
-    const auto nearDirection = maxGradDirectionWithNearNeighbors(nearNeighbors);
+    const auto nearDirection = maxGradDirection(nearNeighbors);
 
     const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(nearNeighbors, anchorMI, nearDirection);
     const float minMetric = nearPsizeMetric.metric;
@@ -175,7 +132,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
 
     if (arrange_.isMultiFocus()) {
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
-        const auto farDirection = maxGradDirectionWithFarNeighbors(farNeighbors);
+        const auto farDirection = maxGradDirection(farNeighbors);
         const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, anchorMI, farDirection);
         if (farPsizeMetric.metric < minMetric) {
             bestPsize = farPsizeMetric.psize;
@@ -196,7 +153,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             const int offset = rowOffset + col;
             const auto& mi = mis_.getMI(offset);
-            texMeanStddev.update(mi.grads.normed);
+            texMeanStddev.update(mi.grads);
         }
     }
 
@@ -209,7 +166,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             const cv::Point index{col, row};
 
             const auto& mi = mis_.getMI(offset);
-            const float currGrad = mi.grads.normed;
+            const float currGrad = mi.grads;
 
             using TNeighbors = NearNeighbors_<TArrange>;
             using Direction = typename TNeighbors::Direction;
@@ -226,11 +183,11 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
                 const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
                 const MIBuffer& neibMI = mis_.getMI(neibOffset);
-                neibGrads[(int)direction] = neibMI.grads.normed;
+                neibGrads[(int)direction] = neibMI.grads;
                 neibPsizes[(int)direction] = getPatchsize(neibOffset);
             }
 
-            const float normedGrad = (mi.grads.normed - texGradMean) / (texGradStddev * 2.0f);
+            const float normedGrad = (mi.grads - texGradMean) / (texGradStddev * 2.0f);
             const float clippedGrad = _hp::clip(normedGrad, -1.0f, 1.0f);
             const float poweredGrad = clippedGrad * clippedGrad * clippedGrad;
             weights_[offset] = poweredGrad + 1.0f;

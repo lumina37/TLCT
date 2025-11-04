@@ -12,9 +12,9 @@
 
 #include <opencv2/imgproc.hpp>
 
+#include "census.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/helper/census.hpp"
 #include "tlct/convert/helper/consts.hpp"
 #include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/helper/roi.hpp"
@@ -22,7 +22,7 @@
 #include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/helper/mibuffer.hpp"
+#    include "tlct/convert/patchsize/mibuffer.hpp"
 #endif
 
 namespace tlct::_cvt {
@@ -107,7 +107,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
         miBufIterator->censusMap = std::move(censusMap);
         miBufIterator->censusMask = std::move(censusMask);
 
-        const Grads grads = computeGrads(centralY);
+        const float grads = computeGrads(centralY);
         miBufIterator->grads = grads;
 
         miBufIterator->dhash = dhash(centralY);

@@ -35,7 +35,7 @@ namespace rgs = std::ranges;
     return rect;
 }
 
-[[nodiscard]] Grads computeGrads(const cv::Mat& src) noexcept {
+[[nodiscard]] float computeGrads(const cv::Mat& src) noexcept {
     cv::Mat edges;
     const float pixCount = (float)src.total();
 
@@ -48,11 +48,9 @@ namespace rgs = std::ranges;
 
     const float sqrX = gradX * gradX;
     const float sqrY = gradY * gradY;
-    const float gradDeg30 = std::sqrt(sqrX * 0.75f + sqrY * 0.25f);
-    const float gradDeg60 = std::sqrt(sqrX * 0.25f + sqrY * 0.75f);
-    const float gradNormed = std::sqrt(sqrX * 0.5f + sqrY * 0.5f);
+    const float grad = std::sqrt(sqrX * 0.5f + sqrY * 0.5f);
 
-    return {gradX, gradDeg30, gradDeg60, sqrY, gradNormed};
+    return grad;
 }
 
 uint16_t dhash(const cv::Mat& src) {

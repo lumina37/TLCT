@@ -5,7 +5,7 @@
 #include <opencv2/core.hpp>
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/helper/census.hpp"
+#    include "tlct/convert/patchsize/census.hpp"
 #endif
 
 namespace tlct::_cvt {

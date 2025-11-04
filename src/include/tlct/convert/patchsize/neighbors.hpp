@@ -181,5 +181,5 @@ public:
 }  // namespace tlct::_cvt
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/helper/neighbors.cpp"
+#    include "tlct/convert/patchsize/neighbors.cpp"
 #endif
