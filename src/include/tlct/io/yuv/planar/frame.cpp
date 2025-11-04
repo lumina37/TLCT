@@ -32,7 +32,7 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarFrame::create(const YuvPlanarExten
         default:
             [[unlikely]] {
                 auto errMsg = std::format("expect depth 1(8bit) or 2(16bit), got {}", extent.getDepth());
-                return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
+                return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
             }
     }
 
@@ -45,7 +45,7 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarFrame::create(const YuvPlanarExten
     try {
         pBuffer = std::make_unique_for_overwrite<std::byte[]>(totalSize);
     } catch (const std::bad_alloc&) {
-        return std::unexpected{Error{ErrCode::OutOfMemory}};
+        return std::unexpected{Error{ECate::eSys, ECode::eOutOfMemory}};
     }
 
     std::byte* yptr = pBuffer.get();

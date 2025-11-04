@@ -57,7 +57,7 @@ auto MIBuffers_<TArrange>::create(const TArrange& arrange) noexcept -> std::expe
         auto pBuffer = std::make_unique_for_overwrite<std::byte[]>(params.bufferSize_ + Params::SIMD_FETCH_SIZE);
         return MIBuffers_{std::move(copiedArrange), std::move(params), std::move(miBuffers), std::move(pBuffer)};
     } catch (const std::bad_alloc&) {
-        return std::unexpected{Error{ErrCode::OutOfMemory}};
+        return std::unexpected{Error{ECate::eSys, ECode::eOutOfMemory}};
     }
 }
 
@@ -66,7 +66,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
     // TODO: handle `std::bad_alloc` in this func
     if (src.type() != CV_8UC1) [[unlikely]] {
         auto errMsg = std::format("MIBuffers::update expect CV_8UC1, got {}", src.type());
-        return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
+        return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
     const int iCensusDiameter = _hp::iround(params_.censusDiameter_);

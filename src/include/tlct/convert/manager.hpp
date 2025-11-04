@@ -3,8 +3,6 @@
 #include <memory>
 #include <utility>
 
-#include <opencv2/imgproc.hpp>
-
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/convert/common.hpp"

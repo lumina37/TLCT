@@ -300,8 +300,8 @@ template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> PsizeImpl_<TArrange>::dumpRecords(const fs::path& dumpTo) const noexcept {
     std::ofstream ofs{dumpTo, std::ios::binary};
     if (!ofs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}, iostate={}", dumpTo.string(), (int)ofs.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to open file. path={}", dumpTo.string());
+        return std::unexpected{Error{ECate::eSys, ofs.rdstate(), std::move(errMsg)}};
     }
 
     ofs.write((char*)patchRecords_.data(), patchRecords_.size() * sizeof(TPatchRecord));
@@ -338,8 +338,8 @@ template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> PsizeImpl_<TArrange>::loadRecords(const fs::path& loadFrom) noexcept {
     std::ifstream ifs{loadFrom, std::ios::binary};
     if (!ifs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}, iostate={}", loadFrom.string(), (int)ifs.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to open file. path={}", loadFrom.string());
+        return std::unexpected{Error{ECate::eSys, ifs.rdstate(), std::move(errMsg)}};
     }
 
     ifs.read((char*)patchRecords_.data(), patchRecords_.size() * sizeof(TPatchRecord));

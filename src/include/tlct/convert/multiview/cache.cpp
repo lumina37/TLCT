@@ -23,15 +23,14 @@ MvCache_<TArrange>::MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanva
 
 template <cfg::concepts::CArrange TArrange>
 auto MvCache_<TArrange>::create(const TMvParams& params) noexcept -> std::expected<MvCache_, Error> {
-    constexpr float GRADIENT_BLENDING_WIDTH = 0.75;
-
     try {
+        constexpr float GRADIENT_BLENDING_WIDTH = 0.75;
         cv::Mat gradBlendingWeight = circleWithFadeoutBorder(params.resizedPatchWidth, GRADIENT_BLENDING_WIDTH);
         cv::Mat renderCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
         cv::Mat weightCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
         return MvCache_{std::move(gradBlendingWeight), std::move(renderCanvas), std::move(weightCanvas)};
     } catch (const std::bad_alloc&) {
-        return std::unexpected{Error{ErrCode::OutOfMemory}};
+        return std::unexpected{Error{ECate::eSys, ECode::eOutOfMemory}};
     }
 }
 

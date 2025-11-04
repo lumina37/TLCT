@@ -17,12 +17,12 @@ std::expected<YuvPlanarExtent, Error> YuvPlanarExtent::create(int yWidth, int yH
                                                               int vShift) noexcept {
     if (!_hp::isMulOf(yWidth, uShift)) [[unlikely]] {
         auto errMsg = std::format("yWidth={} must be divisible by uDivisor={}", yWidth, 1 << uShift);
-        return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
+        return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
     if (!_hp::isMulOf(yWidth, vShift)) [[unlikely]] {
         auto errMsg = std::format("yWidth={} must be divisible by vDivisor={}", yWidth, 1 << vShift);
-        return std::unexpected{Error{ErrCode::InvalidParam, errMsg}};
+        return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
     const int ySize = yWidth * yHeight * depth;

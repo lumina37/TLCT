@@ -63,8 +63,8 @@ std::expected<ConfigMap, Error> ConfigMap::createFromFs(std::ifstream&& ifs) noe
 std::expected<ConfigMap, Error> ConfigMap::createFromPath(std::string_view path) noexcept {
     std::ifstream ifs(path.data());
     if (!ifs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to load `ConfigMap` from {}. iostate={}", path, (int)ifs.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to load `ConfigMap` from {}", path);
+        return std::unexpected{Error{ECate::eSys, ifs.rdstate(), std::move(errMsg)}};
     }
 
     return createFromFs(std::move(ifs));

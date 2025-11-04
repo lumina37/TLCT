@@ -20,8 +20,8 @@ std::expected<YuvPlanarReader, Error> YuvPlanarReader::create(const fs::path& fp
                                                               const YuvPlanarExtent& extent) noexcept {
     std::ifstream ifs{fpath, std::ios::binary};
     if (!ifs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open read-only file. path={}, iostate={}", fpath.string(), (int)ifs.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to open read-only file. path={}", fpath.string());
+        return std::unexpected{Error{ECate::eSys, ifs.rdstate(), std::move(errMsg)}};
     }
 
     return YuvPlanarReader{std::move(ifs), extent};
@@ -31,8 +31,8 @@ std::expected<void, Error> YuvPlanarReader::skip(int frameCount) noexcept {
     ifs_.seekg(frameCount * extent_.getTotalByteSize());
 
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to skip {} frames. iostate={}", frameCount, (int)ifs_.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to skip {} frames", frameCount);
+        return std::unexpected{Error{ECate::eSys, ifs_.rdstate(), std::move(errMsg)}};
     }
 
     return {};
@@ -47,20 +47,20 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarReader::read() noexcept {
 
     ifs_.read((char*)frame.getY().data, extent_.getYByteSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to read");
+        return std::unexpected{Error{ECate::eSys, ifs_.rdstate(), std::move(errMsg)}};
     }
 
     ifs_.read((char*)frame.getU().data, extent_.getUByteSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to read");
+        return std::unexpected{Error{ECate::eSys, ifs_.rdstate(), std::move(errMsg)}};
     }
 
     ifs_.read((char*)frame.getV().data, extent_.getVByteSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to read");
+        return std::unexpected{Error{ECate::eSys, ifs_.rdstate(), std::move(errMsg)}};
     }
 
     return std::move(frame);
@@ -69,20 +69,20 @@ std::expected<YuvPlanarFrame, Error> YuvPlanarReader::read() noexcept {
 std::expected<void, Error> YuvPlanarReader::readInto(YuvPlanarFrame& frame) noexcept {
     ifs_.read((char*)frame.getY().data, frame.getExtent().getYByteSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to read");
+        return std::unexpected{Error{ECate::eSys, ifs_.rdstate(), std::move(errMsg)}};
     }
 
     ifs_.read((char*)frame.getU().data, frame.getExtent().getUByteSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to read");
+        return std::unexpected{Error{ECate::eSys, ifs_.rdstate(), std::move(errMsg)}};
     }
 
     ifs_.read((char*)frame.getV().data, frame.getExtent().getVByteSize());
     if (!ifs_.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to read. iostate={}", (int)ifs_.rdstate());
-        return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
+        auto errMsg = std::format("failed to read");
+        return std::unexpected{Error{ECate::eSys, ifs_.rdstate(), std::move(errMsg)}};
     }
 
     return {};

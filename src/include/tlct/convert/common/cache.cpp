@@ -58,7 +58,7 @@ std::expected<void, Error> CommonCache_<TArrange>::update(const io::YuvPlanarFra
             srcs[2] = rawSrcs[2];
         }
     } catch (const std::bad_alloc&) {
-        return std::unexpected{Error{ErrCode::OutOfMemory}};
+        return std::unexpected{Error{ECate::eSys, ECode::eOutOfMemory}};
     }
 
     return {};
