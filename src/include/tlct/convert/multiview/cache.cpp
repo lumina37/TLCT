@@ -16,7 +16,7 @@
 namespace tlct::_cvt {
 
 template <cfg::concepts::CArrange TArrange>
-auto MvCache_<TArrange>::create(const MvParams& params) noexcept -> std::expected<MvCache_, Error> {
+auto MvCache_<TArrange>::create(const TMvParams& params) noexcept -> std::expected<MvCache_, Error> {
     constexpr float GRADIENT_BLENDING_WIDTH = 0.75;
 
     try {

@@ -5,7 +5,6 @@
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/helper/functional.hpp"
 #include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY

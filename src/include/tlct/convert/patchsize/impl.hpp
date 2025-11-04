@@ -31,11 +31,11 @@ public:
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
-    using PsizeParams = PsizeParams_<TArrange>;
-    using PatchRecord = PatchRecord_<ENABLE_DEBUG>;
+    using TPsizeParams = PsizeParams_<TArrange>;
+    using TPatchRecord = PatchRecord_<ENABLE_DEBUG>;
 
 private:
-    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept;
+    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const TPsizeParams& params) noexcept;
 
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
@@ -95,12 +95,12 @@ private:
         return getPrevPatchsize(offset);
     }
 
-    const TArrange& arrange_;
+    TArrange arrange_;
     TMIBuffers mis_;
-    std::vector<PatchRecord> prevPatchRecords_;
-    std::vector<PatchRecord> patchRecords_;
+    std::vector<TPatchRecord> prevPatchRecords_;
+    std::vector<TPatchRecord> patchRecords_;
     std::vector<float> weights_;
-    PsizeParams params_;
+    TPsizeParams params_;
 };
 
 }  // namespace tlct::_cvt

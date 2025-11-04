@@ -7,12 +7,12 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/concepts/psize.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview/cache.hpp"
 #include "tlct/convert/multiview/params.hpp"
 #include "tlct/helper/error.hpp"
-#include "tlct/io.hpp"
 
 namespace tlct::_cvt {
 
@@ -24,11 +24,13 @@ public:
     // Typename alias
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
-    using MvParams = MvParams_<TArrange>;
-    using MvCache = MvCache_<TArrange>;
+    using TCommonCache = CommonCache_<TArrange>;
+    using TMvParams = MvParams_<TArrange>;
+    using TMvCache = MvCache_<TArrange>;
 
 private:
-    MvImpl_(const TArrange& arrange, const MvParams& params, MvCache&& cache) noexcept;
+    MvImpl_(const TArrange& arrange, const TMvParams& params, TMvCache&& cache,
+            std::shared_ptr<TCommonCache>&& pCommonCache) noexcept;
 
 public:
     // Constructor
@@ -39,31 +41,26 @@ public:
     MvImpl_& operator=(MvImpl_&& rhs) noexcept = default;
 
     // Initialize from
-    [[nodiscard]] TLCT_API static std::expected<MvImpl_, Error> create(const TArrange& arrange,
-                                                                       const TCvtConfig& cvtCfg) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<MvImpl_, Error> create(
+        const TArrange& arrange, const TCvtConfig& cvtCfg, std::shared_ptr<TCommonCache> pCommonCache) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API cv::Size getOutputSize() const noexcept {
         return {params_.outputWidth, params_.outputHeight};
     }
 
-    [[nodiscard]] TLCT_API auto& getSrcChans() noexcept { return cache_.srcs; }
-    [[nodiscard]] TLCT_API const auto& getSrcChans() const noexcept { return cache_.srcs; }
-
-    [[nodiscard]] TLCT_API auto& getDstChans() noexcept { return cache_.u8OutputImageChannels; }
-    [[nodiscard]] TLCT_API const auto& getDstChans() const noexcept { return cache_.u8OutputImageChannels; }
+    [[nodiscard]] TLCT_API auto& getDstChans() noexcept { return mvCache_.u8OutputImageChannels; }
+    [[nodiscard]] TLCT_API const auto& getDstChans() const noexcept { return mvCache_.u8OutputImageChannels; }
 
     template <concepts::CPsizeImpl TPsizeImpl>
     [[nodiscard]] std::expected<void, Error> renderView(const TPsizeImpl& psizeImpl, int viewRow,
                                                         int viewCol) const noexcept;
 
-    // Non-const methods
-    [[nodiscard]] TLCT_API std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
-
 private:
-    const TArrange& arrange_;
-    MvParams params_;
-    mutable MvCache cache_;
+    TArrange arrange_;
+    TMvParams params_;
+    std::shared_ptr<TCommonCache> pCommonCache_;
+    mutable TMvCache mvCache_;
 };
 
 template <cfg::concepts::CArrange TArrange>
@@ -78,10 +75,10 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
     cv::Mat rotatedPatch;
     cv::Mat weightedPatch;
 
-    for (const int chanIdx : rgs::views::iota(0, (int)cache_.srcs.size())) {
-        cache_.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
-        cache_.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
-        cache_.srcs[chanIdx].convertTo(cache_.f32Chan, CV_32FC1);
+    for (const int chanIdx : rgs::views::iota(0, (int)pCommonCache_->srcs.size())) {
+        mvCache_.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
+        mvCache_.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
+        pCommonCache_->srcs[chanIdx].convertTo(mvCache_.f32Chan, CV_32FC1);
 
         for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
             for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
@@ -89,7 +86,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
                 const cv::Point2f center = arrange_.getMICenter(row, col);
                 const float psize = params_.psizeInflate * psizeImpl.getPatchsize(row, col);
                 const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
-                const cv::Mat& patch = getRoiImageByCenter(cache_.f32Chan, patchCenter, psize);
+                const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, psize);
 
                 // Paste patch
                 if (arrange_.isKepler()) {
@@ -101,7 +98,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
                                cv::INTER_LINEAR);
                 }
 
-                cv::multiply(resizedPatch, cache_.gradBlendingWeight, weightedPatch);
+                cv::multiply(resizedPatch, mvCache_.gradBlendingWeight, weightedPatch);
 
                 // if the second bar is not out shift, then we need to shift the 1 col
                 // else if the second bar is out shift, then we need to shift the 0 col
@@ -111,22 +108,22 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
 
                 if (arrange_.isMultiFocus()) {
                     const float weight = psizeImpl.getWeight(row, col);
-                    cv::addWeighted(cache_.renderCanvas(roi), 1.f, weightedPatch, weight, 0.f,
-                                    cache_.renderCanvas(roi));
-                    cv::addWeighted(cache_.weightCanvas(roi), 1.f, cache_.gradBlendingWeight, weight, 0.f,
-                                    cache_.weightCanvas(roi));
+                    cv::addWeighted(mvCache_.renderCanvas(roi), 1.f, weightedPatch, weight, 0.f,
+                                    mvCache_.renderCanvas(roi));
+                    cv::addWeighted(mvCache_.weightCanvas(roi), 1.f, mvCache_.gradBlendingWeight, weight, 0.f,
+                                    mvCache_.weightCanvas(roi));
                 } else {
-                    cache_.renderCanvas(roi) += weightedPatch;
-                    cache_.weightCanvas(roi) += cache_.gradBlendingWeight;
+                    mvCache_.renderCanvas(roi) += weightedPatch;
+                    mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight;
                 }
             }
         }
 
-        cv::Mat croppedRenderedImage = cache_.renderCanvas(params_.canvasCropRoi);
-        cv::Mat croppedWeightMatrix = cache_.weightCanvas(params_.canvasCropRoi);
+        cv::Mat croppedRenderedImage = mvCache_.renderCanvas(params_.canvasCropRoi);
+        cv::Mat croppedWeightMatrix = mvCache_.weightCanvas(params_.canvasCropRoi);
 
-        cv::divide(croppedRenderedImage, croppedWeightMatrix, cache_.u8NormedImage, 1, CV_8UC1);
-        cv::resize(cache_.u8NormedImage, cache_.u8OutputImageChannels[chanIdx],
+        cv::divide(croppedRenderedImage, croppedWeightMatrix, mvCache_.u8NormedImage, 1, CV_8UC1);
+        cv::resize(mvCache_.u8NormedImage, mvCache_.u8OutputImageChannels[chanIdx],
                    {params_.outputWidth, params_.outputHeight}, 0.0, 0.0, cv::INTER_LINEAR);
     }
 

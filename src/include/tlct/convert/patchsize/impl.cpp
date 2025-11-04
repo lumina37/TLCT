@@ -27,7 +27,7 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <cfg::concepts::CArrange TArrange>
-PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const PsizeParams& params) noexcept
+PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const TPsizeParams& params) noexcept
     : arrange_(arrange), mis_(std::move(mis)), params_(params) {
     prevPatchRecords_.resize(arrange.getMIRows() * arrange.getMIMaxCols());
     patchRecords_.resize(prevPatchRecords_.size());
@@ -289,7 +289,7 @@ auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvt
     if (!misRes) return std::unexpected{std::move(misRes.error())};
     auto& mis = misRes.value();
 
-    auto paramsRes = PsizeParams::create(arrange, cvtCfg);
+    auto paramsRes = TPsizeParams::create(arrange, cvtCfg);
     if (!paramsRes) return std::unexpected{std::move(paramsRes.error())};
     auto& params = paramsRes.value();
 
@@ -304,7 +304,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::dumpRecords(const fs::path& dum
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
-    ofs.write((char*)patchRecords_.data(), patchRecords_.size() * sizeof(PatchRecord));
+    ofs.write((char*)patchRecords_.data(), patchRecords_.size() * sizeof(TPatchRecord));
     return {};
 }
 
@@ -342,7 +342,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::loadRecords(const fs::path& loa
         return std::unexpected{Error{ErrCode::FileSysError, errMsg}};
     }
 
-    ifs.read((char*)patchRecords_.data(), patchRecords_.size() * sizeof(PatchRecord));
+    ifs.read((char*)patchRecords_.data(), patchRecords_.size() * sizeof(TPatchRecord));
     return {};
 }
 

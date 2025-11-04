@@ -28,13 +28,14 @@ public:
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<CommonCache_, Error> create(const TArrange& arrange) noexcept;
 
+    // Non-const methods
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
 
     TChannels rawSrcs;
     TChannels srcs;
 
 private:
-    const TArrange& arrange_;
+    TArrange arrange_;
 };
 
 }  // namespace tlct::_cvt
