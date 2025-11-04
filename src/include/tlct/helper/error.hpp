@@ -67,7 +67,3 @@ public:
 };
 
 }  // namespace tlct
-
-#ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/helper/error.cpp"
-#endif
