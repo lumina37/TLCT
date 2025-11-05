@@ -184,7 +184,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
                 const MIBuffer& neibMI = mis_.getMI(neibOffset);
                 neibGrads[(int)direction] = neibMI.grads;
-                neibPsizes[(int)direction] = getPatchsize(neibOffset);
+                neibPsizes[(int)direction] = patchRecords_[neibOffset].getPsize();
             }
 
             const float normedGrad = (mi.grads - texGradMean) / (texGradStddev * 2.0f);
