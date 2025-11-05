@@ -2,17 +2,17 @@
 #include <ranges>
 #include <utility>
 
+#include "../../patchsize/census/impl.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/patchsize/impl.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/io.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/multiview/impl.hpp"
+#    include "tlct/convert/multiview/patch_merge/impl.hpp"
 #endif
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::pm {
 
 namespace rgs = std::ranges;
 
@@ -38,11 +38,9 @@ auto MvImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg
 template class MvImpl_<cfg::CornersArrange>;
 template class MvImpl_<cfg::OffsetArrange>;
 
-template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(const PsizeImpl_<cfg::CornersArrange>&,
-                                                                             io::YuvPlanarFrame&, int,
-                                                                             int) const noexcept;
-template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(const PsizeImpl_<cfg::OffsetArrange>&,
-                                                                            io::YuvPlanarFrame&, int,
-                                                                            int) const noexcept;
+template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(
+    const census::PsizeImpl_<cfg::CornersArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
+template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(
+    const census::PsizeImpl_<cfg::OffsetArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::pm

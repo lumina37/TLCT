@@ -10,10 +10,10 @@
 #include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/multiview/cache.hpp"
+#    include "tlct/convert/multiview/patch_merge/cache.hpp"
 #endif
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::pm {
 
 template <cfg::concepts::CArrange TArrange>
 MvCache_<TArrange>::MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept
@@ -37,4 +37,4 @@ auto MvCache_<TArrange>::create(const TMvParams& params) noexcept -> std::expect
 template class MvCache_<cfg::CornersArrange>;
 template class MvCache_<cfg::OffsetArrange>;
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::pm

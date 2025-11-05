@@ -12,20 +12,20 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "census.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/consts.hpp"
 #include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/helper/roi.hpp"
+#include "tlct/convert/patchsize/census/functional.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/mibuffer.hpp"
+#    include "tlct/convert/patchsize/census/mibuffer.hpp"
 #endif
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::census {
 
 namespace rgs = std::ranges;
 
@@ -175,4 +175,4 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
 template class MIBuffers_<cfg::CornersArrange>;
 template class MIBuffers_<cfg::OffsetArrange>;
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::census

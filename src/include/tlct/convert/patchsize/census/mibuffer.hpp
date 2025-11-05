@@ -10,10 +10,9 @@
 
 #include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/helper/functional.hpp"
 #include "tlct/helper/error.hpp"
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::census {
 
 struct MIBuffer {
     static constexpr int C3_COUNT = 2;
@@ -81,8 +80,8 @@ private:
 
 [[nodiscard]] TLCT_API float compare(const MIBuffer& lhsMI, const MIBuffer& rhsMI, cv::Point2f offset) noexcept;
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::census
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/mibuffer.cpp"
+#    include "tlct/convert/patchsize/census/mibuffer.cpp"
 #endif

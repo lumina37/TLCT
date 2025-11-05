@@ -5,10 +5,10 @@
 #include <opencv2/core.hpp>
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/census.hpp"
+#    include "tlct/convert/patchsize/census/functional.hpp"
 #endif
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::census {
 
 namespace rgs = std::ranges;
 
@@ -71,4 +71,4 @@ void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& cen
     }
 }
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::census

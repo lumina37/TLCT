@@ -6,7 +6,7 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/multiview/params.hpp"
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::pm {
 
 template <cfg::concepts::CArrange TArrange_>
 class MvCache_ {
@@ -37,8 +37,8 @@ public:
     cv::Mat u8NormedImage;
 };
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::pm
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/multiview/cache.cpp"
+#    include "tlct/convert/multiview/patch_merge/cache.cpp"
 #endif

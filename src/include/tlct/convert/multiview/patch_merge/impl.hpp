@@ -10,12 +10,12 @@
 #include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/concepts/psize.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/multiview/cache.hpp"
 #include "tlct/convert/multiview/params.hpp"
+#include "tlct/convert/multiview/patch_merge/cache.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/io.hpp"
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::pm {
 
 namespace rgs = std::ranges;
 
@@ -142,8 +142,8 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPsizeImpl& psize
     return {};
 }
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::pm
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/multiview/impl.cpp"
+#    include "tlct/convert/multiview/patch_merge/impl.cpp"
 #endif

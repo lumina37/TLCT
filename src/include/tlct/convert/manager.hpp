@@ -25,8 +25,8 @@ public:
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TCommonCache = CommonCache_<TArrange>;
-    using TPsizeImpl = PsizeImpl_<TArrange>;
-    using TMvImpl = MvImpl_<TArrange>;
+    using TPsizeImpl = census::PsizeImpl_<TArrange>;
+    using TMvImpl = pm::MvImpl_<TArrange>;
 
 private:
     Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg, std::shared_ptr<TCommonCache>&& pCommonCache,

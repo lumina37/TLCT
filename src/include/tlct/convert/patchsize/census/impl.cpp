@@ -13,17 +13,17 @@
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/patchsize/mibuffer.hpp"
+#include "tlct/convert/patchsize/census/mibuffer.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/math.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/impl.hpp"
+#    include "tlct/convert/patchsize/census/impl.hpp"
 #endif
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::census {
 
 namespace fs = std::filesystem;
 namespace rgs = std::ranges;
@@ -306,4 +306,4 @@ std::expected<void, Error> PsizeImpl_<TArrange>::loadRecords(const fs::path& loa
 template class PsizeImpl_<cfg::CornersArrange>;
 template class PsizeImpl_<cfg::OffsetArrange>;
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::census

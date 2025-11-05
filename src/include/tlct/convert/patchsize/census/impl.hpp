@@ -10,13 +10,13 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
-#include "tlct/convert/patchsize/mibuffer.hpp"
+#include "tlct/convert/patchsize/census/mibuffer.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/convert/patchsize/params.hpp"
 #include "tlct/convert/patchsize/record.hpp"
 #include "tlct/helper/error.hpp"
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::census {
 
 namespace fs = std::filesystem;
 
@@ -108,8 +108,8 @@ private:
     TPsizeParams params_;
 };
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::census
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/impl.cpp"
+#    include "tlct/convert/patchsize/census/impl.cpp"
 #endif
