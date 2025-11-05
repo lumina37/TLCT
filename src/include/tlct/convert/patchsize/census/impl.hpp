@@ -71,16 +71,16 @@ public:
                                                                           const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
+    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return patchRecords_[offset].getPsize(); }
     [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
-        const float psize = patchRecords_[offset].getPsize();
-        return psize;
+        return getPatchsize(offset);
     }
 
+    [[nodiscard]] TLCT_API float getWeight(int offset) const noexcept { return weights_[offset]; }
     [[nodiscard]] TLCT_API float getWeight(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
-        const float weight = weights_[offset];
-        return weight;
+        return getWeight(offset);
     }
 
     // Non-const methods
