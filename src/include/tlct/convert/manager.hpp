@@ -48,10 +48,12 @@ public:
     [[nodiscard]] cv::Size getOutputSize() const noexcept { return mvImpl_.getOutputSize(); }
 
     // Non-const methods
-    [[nodiscard]] TPsizeImpl& getPsizeImpl() noexcept { return psizeImpl_; }
-    [[nodiscard]] TMvImpl& getMvImpl() noexcept { return mvImpl_; }
+    [[nodiscard]] std::expected<void, Error> updateCommonCache(const io::YuvPlanarFrame& src) noexcept;
     [[nodiscard]] std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
     [[nodiscard]] std::expected<void, Error> renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) noexcept;
+
+    // Debug only
+    [[nodiscard]] TPsizeImpl& getPsizeImpl() noexcept { return psizeImpl_; }
 
 private:
     TArrange arrange_;
@@ -90,8 +92,15 @@ auto Manager_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCf
 }
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<void, Error> Manager_<TArrange>::update(const io::YuvPlanarFrame& src) noexcept {
+std::expected<void, Error> Manager_<TArrange>::updateCommonCache(const io::YuvPlanarFrame& src) noexcept {
     auto commonCacheUpdateRes = pCommonCache_->update(src);
+    if (!commonCacheUpdateRes) return std::unexpected{std::move(commonCacheUpdateRes.error())};
+    return {};
+}
+
+template <cfg::concepts::CArrange TArrange>
+std::expected<void, Error> Manager_<TArrange>::update(const io::YuvPlanarFrame& src) noexcept {
+    auto commonCacheUpdateRes = updateCommonCache(src);
     if (!commonCacheUpdateRes) return std::unexpected{std::move(commonCacheUpdateRes.error())};
 
     auto psizeUpdateRes = psizeImpl_.update(pCommonCache_->srcs[0]);
