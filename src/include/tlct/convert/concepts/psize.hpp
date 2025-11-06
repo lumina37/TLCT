@@ -7,7 +7,7 @@
 namespace tlct::_cvt::concepts {
 
 template <typename Self>
-concept CPsizeImpl = requires {
+concept CPatchInfos = requires {
     // Const methods
     requires requires(Self self, int offset) {
         { self.getPatchsize(offset) } -> std::floating_point;

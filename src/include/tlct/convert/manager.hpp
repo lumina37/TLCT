@@ -111,7 +111,7 @@ std::expected<void, Error> Manager_<TArrange>::update(const io::YuvPlanarFrame& 
 
 template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> Manager_<TArrange>::renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) noexcept {
-    auto renderRes = mvImpl_.renderView(psizeImpl_, dst, viewRow, viewCol);
+    auto renderRes = mvImpl_.renderView(psizeImpl_.getPatchInfos(), dst, viewRow, viewCol);
     if (!renderRes) return std::unexpected{std::move(renderRes.error())};
     return {};
 }

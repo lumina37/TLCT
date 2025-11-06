@@ -2,9 +2,9 @@
 #include <ranges>
 #include <utility>
 
-#include "../../patchsize/census/impl.hpp"
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/patchsize/census/info.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/io.hpp"
 
@@ -38,9 +38,15 @@ auto MvImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg
 template class MvImpl_<cfg::CornersArrange>;
 template class MvImpl_<cfg::OffsetArrange>;
 
+#ifdef _DEBUG
+static constexpr bool DEBUG_ENABLED = true;
+#else
+static constexpr bool DEBUG_ENABLED = false;
+#endif
+
 template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(
-    const census::PsizeImpl_<cfg::CornersArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
+    const census::PatchInfos_<cfg::CornersArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
 template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(
-    const census::PsizeImpl_<cfg::OffsetArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
+    const census::PatchInfos_<cfg::OffsetArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
 
 }  // namespace tlct::_cvt::pm

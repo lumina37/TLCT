@@ -10,6 +10,6 @@ namespace _ = _cvt::concepts;
 
 using _::CManager;
 using _::CNeighbors;
-using _::CPsizeImpl;
+using _::CPatchInfos;
 
 }  // namespace tlct::cvt::concepts

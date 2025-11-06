@@ -10,10 +10,10 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/patchsize/census/info.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/convert/patchsize/params.hpp"
-#include "tlct/convert/patchsize/record.hpp"
 #include "tlct/helper/error.hpp"
 
 namespace tlct::_cvt::census {
@@ -29,9 +29,9 @@ template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
 public:
 #ifdef _DEBUG
-    static constexpr bool ENABLE_DEBUG = true;
+    static constexpr bool DEBUG_ENABLED = true;
 #else
-    static constexpr bool ENABLE_DEBUG = false;
+    static constexpr bool DEBUG_ENABLED = false;
 #endif
 
     // Typename alias
@@ -39,10 +39,13 @@ public:
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
     using TPsizeParams = PsizeParams_<TArrange>;
-    using TPatchRecord = PatchRecord_<ENABLE_DEBUG>;
+    using TPatchInfos = PatchInfos_<TArrange, DEBUG_ENABLED>;
+    using TPatchInfo = TPatchInfos::TPatchInfo;
+    using TPatchInfoVec = TPatchInfos::TPatchInfoVec;
 
 private:
-    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, const TPsizeParams& params) noexcept;
+    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPatchInfoVec&& prevPatchInfoVec, TPatchInfos&& patchInfos,
+               const TPsizeParams& params) noexcept;
 
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
@@ -71,27 +74,18 @@ public:
                                                                           const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return patchRecords_[offset].getPsize(); }
-    [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept {
-        const int offset = row * arrange_.getMIMaxCols() + col;
-        return getPatchsize(offset);
-    }
-
-    [[nodiscard]] TLCT_API float getWeight(int offset) const noexcept { return weights_[offset]; }
-    [[nodiscard]] TLCT_API float getWeight(int row, int col) const noexcept {
-        const int offset = row * arrange_.getMIMaxCols() + col;
-        return getWeight(offset);
-    }
+    [[nodiscard]] TLCT_API const TPatchInfos& getPatchInfos() const noexcept { return patchInfos_; }
 
     // Non-const methods
+    [[nodiscard]] TLCT_API TPatchInfos& getPatchInfos() noexcept { return patchInfos_; }
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
     // Debug only
-    [[nodiscard]] TLCT_API std::expected<void, Error> dumpRecords(const fs::path& dumpTo) const noexcept;
-    [[nodiscard]] TLCT_API std::expected<void, Error> loadRecords(const fs::path& loadFrom) noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> dumpInfos(const fs::path& dumpTo) const noexcept;
+    [[nodiscard]] TLCT_API std::expected<void, Error> loadInfos(const fs::path& loadFrom) noexcept;
 
 private:
-    [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchRecords_[offset].getPsize(); }
+    [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchInfoVec_[offset].getPatchsize(); }
     [[nodiscard]] float getPrevPatchsize(cv::Point index) const noexcept { return getPrevPatchsize(index.y, index.x); }
     [[nodiscard]] float getPrevPatchsize(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
@@ -100,9 +94,8 @@ private:
 
     TArrange arrange_;
     TMIBuffers mis_;
-    std::vector<TPatchRecord> prevPatchRecords_;
-    std::vector<TPatchRecord> patchRecords_;
-    std::vector<float> weights_;
+    TPatchInfoVec prevPatchInfoVec_;
+    TPatchInfos patchInfos_;
     TPsizeParams params_;
 };
 
