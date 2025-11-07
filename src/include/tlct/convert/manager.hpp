@@ -5,7 +5,6 @@
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts/arrange.hpp"
 #include "tlct/convert/common/cache.hpp"
-#include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview.hpp"
 #include "tlct/convert/patchsize.hpp"
 #include "tlct/helper/error.hpp"
@@ -19,8 +18,6 @@ namespace _cvt {
 template <cfg::concepts::CArrange TArrange_>
 class Manager_ {
 public:
-    static constexpr int CHANNELS = 3;
-
     // Typename alias
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
