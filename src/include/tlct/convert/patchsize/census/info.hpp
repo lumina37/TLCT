@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cstdint>
 #include <vector>
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/helper/std.hpp"
 
 namespace tlct::_cvt::census {
 

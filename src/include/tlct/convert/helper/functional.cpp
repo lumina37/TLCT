@@ -1,10 +1,10 @@
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <limits>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
+
+#include "tlct/helper/std.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/helper/functional.hpp"

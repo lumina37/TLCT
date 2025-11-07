@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "tlct/common/defines.h"
+#include "tlct/helper/std.hpp"
 
 namespace tlct {
 

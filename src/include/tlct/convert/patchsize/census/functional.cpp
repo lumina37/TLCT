@@ -1,8 +1,9 @@
 #include <cassert>
-#include <cstdint>
 #include <ranges>
 
 #include <opencv2/core.hpp>
+
+#include "tlct/helper/std.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/patchsize/census/functional.hpp"

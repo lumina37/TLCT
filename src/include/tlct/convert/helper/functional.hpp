@@ -2,7 +2,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/common/defines.h"
+#include "tlct/helper/std.hpp"
 
 namespace tlct::_cvt {
 

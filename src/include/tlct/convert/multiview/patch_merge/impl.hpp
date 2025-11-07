@@ -1,11 +1,9 @@
 #pragma once
 
-#include <expected>
 #include <ranges>
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/common/defines.h"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/concepts/psize.hpp"
@@ -13,6 +11,7 @@
 #include "tlct/convert/multiview/params.hpp"
 #include "tlct/convert/multiview/patch_merge/cache.hpp"
 #include "tlct/helper/error.hpp"
+#include "tlct/helper/std.hpp"
 #include "tlct/io.hpp"
 
 namespace tlct::_cvt::pm {
