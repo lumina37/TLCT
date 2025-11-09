@@ -1,0 +1,6 @@
+- `common`: common infomation about compiler and version
+- `config`: parser of the input config
+- `convert`: impl of the patch size estimation and multi-view conversion
+- `helper`: common helper functions of constexpr-math / charset conversion / error handling
+- `io`: yuv input & output
+- `namespace`: re-organize namespaces

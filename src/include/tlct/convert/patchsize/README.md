@@ -1,0 +1,2 @@
+- `census`: estimate by census transform similarity
+- `ssim`: estimate by SSIM

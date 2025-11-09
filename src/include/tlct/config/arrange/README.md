@@ -1,0 +1,2 @@
+- `corners`: calibrate by MIs at the four corners (for TSPC)
+- `offset`: calibrate by the central MI and offsets (for Raytrix)

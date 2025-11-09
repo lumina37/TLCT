@@ -1,0 +1,2 @@
+- `patch_merge`: merging patches to obtain the final multi-view image
+- `ltype_merge`: merging multi-view image of each lens-type to obtain the final multi-view image
