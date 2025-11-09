@@ -6,9 +6,9 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/helper/std.hpp"
 
-namespace tlct::_cvt::census {
+namespace tlct::_cvt {
 
-class PatchDebugInfo {
+class PatchMergeDebugInfo {
 public:
     int dhashDiff = 0;
     bool isBlurredNear = false;
@@ -18,34 +18,34 @@ public:
 };
 
 template <bool ENABLE_DEBUG>
-class PatchInfo_;
+class PatchMergeInfo_;
 
 template <>
-class PatchInfo_<true> {
+class PatchMergeInfo_<true> {
 public:
     void setPatchsize(const float v) noexcept { patchsize_ = v; }
     void setDhash(const uint16_t v) noexcept { dhash_ = v; }
 
     [[nodiscard]] float getPatchsize() const noexcept { return patchsize_; }
     [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
-    [[nodiscard]] PatchDebugInfo* getPDebugInfo() noexcept { return &debugInfo_; }
+    [[nodiscard]] PatchMergeDebugInfo* getPDebugInfo() noexcept { return &debugInfo_; }
 
 private:
     float patchsize_;
     float weight_;
     uint16_t dhash_;
-    PatchDebugInfo debugInfo_;
+    PatchMergeDebugInfo debugInfo_;
 };
 
 template <>
-class PatchInfo_<false> {
+class PatchMergeInfo_<false> {
 public:
     void setPatchsize(const float v) noexcept { psize_ = v; }
     void setDhash(const uint16_t v) noexcept { dhash_ = v; }
 
     [[nodiscard]] float getPatchsize() const noexcept { return psize_; }
     [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
-    [[nodiscard]] PatchDebugInfo* getPDebugInfo() noexcept { return nullptr; }
+    [[nodiscard]] PatchMergeDebugInfo* getPDebugInfo() noexcept { return nullptr; }
 
 private:
     float psize_;
@@ -53,21 +53,21 @@ private:
 };
 
 template <cfg::concepts::CArrange TArrange_, bool ENABLE_DEBUG>
-class PatchInfos_ {
+class PatchMergeBridge_ {
 public:
     using TArrange = TArrange_;
-    using TPatchInfo = PatchInfo_<ENABLE_DEBUG>;
-    using TPatchInfoVec = std::vector<TPatchInfo>;
+    using TInfo = PatchMergeInfo_<ENABLE_DEBUG>;
+    using TInfos = std::vector<TInfo>;
 
 private:
-    PatchInfos_(const TArrange& arrange, std::vector<TPatchInfo>&& infos, std::vector<float>&& weights) noexcept;
+    PatchMergeBridge_(const TArrange& arrange, std::vector<TInfo>&& infos, std::vector<float>&& weights) noexcept;
 
 public:
     // Initialize from
-    [[nodiscard]] TLCT_API static std::expected<PatchInfos_, Error> create(const TArrange& arrange) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<PatchMergeBridge_, Error> create(const TArrange& arrange) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return infoVec_[offset].getPatchsize(); }
+    [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return infos_[offset].getPatchsize(); }
     [[nodiscard]] TLCT_API float getPatchsize(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
         return getPatchsize(offset);
@@ -78,19 +78,19 @@ public:
         return getWeight(offset);
     }
 
-    [[nodiscard]] TLCT_API const TPatchInfoVec& getInfoVec() const noexcept { return infoVec_; }
+    [[nodiscard]] TLCT_API const TInfos& getInfos() const noexcept { return infos_; }
 
     // Non-const methods
-    TLCT_API void swapInfos(TPatchInfoVec& rhs) noexcept { return std::swap(infoVec_, rhs); }
+    TLCT_API void swapInfos(TInfos& rhs) noexcept { return std::swap(infos_, rhs); }
 
-    [[nodiscard]] TLCT_API TPatchInfo& getInfo(int offset) noexcept { return infoVec_[offset]; }
-    [[nodiscard]] TLCT_API TPatchInfo& getInfo(int row, int col) noexcept {
+    [[nodiscard]] TLCT_API TInfo& getInfo(int offset) noexcept { return infos_[offset]; }
+    [[nodiscard]] TLCT_API TInfo& getInfo(int row, int col) noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
         return getInfo(offset);
     }
 
-    [[nodiscard]] TLCT_API TPatchInfoVec& getInfoVec() noexcept { return infoVec_; }
-    TLCT_API void setInfoVec(TPatchInfoVec& infoVec) noexcept { infoVec_ = infoVec; }
+    [[nodiscard]] TLCT_API TInfos& getInfos() noexcept { return infos_; }
+    TLCT_API void setInfos(TInfos& infos) noexcept { infos_ = infos; }
 
     TLCT_API void setWeight(int offset, float v) noexcept { weights_[offset] = v; }
     TLCT_API void setWeight(int row, int col, float v) noexcept {
@@ -100,8 +100,12 @@ public:
 
 private:
     TArrange arrange_;
-    TPatchInfoVec infoVec_;
+    TInfos infos_;
     std::vector<float> weights_;
 };
 
-}  // namespace tlct::_cvt::census
+}  // namespace tlct::_cvt
+
+#ifdef _TLCT_LIB_HEADER_ONLY
+#    include "tlct/convert/common/bridge/patch_merge.cpp"
+#endif

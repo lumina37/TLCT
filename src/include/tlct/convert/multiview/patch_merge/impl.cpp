@@ -2,7 +2,7 @@
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/patchsize/census/info.hpp"
+#include "tlct/convert/common/bridge/patch_merge.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 #include "tlct/io.hpp"
@@ -44,8 +44,8 @@ static constexpr bool DEBUG_ENABLED = false;
 #endif
 
 template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(
-    const census::PatchInfos_<cfg::CornersArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
+    const PatchMergeBridge_<cfg::CornersArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
 template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(
-    const census::PatchInfos_<cfg::OffsetArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
+    const PatchMergeBridge_<cfg::OffsetArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
 
 }  // namespace tlct::_cvt::pm

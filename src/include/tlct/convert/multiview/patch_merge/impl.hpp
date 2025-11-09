@@ -6,7 +6,7 @@
 
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/common/cache.hpp"
-#include "tlct/convert/concepts/psize.hpp"
+#include "tlct/convert/concepts/bridge.hpp"
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview/params.hpp"
 #include "tlct/convert/multiview/patch_merge/cache.hpp"
@@ -49,9 +49,9 @@ public:
         return {params_.outputWidth, params_.outputHeight};
     }
 
-    template <concepts::CPatchInfos TPatchInfos>
-    [[nodiscard]] std::expected<void, Error> renderView(const TPatchInfos& patchInfos, io::YuvPlanarFrame& dst,
-                                                        int viewRow, int viewCol) const noexcept;
+    template <concepts::CPatchMergeBridge TBridge>
+    [[nodiscard]] std::expected<void, Error> renderView(const TBridge& bridge, io::YuvPlanarFrame& dst, int viewRow,
+                                                        int viewCol) const noexcept;
 
 private:
     TArrange arrange_;
@@ -61,9 +61,9 @@ private:
 };
 
 template <cfg::concepts::CArrange TArrange>
-template <concepts::CPatchInfos TPatchInfos>
-std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPatchInfos& patchInfos, io::YuvPlanarFrame& dst,
-                                                         int viewRow, int viewCol) const noexcept {
+template <concepts::CPatchMergeBridge TBridge>
+std::expected<void, Error> MvImpl_<TArrange>::renderView(const TBridge& bridge, io::YuvPlanarFrame& dst, int viewRow,
+                                                         int viewCol) const noexcept {
     // TODO: handle `std::bad_alloc` in this func
     const int viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
     const int viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
@@ -90,7 +90,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPatchInfos& patc
             for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
                 // Extract patch
                 const cv::Point2f center = arrange_.getMICenter(row, col);
-                const float psize = params_.psizeInflate * patchInfos.getPatchsize(row, col);
+                const float psize = params_.psizeInflate * bridge.getPatchsize(row, col);
                 const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
                 const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, psize);
 
@@ -113,7 +113,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TPatchInfos& patc
                                    params_.resizedPatchWidth, params_.resizedPatchWidth};
 
                 if (arrange_.isMultiFocus()) {
-                    const float weight = patchInfos.getWeight(row, col);
+                    const float weight = bridge.getWeight(row, col);
                     cv::addWeighted(mvCache_.renderCanvas(roi), 1.f, weightedPatch, weight, 0.f,
                                     mvCache_.renderCanvas(roi));
                     cv::addWeighted(mvCache_.weightCanvas(roi), 1.f, mvCache_.gradBlendingWeight, weight, 0.f,

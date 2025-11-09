@@ -1,15 +1,13 @@
 #pragma once
 
 #include <filesystem>
-#include <vector>
 
 #include <opencv2/core.hpp>
 
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/common/bridge/patch_merge.hpp"
 #include "tlct/convert/concepts.hpp"
-#include "tlct/convert/helper.hpp"
-#include "tlct/convert/patchsize/census/info.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/convert/patchsize/params.hpp"
@@ -39,12 +37,12 @@ public:
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
     using TPsizeParams = PsizeParams_<TArrange>;
-    using TPatchInfos = PatchInfos_<TArrange, DEBUG_ENABLED>;
-    using TPatchInfo = TPatchInfos::TPatchInfo;
-    using TPatchInfoVec = TPatchInfos::TPatchInfoVec;
+    using TBridge = PatchMergeBridge_<TArrange, DEBUG_ENABLED>;
+    using TPInfo = TBridge::TInfo;
+    using TPInfos = TBridge::TInfos;
 
 private:
-    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPatchInfoVec&& prevPatchInfoVec, TPatchInfos&& patchInfos,
+    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos, TBridge&& bridge,
                const TPsizeParams& params) noexcept;
 
     using NearNeighbors = NearNeighbors_<TArrange>;
@@ -74,10 +72,10 @@ public:
                                                                           const TCvtConfig& cvtCfg) noexcept;
 
     // Const methods
-    [[nodiscard]] TLCT_API const TPatchInfos& getPatchInfos() const noexcept { return patchInfos_; }
+    [[nodiscard]] TLCT_API const TBridge& getBridge() const noexcept { return bridge_; }
 
     // Non-const methods
-    [[nodiscard]] TLCT_API TPatchInfos& getPatchInfos() noexcept { return patchInfos_; }
+    [[nodiscard]] TLCT_API TBridge& getBridge() noexcept { return bridge_; }
     [[nodiscard]] TLCT_API std::expected<void, Error> update(const cv::Mat& src) noexcept;
 
     // Debug only
@@ -85,7 +83,7 @@ public:
     [[nodiscard]] TLCT_API std::expected<void, Error> loadInfos(const fs::path& loadFrom) noexcept;
 
 private:
-    [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchInfoVec_[offset].getPatchsize(); }
+    [[nodiscard]] float getPrevPatchsize(int offset) const noexcept { return prevPatchInfos_[offset].getPatchsize(); }
     [[nodiscard]] float getPrevPatchsize(cv::Point index) const noexcept { return getPrevPatchsize(index.y, index.x); }
     [[nodiscard]] float getPrevPatchsize(int row, int col) const noexcept {
         const int offset = row * arrange_.getMIMaxCols() + col;
@@ -94,8 +92,8 @@ private:
 
     TArrange arrange_;
     TMIBuffers mis_;
-    TPatchInfoVec prevPatchInfoVec_;
-    TPatchInfos patchInfos_;
+    TPInfos prevPatchInfos_;
+    TBridge bridge_;
     TPsizeParams params_;
 };
 

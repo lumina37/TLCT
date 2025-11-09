@@ -10,7 +10,6 @@
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/helper.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/helper/constexpr/math.hpp"
@@ -28,12 +27,12 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <cfg::concepts::CArrange TArrange>
-PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPatchInfoVec&& prevPatchInfoVec,
-                                 TPatchInfos&& patchInfos, const TPsizeParams& params) noexcept
+PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos, TBridge&& bridge,
+                                 const TPsizeParams& params) noexcept
     : arrange_(arrange),
       mis_(std::move(mis)),
-      prevPatchInfoVec_(std::move(prevPatchInfoVec)),
-      patchInfos_(std::move(patchInfos)),
+      prevPatchInfos_(std::move(prevPatchInfos)),
+      bridge_(std::move(bridge)),
       params_(params) {}
 
 template <cfg::concepts::CArrange TArrange>
@@ -87,9 +86,9 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
         const auto index = neighbors.getSelfIdx();
         const int offset = index.y * arrange_.getMIMaxCols() + index.x;
         if constexpr (std::is_same_v<TNeighbors, FarNeighbors>) {
-            patchInfos_.getInfo(offset).getPDebugInfo()->farMetrics = std::move(metrics);
+            bridge_.getInfo(offset).getPDebugInfo()->farMetrics = std::move(metrics);
         } else {
-            patchInfos_.getInfo(offset).getPDebugInfo()->nearMetrics = std::move(metrics);
+            bridge_.getInfo(offset).getPDebugInfo()->nearMetrics = std::move(metrics);
         }
     }
 
@@ -105,16 +104,16 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
     const float prevPsize = getPrevPatchsize(offset);
 
     if constexpr (DEBUG_ENABLED) {
-        *patchInfos_.getInfo(offset).getPDebugInfo() = {};
+        *bridge_.getInfo(offset).getPDebugInfo() = {};
     }
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         // Early return if dhash is only slightly different
-        const uint16_t prevDhash = prevPatchInfoVec_[offset].getDhash();
+        const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
         const uint16_t dhashDiff = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
         if constexpr (DEBUG_ENABLED) {
-            patchInfos_.getInfo(offset).getPDebugInfo()->dhashDiff = dhashDiff;
+            bridge_.getInfo(offset).getPDebugInfo()->dhashDiff = dhashDiff;
         }
-        patchInfos_.getInfo(offset).setDhash(anchorMI.dhash);
+        bridge_.getInfo(offset).setDhash(anchorMI.dhash);
         if (dhashDiff <= params_.psizeShortcutThreshold) {
             return prevPsize;
         }
@@ -181,13 +180,13 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
                 const MIBuffer& neibMI = mis_.getMI(neibOffset);
                 neibGrads[(int)direction] = neibMI.grads;
-                neibPsizes[(int)direction] = patchInfos_.getInfo(neibOffset).getPatchsize();
+                neibPsizes[(int)direction] = bridge_.getInfo(neibOffset).getPatchsize();
             }
 
             const float normedGrad = (mi.grads - texGradMean) / (texGradStddev * 2.0f);
             const float clippedGrad = _hp::clip(normedGrad, -1.0f, 1.0f);
             const float poweredGrad = clippedGrad * clippedGrad * clippedGrad;
-            patchInfos_.setWeight(offset, poweredGrad + 1.0f);
+            bridge_.setWeight(offset, poweredGrad + 1.0f);
 
             int group0GtCount = 0;
             int group1GtCount = 0;
@@ -203,13 +202,13 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have the blurrest texture (smallest gradient) among all its neighbor MIs.
             // We should assign a smaller weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
-                const float newWeight = patchInfos_.getWeight(offset) / 2.f;
-                patchInfos_.setWeight(offset, newWeight);
+                const float newWeight = bridge_.getWeight(offset) / 2.f;
+                bridge_.setWeight(offset, newWeight);
                 const float psize = std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
-                patchInfos_.getInfo(offset).setPatchsize(psize);
+                bridge_.getInfo(offset).setPatchsize(psize);
 
                 if constexpr (DEBUG_ENABLED) {
-                    patchInfos_.getInfo(offset).getPDebugInfo()->isBlurredFar = true;
+                    bridge_.getInfo(offset).getPDebugInfo()->isBlurredFar = true;
                 }
 
                 continue;
@@ -222,17 +221,17 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 const float psize = (neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
                                      neibPsizes[(int)Direction::DOWNLEFT]) /
                                     3.f;
-                patchInfos_.getInfo(offset).setPatchsize(psize);
+                bridge_.getInfo(offset).setPatchsize(psize);
                 if constexpr (DEBUG_ENABLED) {
-                    patchInfos_.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
+                    bridge_.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
                 }
             } else if (group0GtCount == 0 && group1GtCount == 3) {
                 const float psize = (neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
                                      neibPsizes[(int)Direction::DOWNLEFT]) /
                                     3.f;
-                patchInfos_.getInfo(offset).setPatchsize(psize);
+                bridge_.getInfo(offset).setPatchsize(psize);
                 if constexpr (DEBUG_ENABLED) {
-                    patchInfos_.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
+                    bridge_.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
                 }
             }
         }
@@ -246,28 +245,28 @@ auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvt
     if (!misRes) return std::unexpected{std::move(misRes.error())};
     auto& mis = misRes.value();
 
-    std::vector<TPatchInfo> prevPatchInfoVec(arrange.getMIRows() * arrange.getMIMaxCols());
+    std::vector<TPInfo> prevPatchInfos(arrange.getMIRows() * arrange.getMIMaxCols());
 
-    auto patchInfosRes = TPatchInfos::create(arrange);
-    if (!patchInfosRes) return std::unexpected{std::move(patchInfosRes.error())};
-    auto& patchInfos = patchInfosRes.value();
+    auto bridgeRes = TBridge::create(arrange);
+    if (!bridgeRes) return std::unexpected{std::move(bridgeRes.error())};
+    auto& bridge = bridgeRes.value();
 
     auto paramsRes = TPsizeParams::create(arrange, cvtCfg);
     if (!paramsRes) return std::unexpected{std::move(paramsRes.error())};
     auto& params = paramsRes.value();
 
-    return PsizeImpl_{arrange, std::move(mis), std::move(prevPatchInfoVec), std::move(patchInfos), params};
+    return PsizeImpl_{arrange, std::move(mis), std::move(prevPatchInfos), std::move(bridge), params};
 }
 
 template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noexcept {
-    patchInfos_.swapInfos(prevPatchInfoVec_);
+    bridge_.swapInfos(prevPatchInfos_);
 
     auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
 #pragma omp parallel for
-    for (int idx = 0; idx < (int)prevPatchInfoVec_.size(); idx++) {
+    for (int idx = 0; idx < (int)prevPatchInfos_.size(); idx++) {
         const int row = idx / arrange_.getMIMaxCols();
         const int col = idx % arrange_.getMIMaxCols();
         if (col >= arrange_.getMICols(row)) {
@@ -275,7 +274,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
         }
         const cv::Point index{col, row};
         const float psize = estimatePatchsize(index);
-        patchInfos_.getInfo(idx).setPatchsize(psize);
+        bridge_.getInfo(idx).setPatchsize(psize);
     }
 
     if (arrange_.isMultiFocus()) {
@@ -293,8 +292,8 @@ std::expected<void, Error> PsizeImpl_<TArrange>::dumpInfos(const fs::path& dumpT
         return std::unexpected{Error{ECate::eSys, ofs.rdstate(), std::move(errMsg)}};
     }
 
-    const auto& patchInfoVec = patchInfos_.getInfoVec();
-    ofs.write((char*)patchInfoVec.data(), patchInfoVec.size() * sizeof(patchInfoVec[0]));
+    const auto& patchInfos = bridge_.getInfos();
+    ofs.write((char*)patchInfos.data(), patchInfos.size() * sizeof(patchInfos[0]));
     return {};
 }
 
@@ -306,8 +305,8 @@ std::expected<void, Error> PsizeImpl_<TArrange>::loadInfos(const fs::path& loadF
         return std::unexpected{Error{ECate::eSys, ifs.rdstate(), std::move(errMsg)}};
     }
 
-    auto& patchInfoVec = patchInfos_.getInfoVec();
-    ifs.read((char*)patchInfoVec.data(), patchInfoVec.size() * sizeof(patchInfoVec[0]));
+    auto& patchInfos = bridge_.getInfos();
+    ifs.read((char*)patchInfos.data(), patchInfos.size() * sizeof(patchInfos[0]));
     return {};
 }
 

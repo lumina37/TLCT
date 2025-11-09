@@ -2,12 +2,10 @@
 
 #include <concepts>
 
-#include <opencv2/core.hpp>
-
 namespace tlct::_cvt::concepts {
 
 template <typename Self>
-concept CPatchInfos = requires {
+concept CPatchMergeBridge = requires {
     // Const methods
     requires requires(Self self, int offset) {
         { self.getPatchsize(offset) } -> std::floating_point;
