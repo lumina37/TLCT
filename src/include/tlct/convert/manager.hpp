@@ -26,8 +26,8 @@ public:
     using TMvImpl = pm::MvImpl_<TArrange>;
 
 private:
-    Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg, std::shared_ptr<TCommonCache>&& pCommonCache,
-             TPsizeImpl&& psizeImpl, TMvImpl&& mvImpl) noexcept;
+    Manager_(std::shared_ptr<TArrange>&& pArrange, const TCvtConfig& cvtCfg,
+             std::shared_ptr<TCommonCache>&& pCommonCache, TPsizeImpl&& psizeImpl, TMvImpl&& mvImpl) noexcept;
 
 public:
     // Constructor
@@ -53,7 +53,7 @@ public:
     [[nodiscard]] TPsizeImpl& getPsizeImpl() noexcept { return psizeImpl_; }
 
 private:
-    TArrange arrange_;
+    std::shared_ptr<TArrange> pArrange_;
     TCvtConfig cvtCfg_;
     std::shared_ptr<TCommonCache> pCommonCache_;
     TPsizeImpl psizeImpl_;
@@ -61,10 +61,10 @@ private:
 };
 
 template <cfg::concepts::CArrange TArrange>
-Manager_<TArrange>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg,
+Manager_<TArrange>::Manager_(std::shared_ptr<TArrange>&& pArrange, const TCvtConfig& cvtCfg,
                              std::shared_ptr<TCommonCache>&& pCommonCache, TPsizeImpl&& psizeImpl,
                              TMvImpl&& mvImpl) noexcept
-    : arrange_(arrange),
+    : pArrange_(std::move(pArrange)),
       cvtCfg_(cvtCfg),
       pCommonCache_(std::move(pCommonCache)),
       psizeImpl_(std::move(psizeImpl)),
@@ -73,6 +73,8 @@ Manager_<TArrange>::Manager_(const TArrange& arrange, const TCvtConfig& cvtCfg,
 template <cfg::concepts::CArrange TArrange>
 auto Manager_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
     -> std::expected<Manager_, Error> {
+    auto pArrange = std::make_shared<TArrange>(arrange);
+
     auto commonCacheRes = TCommonCache::create(arrange);
     if (!commonCacheRes) return std::unexpected{std::move(commonCacheRes.error())};
     auto pCommonCache = std::make_shared<TCommonCache>(std::move(commonCacheRes.value()));
@@ -85,7 +87,7 @@ auto Manager_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCf
     if (!mvImplRes) return std::unexpected{std::move(mvImplRes.error())};
     auto& mvImpl = mvImplRes.value();
 
-    return Manager_{arrange, cvtCfg, std::move(pCommonCache), std::move(psizeImpl), std::move(mvImpl)};
+    return Manager_{std::move(pArrange), cvtCfg, std::move(pCommonCache), std::move(psizeImpl), std::move(mvImpl)};
 }
 
 template <cfg::concepts::CArrange TArrange>
