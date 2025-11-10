@@ -27,18 +27,12 @@ struct PsizeMetric {
 template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
 public:
-#ifdef _DEBUG
-    static constexpr bool DEBUG_ENABLED = true;
-#else
-    static constexpr bool DEBUG_ENABLED = false;
-#endif
-
     // Typename alias
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
     using TPsizeParams = PsizeParams_<TArrange>;
-    using TBridge = PatchMergeBridge_<TArrange, DEBUG_ENABLED>;
+    using TBridge = PatchMergeBridge_<TArrange>;
     using TPInfo = TBridge::TInfo;
     using TPInfos = TBridge::TInfos;
 
@@ -48,9 +42,6 @@ private:
 
     using NearNeighbors = NearNeighbors_<TArrange>;
     using FarNeighbors = FarNeighbors_<TArrange>;
-
-    template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] typename TNeighbors::Direction maxGradDirection(const TNeighbors& neighbors) const noexcept;
 
     template <concepts::CNeighbors TNeighbors>
     [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, WrapSSIM& wrapAnchor) noexcept;

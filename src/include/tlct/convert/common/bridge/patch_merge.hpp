@@ -17,28 +17,25 @@ public:
     std::vector<float> farMetrics{};
 };
 
-template <bool ENABLE_DEBUG>
-class PatchMergeInfo_;
-
-template <>
-class PatchMergeInfo_<true> {
+template <typename TDebugInfo>
+class PatchMergeInfo_ {
 public:
     void setPatchsize(const float v) noexcept { patchsize_ = v; }
     void setDhash(const uint16_t v) noexcept { dhash_ = v; }
 
     [[nodiscard]] float getPatchsize() const noexcept { return patchsize_; }
     [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
-    [[nodiscard]] PatchMergeDebugInfo* getPDebugInfo() noexcept { return &debugInfo_; }
+    [[nodiscard]] TDebugInfo* getPDebugInfo() noexcept { return &debugInfo_; }
 
 private:
     float patchsize_;
     float weight_;
     uint16_t dhash_;
-    PatchMergeDebugInfo debugInfo_;
+    TDebugInfo debugInfo_;
 };
 
 template <>
-class PatchMergeInfo_<false> {
+class PatchMergeInfo_<nullptr_t> {
 public:
     void setPatchsize(const float v) noexcept { psize_ = v; }
     void setDhash(const uint16_t v) noexcept { dhash_ = v; }
@@ -52,11 +49,11 @@ private:
     uint16_t dhash_;
 };
 
-template <cfg::concepts::CArrange TArrange_, bool ENABLE_DEBUG>
+template <cfg::concepts::CArrange TArrange_, typename TDebugInfo = nullptr_t>
 class PatchMergeBridge_ {
 public:
     using TArrange = TArrange_;
-    using TInfo = PatchMergeInfo_<ENABLE_DEBUG>;
+    using TInfo = PatchMergeInfo_<TDebugInfo>;
     using TInfos = std::vector<TInfo>;
 
 private:
@@ -104,8 +101,23 @@ private:
     std::vector<float> weights_;
 };
 
-}  // namespace tlct::_cvt
+template <cfg::concepts::CArrange TArrange, typename TDebugInfo>
+PatchMergeBridge_<TArrange, TDebugInfo>::PatchMergeBridge_(const TArrange& arrange, std::vector<TInfo>&& infos,
+                                                           std::vector<float>&& weights) noexcept
+    : arrange_(arrange), infos_(std::move(infos)), weights_(std::move(weights)) {}
 
-#ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/common/bridge/patch_merge.cpp"
-#endif
+template <cfg::concepts::CArrange TArrange, typename TDebugInfo>
+auto PatchMergeBridge_<TArrange, TDebugInfo>::create(const TArrange& arrange) noexcept
+    -> std::expected<PatchMergeBridge_, Error> {
+    std::vector<TInfo> infos;
+    infos.resize(arrange.getMIRows() * arrange.getMIMaxCols());
+
+    std::vector<float> weights;
+    if (arrange.isMultiFocus()) {
+        weights.resize(infos.size());
+    }
+
+    return PatchMergeBridge_{arrange, std::move(infos), std::move(weights)};
+}
+
+}  // namespace tlct::_cvt

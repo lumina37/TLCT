@@ -37,15 +37,9 @@ auto MvImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg
 template class MvImpl_<cfg::CornersArrange>;
 template class MvImpl_<cfg::OffsetArrange>;
 
-#ifdef _DEBUG
-static constexpr bool DEBUG_ENABLED = true;
-#else
-static constexpr bool DEBUG_ENABLED = false;
-#endif
-
 template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(
-    const PatchMergeBridge_<cfg::CornersArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
+    const PatchMergeBridge_<cfg::CornersArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
 template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(
-    const PatchMergeBridge_<cfg::OffsetArrange, DEBUG_ENABLED>&, io::YuvPlanarFrame&, int, int) const noexcept;
+    const PatchMergeBridge_<cfg::OffsetArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
 
 }  // namespace tlct::_cvt::pm

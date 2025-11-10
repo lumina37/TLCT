@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
 
 #include <opencv2/core.hpp>
 
@@ -18,6 +19,15 @@ namespace tlct::_cvt::census {
 
 namespace fs = std::filesystem;
 
+class PatchMergeDebugInfo {
+public:
+    int dhashDiff = 0;
+    bool isBlurredNear = false;
+    bool isBlurredFar = false;
+    std::vector<float> nearMetrics{};
+    std::vector<float> farMetrics{};
+};
+
 struct PsizeMetric {
     float psize;
     float metric;
@@ -27,8 +37,10 @@ template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
 public:
 #ifdef _DEBUG
+    using TDebugInfo = PatchMergeDebugInfo;
     static constexpr bool DEBUG_ENABLED = true;
 #else
+    using TDebugInfo = nullptr_t;
     static constexpr bool DEBUG_ENABLED = false;
 #endif
 
@@ -37,7 +49,7 @@ public:
     using TArrange = TArrange_;
     using TMIBuffers = MIBuffers_<TArrange>;
     using TPsizeParams = PsizeParams_<TArrange>;
-    using TBridge = PatchMergeBridge_<TArrange, DEBUG_ENABLED>;
+    using TBridge = PatchMergeBridge_<TArrange, TDebugInfo>;
     using TPInfo = TBridge::TInfo;
     using TPInfos = TBridge::TInfos;
 
