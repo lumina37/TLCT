@@ -7,10 +7,10 @@
 #include "tlct/helper/std.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/params.hpp"
+#    include "tlct/convert/patchsize/census/params.hpp"
 #endif
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::census {
 
 template <cfg::concepts::CArrange TArrange>
 auto PsizeParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg) noexcept
@@ -26,4 +26,4 @@ auto PsizeParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& c
 template class PsizeParams_<cfg::CornersArrange>;
 template class PsizeParams_<cfg::OffsetArrange>;
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::census

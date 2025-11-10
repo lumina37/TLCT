@@ -19,6 +19,11 @@ std::expected<CliConfig, Error> CliConfig::create(const Path& path, const Range&
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
+    if (convert.method <= 0) [[unlikely]] {
+        auto errMsg = std::format("expect method > 0, got: {}", convert.method);
+        return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
+    }
+
     if (convert.views <= 0) [[unlikely]] {
         auto errMsg = std::format("expect views > 0, got: {}", convert.views);
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};

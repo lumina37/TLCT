@@ -2,4 +2,4 @@
 
 #include "tlct/convert/patchsize/census.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
-#include "tlct/convert/patchsize/params.hpp"
+#include "tlct/convert/patchsize/ssim.hpp"

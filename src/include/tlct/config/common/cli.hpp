@@ -22,6 +22,7 @@ public:
     };
 
     struct Convert {
+        int method;
         int views;
         int upsample;
         float minPsize;

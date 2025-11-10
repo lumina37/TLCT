@@ -8,13 +8,14 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/common/bridge/patch_merge.hpp"
 #include "tlct/convert/concepts.hpp"
-#include "tlct/convert/patchsize/census/mibuffer.hpp"
-#include "tlct/convert/patchsize/census/params.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
+#include "tlct/convert/patchsize/ssim/functional.hpp"
+#include "tlct/convert/patchsize/ssim/mibuffer.hpp"
+#include "tlct/convert/patchsize/ssim/params.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
-namespace tlct::_cvt::census {
+namespace tlct::_cvt::ssim {
 
 namespace fs = std::filesystem;
 
@@ -52,8 +53,7 @@ private:
     [[nodiscard]] typename TNeighbors::Direction maxGradDirection(const TNeighbors& neighbors) const noexcept;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
-                                                    typename TNeighbors::Direction direction) noexcept;
+    [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, WrapSSIM& wrapAnchor) noexcept;
 
     [[nodiscard]] float estimatePatchsize(cv::Point index) noexcept;
 
@@ -97,8 +97,8 @@ private:
     TPsizeParams params_;
 };
 
-}  // namespace tlct::_cvt::census
+}  // namespace tlct::_cvt::ssim
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/census/impl.cpp"
+#    include "tlct/convert/patchsize/ssim/impl.cpp"
 #endif

@@ -5,7 +5,7 @@
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
-namespace tlct::_cvt {
+namespace tlct::_cvt::ssim {
 
 template <cfg::concepts::CArrange TArrange_>
 class PsizeParams_ {
@@ -20,13 +20,14 @@ public:
     [[nodiscard]] TLCT_API static std::expected<PsizeParams_, Error> create(const TArrange& arrange,
                                                                             const TCvtConfig& cvtCfg) noexcept;
 
+    float patternSize;
+    float patternShift;
     int minPsize;
-    int maxPsize;
     int psizeShortcutThreshold;
 };
 
-}  // namespace tlct::_cvt
+}  // namespace tlct::_cvt::ssim
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/params.cpp"
+#    include "tlct/convert/patchsize/ssim/params.cpp"
 #endif
