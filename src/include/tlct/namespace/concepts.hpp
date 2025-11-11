@@ -7,5 +7,6 @@ namespace tlct::concepts {
 
 using cfg::concepts::CArrange;
 using cvt::concepts::CManager;
+using cvt::concepts::CManagerTraits;
 
 }  // namespace tlct::concepts

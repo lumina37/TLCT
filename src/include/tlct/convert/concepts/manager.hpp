@@ -5,11 +5,20 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/concepts/multiview.hpp"
+#include "tlct/convert/concepts/patchsize.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 #include "tlct/io/yuv.hpp"
 
 namespace tlct::_cvt::concepts {
+
+template <typename Self>
+concept CManagerTraits = requires {
+    requires cfg::concepts::CArrange<typename Self::TArrange>;
+    requires CPsizeImpl<typename Self::TPsizeImpl>;
+    requires CMvImpl<typename Self::TMvImpl, typename Self::TPsizeImpl::TBridge>;
+};
 
 template <typename Self>
 concept CManager = requires {

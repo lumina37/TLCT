@@ -10,11 +10,12 @@ class WrapSSIM {
 public:
     // Constructor
     WrapSSIM() = delete;
-    explicit WrapSSIM(const MIBuffer& mi) noexcept : mi_(mi) {};
     WrapSSIM(const WrapSSIM& rhs) = default;
     WrapSSIM& operator=(const WrapSSIM& rhs) = delete;
     WrapSSIM(WrapSSIM&& rhs) noexcept = default;
     WrapSSIM& operator=(WrapSSIM&& rhs) noexcept = delete;
+
+    explicit WrapSSIM(const MIBuffer& mi) noexcept : mi_(mi) {};
 
     // Const methods
     [[nodiscard]] float compare(const WrapSSIM& rhs) const noexcept;

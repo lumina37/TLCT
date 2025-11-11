@@ -12,6 +12,7 @@ namespace _ = _cvt::concepts;
 
 using _::CBridge;
 using _::CManager;
+using _::CManagerTraits;
 using _::CMvImpl;
 using _::CNeighbors;
 using _::CPatchMergeBridge;

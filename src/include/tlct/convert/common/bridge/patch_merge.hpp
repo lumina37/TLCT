@@ -52,7 +52,7 @@ private:
 
 public:
     // Initialize from
-    [[nodiscard]] TLCT_API static std::expected<PatchMergeBridge_, Error> create(const TArrange& arrange) noexcept;
+    [[nodiscard]] static std::expected<PatchMergeBridge_, Error> create(const TArrange& arrange) noexcept;
 
     // Const methods
     [[nodiscard]] TLCT_API float getPatchsize(int offset) const noexcept { return infos_[offset].getPatchsize(); }

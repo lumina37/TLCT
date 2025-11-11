@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        render<tlct::tspc::ManagerYuv420>,
-        render<tlct::raytrix::ManagerYuv420>,
+        render<tlct::cvt::TSPCCensusManager>,
+        render<tlct::cvt::RaytrixCensusManager>,
     };
 
     std::string calibFilePath;
