@@ -151,6 +151,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
     }
 
     // 2-pass: compute weight
+    const typename TBridge::TInfos rawInfos = bridge.getInfos();
     const float texGradMean = texMeanStddev.getMean();
     const float texGradStddev = texMeanStddev.getStddev();
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
@@ -177,7 +178,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
                 const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
                 const MIBuffer& neibMI = mis_.getMI(neibOffset);
                 neibGrads[(int)direction] = neibMI.grads;
-                neibPsizes[(int)direction] = bridge.getInfo(neibOffset).getPatchsize();
+                neibPsizes[(int)direction] = rawInfos[neibOffset].getPatchsize();
             }
 
             const float normedGrad = (mi.grads - texGradMean) / (texGradStddev * 2.0f);
