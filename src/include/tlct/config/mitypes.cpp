@@ -6,9 +6,7 @@
 #    include "tlct/config/mitypes.hpp"
 #endif
 
-namespace tlct {
-
-namespace _cfg {
+namespace tlct::_cfg {
 
 namespace rgs = std::ranges;
 
@@ -29,12 +27,4 @@ int MITypes::getMIType(int row, int col) const noexcept {
 
 int MITypes::getMIType(cv::Point index) const noexcept { return getMIType(index.y, index.x); }
 
-}  // namespace _cfg
-
-namespace cfg {
-
-using _cfg::MITypes;
-
-}  // namespace cfg
-
-}  // namespace tlct
+}  // namespace tlct::_cfg

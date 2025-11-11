@@ -13,9 +13,7 @@
 #include "tlct/helper/std.hpp"
 #include "tlct/io/yuv.hpp"
 
-namespace tlct {
-
-namespace _cvt {
+namespace tlct::_cvt {
 
 namespace fs = std::filesystem;
 
@@ -156,15 +154,7 @@ std::expected<void, Error> Manager_<TArrange>::loadBridge(const fs::path& loadFr
     return {};
 }
 
-}  // namespace _cvt
-
-namespace cvt {
-
-using _cvt::Manager_;
-
-}  // namespace cvt
-
-}  // namespace tlct
+}  // namespace tlct::_cvt
 
 #ifdef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/manager.cpp"

@@ -6,3 +6,11 @@
 #include "tlct/convert/manager.hpp"
 #include "tlct/convert/multiview.hpp"
 #include "tlct/convert/patchsize.hpp"
+
+namespace tlct::cvt {
+
+namespace _ = _cvt;
+
+using _::Manager_;
+
+}  // namespace tlct::cvt

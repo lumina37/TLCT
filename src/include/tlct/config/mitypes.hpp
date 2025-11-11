@@ -6,9 +6,7 @@
 
 #include "tlct/helper/std.hpp"
 
-namespace tlct {
-
-namespace _cfg {
+namespace tlct::_cfg {
 
 class MITypes {
 public:
@@ -32,15 +30,7 @@ private:
     TIdx2Type idx2type_;
 };
 
-}  // namespace _cfg
-
-namespace cfg {
-
-using _cfg::MITypes;
-
-}  // namespace cfg
-
-}  // namespace tlct
+}  // namespace tlct::_cfg
 
 #ifdef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/config/mitypes.cpp"
