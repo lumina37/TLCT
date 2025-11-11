@@ -4,32 +4,26 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/config/concepts.hpp"
+#include "tlct/convert/concepts/bridge.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
-#include "tlct/io/yuv.hpp"
 
 namespace tlct::_cvt::concepts {
 
 template <typename Self>
-concept CManager = requires {
+concept CPsizeImpl = requires {
     // Type alias
-    requires cfg::concepts::CArrange<typename Self::TArrange>;
+    requires CBridge<typename Self::TBridge>;
 } && requires {
     // Initialize from
     requires requires(const typename Self::TArrange& arrange, const typename Self::TCvtConfig& cvtCfg) {
+        requires cfg::concepts::CArrange<typename Self::TArrange>;
         { Self::create(arrange, cvtCfg) } -> std::same_as<std::expected<Self, Error>>;
     };
 } && requires {
-    // Const methods
-    requires requires(Self self) {
-        { self.getOutputSize() } -> std::same_as<cv::Size>;
-    };
-} && requires {
     // Non-const methods
-    requires requires(Self self, const io::YuvPlanarFrame& src) { self.update(src); };
-    requires requires(Self self, io::YuvPlanarFrame& dst, int viewRow, int viewCol) {
-        self.renderInto(dst, viewRow, viewCol);
+    requires requires(Self self, const cv::Mat& src, typename Self::TBridge& bridge) {
+        self.updateBridge(src, bridge);
     };
 };
 

@@ -3,6 +3,7 @@
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/common/bridge/patch_merge.hpp"
+#include "tlct/convert/concepts/multiview.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 #include "tlct/io/yuv.hpp"
@@ -34,11 +35,13 @@ auto MvImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtCfg
     return MvImpl_{arrange, params, std::move(mvCache), std::move(pCommonCache)};
 }
 
+static_assert(concepts::CMvImpl<MvImpl_<cfg::CornersArrange>, PatchMergeBridge_<cfg::CornersArrange>>);
 template class MvImpl_<cfg::CornersArrange>;
-template class MvImpl_<cfg::OffsetArrange>;
-
 template std::expected<void, Error> MvImpl_<cfg::CornersArrange>::renderView(
     const PatchMergeBridge_<cfg::CornersArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
+
+static_assert(concepts::CMvImpl<MvImpl_<cfg::OffsetArrange>, PatchMergeBridge_<cfg::OffsetArrange>>);
+template class MvImpl_<cfg::OffsetArrange>;
 template std::expected<void, Error> MvImpl_<cfg::OffsetArrange>::renderView(
     const PatchMergeBridge_<cfg::OffsetArrange>&, io::YuvPlanarFrame&, int, int) const noexcept;
 

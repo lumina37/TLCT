@@ -16,4 +16,7 @@ concept CPatchMergeBridge = requires {
     };
 };
 
+template <typename Self>
+concept CBridge = CPatchMergeBridge<Self>;
+
 }  // namespace tlct::_cvt::concepts

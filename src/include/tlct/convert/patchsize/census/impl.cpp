@@ -8,6 +8,7 @@
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
+#include "tlct/convert/concepts/patchsize.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/helper/constexpr/math.hpp"
@@ -276,7 +277,10 @@ std::expected<void, Error> PsizeImpl_<TArrange>::updateBridge(const cv::Mat& src
     return {};
 }
 
+static_assert(concepts::CPsizeImpl<PsizeImpl_<cfg::CornersArrange>>);
 template class PsizeImpl_<cfg::CornersArrange>;
+
+static_assert(concepts::CPsizeImpl<PsizeImpl_<cfg::OffsetArrange>>);
 template class PsizeImpl_<cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt::census
