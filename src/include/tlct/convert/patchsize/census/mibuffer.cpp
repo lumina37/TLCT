@@ -85,21 +85,21 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
         }
 
         auto miBufIterator = miBuffers_.begin() + idx;
-        cv::Mat tmpY = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC1);
+        cv::Mat tmpI = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC1);
 
         const cv::Point2f& miCenter = arrange_.getMICenter(rowMIIdx, colMIIdx);
         const cv::Rect miRoi = getRoiByCenter(miCenter, params_.censusDiameter_);
 
         uint8_t* matBufCursor = bufBase + idx * params_.alignedMISize_;
 
-        const cv::Mat& srcY = src(miRoi);
-        srcY.copyTo(tmpY);
-        cv::Mat centralY = tmpY(dhashRoi);
+        const cv::Mat& srcI = src(miRoi);
+        srcI.copyTo(tmpI);
+        cv::Mat centralY = tmpI(dhashRoi);
 
         cv::Mat censusMap = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
         matBufCursor += params_.alignedMatSizeC3_;
         cv::Mat censusMask = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
-        censusTransform5x5(tmpY, srcCircleMask, censusMap, censusMask);
+        censusTransform5x5(tmpI, srcCircleMask, censusMap, censusMask);
 
         miBufIterator->censusMap = std::move(censusMap);
         miBufIterator->censusMask = std::move(censusMask);
@@ -107,7 +107,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
         const float grads = computeGrads(centralY);
         miBufIterator->grads = grads;
 
-        miBufIterator->dhash = dhash(centralY);
+        miBufIterator->dhash = computeDhash(centralY);
     }
 
     return {};

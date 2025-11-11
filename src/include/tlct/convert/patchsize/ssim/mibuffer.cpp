@@ -1,6 +1,5 @@
 #include <format>
 #include <memory>
-#include <ranges>
 #include <vector>
 
 #include <opencv2/imgproc.hpp>
@@ -18,8 +17,6 @@
 #endif
 
 namespace tlct::_cvt::ssim {
-
-namespace rgs = std::ranges;
 
 template <cfg::concepts::CArrange TArrange>
 MIBuffers_<TArrange>::MIBuffers_(TArrange&& arrange, Params&& params, std::vector<MIBuffer>&& miBuffers,
@@ -64,43 +61,35 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
     const cv::Mat& f32I = src;
     cv::multiply(f32I, f32I, f32I2);
 
-    auto itemIt = miBuffers_.begin();
-    uint8_t* rowCursor = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());
-    size_t rowStep = params_.miMaxCols_ * params_.alignedMISize_;
-    for (const int irow : rgs::views::iota(0, arrange_.getMIRows())) {
-        uint8_t* colCursor = rowCursor;
-        const int miCols = arrange_.getMICols(irow);
-        for (const int icol : rgs::views::iota(0, miCols)) {
-            const cv::Point2f& miCenter = arrange_.getMICenter(irow, icol);
-            const cv::Rect roi = getRoiByCenter(miCenter, arrange_.getDiameter());
-
-            uint8_t* matCursor = colCursor;
-
-            const cv::Mat& srcI = f32I(roi);
-            cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matCursor);
-            srcI.copyTo(dstI);
-            matCursor += params_.alignedMatSize_;
-
-            const cv::Mat& srcI2 = f32I2(roi);
-            cv::Mat dstI2 = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matCursor);
-            srcI2.copyTo(dstI2);
-            matCursor += params_.alignedMatSize_;
-
-            const float grads = computeGrads(dstI);
-            itemIt->grads = grads;
-
-            itemIt->dhash = dhash(dstI);
-
-            *itemIt = {std::move(dstI), std::move(dstI2)};
-            itemIt++;
-            colCursor += params_.alignedMISize_;
+    uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());
+#pragma omp parallel for
+    for (int idx = 0; idx < params_.miNum_; idx++) {
+        const int rowMIIdx = idx / params_.miMaxCols_;
+        const int colMIIdx = idx % params_.miMaxCols_;
+        if (colMIIdx >= arrange_.getMICols(rowMIIdx)) {
+            continue;
         }
 
-        if (miCols < params_.miMaxCols_) {
-            itemIt++;
-        }
+        auto miBufIterator = miBuffers_.begin() + idx;
 
-        rowCursor += rowStep;
+        const cv::Point2f& miCenter = arrange_.getMICenter(rowMIIdx, colMIIdx);
+        const cv::Rect miRoi = getRoiByCenter(miCenter, arrange_.getDiameter());
+
+        uint8_t* matBufCursor = bufBase + idx * params_.alignedMISize_;
+
+        const cv::Mat& srcI = f32I(miRoi);
+        cv::Mat dstI = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matBufCursor);
+        srcI.copyTo(dstI);
+        matBufCursor += params_.alignedMatSize_;
+
+        const cv::Mat& srcI2 = f32I2(miRoi);
+        cv::Mat dstI2 = cv::Mat(params_.idiameter_, params_.idiameter_, CV_32FC1, matBufCursor);
+        srcI2.copyTo(dstI2);
+
+        miBufIterator->grads = computeGrads(dstI);
+        miBufIterator->dhash = computeDhash(dstI);
+        miBufIterator->I = std::move(dstI);
+        miBufIterator->I_2 = std::move(dstI2);
     }
 
     return {};

@@ -12,7 +12,7 @@ namespace rgs = std::ranges;
 
 [[nodiscard]] TLCT_API float computeGrads(const cv::Mat& src) noexcept;
 
-[[nodiscard]] TLCT_API uint16_t dhash(const cv::Mat& src);
+[[nodiscard]] TLCT_API uint16_t computeDhash(const cv::Mat& src);
 
 }  // namespace tlct::_cvt
 

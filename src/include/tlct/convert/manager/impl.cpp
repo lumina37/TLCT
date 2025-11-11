@@ -8,10 +8,10 @@
 
 namespace tlct::_cvt {
 
-static_assert(concepts::CManager<TSPCCensusManager>);
+static_assert(concepts::CManager<TSPCMeth1Manager>);
 template class Manager_<TSPCCensusManagerTraits>;
 
-static_assert(concepts::CManager<RaytrixCensusManager>);
+static_assert(concepts::CManager<RaytrixMeth1Manager>);
 template class Manager_<RaytrixCensusManagerTraits>;
 
 }  // namespace tlct::_cvt

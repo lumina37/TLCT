@@ -23,9 +23,9 @@ class Manager_ {
 public:
     // Typename alias
     using TArrange = TTraits::TArrange;
+    using TCvtConfig = cfg::CliConfig::Convert;
 
 private:
-    using TCvtConfig = cfg::CliConfig::Convert;
     using TPsizeImpl = TTraits::TPsizeImpl;
     using TMvImpl = TTraits::TMvImpl;
     using TCommonCache = CommonCache_<TArrange>;
@@ -155,13 +155,21 @@ std::expected<void, Error> Manager_<TTraits>::loadBridge(const fs::path& loadFro
     return {};
 }
 
+using TSPCSSIMManagerTraits =
+    ManagerTraits_<cfg::CornersArrange, ssim::PsizeImpl_<cfg::CornersArrange>, pm::MvImpl_<cfg::CornersArrange>>;
+using TSPCMeth0Manager = Manager_<TSPCSSIMManagerTraits>;
+
 using TSPCCensusManagerTraits =
     ManagerTraits_<cfg::CornersArrange, census::PsizeImpl_<cfg::CornersArrange>, pm::MvImpl_<cfg::CornersArrange>>;
-using TSPCCensusManager = Manager_<TSPCCensusManagerTraits>;
+using TSPCMeth1Manager = Manager_<TSPCCensusManagerTraits>;
+
+using RaytrixSSIMManagerTraits =
+    ManagerTraits_<cfg::OffsetArrange, ssim::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
+using RaytrixMeth0Manager = Manager_<RaytrixSSIMManagerTraits>;
 
 using RaytrixCensusManagerTraits =
     ManagerTraits_<cfg::OffsetArrange, census::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
-using RaytrixCensusManager = Manager_<RaytrixCensusManagerTraits>;
+using RaytrixMeth1Manager = Manager_<RaytrixCensusManagerTraits>;
 
 }  // namespace tlct::_cvt
 

@@ -130,7 +130,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             const auto& mi = mis_.getMI(offset);
             const float weight = mi.grads + std::numeric_limits<float>::epsilon();
 
-            bridge.getInfo(offset).setPatchsize(weight);
+            bridge.setWeight(offset, weight);
         }
     }
 }

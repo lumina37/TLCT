@@ -110,8 +110,10 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        render<tlct::cvt::TSPCCensusManager>,
-        render<tlct::cvt::RaytrixCensusManager>,
+        render<tlct::cvt::TSPCMeth0Manager>,
+        render<tlct::cvt::RaytrixMeth0Manager>,
+        render<tlct::cvt::TSPCMeth1Manager>,
+        render<tlct::cvt::RaytrixMeth1Manager>,
     };
 
     std::string calibFilePath;
@@ -125,7 +127,7 @@ int main(int argc, char* argv[]) {
     const auto cliCfg = cfgFromCliParser(*parser) | unwrap;
     const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath) | unwrap;
 
-    const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
+    const int pipeline = cliCfg.convert.method * 2 + cfgMap.getOr<"IsMultiFocus">(0);
     const auto& handler = handlers[pipeline];
 
     handler(cliCfg, cfgMap) | unwrap;

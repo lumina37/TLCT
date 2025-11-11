@@ -87,8 +87,10 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        render<tlct::cvt::TSPCCensusManager>,
-        render<tlct::cvt::RaytrixCensusManager>,
+        render<tlct::cvt::TSPCMeth0Manager>,
+        render<tlct::cvt::RaytrixMeth0Manager>,
+        render<tlct::cvt::TSPCMeth1Manager>,
+        render<tlct::cvt::RaytrixMeth1Manager>,
     };
 
     std::string calibFilePath;

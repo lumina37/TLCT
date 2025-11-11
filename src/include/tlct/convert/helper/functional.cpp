@@ -53,7 +53,7 @@ namespace rgs = std::ranges;
     return grad;
 }
 
-uint16_t dhash(const cv::Mat& src) {
+uint16_t computeDhash(const cv::Mat& src) {
     constexpr int THUMB_WIDTH = 4;
     constexpr int THUMB_SIZE = THUMB_WIDTH * (THUMB_WIDTH + 1);
     std::array<uint8_t, THUMB_SIZE> thumbBuffer;

@@ -95,8 +95,10 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        paint<tlct::cvt::TSPCCensusManager>,
-        paint<tlct::cvt::RaytrixCensusManager>,
+        paint<tlct::cvt::TSPCMeth0Manager>,
+        paint<tlct::cvt::RaytrixMeth0Manager>,
+        paint<tlct::cvt::TSPCMeth1Manager>,
+        paint<tlct::cvt::RaytrixMeth1Manager>,
     };
 
     std::string calibFilePath;
