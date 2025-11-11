@@ -124,3 +124,7 @@ using _cvt::Manager_;
 }  // namespace cvt
 
 }  // namespace tlct
+
+#ifdef _TLCT_LIB_HEADER_ONLY
+#    include "tlct/convert/manager.cpp"
+#endif

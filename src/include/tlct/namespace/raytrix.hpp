@@ -14,10 +14,4 @@ static_assert(cvt::concepts::CManager<ManagerYuv420>);
 
 }  // namespace raytrix
 
-namespace _cvt {
-
-template class Manager_<cfg::OffsetArrange>;
-
-}
-
 }  // namespace tlct

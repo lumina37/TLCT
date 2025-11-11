@@ -14,10 +14,4 @@ static_assert(cvt::concepts::CManager<ManagerYuv420>);
 
 }  // namespace tspc
 
-namespace _cvt {
-
-template class Manager_<cfg::CornersArrange>;
-
-}
-
 }  // namespace tlct
