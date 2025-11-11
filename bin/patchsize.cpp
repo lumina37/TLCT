@@ -69,7 +69,7 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
 
         std::string filename = std::format("v{:03}.bin", fid);
         fs::path psizePath = dstdir / filename;
-        manager.getPsizeImpl().dumpRecords(psizePath) | unwrap;
+        manager.dumpBridge(psizePath) | unwrap;
     }
 
     return {};

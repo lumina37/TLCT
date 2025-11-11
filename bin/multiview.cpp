@@ -75,7 +75,7 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
 
         std::string filename = std::format("v{:03}.bin", fid);
         fs::path psizePath = dstdir / filename;
-        manager.getPsizeImpl().loadRecords(psizePath) | unwrap;
+        manager.loadBridge(psizePath) | unwrap;
 
         int view = 0;
         for (const int viewRow : rgs::views::iota(0, cliCfg.convert.views)) {

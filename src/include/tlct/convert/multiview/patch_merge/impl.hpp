@@ -25,10 +25,11 @@ public:
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
     using TCommonCache = CommonCache_<TArrange>;
+
+private:
     using TMvParams = MvParams_<TArrange>;
     using TMvCache = MvCache_<TArrange>;
 
-private:
     MvImpl_(const TArrange& arrange, const TMvParams& params, TMvCache&& cache,
             std::shared_ptr<TCommonCache>&& pCommonCache) noexcept;
 

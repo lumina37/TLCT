@@ -19,14 +19,14 @@ concept CNeighbors = requires {
         { Self::fromArrangeAndIndex(arrange, index) } noexcept -> std::same_as<Self>;
     };
 } && requires {
-    requires requires(const Self& self) {
+    requires requires(const Self& self, typename Self::Direction direction) {
         { self.getSelfIdx() } noexcept -> std::same_as<cv::Point>;
         { self.getSelfPt() } noexcept -> std::same_as<cv::Point2f>;
 
-        { self.hasNeighbor((typename Self::Direction)0) } noexcept -> std::same_as<bool>;
-        { self.getNeighborIdx((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point>;
-        { self.getNeighborPt((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point2f>;
-        { self.getUnitShift((typename Self::Direction)0) } noexcept -> std::same_as<cv::Point2f>;
+        { self.hasNeighbor(direction) } noexcept -> std::same_as<bool>;
+        { self.getNeighborIdx(direction) } noexcept -> std::same_as<cv::Point>;
+        { self.getNeighborPt(direction) } noexcept -> std::same_as<cv::Point2f>;
+        { self.getUnitShift(direction) } noexcept -> std::same_as<cv::Point2f>;
     };
 };
 

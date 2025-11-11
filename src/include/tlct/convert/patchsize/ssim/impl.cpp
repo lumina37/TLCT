@@ -1,9 +1,6 @@
 #include <bit>
-#include <filesystem>
 #include <format>
-#include <fstream>
 #include <limits>
-#include <numeric>
 #include <ranges>
 
 #include <opencv2/core.hpp>
@@ -12,13 +9,11 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/helper/roi.hpp"
-#include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/convert/patchsize/ssim/functional.hpp"
 #include "tlct/convert/patchsize/ssim/mibuffer.hpp"
 #include "tlct/convert/patchsize/ssim/params.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
-#include "tlct/helper/math.hpp"
 #include "tlct/helper/std.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
@@ -27,17 +22,12 @@
 
 namespace tlct::_cvt::ssim {
 
-namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <cfg::concepts::CArrange TArrange>
-PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos, TBridge&& bridge,
+PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos,
                                  const TPsizeParams& params) noexcept
-    : arrange_(arrange),
-      mis_(std::move(mis)),
-      prevPatchInfos_(std::move(prevPatchInfos)),
-      bridge_(std::move(bridge)),
-      params_(params) {}
+    : arrange_(arrange), mis_(std::move(mis)), prevPatchInfos_(std::move(prevPatchInfos)), params_(params) {}
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
@@ -131,7 +121,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
 }
 
 template <cfg::concepts::CArrange TArrange>
-void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
+void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept {
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             const int offset = row * arrange_.getMIMaxCols() + col;
@@ -139,7 +129,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             const auto& mi = mis_.getMI(offset);
             const float weight = mi.grads + std::numeric_limits<float>::epsilon();
 
-            bridge_.getInfo(offset).setPatchsize(weight);
+            bridge.getInfo(offset).setPatchsize(weight);
         }
     }
 }
@@ -153,20 +143,16 @@ auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvt
 
     std::vector<TPInfo> prevPatchInfos(arrange.getMIRows() * arrange.getMIMaxCols());
 
-    auto bridgeRes = TBridge::create(arrange);
-    if (!bridgeRes) return std::unexpected{std::move(bridgeRes.error())};
-    auto& bridge = bridgeRes.value();
-
     auto paramsRes = TPsizeParams::create(arrange, cvtCfg);
     if (!paramsRes) return std::unexpected{std::move(paramsRes.error())};
     auto& params = paramsRes.value();
 
-    return PsizeImpl_{arrange, std::move(mis), std::move(prevPatchInfos), std::move(bridge), params};
+    return PsizeImpl_{arrange, std::move(mis), std::move(prevPatchInfos), params};
 }
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noexcept {
-    bridge_.swapInfos(prevPatchInfos_);
+std::expected<void, Error> PsizeImpl_<TArrange>::updateBridge(const cv::Mat& src, TBridge& bridge) noexcept {
+    bridge.swapInfos(prevPatchInfos_);
 
     auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
@@ -180,39 +166,13 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
         }
         const cv::Point index{col, row};
         const float psize = estimatePatchsize(index);
-        bridge_.getInfo(idx).setPatchsize(psize);
+        bridge.getInfo(idx).setPatchsize(psize);
     }
 
     if (arrange_.isMultiFocus()) {
-        adjustWgtsAndPsizesForMultiFocus();
+        adjustWgtsAndPsizesForMultiFocus(bridge);
     }
 
-    return {};
-}
-
-template <cfg::concepts::CArrange TArrange>
-std::expected<void, Error> PsizeImpl_<TArrange>::dumpInfos(const fs::path& dumpTo) const noexcept {
-    std::ofstream ofs{dumpTo, std::ios::binary};
-    if (!ofs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}", dumpTo.string());
-        return std::unexpected{Error{ECate::eSys, ofs.rdstate(), std::move(errMsg)}};
-    }
-
-    const auto& patchInfos = bridge_.getInfos();
-    ofs.write((char*)patchInfos.data(), patchInfos.size() * sizeof(patchInfos[0]));
-    return {};
-}
-
-template <cfg::concepts::CArrange TArrange>
-std::expected<void, Error> PsizeImpl_<TArrange>::loadInfos(const fs::path& loadFrom) noexcept {
-    std::ifstream ifs{loadFrom, std::ios::binary};
-    if (!ifs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}", loadFrom.string());
-        return std::unexpected{Error{ECate::eSys, ifs.rdstate(), std::move(errMsg)}};
-    }
-
-    auto& patchInfos = bridge_.getInfos();
-    ifs.read((char*)patchInfos.data(), patchInfos.size() * sizeof(patchInfos[0]));
     return {};
 }
 

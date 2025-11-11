@@ -1,7 +1,4 @@
 #include <bit>
-#include <filesystem>
-#include <format>
-#include <fstream>
 #include <limits>
 #include <numeric>
 #include <ranges>
@@ -23,17 +20,12 @@
 
 namespace tlct::_cvt::census {
 
-namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <cfg::concepts::CArrange TArrange>
-PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos, TBridge&& bridge,
+PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos,
                                  const TPsizeParams& params) noexcept
-    : arrange_(arrange),
-      mis_(std::move(mis)),
-      prevPatchInfos_(std::move(prevPatchInfos)),
-      bridge_(std::move(bridge)),
-      params_(params) {}
+    : arrange_(arrange), mis_(std::move(mis)), prevPatchInfos_(std::move(prevPatchInfos)), params_(params) {}
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
@@ -58,7 +50,8 @@ auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const n
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors, const MIBuffer& anchorMI,
+PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const TNeighbors& neighbors,
+                                                        const MIBuffer& anchorMI,
                                                         typename TNeighbors::Direction direction) noexcept {
     const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
     const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
@@ -86,9 +79,9 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
         const auto index = neighbors.getSelfIdx();
         const int offset = index.y * arrange_.getMIMaxCols() + index.x;
         if constexpr (std::is_same_v<TNeighbors, FarNeighbors>) {
-            bridge_.getInfo(offset).getPDebugInfo()->farMetrics = std::move(metrics);
+            bridge.getInfo(offset).getPDebugInfo()->farMetrics = std::move(metrics);
         } else {
-            bridge_.getInfo(offset).getPDebugInfo()->nearMetrics = std::move(metrics);
+            bridge.getInfo(offset).getPDebugInfo()->nearMetrics = std::move(metrics);
         }
     }
 
@@ -96,7 +89,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
 }
 
 template <cfg::concepts::CArrange TArrange>
-float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
+float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) noexcept {
     using PsizeParams = PsizeParams_<TArrange>;
 
     const int offset = index.y * arrange_.getMIMaxCols() + index.x;
@@ -104,16 +97,16 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
     const float prevPsize = getPrevPatchsize(offset);
 
     if constexpr (DEBUG_ENABLED) {
-        *bridge_.getInfo(offset).getPDebugInfo() = {};
+        *bridge.getInfo(offset).getPDebugInfo() = {};
     }
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         // Early return if dhash is only slightly different
         const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
         const uint16_t dhashDiff = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
         if constexpr (DEBUG_ENABLED) {
-            bridge_.getInfo(offset).getPDebugInfo()->dhashDiff = dhashDiff;
+            bridge.getInfo(offset).getPDebugInfo()->dhashDiff = dhashDiff;
         }
-        bridge_.getInfo(offset).setDhash(anchorMI.dhash);
+        bridge.getInfo(offset).setDhash(anchorMI.dhash);
         if (dhashDiff <= params_.psizeShortcutThreshold) {
             return prevPsize;
         }
@@ -122,14 +115,16 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
     const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
     const auto nearDirection = maxGradDirection(nearNeighbors);
 
-    const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(nearNeighbors, anchorMI, nearDirection);
+    const PsizeMetric& nearPsizeMetric =
+        estimateWithNeighbors<NearNeighbors>(bridge, nearNeighbors, anchorMI, nearDirection);
     const float minMetric = nearPsizeMetric.metric;
     float bestPsize = nearPsizeMetric.psize;
 
     if (arrange_.isMultiFocus()) {
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
         const auto farDirection = maxGradDirection(farNeighbors);
-        const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, anchorMI, farDirection);
+        const PsizeMetric& farPsizeMetric =
+            estimateWithNeighbors<FarNeighbors>(bridge, farNeighbors, anchorMI, farDirection);
         if (farPsizeMetric.metric < minMetric) {
             bestPsize = farPsizeMetric.psize;
         }
@@ -139,7 +134,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
 }
 
 template <cfg::concepts::CArrange TArrange>
-void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
+void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept {
     // TODO: handle `std::bad_alloc` in this func
     _hp::MeanStddev texMeanStddev{};
 
@@ -180,13 +175,13 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
                 const MIBuffer& neibMI = mis_.getMI(neibOffset);
                 neibGrads[(int)direction] = neibMI.grads;
-                neibPsizes[(int)direction] = bridge_.getInfo(neibOffset).getPatchsize();
+                neibPsizes[(int)direction] = bridge.getInfo(neibOffset).getPatchsize();
             }
 
             const float normedGrad = (mi.grads - texGradMean) / (texGradStddev * 2.0f);
             const float clippedGrad = _hp::clip(normedGrad, -1.0f, 1.0f);
             const float poweredGrad = clippedGrad * clippedGrad * clippedGrad;
-            bridge_.setWeight(offset, poweredGrad + 1.0f);
+            bridge.setWeight(offset, poweredGrad + 1.0f);
 
             int group0GtCount = 0;
             int group1GtCount = 0;
@@ -202,13 +197,13 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
             // These MI will have the blurrest texture (smallest gradient) among all its neighbor MIs.
             // We should assign a smaller weight for these MI.
             if (group0GtCount + group1GtCount == 6) {
-                const float newWeight = bridge_.getWeight(offset) / 2.f;
-                bridge_.setWeight(offset, newWeight);
+                const float newWeight = bridge.getWeight(offset) / 2.f;
+                bridge.setWeight(offset, newWeight);
                 const float psize = std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
-                bridge_.getInfo(offset).setPatchsize(psize);
+                bridge.getInfo(offset).setPatchsize(psize);
 
                 if constexpr (DEBUG_ENABLED) {
-                    bridge_.getInfo(offset).getPDebugInfo()->isBlurredFar = true;
+                    bridge.getInfo(offset).getPDebugInfo()->isBlurredFar = true;
                 }
 
                 continue;
@@ -221,17 +216,17 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus() noexcept {
                 const float psize = (neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
                                      neibPsizes[(int)Direction::DOWNLEFT]) /
                                     3.f;
-                bridge_.getInfo(offset).setPatchsize(psize);
+                bridge.getInfo(offset).setPatchsize(psize);
                 if constexpr (DEBUG_ENABLED) {
-                    bridge_.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
+                    bridge.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
                 }
             } else if (group0GtCount == 0 && group1GtCount == 3) {
                 const float psize = (neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
                                      neibPsizes[(int)Direction::DOWNLEFT]) /
                                     3.f;
-                bridge_.getInfo(offset).setPatchsize(psize);
+                bridge.getInfo(offset).setPatchsize(psize);
                 if constexpr (DEBUG_ENABLED) {
-                    bridge_.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
+                    bridge.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
                 }
             }
         }
@@ -247,20 +242,16 @@ auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvt
 
     std::vector<TPInfo> prevPatchInfos(arrange.getMIRows() * arrange.getMIMaxCols());
 
-    auto bridgeRes = TBridge::create(arrange);
-    if (!bridgeRes) return std::unexpected{std::move(bridgeRes.error())};
-    auto& bridge = bridgeRes.value();
-
     auto paramsRes = TPsizeParams::create(arrange, cvtCfg);
     if (!paramsRes) return std::unexpected{std::move(paramsRes.error())};
     auto& params = paramsRes.value();
 
-    return PsizeImpl_{arrange, std::move(mis), std::move(prevPatchInfos), std::move(bridge), params};
+    return PsizeImpl_{arrange, std::move(mis), std::move(prevPatchInfos), params};
 }
 
 template <cfg::concepts::CArrange TArrange>
-std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noexcept {
-    bridge_.swapInfos(prevPatchInfos_);
+std::expected<void, Error> PsizeImpl_<TArrange>::updateBridge(const cv::Mat& src, TBridge& bridge) noexcept {
+    bridge.swapInfos(prevPatchInfos_);
 
     auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
@@ -273,40 +264,14 @@ std::expected<void, Error> PsizeImpl_<TArrange>::update(const cv::Mat& src) noex
             continue;
         }
         const cv::Point index{col, row};
-        const float psize = estimatePatchsize(index);
-        bridge_.getInfo(idx).setPatchsize(psize);
+        const float psize = estimatePatchsize(bridge, index);
+        bridge.getInfo(idx).setPatchsize(psize);
     }
 
     if (arrange_.isMultiFocus()) {
-        adjustWgtsAndPsizesForMultiFocus();
+        adjustWgtsAndPsizesForMultiFocus(bridge);
     }
 
-    return {};
-}
-
-template <cfg::concepts::CArrange TArrange>
-std::expected<void, Error> PsizeImpl_<TArrange>::dumpInfos(const fs::path& dumpTo) const noexcept {
-    std::ofstream ofs{dumpTo, std::ios::binary};
-    if (!ofs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}", dumpTo.string());
-        return std::unexpected{Error{ECate::eSys, ofs.rdstate(), std::move(errMsg)}};
-    }
-
-    const auto& patchInfos = bridge_.getInfos();
-    ofs.write((char*)patchInfos.data(), patchInfos.size() * sizeof(patchInfos[0]));
-    return {};
-}
-
-template <cfg::concepts::CArrange TArrange>
-std::expected<void, Error> PsizeImpl_<TArrange>::loadInfos(const fs::path& loadFrom) noexcept {
-    std::ifstream ifs{loadFrom, std::ios::binary};
-    if (!ifs.good()) [[unlikely]] {
-        auto errMsg = std::format("failed to open file. path={}", loadFrom.string());
-        return std::unexpected{Error{ECate::eSys, ifs.rdstate(), std::move(errMsg)}};
-    }
-
-    auto& patchInfos = bridge_.getInfos();
-    ifs.read((char*)patchInfos.data(), patchInfos.size() * sizeof(patchInfos[0]));
     return {};
 }
 
