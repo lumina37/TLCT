@@ -2,8 +2,6 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/helper/std.hpp"
-
 namespace tlct::_cvt::census {
 
 TLCT_API void censusTransform5x5(const cv::Mat& src, const cv::Mat& srcMask, cv::Mat& censusMap,

@@ -2,6 +2,7 @@
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/concepts/neighbors.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/patchsize/neighbors.hpp"
@@ -132,9 +133,16 @@ FarNeighbors_<TArrange> FarNeighbors_<TArrange>::fromArrangeAndIndex(const TArra
     return {indices, index, points, selfPt};
 }
 
+static_assert(concepts::CNeighbors<NearNeighbors_<cfg::CornersArrange>>);
 template class NearNeighbors_<cfg::CornersArrange>;
+
+static_assert(concepts::CNeighbors<NearNeighbors_<cfg::OffsetArrange>>);
 template class NearNeighbors_<cfg::OffsetArrange>;
+
+static_assert(concepts::CNeighbors<FarNeighbors_<cfg::CornersArrange>>);
 template class FarNeighbors_<cfg::CornersArrange>;
+
+static_assert(concepts::CNeighbors<FarNeighbors_<cfg::OffsetArrange>>);
 template class FarNeighbors_<cfg::OffsetArrange>;
 
 }  // namespace tlct::_cvt

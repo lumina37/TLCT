@@ -5,7 +5,7 @@
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/common/bridge/patch_merge.hpp"
-#include "tlct/convert/concepts.hpp"
+#include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/convert/patchsize/ssim/functional.hpp"
 #include "tlct/convert/patchsize/ssim/mibuffer.hpp"

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <concepts>
-#include <filesystem>
 
 #include <opencv2/core.hpp>
 
@@ -10,8 +9,6 @@
 #include "tlct/helper/std.hpp"
 
 namespace tlct::_cfg::concepts {
-
-namespace fs = std::filesystem;
 
 template <typename Self>
 concept CArrange = std::is_trivially_copyable_v<Self> && requires {

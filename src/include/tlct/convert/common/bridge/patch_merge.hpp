@@ -8,15 +8,6 @@
 
 namespace tlct::_cvt {
 
-class PatchMergeDebugInfo {
-public:
-    int dhashDiff = 0;
-    bool isBlurredNear = false;
-    bool isBlurredFar = false;
-    std::vector<float> nearMetrics{};
-    std::vector<float> farMetrics{};
-};
-
 template <typename TDebugInfo>
 class PatchMergeInfo_ {
 public:
@@ -42,7 +33,7 @@ public:
 
     [[nodiscard]] float getPatchsize() const noexcept { return psize_; }
     [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
-    [[nodiscard]] PatchMergeDebugInfo* getPDebugInfo() noexcept { return nullptr; }
+    void* getPDebugInfo() noexcept { return nullptr; }
 
 private:
     float psize_;

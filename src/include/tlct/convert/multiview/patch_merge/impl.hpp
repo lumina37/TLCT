@@ -12,7 +12,7 @@
 #include "tlct/convert/multiview/patch_merge/cache.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
-#include "tlct/io.hpp"
+#include "tlct/io/yuv.hpp"
 
 namespace tlct::_cvt::pm {
 

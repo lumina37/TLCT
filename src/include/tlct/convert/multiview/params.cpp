@@ -4,7 +4,6 @@
 #include <opencv2/core.hpp>
 
 #include "tlct/config/arrange.hpp"
-#include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/helper/consts.hpp"
 #include "tlct/helper/constexpr/math.hpp"

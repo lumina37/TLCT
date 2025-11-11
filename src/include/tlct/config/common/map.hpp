@@ -3,7 +3,6 @@
 #include <fstream>
 #include <map>
 #include <string>
-#include <type_traits>
 
 #include "tlct/helper/constexpr/string.hpp"
 #include "tlct/helper/error.hpp"

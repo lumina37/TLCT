@@ -7,6 +7,7 @@
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/helper/roi.hpp"
 #include "tlct/convert/patchsize/ssim/functional.hpp"

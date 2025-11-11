@@ -1,5 +1,4 @@
 #include "tlct/config/arrange.hpp"
-#include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"

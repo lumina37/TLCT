@@ -5,7 +5,7 @@
 #include "tlct/convert/common/bridge/patch_merge.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
-#include "tlct/io.hpp"
+#include "tlct/io/yuv.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/multiview/patch_merge/impl.hpp"
