@@ -1,5 +1,3 @@
-#pragma once
-
 #include "tlct/convert/concepts/manager.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
