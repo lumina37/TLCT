@@ -101,6 +101,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
     if constexpr (DEBUG_ENABLED) {
         *bridge.getInfo(offset).getPDebugInfo() = {};
     }
+    bridge.getInfo(offset).setDhash(anchorMI.dhash);
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         // Early return if dhash is only slightly different
         const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
@@ -108,7 +109,6 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
         if constexpr (DEBUG_ENABLED) {
             bridge.getInfo(offset).getPDebugInfo()->dhashDiff = dhashDiff;
         }
-        bridge.getInfo(offset).setDhash(anchorMI.dhash);
         if (dhashDiff <= params_.psizeShortcutThreshold) {
             return prevPsize;
         }

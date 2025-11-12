@@ -57,8 +57,9 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
+    cv::Mat f32I;
     cv::Mat f32I2;
-    const cv::Mat& f32I = src;
+    src.convertTo(f32I, CV_32FC1);
     cv::multiply(f32I, f32I, f32I2);
 
     uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());

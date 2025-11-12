@@ -32,7 +32,8 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPIn
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors, WrapSSIM& wrapAnchor) noexcept {
+PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors,
+                                                        WrapSSIM& wrapAnchor) const noexcept {
     const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};
     const int maxShift = (int)(params_.patternShift * 2);
 
@@ -89,13 +90,14 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
 }
 
 template <cfg::concepts::CArrange TArrange>
-float PsizeImpl_<TArrange>::estimatePatchsize(cv::Point index) noexcept {
+float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept {
     using PsizeParams = PsizeParams_<TArrange>;
 
     const int offset = index.y * arrange_.getMIMaxCols() + index.x;
     const MIBuffer& anchorMI = mis_.getMI(offset);
     const float prevPsize = prevPatchInfos_[offset].getPatchsize();
 
+    bridge.getInfo(offset).setDhash(anchorMI.dhash);
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
         const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
         const uint16_t hashDist = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
@@ -166,7 +168,7 @@ std::expected<void, Error> PsizeImpl_<TArrange>::updateBridge(const cv::Mat& src
             continue;
         }
         const cv::Point index{col, row};
-        const float psize = estimatePatchsize(index);
+        const float psize = estimatePatchsize(bridge, index);
         bridge.getInfo(idx).setPatchsize(psize);
     }
 

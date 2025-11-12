@@ -41,9 +41,9 @@ private:
     using FarNeighbors = FarNeighbors_<TArrange>;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, WrapSSIM& wrapAnchor) noexcept;
+    [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors, WrapSSIM& wrapAnchor) const noexcept;
 
-    [[nodiscard]] float estimatePatchsize(cv::Point index) noexcept;
+    [[nodiscard]] float estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept;
 
     void adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept;
 
