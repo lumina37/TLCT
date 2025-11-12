@@ -54,7 +54,7 @@ template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const TNeighbors& neighbors,
                                                         const MIBuffer& anchorMI,
-                                                        typename TNeighbors::Direction direction) noexcept {
+                                                        typename TNeighbors::Direction direction) const noexcept {
     const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
     const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
 
@@ -91,7 +91,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const T
 }
 
 template <cfg::concepts::CArrange TArrange>
-float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) noexcept {
+float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept {
     using PsizeParams = PsizeParams_<TArrange>;
 
     const int offset = index.y * arrange_.getMIMaxCols() + index.x;

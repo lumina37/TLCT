@@ -50,22 +50,17 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
     const fs::path& dstdir = cliCfg.path.dst;
     fs::create_directories(dstdir);
 
-    {
-        auto res = yuvReader.skip(cliCfg.range.begin);
-        if (!res) return std::unexpected{std::move(res.error())};
-    }
+    auto skipRes = yuvReader.skip(cliCfg.range.begin);
+    if (!skipRes) return std::unexpected{std::move(skipRes.error())};
 
     auto srcFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
     auto mvFrame = tlct::io::YuvPlanarFrame::create(mvExtent).value();
     for ([[maybe_unused]] const int fid : rgs::views::iota(cliCfg.range.begin, cliCfg.range.end)) {
-        {
-            auto res = yuvReader.readInto(srcFrame);
-            if (!res) return std::unexpected{std::move(res.error())};
-        }
-        {
-            auto res = manager.update(srcFrame);
-            if (!res) return std::unexpected{std::move(res.error())};
-        }
+        auto readRes = yuvReader.readInto(srcFrame);
+        if (!readRes) return std::unexpected{std::move(readRes.error())};
+
+        auto updateRes = manager.update(srcFrame);
+        if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
         std::string filename = std::format("v{:03}.bin", fid);
         fs::path psizePath = dstdir / filename;

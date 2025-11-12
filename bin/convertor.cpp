@@ -61,35 +61,29 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
         yuvWriters.push_back(std::move(yuvWriterRes.value()));
     }
 
-    {
-        auto res = yuvReader.skip(cliCfg.range.begin);
-        if (!res) return std::unexpected{std::move(res.error())};
-    }
+    auto skipRes = yuvReader.skip(cliCfg.range.begin);
+    if (!skipRes) return std::unexpected{std::move(skipRes.error())};
 
     auto srcFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
     auto mvFrame = tlct::io::YuvPlanarFrame::create(mvExtent).value();
     for ([[maybe_unused]] const int fid : rgs::views::iota(cliCfg.range.begin, cliCfg.range.end)) {
-        {
-            auto res = yuvReader.readInto(srcFrame);
-            if (!res) return std::unexpected{std::move(res.error())};
-        }
-        {
-            auto res = manager.update(srcFrame);
-            if (!res) return std::unexpected{std::move(res.error())};
-        }
+        auto readRes = yuvReader.readInto(srcFrame);
+        if (!readRes) return std::unexpected{std::move(readRes.error())};
+
+        auto updateRes = manager.update(srcFrame);
+        if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
         int view = 0;
         for (const int viewRow : rgs::views::iota(0, cliCfg.convert.views)) {
             for (const int viewCol : rgs::views::iota(0, cliCfg.convert.views)) {
                 auto& yuvWriter = yuvWriters[view];
-                {
-                    auto res = manager.renderInto(mvFrame, viewRow, viewCol);
-                    if (!res) return std::unexpected{std::move(res.error())};
-                }
-                {
-                    auto res = yuvWriter.write(mvFrame);
-                    if (!res) return std::unexpected{std::move(res.error())};
-                }
+
+                auto renderRes = manager.renderInto(mvFrame, viewRow, viewCol);
+                if (!renderRes) return std::unexpected{std::move(renderRes.error())};
+
+                auto writeRes = yuvWriter.write(mvFrame);
+                if (!writeRes) return std::unexpected{std::move(writeRes.error())};
+
                 view++;
             }
         }

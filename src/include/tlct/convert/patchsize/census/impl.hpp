@@ -64,9 +64,9 @@ private:
     template <concepts::CNeighbors TNeighbors>
     [[nodiscard]] PsizeMetric estimateWithNeighbors(TBridge& bridge, const TNeighbors& neighbors,
                                                     const MIBuffer& anchorMI,
-                                                    typename TNeighbors::Direction direction) noexcept;
+                                                    typename TNeighbors::Direction direction) const noexcept;
 
-    [[nodiscard]] float estimatePatchsize(TBridge& bridge, cv::Point index) noexcept;
+    [[nodiscard]] float estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept;
 
     void adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept;
 

@@ -49,10 +49,11 @@ public:
 
     // Const methods
     [[nodiscard]] cv::Size getOutputSize() const noexcept { return mvImpl_.getOutputSize(); }
+    [[nodiscard]] std::expected<void, Error> renderInto(io::YuvPlanarFrame& dst, int viewRow,
+                                                        int viewCol) const noexcept;
 
     // Non-const methods
     [[nodiscard]] std::expected<void, Error> update(const io::YuvPlanarFrame& src) noexcept;
-    [[nodiscard]] std::expected<void, Error> renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) noexcept;
 
     // Debug only
     [[nodiscard]] std::expected<void, Error> updateCommonCache(const io::YuvPlanarFrame& src) noexcept;
@@ -123,7 +124,8 @@ std::expected<void, Error> Manager_<TTraits>::update(const io::YuvPlanarFrame& s
 }
 
 template <concepts::CManagerTraits TTraits>
-std::expected<void, Error> Manager_<TTraits>::renderInto(io::YuvPlanarFrame& dst, int viewRow, int viewCol) noexcept {
+std::expected<void, Error> Manager_<TTraits>::renderInto(io::YuvPlanarFrame& dst, int viewRow,
+                                                         int viewCol) const noexcept {
     auto renderRes = mvImpl_.renderView(bridge_, dst, viewRow, viewCol);
     if (!renderRes) return std::unexpected{std::move(renderRes.error())};
     return {};
