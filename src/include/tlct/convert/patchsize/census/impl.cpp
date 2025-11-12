@@ -56,7 +56,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const T
                                                         const MIBuffer& anchorMI,
                                                         typename TNeighbors::Direction direction) const noexcept {
     const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-    const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
+    const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
 
     std::vector<float> metrics;
     metrics.reserve(params_.maxPsize - params_.minPsize);

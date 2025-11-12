@@ -103,11 +103,11 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TBridge& bridge, 
 
                 // Paste patch
                 if (arrange_.isKepler()) {
-                    cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
-                    cv::resize(rotatedPatch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
+                    cv::resize(patch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
                                cv::INTER_LINEAR);
                 } else {
-                    cv::resize(patch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
+                    cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
+                    cv::resize(rotatedPatch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
                                cv::INTER_LINEAR);
                 }
 

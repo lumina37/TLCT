@@ -48,14 +48,14 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
         }
 
         const cv::Point2f anchorShift =
-            -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction) * params_.patternShift;
+            _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction) * params_.patternShift;
         const cv::Rect anchorRoi = getRoiByCenter(miCenter + anchorShift, params_.patternSize);
         wrapAnchor.updateRoi(anchorRoi);
 
         const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
         WrapSSIM wrapNeib{neibMI};
 
-        const cv::Point2f matchStep = _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
+        const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
         cv::Point2f cmpShift = anchorShift + matchStep * params_.minPsize;
 
         int bestPsize = 0;
