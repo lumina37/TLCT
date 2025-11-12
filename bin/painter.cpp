@@ -6,42 +6,101 @@
 #include <format>
 #include <iostream>
 #include <print>
+#include <ranges>
 #include <string>
-
-#include <argparse/argparse.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
+#include <vector>
 
 #include "tlct.hpp"
+#include "tlct_cli.hpp"
 #include "tlct_unwrap.hpp"
 
 namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
-[[nodiscard]] static std::unique_ptr<argparse::ArgumentParser> makeUniqArgParser() noexcept {
-    auto parser = std::make_unique<argparse::ArgumentParser>("tlct", std::string("v").append(tlct::version),
-                                                             argparse::default_arguments::all);
+static void bgr2yuv(const cv::Mat& src, tlct::io::YuvPlanarFrame& frame) {
+    const auto& extent = frame.getExtent();
 
-    parser->set_usage_max_line_width(120);
-    parser->add_argument("calib_file").help("path of the `calib.cfg`").required();
-    parser->add_argument("x").help("col").scan<'i', int>().required();
-    parser->add_argument("y").help("row").scan<'i', int>().required();
-    parser->add_group("I/O");
-    parser->add_argument("-i", "--src").help("input yuv420p file").required();
-    parser->add_argument("-o", "--dst").help("output directory").required();
-    parser->add_epilog(std::string{tlct::compileInfo});
+    cv::Mat yuvImage;
+    cv::cvtColor(src, yuvImage, cv::COLOR_BGR2YUV_I420);
 
-    return parser;
+    const uint8_t* yuvData = yuvImage.data;
+    std::memcpy(frame.getY().data, yuvData, extent.getYByteSize());
+    std::memcpy(frame.getU().data, yuvData + extent.getYByteSize(), extent.getUByteSize());
+    std::memcpy(frame.getV().data, yuvData + extent.getYByteSize() + extent.getUByteSize(), extent.getVByteSize());
 }
 
 template <tlct::concepts::CManager TManager>
-static std::expected<void, tlct::Error> paint(std::unique_ptr<argparse::ArgumentParser>& pParser,
-                                              const tlct::ConfigMap& map) noexcept {
+static std::expected<void, tlct::Error> paintFrame(TManager& manager, tlct::io::YuvPlanarFrame& dstFrame,
+                                                   tlct::io::YuvPlanarFrame& dstFrameNormed) {
+    const auto& bridge = manager.getBridge();
+    const auto& arrange = manager.getArrange();
+
+    const auto& extent = dstFrame.getExtent();
+    auto srcSize = extent.getYSize();
+    if (arrange.getDirection()) {
+        std::swap(srcSize.width, srcSize.height);
+    }
+
+    cv::Mat canvasNormed{srcSize, CV_8UC3};
+    cv::Mat canvas{srcSize, CV_8UC3};
+
+    const tlct::cfg::MITypes mitypes{arrange.isOutShift()};
+
+    float maxPsize = std::numeric_limits<float>::lowest();
+    float minPsize = std::numeric_limits<float>::max();
+    for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
+            const float psize = bridge.getPatchsize(row, col);
+            if (psize > maxPsize) maxPsize = psize;
+            if (psize < minPsize) minPsize = psize;
+        }
+    }
+
+    for (const int row : rgs::views::iota(0, arrange.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange.getMICols(row))) {
+            const auto center = arrange.getMICenter(row, col);
+
+            const float psize = bridge.getPatchsize(row, col);
+            const cv::Scalar psizeNormedColor = cv::Scalar::all((psize - minPsize) / (maxPsize - minPsize) * 255.0);
+            const cv::Scalar psizeColor = cv::Scalar::all(psize);
+            cv::circle(canvasNormed, center, arrange.getRadius(), psizeNormedColor, cv::FILLED, cv::LINE_AA);
+            cv::circle(canvas, center, arrange.getRadius(), psizeColor, cv::FILLED, cv::LINE_AA);
+
+            const auto mitype = mitypes.getMIType(row, col);
+            const cv::Scalar mitypeColor{
+                255.0 * (int)(mitype == 0),
+                255.0 * (int)(mitype == 1),
+                255.0 * (int)(mitype == 2),
+            };
+            cv::circle(canvasNormed, center, arrange.getRadius(), mitypeColor, 1, cv::LINE_AA);
+            cv::circle(canvas, center, arrange.getRadius(), mitypeColor, 1, cv::LINE_AA);
+        }
+    }
+
+    if (arrange.getDirection()) {
+        cv::transpose(canvasNormed, canvasNormed);
+        cv::transpose(canvas, canvas);
+    }
+
+    bgr2yuv(canvasNormed, dstFrameNormed);
+    bgr2yuv(canvas, dstFrame);
+
+    return {};
+}
+
+template <tlct::concepts::CManager TManager>
+static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) noexcept {
     auto arrangeRes = TManager::TArrange::createWithCfgMap(map);
     if (!arrangeRes) return std::unexpected{std::move(arrangeRes.error())};
     auto& arrange = arrangeRes.value();
 
     cv::Size srcSize = arrange.getImgSize();
+    arrange.upsample(cliCfg.convert.upsample);
+
+    auto managerRes = TManager::create(arrange, cliCfg.convert);
+    if (!managerRes) return std::unexpected{std::move(managerRes.error())};
+    auto& manager = managerRes.value();
+
     if (arrange.getDirection()) {
         std::swap(srcSize.width, srcSize.height);
     }
@@ -50,35 +109,42 @@ static std::expected<void, tlct::Error> paint(std::unique_ptr<argparse::Argument
     if (!srcExtentRes) return std::unexpected{std::move(srcExtentRes.error())};
     auto srcExtent = srcExtentRes.value();
 
-    const fs::path srcPath{pParser->get<std::string>("--src")};
-    auto yuvReaderRes = tlct::io::YuvPlanarReader::create(srcPath, srcExtent);
+    auto yuvReaderRes = tlct::io::YuvPlanarReader::create(cliCfg.path.src, srcExtent);
     if (!yuvReaderRes) return std::unexpected{std::move(yuvReaderRes.error())};
     auto& yuvReader = yuvReaderRes.value();
 
-    const fs::path dstDir{pParser->get<std::string>("--dst")};
-    fs::create_directories(dstDir);
+    const fs::path& dstdir = cliCfg.path.dst;
+    fs::create_directories(dstdir);
+
+    std::string filename = std::format("dbg-{}x{}.yuv", srcSize.width, srcSize.height);
+    fs::path savetoPath = dstdir / filename;
+    auto yuvWriterRes = tlct::io::YuvPlanarWriter::create(savetoPath);
+    if (!yuvWriterRes) return std::unexpected{std::move(yuvWriterRes.error())};
+    auto& yuvWriter = yuvWriterRes.value();
+
+    auto skipRes = yuvReader.skip(cliCfg.range.begin);
+    if (!skipRes) return std::unexpected{std::move(skipRes.error())};
 
     auto srcFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
-    {
-        auto res = yuvReader.readInto(srcFrame);
-        if (!res) return std::unexpected{std::move(res.error())};
+    auto dstFrameNormed = tlct::io::YuvPlanarFrame::create(srcExtent).value();
+    auto dstFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
+    for ([[maybe_unused]] const int fid : rgs::views::iota(cliCfg.range.begin, cliCfg.range.end)) {
+        auto readRes = yuvReader.readInto(srcFrame);
+        if (!readRes) return std::unexpected{std::move(readRes.error())};
+
+        auto updateRes = manager.update(srcFrame);
+        if (!updateRes) return std::unexpected{std::move(updateRes.error())};
+
+        auto paintRes = paintFrame(manager, dstFrame, dstFrameNormed);
+        if (!paintRes) return std::unexpected{std::move(paintRes.error())};
+
+        auto writeRes = yuvWriter.write(srcFrame);
+        if (!writeRes) return std::unexpected{std::move(writeRes.error())};
+        writeRes = yuvWriter.write(dstFrame);
+        if (!writeRes) return std::unexpected{std::move(writeRes.error())};
+        writeRes = yuvWriter.write(dstFrameNormed);
+        if (!writeRes) return std::unexpected{std::move(writeRes.error())};
     }
-
-    auto canvas = srcFrame.getY().clone();
-    if (arrange.getDirection()) {
-        cv::transpose(canvas, canvas);
-    }
-
-    const int miIndexX = pParser->get<int>("x");
-    const int miIndexY = pParser->get<int>("y");
-    auto miCenter = arrange.getMICenter(miIndexY, miIndexX);
-    cv::circle(canvas, miCenter, (int)arrange.getRadius(), cv::Scalar::all(255.));
-
-    if (arrange.getDirection()) {
-        cv::transpose(canvas, canvas);
-    }
-
-    cv::imwrite((dstDir / "canvas.png").string(), canvas);
 
     return {};
 }
@@ -95,10 +161,10 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        paint<tlct::cvt::TSPCMeth0Manager>,
-        paint<tlct::cvt::RaytrixMeth0Manager>,
-        paint<tlct::cvt::TSPCMeth1Manager>,
-        paint<tlct::cvt::RaytrixMeth1Manager>,
+        render<tlct::cvt::TSPCMeth0Manager>,
+        render<tlct::cvt::RaytrixMeth0Manager>,
+        render<tlct::cvt::TSPCMeth1Manager>,
+        render<tlct::cvt::RaytrixMeth1Manager>,
     };
 
     std::string calibFilePath;
@@ -109,10 +175,11 @@ int main(int argc, char* argv[]) {
         std::exit(1);
     }
 
+    const auto cliCfg = cfgFromCliParser(*parser) | unwrap;
     const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath) | unwrap;
 
-    const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
+    const int pipeline = cliCfg.convert.method * 2 + cfgMap.getOr<"IsMultiFocus">(0);
     const auto& handler = handlers[pipeline];
 
-    handler(parser, cfgMap) | unwrap;
+    handler(cliCfg, cfgMap) | unwrap;
 }

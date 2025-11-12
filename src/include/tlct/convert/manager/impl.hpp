@@ -18,19 +18,19 @@ namespace tlct::_cvt {
 
 namespace fs = std::filesystem;
 
-template <concepts::CManagerTraits TTraits>
+template <concepts::CManagerTraits TTraits_>
 class Manager_ {
 public:
     // Typename alias
+    using TTraits = TTraits_;
     using TArrange = TTraits::TArrange;
     using TCvtConfig = cfg::CliConfig::Convert;
-
-private:
     using TPsizeImpl = TTraits::TPsizeImpl;
     using TMvImpl = TTraits::TMvImpl;
     using TCommonCache = CommonCache_<TArrange>;
     using TBridge = TPsizeImpl::TBridge;
 
+private:
     Manager_(std::shared_ptr<TArrange>&& pArrange, const TCvtConfig& cvtCfg,
              std::shared_ptr<TCommonCache>&& pCommonCache, TPsizeImpl&& psizeImpl, TBridge&& bridge,
              TMvImpl&& mvImpl) noexcept;
@@ -57,6 +57,8 @@ public:
 
     // Debug only
     [[nodiscard]] std::expected<void, Error> updateCommonCache(const io::YuvPlanarFrame& src) noexcept;
+    [[nodiscard]] TBridge& getBridge() noexcept { return bridge_; }
+    [[nodiscard]] TArrange& getArrange() noexcept { return *pArrange_; }
     [[nodiscard]] std::expected<void, Error> dumpBridge(const fs::path& dumpTo) const noexcept;
     [[nodiscard]] std::expected<void, Error> loadBridge(const fs::path& loadFrom) noexcept;
 
