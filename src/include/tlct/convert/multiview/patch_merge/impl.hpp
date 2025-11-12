@@ -73,10 +73,16 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TBridge& bridge, 
         std::ref(dst.getY()), std::ref(dst.getU()), std::ref(dst.getV())};
     const io::YuvPlanarExtent& frameExtent = dst.getExtent();
     std::array<cv::Size, TCommonCache::CHANNELS> channelSizes{
-        cv::Size{frameExtent.getYHeight(), frameExtent.getYWidth()},
-        cv::Size{frameExtent.getUHeight(), frameExtent.getUWidth()},
-        cv::Size{frameExtent.getVHeight(), frameExtent.getVWidth()},
+        frameExtent.getYSize(),
+        frameExtent.getUSize(),
+        frameExtent.getVSize(),
     };
+
+    if (arrange_.getDirection()) {
+        for (auto& channelSize : channelSizes) {
+            std::swap(channelSize.width, channelSize.height);
+        }
+    }
 
     cv::Mat resizedPatch;
     cv::Mat rotatedPatch;
