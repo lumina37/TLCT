@@ -63,8 +63,8 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
         for (const int psize : rgs::views::iota(params_.minPsize, maxShift)) {
             cmpShift += matchStep;
 
-            const cv::Rect cmp_roi = getRoiByCenter(miCenter + cmpShift, params_.patternSize);
-            wrapNeib.updateRoi(cmp_roi);
+            const cv::Rect cmpRoi = getRoiByCenter(miCenter + cmpShift, params_.patternSize);
+            wrapNeib.updateRoi(cmpRoi);
 
             const float ssim = wrapAnchor.compare(wrapNeib);
             if (ssim > maxSsim) {
