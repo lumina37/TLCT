@@ -96,6 +96,8 @@ static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, con
     return {};
 }
 
+bool isMultiFocus(const tlct::ConfigMap& cfgMap) { return cfgMap.getOr<"NearFocalLenType">(-1) >= 0; }
+
 int main(int argc, char* argv[]) {
     auto parser = makeUniqArgParser();
 
@@ -125,7 +127,7 @@ int main(int argc, char* argv[]) {
     const auto cliCfg = cfgFromCliParser(*parser) | unwrap;
     const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath) | unwrap;
 
-    const int pipeline = cfgMap.getOr<"IsMultiFocus">(0);
+    const int pipeline = cliCfg.convert.method * 2 + (int)isMultiFocus(cfgMap);
     const auto& handler = handlers[pipeline];
 
     handler(cliCfg, cfgMap) | unwrap;
