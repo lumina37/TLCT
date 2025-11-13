@@ -44,7 +44,7 @@ public:
     [[nodiscard]] TLCT_API float getRadius() const noexcept { return diameter_ / 2.0f; }
     [[nodiscard]] TLCT_API bool getDirection() const noexcept { return direction_; }
     [[nodiscard]] TLCT_API bool isKepler() const noexcept { return isKepler_; }
-    [[nodiscard]] TLCT_API bool isMultiFocus() const noexcept { return nearFocalLenType_ < 0; }
+    [[nodiscard]] TLCT_API bool isMultiFocus() const noexcept { return nearFocalLenType_ >= 0; }
     [[nodiscard]] TLCT_API int getNearFocalLenType() const noexcept { return nearFocalLenType_; }
     [[nodiscard]] TLCT_API int getUpsample() const noexcept { return upsample_; }
     [[nodiscard]] TLCT_API int getMIRows() const noexcept { return miRows_; }

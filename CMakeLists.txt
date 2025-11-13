@@ -68,7 +68,7 @@ if (TLCT_ENABLE_TESTS)
     FetchContent_Declare(
             tlct-test-data
             GIT_REPOSITORY https://github.com/lumina37/TLCT-test-data.git
-            GIT_TAG fbeb593ae1defa1266543d89b3ecabc05bba9ca0
+            GIT_TAG 1b2375aa4a29b62b88dad2747f44b0e8bc046311
     )
     FetchContent_MakeAvailable(tlct-test-data)
     set(TLCT_TESTDATA_DIR "${tlct-test-data_SOURCE_DIR}")
