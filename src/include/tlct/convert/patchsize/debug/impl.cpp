@@ -45,7 +45,7 @@ auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const n
 
         if constexpr (std::is_same_v<TNeighbors, NearNeighbors>) {
             const int miType = mitypes.getMIType(neighbors.getSelfIdx());
-            if (miType == arrange_.getNearFocalLenType()) {
+            if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
                 continue;
             }
         }
@@ -124,24 +124,23 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
         }
     }
 
+    float bestPsize;
+
     const _cfg::MITypes mitypes{arrange_.isOutShift()};
-
-    const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
-    const auto nearDirection = maxGradDirection(nearNeighbors);
-
-    const PsizeMetric& nearPsizeMetric =
-        estimateWithNeighbors<NearNeighbors>(bridge, nearNeighbors, anchorMI, nearDirection);
-    const float minMetric = nearPsizeMetric.metric;
-    float bestPsize = nearPsizeMetric.psize;
-
-    if (arrange_.isMultiFocus()) {
+    const int miType = mitypes.getMIType(index);
+    if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
+        // if the MI type is for near focal, then only search its far neighbors
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
         const auto farDirection = maxGradDirection(farNeighbors);
         const PsizeMetric& farPsizeMetric =
             estimateWithNeighbors<FarNeighbors>(bridge, farNeighbors, anchorMI, farDirection);
-        if (farPsizeMetric.metric < minMetric) {
-            bestPsize = farPsizeMetric.psize;
-        }
+        bestPsize = farPsizeMetric.psize;
+    } else {
+        const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
+        const auto nearDirection = maxGradDirection(nearNeighbors);
+        const PsizeMetric& nearPsizeMetric =
+            estimateWithNeighbors<NearNeighbors>(bridge, nearNeighbors, anchorMI, nearDirection);
+        bestPsize = nearPsizeMetric.psize;
     }
 
     return bestPsize;

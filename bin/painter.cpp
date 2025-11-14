@@ -66,7 +66,7 @@ static std::expected<void, tlct::Error> paintFrame(TManager& manager, tlct::io::
             cv::circle(canvasNormed, center, (int)arrange.getRadius(), psizeNormedColor, cv::FILLED, cv::LINE_AA);
             cv::circle(canvas, center, (int)arrange.getRadius(), psizeColor, cv::FILLED, cv::LINE_AA);
 
-            const auto miType = miTypes.getMIType(row, col);
+            const int miType = miTypes.getMIType(row, col);
             const cv::Scalar mitypeColor{
                 255.0 * (int)(miType == 0),
                 255.0 * (int)(miType == 1),
