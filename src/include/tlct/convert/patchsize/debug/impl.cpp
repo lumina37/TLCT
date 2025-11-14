@@ -1,6 +1,6 @@
 #include <bit>
 #include <limits>
-#include <numeric>
+#include <queue>
 #include <ranges>
 
 #include <opencv2/core.hpp>
@@ -148,14 +148,79 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
 
 template <cfg::concepts::CArrange TArrange>
 void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept {
+    const int approxMICount = arrange_.getMIRows() * arrange_.getMIMaxCols();
+    const int heapSize = approxMICount / _cfg::MITypes::LEN_TYPE_NUM / 16;
+
+    using Elem = std::pair<float, float>;
+    using Heap = std::priority_queue<Elem>;
+    std::array<Heap, _cfg::MITypes::LEN_TYPE_NUM> heaps;
+
+    const auto insert = [&](const int miType, const float grads, const float psize) {
+        auto& heap = heaps[miType];
+        if (heap.size() < heapSize) {
+            heap.push({grads, psize});
+        } else if (grads > heap.top().first) {
+            heap.pop();
+            heap.push({grads, psize});
+        }
+    };
+
+    const _cfg::MITypes mitypes{arrange_.isOutShift()};
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        const int rowOffset = row * arrange_.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
-            const int offset = row * arrange_.getMIMaxCols() + col;
+            const int offset = rowOffset + col;
 
             const auto& mi = mis_.getMI(offset);
-            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
 
+            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
             bridge.setWeight(offset, weight);
+
+            const int miType = mitypes.getMIType(row, col);
+            const float psize = bridge.getInfo(row, col).getPatchsize();
+            insert(miType, mi.grads, psize);
+        }
+    }
+
+    constexpr float SIGMA_OFFSET = 2;
+    struct PsizeInfo {
+        float mean;
+        float stddev;
+
+        float minPsize() const { return mean - SIGMA_OFFSET * stddev; }
+        float maxPsize() const { return mean + SIGMA_OFFSET * stddev; }
+    };
+
+    std::array<PsizeInfo, _cfg::MITypes::LEN_TYPE_NUM> psizeInfos;
+
+    for (int heapIdx = 0; heapIdx < heaps.size(); heapIdx++) {
+        auto& heap = heaps[heapIdx];
+        _hp::MeanStddev psizeMeanStddev{};
+        while (!heap.empty()) {
+            const auto [grads, psize] = heap.top();
+            heap.pop();
+            psizeMeanStddev.update(psize);
+        }
+
+        psizeInfos[heapIdx] = {psizeMeanStddev.getMean(), psizeMeanStddev.getStddev()};
+    }
+
+    for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            // adjust patch size
+            const int miType = mitypes.getMIType(row, col);
+            const float psize = bridge.getInfo(row, col).getPatchsize();
+            const auto& psizeInfo = psizeInfos[miType];
+            if (psize > psizeInfo.maxPsize()) {
+                bridge.getInfo(row, col).setPatchsize(psizeInfo.maxPsize());
+            } else if (psize < psizeInfo.minPsize()) {
+                bridge.getInfo(row, col).setPatchsize(psizeInfo.minPsize());
+            }
+
+            // adjust weight
+            const auto& mi = mis_.getMI(row, col);
+            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
+            bridge.setWeight(row, col, weight);
         }
     }
 }

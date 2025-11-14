@@ -83,7 +83,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
     }
 
     const float clipedSumPsize = _hp::clip(sumPsize / sumPsizeWeight, (float)params_.minPsize, (float)maxShift);
-    const float psize = (float)_hp::iround(clipedSumPsize / TNeighbors::INFLATE);
+    const float psize = clipedSumPsize / TNeighbors::INFLATE;
     const float metric = sumMetric / sumMetricWeight;
 
     return {psize, metric};
@@ -128,10 +128,9 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             const int offset = row * arrange_.getMIMaxCols() + col;
-
             const auto& mi = mis_.getMI(offset);
-            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
 
+            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
             bridge.setWeight(offset, weight);
         }
     }
