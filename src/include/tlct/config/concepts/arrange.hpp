@@ -32,6 +32,7 @@ concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     { self.getDirection() } noexcept -> std::same_as<bool>;
     { self.isKepler() } noexcept -> std::same_as<bool>;
     { self.isMultiFocus() } noexcept -> std::same_as<bool>;
+    { self.getNearFocalLenType() } noexcept -> std::integral;
     { self.getUpsample() } noexcept -> std::integral;
     { self.getMIRows() } noexcept -> std::integral;
     requires requires(int row) {

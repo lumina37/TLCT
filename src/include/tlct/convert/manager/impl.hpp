@@ -167,6 +167,10 @@ using TSPCCensusManagerTraits =
     ManagerTraits_<cfg::CornersArrange, census::PsizeImpl_<cfg::CornersArrange>, pm::MvImpl_<cfg::CornersArrange>>;
 using TSPCMeth1Manager = Manager_<TSPCCensusManagerTraits>;
 
+using TSPCDebugManagerTraits =
+    ManagerTraits_<cfg::CornersArrange, dbg::PsizeImpl_<cfg::CornersArrange>, pm::MvImpl_<cfg::CornersArrange>>;
+using TSPCDebugManager = Manager_<TSPCDebugManagerTraits>;
+
 using RaytrixSSIMManagerTraits =
     ManagerTraits_<cfg::OffsetArrange, ssim::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
 using RaytrixMeth0Manager = Manager_<RaytrixSSIMManagerTraits>;
@@ -174,6 +178,10 @@ using RaytrixMeth0Manager = Manager_<RaytrixSSIMManagerTraits>;
 using RaytrixCensusManagerTraits =
     ManagerTraits_<cfg::OffsetArrange, census::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
 using RaytrixMeth1Manager = Manager_<RaytrixCensusManagerTraits>;
+
+using RaytrixDebugManagerTraits =
+    ManagerTraits_<cfg::OffsetArrange, dbg::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
+using RaytrixDebugManager = Manager_<RaytrixDebugManagerTraits>;
 
 }  // namespace tlct::_cvt
 

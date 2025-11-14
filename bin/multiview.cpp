@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
-static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) noexcept {
+static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) noexcept {
     auto arrangeRes = TManager::TArrange::createWithCfgMap(map);
     if (!arrangeRes) return std::unexpected{std::move(arrangeRes.error())};
     auto& arrange = arrangeRes.value();
@@ -110,10 +110,10 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        paint<tlct::cvt::TSPCMeth0Manager>,
-        paint<tlct::cvt::RaytrixMeth0Manager>,
-        paint<tlct::cvt::TSPCMeth1Manager>,
-        paint<tlct::cvt::RaytrixMeth1Manager>,
+        render<tlct::cvt::TSPCMeth0Manager>,
+        render<tlct::cvt::RaytrixMeth0Manager>,
+        render<tlct::cvt::TSPCMeth1Manager>,
+        render<tlct::cvt::RaytrixMeth1Manager>,
     };
 
     std::string calibFilePath;

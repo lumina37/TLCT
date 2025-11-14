@@ -44,7 +44,7 @@ static std::expected<void, tlct::Error> paintFrame(TManager& manager, tlct::io::
     cv::Mat canvasNormed{srcSize, CV_8UC3};
     cv::Mat canvas{srcSize, CV_8UC3};
 
-    const tlct::cfg::MITypes mitypes{arrange.isOutShift()};
+    const tlct::cfg::MITypes miTypes{arrange.isOutShift()};
 
     float maxPsize = std::numeric_limits<float>::lowest();
     float minPsize = std::numeric_limits<float>::max();
@@ -63,17 +63,17 @@ static std::expected<void, tlct::Error> paintFrame(TManager& manager, tlct::io::
             const float psize = bridge.getPatchsize(row, col);
             const cv::Scalar psizeNormedColor = cv::Scalar::all((psize - minPsize) / (maxPsize - minPsize) * 255.0);
             const cv::Scalar psizeColor = cv::Scalar::all(psize);
-            cv::circle(canvasNormed, center, arrange.getRadius(), psizeNormedColor, cv::FILLED, cv::LINE_AA);
-            cv::circle(canvas, center, arrange.getRadius(), psizeColor, cv::FILLED, cv::LINE_AA);
+            cv::circle(canvasNormed, center, (int)arrange.getRadius(), psizeNormedColor, cv::FILLED, cv::LINE_AA);
+            cv::circle(canvas, center, (int)arrange.getRadius(), psizeColor, cv::FILLED, cv::LINE_AA);
 
-            const auto mitype = mitypes.getMIType(row, col);
+            const auto miType = miTypes.getMIType(row, col);
             const cv::Scalar mitypeColor{
-                255.0 * (int)(mitype == 0),
-                255.0 * (int)(mitype == 1),
-                255.0 * (int)(mitype == 2),
+                255.0 * (int)(miType == 0),
+                255.0 * (int)(miType == 1),
+                255.0 * (int)(miType == 2),
             };
-            cv::circle(canvasNormed, center, arrange.getRadius(), mitypeColor, 1, cv::LINE_AA);
-            cv::circle(canvas, center, arrange.getRadius(), mitypeColor, 1, cv::LINE_AA);
+            cv::circle(canvasNormed, center, (int)arrange.getRadius(), mitypeColor, 1, cv::LINE_AA);
+            cv::circle(canvas, center, (int)arrange.getRadius(), mitypeColor, 1, cv::LINE_AA);
         }
     }
 
@@ -163,10 +163,9 @@ int main(int argc, char* argv[]) {
     }
 
     constexpr std::array handlers{
-        paint<tlct::cvt::TSPCMeth0Manager>,
-        paint<tlct::cvt::RaytrixMeth0Manager>,
-        paint<tlct::cvt::TSPCMeth1Manager>,
-        paint<tlct::cvt::RaytrixMeth1Manager>,
+        paint<tlct::cvt::TSPCMeth0Manager>, paint<tlct::cvt::RaytrixMeth0Manager>,
+        paint<tlct::cvt::TSPCMeth1Manager>, paint<tlct::cvt::RaytrixMeth1Manager>,
+        paint<tlct::cvt::TSPCDebugManager>, paint<tlct::cvt::RaytrixDebugManager>,
     };
 
     std::string calibFilePath;
