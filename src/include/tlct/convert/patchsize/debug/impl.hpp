@@ -19,10 +19,7 @@ namespace tlct::_cvt::dbg {
 class PatchMergeDebugInfo {
 public:
     int dhashDiff = 0;
-    bool isBlurredNear = false;
-    bool isBlurredFar = false;
-    std::vector<float> nearMetrics{};
-    std::vector<float> farMetrics{};
+    std::vector<float> metrics{};
 };
 
 struct PsizeMetric {

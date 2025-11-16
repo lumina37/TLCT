@@ -9,10 +9,10 @@
 #include "tlct/io/yuv.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/multiview/patch_merge/impl.hpp"
+#    include "tlct/convert/multiview/ltype_merge/impl.hpp"
 #endif
 
-namespace tlct::_cvt::pm {
+namespace tlct::_cvt::lm {
 
 namespace rgs = std::ranges;
 
@@ -41,4 +41,4 @@ template class MvImpl_<cfg::CornersArrange>;
 static_assert(concepts::CMvImpl<MvImpl_<cfg::OffsetArrange>, PatchMergeBridge_<cfg::OffsetArrange>>);
 template class MvImpl_<cfg::OffsetArrange>;
 
-}  // namespace tlct::_cvt::pm
+}  // namespace tlct::_cvt::lm

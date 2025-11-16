@@ -20,7 +20,6 @@ public:
 
 private:
     float patchsize_;
-    float weight_;
     uint16_t dhash_;
     TDebugInfo debugInfo_;
 };

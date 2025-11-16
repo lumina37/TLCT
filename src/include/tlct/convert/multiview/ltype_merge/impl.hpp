@@ -8,13 +8,13 @@
 #include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/concepts/bridge.hpp"
 #include "tlct/convert/helper.hpp"
+#include "tlct/convert/multiview/ltype_merge/cache.hpp"
 #include "tlct/convert/multiview/params.hpp"
-#include "tlct/convert/multiview/patch_merge/cache.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 #include "tlct/io/yuv.hpp"
 
-namespace tlct::_cvt::pm {
+namespace tlct::_cvt::lm {
 
 namespace rgs = std::ranges;
 
@@ -163,8 +163,8 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
     return {};
 }
 
-}  // namespace tlct::_cvt::pm
+}  // namespace tlct::_cvt::lm
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/multiview/patch_merge/impl.cpp"
+#    include "tlct/convert/multiview/ltype_merge/impl.cpp"
 #endif

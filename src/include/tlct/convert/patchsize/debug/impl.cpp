@@ -90,11 +90,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const T
     if constexpr (DEBUG_ENABLED) {
         const auto index = neighbors.getSelfIdx();
         const int offset = index.y * arrange_.getMIMaxCols() + index.x;
-        if constexpr (std::is_same_v<TNeighbors, FarNeighbors>) {
-            bridge.getInfo(offset).getPDebugInfo()->farMetrics = std::move(metrics);
-        } else {
-            bridge.getInfo(offset).getPDebugInfo()->nearMetrics = std::move(metrics);
-        }
+        bridge.getInfo(offset).getPDebugInfo()->metrics = std::move(metrics);
     }
 
     return {psize, metric};
