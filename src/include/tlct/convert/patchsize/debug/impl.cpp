@@ -179,7 +179,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
         }
     }
 
-    constexpr float SIGMA_OFFSET = 2;
+    constexpr float SIGMA_OFFSET = 2.f;
     struct PsizeInfo {
         float mean;
         float stddev;
@@ -223,74 +223,89 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
     }
 
     // neighbor adjust
-    const typename TBridge::TInfos rawInfos = bridge.getInfos();
+    typename TBridge::TInfos rawInfos = bridge.getInfos();
     const auto& nearFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType()];
+    const auto& farFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType() + 2 % _cfg::MITypes::LEN_TYPE_NUM];
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
-            const int offset = row * arrange_.getMIMaxCols() + col;
-            const float currPSize = rawInfos[offset].getPatchsize();
             const int miType = miTypes.getMIType(row, col);
+            if (miType != arrange_.getNearFocalLenType()) {
+                continue;
+            }
+
+            const int offset = row * arrange_.getMIMaxCols() + col;
 
             using TNeighbors = NearNeighbors_<TArrange>;
             const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
 
+            const float psizeThre = farFocalLenTypePInfo.mean - farFocalLenTypePInfo.stddev * 2.f;
+            float neibPSizeSum = 0.f;
+            int neibCount = 0;
+            int satisfiedNeibCount = 0;
+            for (const auto direction : TNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) {
+                    continue;
+                }
+
+                const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
+                const float neibPSize = rawInfos[neibOffset].getPatchsize();
+                if (neibPSize > psizeThre) {
+                    satisfiedNeibCount++;
+                }
+
+                neibPSizeSum += neibPSize;
+                neibCount++;
+            }
+
+            const float avgNeibPSize = neibPSizeSum / neibCount;
+            if (satisfiedNeibCount >= 5) {
+                bridge.getInfo(offset).setPatchsize(avgNeibPSize);
+            }
+        }
+    }
+
+    rawInfos = bridge.getInfos();
+    for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            const int offset = row * arrange_.getMIMaxCols() + col;
+
+            const int miType = miTypes.getMIType(row, col);
             if (miType == arrange_.getNearFocalLenType()) {
-                const float psizeThre =
-                    std::max(currPSize, nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev * 3.f);
-                float neibPSizeSum = 0.f;
-                int neibCount = 0;
-                int satisfiedNeibCount = 0;
-                for (const auto direction : TNeighbors::DIRECTIONS) {
-                    if (!neighbors.hasNeighbor(direction)) {
-                        continue;
-                    }
+                continue;
+            }
 
-                    const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
-                    const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
-                    const float neibPSize = rawInfos[neibOffset].getPatchsize();
-                    if (neibPSize > psizeThre) {
-                        satisfiedNeibCount++;
-                    }
+            using TNeighbors = NearNeighbors_<TArrange>;
+            const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
 
-                    neibPSizeSum += neibPSize;
-                    neibCount++;
+            const float psizeThre = nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev;
+            float neibPSizeSum = 0.f;
+            int neibCount = 0;
+            int satisfiedNeibCount = 0;
+            for (const auto direction : TNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) {
+                    continue;
                 }
 
-                const float avgNeibPSize = neibPSizeSum / neibCount;
-                if (satisfiedNeibCount == neibCount) {
-                    bridge.getInfo(offset).setPatchsize(avgNeibPSize);
-                }
-            } else {
-                const float psizeThre =
-                    std::min(currPSize, nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev * 2.f);
-                float neibPSizeSum = 0.f;
-                int neibCount = 0;
-                int satisfiedNeibCount = 0;
-                for (const auto direction : TNeighbors::DIRECTIONS) {
-                    if (!neighbors.hasNeighbor(direction)) {
-                        continue;
-                    }
-
-                    const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
-                    const int neibMIType = miTypes.getMIType(neibIdx);
-                    if (neibMIType != arrange_.getNearFocalLenType()) {
-                        continue;
-                    }
-
-                    const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
-                    const float neibPSize = rawInfos[neibOffset].getPatchsize();
-                    if (neibPSize < psizeThre) {
-                        satisfiedNeibCount++;
-                    }
-
-                    neibPSizeSum += neibPSize;
-                    neibCount++;
+                const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                const int neibMIType = miTypes.getMIType(neibIdx);
+                if (neibMIType != arrange_.getNearFocalLenType()) {
+                    continue;
                 }
 
-                const float avgNeibPSize = neibPSizeSum / neibCount;
-                if (satisfiedNeibCount == neibCount) {
-                    bridge.getInfo(offset).setPatchsize(avgNeibPSize);
+                const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
+                const float neibPSize = rawInfos[neibOffset].getPatchsize();
+                if (neibPSize < psizeThre) {
+                    satisfiedNeibCount++;
                 }
+
+                neibPSizeSum += neibPSize;
+                neibCount++;
+            }
+
+            const float avgNeibPSize = neibPSizeSum / neibCount;
+            if (satisfiedNeibCount >= neibCount) {
+                bridge.getInfo(offset).setPatchsize(avgNeibPSize);
             }
         }
     }
