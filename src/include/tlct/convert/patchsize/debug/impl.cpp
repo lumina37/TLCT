@@ -144,6 +144,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
 
 template <cfg::concepts::CArrange TArrange>
 void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept {
+    // stat
     const int approxMICount = arrange_.getMIRows() * arrange_.getMIMaxCols();
     const int heapSize = approxMICount / _cfg::MITypes::LEN_TYPE_NUM / 16;
 
@@ -161,7 +162,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
         }
     };
 
-    const _cfg::MITypes mitypes{arrange_.isOutShift()};
+    const _cfg::MITypes miTypes{arrange_.isOutShift()};
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         const int rowOffset = row * arrange_.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
@@ -172,7 +173,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             const float weight = mi.grads + std::numeric_limits<float>::epsilon();
             bridge.setWeight(offset, weight);
 
-            const int miType = mitypes.getMIType(row, col);
+            const int miType = miTypes.getMIType(row, col);
             const float psize = bridge.getInfo(row, col).getPatchsize();
             insert(miType, mi.grads, psize);
         }
@@ -201,10 +202,11 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
         psizeInfos[heapIdx] = {psizeMeanStddev.getMean(), psizeMeanStddev.getStddev()};
     }
 
+    // heap adjust
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             // adjust patch size
-            const int miType = mitypes.getMIType(row, col);
+            const int miType = miTypes.getMIType(row, col);
             const float psize = bridge.getInfo(row, col).getPatchsize();
             const auto& psizeInfo = psizeInfos[miType];
             if (psize > psizeInfo.maxPsize()) {
@@ -217,6 +219,79 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             const auto& mi = mis_.getMI(row, col);
             const float weight = mi.grads + std::numeric_limits<float>::epsilon();
             bridge.setWeight(row, col, weight);
+        }
+    }
+
+    // neighbor adjust
+    const typename TBridge::TInfos rawInfos = bridge.getInfos();
+    const auto& nearFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType()];
+    for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            const int offset = row * arrange_.getMIMaxCols() + col;
+            const float currPSize = rawInfos[offset].getPatchsize();
+            const int miType = miTypes.getMIType(row, col);
+
+            using TNeighbors = NearNeighbors_<TArrange>;
+            const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
+
+            if (miType == arrange_.getNearFocalLenType()) {
+                const float psizeThre =
+                    std::max(currPSize, nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev * 3.f);
+                float neibPSizeSum = 0.f;
+                int neibCount = 0;
+                int satisfiedNeibCount = 0;
+                for (const auto direction : TNeighbors::DIRECTIONS) {
+                    if (!neighbors.hasNeighbor(direction)) {
+                        continue;
+                    }
+
+                    const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                    const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
+                    const float neibPSize = rawInfos[neibOffset].getPatchsize();
+                    if (neibPSize > psizeThre) {
+                        satisfiedNeibCount++;
+                    }
+
+                    neibPSizeSum += neibPSize;
+                    neibCount++;
+                }
+
+                const float avgNeibPSize = neibPSizeSum / neibCount;
+                if (satisfiedNeibCount == neibCount) {
+                    bridge.getInfo(offset).setPatchsize(avgNeibPSize);
+                }
+            } else {
+                const float psizeThre =
+                    std::min(currPSize, nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev * 2.f);
+                float neibPSizeSum = 0.f;
+                int neibCount = 0;
+                int satisfiedNeibCount = 0;
+                for (const auto direction : TNeighbors::DIRECTIONS) {
+                    if (!neighbors.hasNeighbor(direction)) {
+                        continue;
+                    }
+
+                    const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                    const int neibMIType = miTypes.getMIType(neibIdx);
+                    if (neibMIType != arrange_.getNearFocalLenType()) {
+                        continue;
+                    }
+
+                    const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
+                    const float neibPSize = rawInfos[neibOffset].getPatchsize();
+                    if (neibPSize < psizeThre) {
+                        satisfiedNeibCount++;
+                    }
+
+                    neibPSizeSum += neibPSize;
+                    neibCount++;
+                }
+
+                const float avgNeibPSize = neibPSizeSum / neibCount;
+                if (satisfiedNeibCount == neibCount) {
+                    bridge.getInfo(offset).setPatchsize(avgNeibPSize);
+                }
+            }
         }
     }
 }

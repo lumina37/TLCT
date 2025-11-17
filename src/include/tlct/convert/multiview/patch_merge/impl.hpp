@@ -113,7 +113,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
 
     cv::Mat resizedPatch;
     cv::Mat rotatedPatch;
-    cv::Mat weightedPatch;
+    cv::Mat blendedPatch;
 
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
@@ -133,7 +133,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
                            cv::INTER_LINEAR);
             }
 
-            cv::multiply(resizedPatch, mvCache_.gradBlendingWeight, weightedPatch);
+            cv::multiply(resizedPatch, mvCache_.gradBlendingWeight, blendedPatch);
 
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
@@ -143,21 +143,20 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
 
             if (arrange_.isMultiFocus()) {
                 const float weight = bridge.getWeight(row, col);
-                cv::addWeighted(mvCache_.renderCanvas(roi), 1.f, weightedPatch, weight, 0.f,
-                                mvCache_.renderCanvas(roi));
+                cv::addWeighted(mvCache_.renderCanvas(roi), 1.f, blendedPatch, weight, 0.f, mvCache_.renderCanvas(roi));
                 cv::addWeighted(mvCache_.weightCanvas(roi), 1.f, mvCache_.gradBlendingWeight, weight, 0.f,
                                 mvCache_.weightCanvas(roi));
             } else {
-                mvCache_.renderCanvas(roi) += weightedPatch;
+                mvCache_.renderCanvas(roi) += blendedPatch;
                 mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight;
             }
         }
     }
 
-    cv::Mat croppedRenderedImage = mvCache_.renderCanvas(params_.canvasCropRoi);
-    cv::Mat croppedWeightMatrix = mvCache_.weightCanvas(params_.canvasCropRoi);
+    cv::Mat croppedRenderCanvas = mvCache_.renderCanvas(params_.canvasCropRoi);
+    cv::Mat croppedWeightCanvas = mvCache_.weightCanvas(params_.canvasCropRoi);
 
-    cv::divide(croppedRenderedImage, croppedWeightMatrix, mvCache_.u8NormedImage, 1, CV_8UC1);
+    cv::divide(croppedRenderCanvas, croppedWeightCanvas, mvCache_.u8NormedImage, 1, CV_8UC1);
     cv::resize(mvCache_.u8NormedImage, dst, dstSize, 0.0, 0.0, cv::INTER_LINEAR);
 
     return {};

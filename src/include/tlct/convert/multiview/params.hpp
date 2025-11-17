@@ -20,6 +20,8 @@ public:
     [[nodiscard]] TLCT_API static std::expected<MvParams_, Error> create(const TArrange& arrange,
                                                                          const TCvtConfig& cvtCfg) noexcept;
 
+    [[nodiscard]] cv::Size getRoiSize() const noexcept { return {canvasCropRoi[1].size(), canvasCropRoi[0].size()}; }
+
     cv::Range canvasCropRoi[2];
     float psizeInflate;
     int views;

@@ -14,7 +14,7 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] cv::Mat circleWithFadeoutBorder(const int diameter, const float borderWidthFactor) noexcept {
+cv::Mat circleWithFadeoutBorder(const int diameter, const float borderWidthFactor) noexcept {
     cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
     const float radius = (float)diameter / 2.f;
     const float heap = borderWidthFactor > 0.f ? 1.f + 1.f / borderWidthFactor * (1.f - borderWidthFactor)
@@ -35,7 +35,7 @@ namespace rgs = std::ranges;
     return rect;
 }
 
-[[nodiscard]] float computeGrads(const cv::Mat& src) noexcept {
+float computeGrads(const cv::Mat& src) noexcept {
     cv::Mat edges;
     const float pixCount = (float)src.total();
 
@@ -51,6 +51,24 @@ namespace rgs = std::ranges;
     const float grad = std::sqrt(sqrX * 0.5f + sqrY * 0.5f);
 
     return grad;
+}
+
+void computeGradsMap(const cv::Mat& src, cv::Mat& dst) noexcept {
+    cv::Mat grads = cv::Mat::zeros(src.size(), src.type());
+    cv::Mat edges(src.size(), src.type());
+
+    cv::Scharr(src, edges, CV_32F, 1, 0);
+    edges = cv::abs(edges);
+    grads += edges;
+
+    cv::Scharr(src, edges, CV_32F, 0, 1);
+    edges = cv::abs(edges);
+    grads += edges;
+
+    constexpr int GAUSS_KSIZE = 27;
+    constexpr float GAUSS_SIGMA = 10.f;
+    cv::GaussianBlur(grads, dst, {GAUSS_KSIZE, GAUSS_KSIZE}, GAUSS_SIGMA);
+    cv::pow(dst, 3.f, dst);
 }
 
 uint16_t computeDhash(const cv::Mat& src) {

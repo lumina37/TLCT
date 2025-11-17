@@ -95,7 +95,9 @@ static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, con
     auto& arrange = arrangeRes.value();
 
     cv::Size srcSize = arrange.getImgSize();
-    arrange.upsample(cliCfg.convert.upsample);
+    const int upsample = cliCfg.convert.upsample;
+    cv::Size dstSize = srcSize * upsample;
+    arrange.upsample(upsample);
 
     auto managerRes = TManager::create(arrange, cliCfg.convert);
     if (!managerRes) return std::unexpected{std::move(managerRes.error())};
@@ -103,11 +105,16 @@ static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, con
 
     if (arrange.getDirection()) {
         std::swap(srcSize.width, srcSize.height);
+        std::swap(dstSize.width, dstSize.height);
     }
 
     auto srcExtentRes = tlct::io::YuvPlanarExtent::createYuv420p8bit(srcSize.width, srcSize.height);
     if (!srcExtentRes) return std::unexpected{std::move(srcExtentRes.error())};
     auto srcExtent = srcExtentRes.value();
+
+    auto dstExtentRes = tlct::io::YuvPlanarExtent::createYuv420p8bit(dstSize.width, dstSize.height);
+    if (!dstExtentRes) return std::unexpected{std::move(dstExtentRes.error())};
+    auto dstExtent = dstExtentRes.value();
 
     auto yuvReaderRes = tlct::io::YuvPlanarReader::create(cliCfg.path.src, srcExtent);
     if (!yuvReaderRes) return std::unexpected{std::move(yuvReaderRes.error())};
@@ -116,7 +123,7 @@ static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, con
     const fs::path& dstdir = cliCfg.path.dst;
     fs::create_directories(dstdir);
 
-    std::string filename = std::format("dbg-{}x{}.yuv", srcSize.width, srcSize.height);
+    std::string filename = std::format("dbg-{}x{}.yuv", dstSize.width, dstSize.height);
     fs::path savetoPath = dstdir / filename;
     auto yuvWriterRes = tlct::io::YuvPlanarWriter::create(savetoPath);
     if (!yuvWriterRes) return std::unexpected{std::move(yuvWriterRes.error())};
@@ -126,8 +133,8 @@ static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, con
     if (!skipRes) return std::unexpected{std::move(skipRes.error())};
 
     auto srcFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
-    auto dstFrameNormed = tlct::io::YuvPlanarFrame::create(srcExtent).value();
-    auto dstFrame = tlct::io::YuvPlanarFrame::create(srcExtent).value();
+    auto dstFrameNormed = tlct::io::YuvPlanarFrame::create(dstExtent).value();
+    auto dstFrame = tlct::io::YuvPlanarFrame::create(dstExtent).value();
     for ([[maybe_unused]] const int fid : rgs::views::iota(cliCfg.range.begin, cliCfg.range.end)) {
         auto readRes = yuvReader.readInto(srcFrame);
         if (!readRes) return std::unexpected{std::move(readRes.error())};
@@ -138,11 +145,15 @@ static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, con
         auto paintRes = paintFrame(manager, dstFrame, dstFrameNormed);
         if (!paintRes) return std::unexpected{std::move(paintRes.error())};
 
-        auto writeRes = yuvWriter.write(srcFrame);
-        if (!writeRes) return std::unexpected{std::move(writeRes.error())};
-        writeRes = yuvWriter.write(dstFrame);
+        auto writeRes = yuvWriter.write(dstFrame);
         if (!writeRes) return std::unexpected{std::move(writeRes.error())};
         writeRes = yuvWriter.write(dstFrameNormed);
+        if (!writeRes) return std::unexpected{std::move(writeRes.error())};
+
+        cv::resize(srcFrame.getY(), dstFrame.getY(), {}, upsample, upsample, cv::INTER_LINEAR);
+        cv::resize(srcFrame.getU(), dstFrame.getU(), {}, upsample, upsample, cv::INTER_LINEAR);
+        cv::resize(srcFrame.getV(), dstFrame.getV(), {}, upsample, upsample, cv::INTER_LINEAR);
+        writeRes = yuvWriter.write(dstFrame);
         if (!writeRes) return std::unexpected{std::move(writeRes.error())};
     }
 
