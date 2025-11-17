@@ -238,7 +238,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             using TNeighbors = NearNeighbors_<TArrange>;
             const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
 
-            const float psizeThre = farFocalLenTypePInfo.mean - farFocalLenTypePInfo.stddev * 2.f;
+            const float psizeThre = nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev * SIGMA_OFFSET;
             float neibPSizeSum = 0.f;
             int neibCount = 0;
             int satisfiedNeibCount = 0;
@@ -259,7 +259,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             }
 
             const float avgNeibPSize = neibPSizeSum / neibCount;
-            if (satisfiedNeibCount >= 5) {
+            if (satisfiedNeibCount >= 4) {
                 bridge.getInfo(offset).setPatchsize(avgNeibPSize);
             }
         }
@@ -278,7 +278,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             using TNeighbors = NearNeighbors_<TArrange>;
             const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
 
-            const float psizeThre = nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev;
+            const float psizeThre = farFocalLenTypePInfo.mean - farFocalLenTypePInfo.stddev;
             float neibPSizeSum = 0.f;
             int neibCount = 0;
             int satisfiedNeibCount = 0;
@@ -304,7 +304,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             }
 
             const float avgNeibPSize = neibPSizeSum / neibCount;
-            if (satisfiedNeibCount >= neibCount) {
+            if (satisfiedNeibCount >= 2) {
                 bridge.getInfo(offset).setPatchsize(avgNeibPSize);
             }
         }
