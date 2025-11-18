@@ -16,10 +16,10 @@
 #include "tlct/helper/std.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/debug/impl.hpp"
+#    include "tlct/convert/patchsize/debug/census/impl.hpp"
 #endif
 
-namespace tlct::_cvt::dbg {
+namespace tlct::_cvt::censusd {
 
 namespace rgs = std::ranges;
 
@@ -357,4 +357,4 @@ template class PsizeImpl_<cfg::CornersArrange>;
 static_assert(concepts::CPsizeImpl<PsizeImpl_<cfg::OffsetArrange>>);
 template class PsizeImpl_<cfg::OffsetArrange>;
 
-}  // namespace tlct::_cvt::dbg
+}  // namespace tlct::_cvt::censusd

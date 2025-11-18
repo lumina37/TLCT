@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     constexpr std::array handlers{
         paint<tlct::cvt::TSPCMeth0Manager>, paint<tlct::cvt::RaytrixMeth0Manager>,
         paint<tlct::cvt::TSPCMeth1Manager>, paint<tlct::cvt::RaytrixMeth1Manager>,
-        paint<tlct::cvt::TSPCDebugManager>, paint<tlct::cvt::RaytrixDebugManager>,
+        paint<tlct::cvt::TSPCCensusDbgManager>, paint<tlct::cvt::RaytrixCensusDbgManager>,
     };
 
     std::string calibFilePath;

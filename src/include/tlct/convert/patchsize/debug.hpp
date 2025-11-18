@@ -1,3 +1,3 @@
 #pragma once
 
-#include "tlct/convert/patchsize/debug/impl.hpp"
+#include "tlct/convert/patchsize/debug/census/impl.hpp"
