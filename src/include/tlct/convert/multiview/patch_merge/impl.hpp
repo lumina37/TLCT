@@ -5,7 +5,6 @@
 #include <opencv2/imgproc.hpp>
 
 #include "tlct/config/concepts.hpp"
-#include "tlct/config/mitypes.hpp"
 #include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/concepts/bridge.hpp"
 #include "tlct/convert/helper.hpp"
@@ -116,12 +115,8 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
     cv::Mat rotatedPatch;
     cv::Mat blendedPatch;
 
-    const _cfg::MITypes miTypes{arrange_.isOutShift()};
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
-            // if (miTypes.getMIType(row, col) != 0) {
-            //     continue;
-            // }
             // Extract patch
             const cv::Point2f center = arrange_.getMICenter(row, col);
             const float psize = params_.psizeInflate * bridge.getPatchsize(row, col);

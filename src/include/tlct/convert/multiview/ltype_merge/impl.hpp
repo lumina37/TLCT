@@ -4,8 +4,7 @@
 
 #include <opencv2/imgproc.hpp>
 
-#include "tlct/config/concepts.hpp"
-#include "tlct/config/mitypes.hpp"
+#include "tlct/config.hpp"
 #include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/concepts/bridge.hpp"
 #include "tlct/convert/helper.hpp"
@@ -131,7 +130,7 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
     cv::Mat blendedPatch;
     cv::Mat gradsMap;
 
-    const _cfg::MITypes miTypes{arrange_.isOutShift()};
+    const cfg::MITypes miTypes{arrange_.isOutShift()};
     for (int lenType = 0; lenType < 3; lenType++) {
         mvCache_.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
         mvCache_.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
@@ -204,7 +203,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge,
     cv::Mat rotatedPatch;
     cv::Mat blendedPatch;
 
-    const _cfg::MITypes miTypes{arrange_.isOutShift()};
+    const cfg::MITypes miTypes{arrange_.isOutShift()};
     for (int lenType = 0; lenType < 3; lenType++) {
         mvCache_.renderCanvas.setTo(0);
         mvCache_.weightCanvas.setTo(0);

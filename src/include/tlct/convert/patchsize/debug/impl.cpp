@@ -5,9 +5,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "tlct/config/arrange.hpp"
-#include "tlct/config/concepts.hpp"
-#include "tlct/config/mitypes.hpp"
+#include "tlct/config.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/concepts/patchsize.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
@@ -34,7 +32,7 @@ template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
 auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const noexcept ->
     typename TNeighbors::Direction {
-    const _cfg::MITypes mitypes{arrange_.isOutShift()};
+    const cfg::MITypes mitypes{arrange_.isOutShift()};
 
     float maxGrad = -1.f;
     typename TNeighbors::Direction maxGradDirection{};
@@ -122,7 +120,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
 
     float bestPsize;
 
-    const _cfg::MITypes mitypes{arrange_.isOutShift()};
+    const cfg::MITypes mitypes{arrange_.isOutShift()};
     const int miType = mitypes.getMIType(index);
     if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
         // if the MI type is for near focal, then only search its far neighbors
@@ -146,11 +144,11 @@ template <cfg::concepts::CArrange TArrange>
 void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept {
     // stat
     const int approxMICount = arrange_.getMIRows() * arrange_.getMIMaxCols();
-    const int heapSize = approxMICount / _cfg::MITypes::LEN_TYPE_NUM / 16;
+    const int heapSize = approxMICount / cfg::MITypes::LEN_TYPE_NUM / 16;
 
     using Elem = std::pair<float, float>;
     using Heap = std::priority_queue<Elem>;
-    std::array<Heap, _cfg::MITypes::LEN_TYPE_NUM> heaps;
+    std::array<Heap, cfg::MITypes::LEN_TYPE_NUM> heaps;
 
     const auto insert = [&](const int miType, const float grads, const float psize) {
         auto& heap = heaps[miType];
@@ -162,7 +160,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
         }
     };
 
-    const _cfg::MITypes miTypes{arrange_.isOutShift()};
+    const cfg::MITypes miTypes{arrange_.isOutShift()};
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         const int rowOffset = row * arrange_.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
@@ -188,7 +186,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
         float maxPsize() const { return mean + SIGMA_OFFSET * stddev; }
     };
 
-    std::array<PsizeInfo, _cfg::MITypes::LEN_TYPE_NUM> psizeInfos;
+    std::array<PsizeInfo, cfg::MITypes::LEN_TYPE_NUM> psizeInfos;
 
     for (int heapIdx = 0; heapIdx < heaps.size(); heapIdx++) {
         auto& heap = heaps[heapIdx];
@@ -225,7 +223,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
     // neighbor adjust
     typename TBridge::TInfos rawInfos = bridge.getInfos();
     const auto& nearFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType()];
-    const auto& farFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType() + 2 % _cfg::MITypes::LEN_TYPE_NUM];
+    const auto& farFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType() + 2 % cfg::MITypes::LEN_TYPE_NUM];
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             const int miType = miTypes.getMIType(row, col);
