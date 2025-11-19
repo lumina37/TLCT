@@ -39,10 +39,10 @@ std::expected<CliConfig, Error> CliConfig::create(const Path& path, const Range&
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
-    // if (convert.psizeInflate < std::numbers::sqrt3_v<float> || convert.psizeInflate > 3.0f) [[unlikely]] {
-    //     auto errMsg = std::format("expect sqrt3 <= psizeInflate <= 3, got: {}", convert.psizeInflate);
-    //     return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
-    // }
+    if (convert.psizeInflate < std::numbers::sqrt3_v<float> || convert.psizeInflate > 3.0f) [[unlikely]] {
+        auto errMsg = std::format("expect sqrt3 <= psizeInflate <= 3, got: {}", convert.psizeInflate);
+        return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
+    }
 
     if (convert.viewShiftRange < 0.0f || convert.viewShiftRange > 1.0f) [[unlikely]] {
         auto errMsg = std::format("expect 0 <= viewShiftRange <= 1, got: {}", convert.viewShiftRange);
