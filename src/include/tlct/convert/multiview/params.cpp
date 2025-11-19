@@ -21,7 +21,7 @@ auto MvParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtC
     -> std::expected<MvParams_, Error> {
     const float psizeInflate = cvtCfg.psizeInflate;
 
-    const float f32PatchXShift = 0.3f * arrange.getDiameter();
+    const float f32PatchXShift = 0.35f * arrange.getDiameter();
     const int patchXShift = (int)std::ceil(f32PatchXShift);
     const int patchYShift = (int)std::ceil(f32PatchXShift * std::numbers::sqrt3_v<float> / 2.f);
 

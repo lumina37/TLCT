@@ -126,11 +126,11 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
             // Paste patch
             if (arrange_.isKepler()) {
                 cv::resize(patch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                           cv::INTER_LINEAR);
+                           cv::INTER_CUBIC);
             } else {
                 cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
                 cv::resize(rotatedPatch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                           cv::INTER_LINEAR);
+                           cv::INTER_CUBIC);
             }
 
             cv::multiply(resizedPatch, mvCache_.gradBlendingWeight, blendedPatch);
@@ -157,7 +157,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
     cv::Mat croppedWeightCanvas = mvCache_.weightCanvas(params_.canvasCropRoi);
 
     cv::divide(croppedRenderCanvas, croppedWeightCanvas, mvCache_.u8NormedImage, 1, CV_8UC1);
-    cv::resize(mvCache_.u8NormedImage, dst, dstSize, 0.0, 0.0, cv::INTER_LINEAR);
+    cv::resize(mvCache_.u8NormedImage, dst, dstSize, 0.0, 0.0, cv::INTER_CUBIC);
 
     return {};
 }

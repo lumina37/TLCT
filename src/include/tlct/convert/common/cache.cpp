@@ -39,21 +39,21 @@ std::expected<void, Error> CommonCache_<TArrange>::update(const io::YuvPlanarFra
 
         const int upsample = arrange_.getUpsample();
         if (upsample != 1) [[likely]] {
-            cv::resize(rawSrcs[0], srcs[0], {}, upsample, upsample, cv::INTER_LINEAR);
+            cv::resize(rawSrcs[0], srcs[0], {}, upsample, upsample, cv::INTER_CUBIC);
         } else {
             srcs[0] = rawSrcs[0];
         }
 
         if (src.getExtent().getUShift() != 0) {
             const int uUpsample = upsample << src.getExtent().getUShift();
-            cv::resize(rawSrcs[1], srcs[1], {}, uUpsample, uUpsample, cv::INTER_LINEAR);
+            cv::resize(rawSrcs[1], srcs[1], {}, uUpsample, uUpsample, cv::INTER_CUBIC);
         } else {
             srcs[1] = rawSrcs[1];
         }
 
         if (src.getExtent().getVShift() != 0) {
             const int vUpsample = upsample << src.getExtent().getVShift();
-            cv::resize(rawSrcs[2], srcs[2], {}, vUpsample, vUpsample, cv::INTER_LINEAR);
+            cv::resize(rawSrcs[2], srcs[2], {}, vUpsample, vUpsample, cv::INTER_CUBIC);
         } else {
             srcs[2] = rawSrcs[2];
         }

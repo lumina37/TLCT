@@ -39,36 +39,36 @@ float computeGrads(const cv::Mat& src) noexcept {
     cv::Mat edges;
     const float pixCount = (float)src.total();
 
-    cv::Scharr(src, edges, CV_32F, 1, 0);
-    edges = cv::abs(edges);
-    const float gradX = (float)cv::sum(edges)[0] / pixCount;
-    cv::Scharr(src, edges, CV_32F, 0, 1);
-    edges = cv::abs(edges);
-    const float gradY = (float)cv::sum(edges)[0] / pixCount;
+    float grads = 0.0;
 
-    const float sqrX = gradX * gradX;
-    const float sqrY = gradY * gradY;
-    const float grad = std::sqrt(sqrX * 0.5f + sqrY * 0.5f);
+    cv::Sobel(src, edges, CV_16S, 1, 0);
+    edges = cv::abs(edges);
+    grads += (float)cv::sum(edges)[0];
 
-    return grad;
+    cv::Sobel(src, edges, CV_16S, 0, 1);
+    edges = cv::abs(edges);
+    grads += (float)cv::sum(edges)[0];
+
+    grads /= pixCount;
+    return grads;
 }
 
 void computeGradsMap(const cv::Mat& src, cv::Mat& dst) noexcept {
     cv::Mat grads = cv::Mat::zeros(src.size(), src.type());
     cv::Mat edges(src.size(), src.type());
 
-    cv::Scharr(src, edges, CV_32F, 1, 0);
+    cv::Sobel(src, edges, src.type(), 1, 0);
     edges = cv::abs(edges);
     grads += edges;
 
-    cv::Scharr(src, edges, CV_32F, 0, 1);
+    cv::Sobel(src, edges, src.type(), 0, 1);
     edges = cv::abs(edges);
     grads += edges;
 
-    constexpr int GAUSS_KSIZE = 27;
-    constexpr float GAUSS_SIGMA = 10.f;
+    constexpr int GAUSS_KSIZE = 23;
+    constexpr float GAUSS_SIGMA = 5.f;
     cv::GaussianBlur(grads, dst, {GAUSS_KSIZE, GAUSS_KSIZE}, GAUSS_SIGMA);
-    cv::pow(dst, 3.f, dst);
+    cv::pow(dst, 2.f, dst);
 }
 
 uint16_t computeDhash(const cv::Mat& src) {

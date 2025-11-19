@@ -10,11 +10,11 @@ namespace _ = _cvt;
 using _::Manager_;
 using _::ManagerTraits_;
 
-using _::TSPCCensusDbgManager;
+using _::TSPCDebugManager;
 using _::TSPCMeth0Manager;
 using _::TSPCMeth1Manager;
 
-using _::RaytrixCensusDbgManager;
+using _::RaytrixDebugManager;
 using _::RaytrixMeth0Manager;
 using _::RaytrixMeth1Manager;
 

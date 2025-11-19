@@ -150,9 +150,9 @@ static std::expected<void, tlct::Error> paint(const tlct::CliConfig& cliCfg, con
         writeRes = yuvWriter.write(dstFrameNormed);
         if (!writeRes) return std::unexpected{std::move(writeRes.error())};
 
-        cv::resize(srcFrame.getY(), dstFrame.getY(), {}, upsample, upsample, cv::INTER_LINEAR);
-        cv::resize(srcFrame.getU(), dstFrame.getU(), {}, upsample, upsample, cv::INTER_LINEAR);
-        cv::resize(srcFrame.getV(), dstFrame.getV(), {}, upsample, upsample, cv::INTER_LINEAR);
+        cv::resize(srcFrame.getY(), dstFrame.getY(), {}, upsample, upsample, cv::INTER_CUBIC);
+        cv::resize(srcFrame.getU(), dstFrame.getU(), {}, upsample, upsample, cv::INTER_CUBIC);
+        cv::resize(srcFrame.getV(), dstFrame.getV(), {}, upsample, upsample, cv::INTER_CUBIC);
         writeRes = yuvWriter.write(dstFrame);
         if (!writeRes) return std::unexpected{std::move(writeRes.error())};
     }
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     constexpr std::array handlers{
         paint<tlct::cvt::TSPCMeth0Manager>, paint<tlct::cvt::RaytrixMeth0Manager>,
         paint<tlct::cvt::TSPCMeth1Manager>, paint<tlct::cvt::RaytrixMeth1Manager>,
-        paint<tlct::cvt::TSPCCensusDbgManager>, paint<tlct::cvt::RaytrixCensusDbgManager>,
+        paint<tlct::cvt::TSPCDebugManager>, paint<tlct::cvt::RaytrixDebugManager>,
     };
 
     std::string calibFilePath;

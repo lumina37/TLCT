@@ -1,26 +1,19 @@
 #pragma once
 
-#include <vector>
-
 #include <opencv2/core.hpp>
 
 #include "tlct/config/common.hpp"
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/common/bridge/patch_merge.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
-#include "tlct/convert/patchsize/census/mibuffer.hpp"
-#include "tlct/convert/patchsize/census/params.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
+#include "tlct/convert/patchsize/ssim/functional.hpp"
+#include "tlct/convert/patchsize/ssim/mibuffer.hpp"
+#include "tlct/convert/patchsize/ssim/params.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
 namespace tlct::_cvt::dbg {
-
-class PatchMergeDebugInfo {
-public:
-    int dhashDiff = 0;
-    std::vector<float> metrics{};
-};
 
 struct PsizeMetric {
     float psize;
@@ -30,22 +23,14 @@ struct PsizeMetric {
 template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
 public:
-#ifdef _DEBUG
-    using TDebugInfo = PatchMergeDebugInfo;
-    static constexpr bool DEBUG_ENABLED = true;
-#else
-    using TDebugInfo = nullptr_t;
-    static constexpr bool DEBUG_ENABLED = false;
-#endif
-
     // Typename alias
     using TArrange = TArrange_;
     using TCvtConfig = cfg::CliConfig::Convert;
-    using TBridge = PatchMergeBridge_<TArrange, TDebugInfo>;
+    using TBridge = PatchMergeBridge_<TArrange>;
 
 private:
-    using TMIBuffers = census::MIBuffers_<TArrange>;
-    using TPsizeParams = census::PsizeParams_<TArrange>;
+    using TMIBuffers = ssim::MIBuffers_<TArrange>;
+    using TPsizeParams = ssim::PsizeParams_<TArrange>;
     using TPInfo = TBridge::TInfo;
     using TPInfos = TBridge::TInfos;
 
@@ -56,12 +41,8 @@ private:
     using FarNeighbors = FarNeighbors_<TArrange>;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] typename TNeighbors::Direction maxGradDirection(const TNeighbors& neighbors) const noexcept;
-
-    template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] PsizeMetric estimateWithNeighbors(TBridge& bridge, const TNeighbors& neighbors,
-                                                    const census::MIBuffer& anchorMI,
-                                                    typename TNeighbors::Direction direction) const noexcept;
+    [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors,
+                                                    ssim::WrapSSIM& wrapAnchor) const noexcept;
 
     [[nodiscard]] float estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept;
 

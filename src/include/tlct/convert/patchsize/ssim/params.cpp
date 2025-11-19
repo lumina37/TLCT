@@ -19,7 +19,7 @@ auto PsizeParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& c
     const float halfPatternSize = patternSize / 2.f;
     const float patternShift = std::sqrt((radius - halfPatternSize) * (radius + halfPatternSize)) - halfPatternSize;
 
-    const int minPsize = (int)std::roundf(0.75f * patternSize);
+    const int minPsize = (int)std::roundf(0.5f * patternSize);
 
     return PsizeParams_{patternSize, patternShift, minPsize, cvtCfg.psizeShortcutThreshold};
 }
