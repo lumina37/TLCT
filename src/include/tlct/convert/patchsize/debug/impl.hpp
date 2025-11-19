@@ -14,7 +14,7 @@
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
-namespace tlct::_cvt::censusd {
+namespace tlct::_cvt::dbg {
 
 class PatchMergeDebugInfo {
 public:
@@ -94,5 +94,5 @@ private:
 }  // namespace tlct::_cvt::dbg
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/debug/census/impl.cpp"
+#    include "tlct/convert/patchsize/debug/impl.cpp"
 #endif

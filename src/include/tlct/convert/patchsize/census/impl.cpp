@@ -1,12 +1,11 @@
 #include <bit>
 #include <limits>
-#include <numeric>
+#include <queue>
 #include <ranges>
 
 #include <opencv2/core.hpp>
 
-#include "tlct/config/arrange.hpp"
-#include "tlct/config/concepts.hpp"
+#include "tlct/config.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/concepts/patchsize.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
@@ -33,6 +32,8 @@ template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
 auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const noexcept ->
     typename TNeighbors::Direction {
+    const cfg::MITypes mitypes{arrange_.isOutShift()};
+
     float maxGrad = -1.f;
     typename TNeighbors::Direction maxGradDirection{};
     for (const auto direction : TNeighbors::DIRECTIONS) {
@@ -40,7 +41,14 @@ auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const n
             continue;
         }
 
-        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+        if constexpr (std::is_same_v<TNeighbors, NearNeighbors>) {
+            const int miType = mitypes.getMIType(neighbors.getSelfIdx());
+            if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
+                continue;
+            }
+        }
+
+        const census::MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
         if (neibMI.grads > maxGrad) {
             maxGrad = neibMI.grads;
             maxGradDirection = direction;
@@ -53,9 +61,9 @@ auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const n
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const TNeighbors& neighbors,
-                                                        const MIBuffer& anchorMI,
+                                                        const census::MIBuffer& anchorMI,
                                                         typename TNeighbors::Direction direction) const noexcept {
-    const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+    const census::MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
     const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
 
     std::vector<float> metrics;
@@ -80,11 +88,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const T
     if constexpr (DEBUG_ENABLED) {
         const auto index = neighbors.getSelfIdx();
         const int offset = index.y * arrange_.getMIMaxCols() + index.x;
-        if constexpr (std::is_same_v<TNeighbors, FarNeighbors>) {
-            bridge.getInfo(offset).getPDebugInfo()->farMetrics = std::move(metrics);
-        } else {
-            bridge.getInfo(offset).getPDebugInfo()->nearMetrics = std::move(metrics);
-        }
+        bridge.getInfo(offset).getPDebugInfo()->metrics = std::move(metrics);
     }
 
     return {psize, metric};
@@ -92,10 +96,10 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const T
 
 template <cfg::concepts::CArrange TArrange>
 float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept {
-    using PsizeParams = PsizeParams_<TArrange>;
+    using PsizeParams = census::PsizeParams_<TArrange>;
 
     const int offset = index.y * arrange_.getMIMaxCols() + index.x;
-    const MIBuffer& anchorMI = mis_.getMI(offset);
+    const census::MIBuffer& anchorMI = mis_.getMI(offset);
     const float prevPsize = getPrevPatchsize(offset);
 
     if constexpr (DEBUG_ENABLED) {
@@ -114,22 +118,23 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
         }
     }
 
-    const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
-    const auto nearDirection = maxGradDirection(nearNeighbors);
+    float bestPsize;
 
-    const PsizeMetric& nearPsizeMetric =
-        estimateWithNeighbors<NearNeighbors>(bridge, nearNeighbors, anchorMI, nearDirection);
-    const float minMetric = nearPsizeMetric.metric;
-    float bestPsize = nearPsizeMetric.psize;
-
-    if (arrange_.isMultiFocus()) {
+    const cfg::MITypes mitypes{arrange_.isOutShift()};
+    const int miType = mitypes.getMIType(index);
+    if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
+        // if the MI type is for near focal, then only search its far neighbors
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
         const auto farDirection = maxGradDirection(farNeighbors);
         const PsizeMetric& farPsizeMetric =
             estimateWithNeighbors<FarNeighbors>(bridge, farNeighbors, anchorMI, farDirection);
-        if (farPsizeMetric.metric < minMetric) {
-            bestPsize = farPsizeMetric.psize;
-        }
+        bestPsize = farPsizeMetric.psize;
+    } else {
+        const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
+        const auto nearDirection = maxGradDirection(nearNeighbors);
+        const PsizeMetric& nearPsizeMetric =
+            estimateWithNeighbors<NearNeighbors>(bridge, nearNeighbors, anchorMI, nearDirection);
+        bestPsize = nearPsizeMetric.psize;
     }
 
     return bestPsize;
@@ -137,100 +142,168 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
 
 template <cfg::concepts::CArrange TArrange>
 void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept {
-    // TODO: handle `std::bad_alloc` in this func
-    _hp::MeanStddev texMeanStddev{};
+    // stat
+    const int approxMICount = arrange_.getMIRows() * arrange_.getMIMaxCols();
+    const int heapSize = approxMICount / cfg::MITypes::LEN_TYPE_NUM / 16;
 
-    // 1-pass: stat texture gradient
+    using Elem = std::pair<float, float>;
+    using Heap = std::priority_queue<Elem>;
+    std::array<Heap, cfg::MITypes::LEN_TYPE_NUM> heaps;
+
+    const auto insert = [&](const int miType, const float grads, const float psize) {
+        auto& heap = heaps[miType];
+        if (heap.size() < heapSize) {
+            heap.push({grads, psize});
+        } else if (grads > heap.top().first) {
+            heap.pop();
+            heap.push({grads, psize});
+        }
+    };
+
+    const cfg::MITypes miTypes{arrange_.isOutShift()};
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         const int rowOffset = row * arrange_.getMIMaxCols();
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             const int offset = rowOffset + col;
+
             const auto& mi = mis_.getMI(offset);
-            texMeanStddev.update(mi.grads);
+
+            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
+            bridge.setWeight(offset, weight);
+
+            const int miType = miTypes.getMIType(row, col);
+            const float psize = bridge.getInfo(row, col).getPatchsize();
+            insert(miType, mi.grads, psize);
         }
     }
 
-    // 2-pass: compute weight
-    const typename TBridge::TInfos rawInfos = bridge.getInfos();
-    const float texGradMean = texMeanStddev.getMean();
-    const float texGradStddev = texMeanStddev.getStddev();
+    constexpr float SIGMA_OFFSET = 2.f;
+    struct PsizeInfo {
+        float mean;
+        float stddev;
+
+        float minPsize() const { return mean - SIGMA_OFFSET * stddev; }
+        float maxPsize() const { return mean + SIGMA_OFFSET * stddev; }
+    };
+
+    std::array<PsizeInfo, cfg::MITypes::LEN_TYPE_NUM> psizeInfos;
+
+    for (int heapIdx = 0; heapIdx < heaps.size(); heapIdx++) {
+        auto& heap = heaps[heapIdx];
+        _hp::MeanStddev psizeMeanStddev{};
+        while (!heap.empty()) {
+            const auto [grads, psize] = heap.top();
+            heap.pop();
+            psizeMeanStddev.update(psize);
+        }
+
+        psizeInfos[heapIdx] = {psizeMeanStddev.getMean(), psizeMeanStddev.getStddev()};
+    }
+
+    // heap adjust
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
-            const int offset = row * arrange_.getMIMaxCols() + col;
-            const cv::Point index{col, row};
-
-            const auto& mi = mis_.getMI(offset);
-            const float currGrad = mi.grads;
-
-            using TNeighbors = NearNeighbors_<TArrange>;
-            using Direction = typename TNeighbors::Direction;
-            const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, index);
-
-            std::array<float, TNeighbors::DIRECTION_NUM> neibGrads;
-            std::array<float, TNeighbors::DIRECTION_NUM> neibPsizes;
-            for (const auto direction : TNeighbors::DIRECTIONS) {
-                if (!neighbors.hasNeighbor(direction)) {
-                    neibGrads[(int)direction] = -1.f;
-                    neibPsizes[(int)direction] = -1.f;
-                    continue;
-                }
-                const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
-                const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
-                const MIBuffer& neibMI = mis_.getMI(neibOffset);
-                neibGrads[(int)direction] = neibMI.grads;
-                neibPsizes[(int)direction] = rawInfos[neibOffset].getPatchsize();
+            // adjust patch size
+            const int miType = miTypes.getMIType(row, col);
+            const float psize = bridge.getInfo(row, col).getPatchsize();
+            const auto& psizeInfo = psizeInfos[miType];
+            if (psize > psizeInfo.maxPsize()) {
+                bridge.getInfo(row, col).setPatchsize(psizeInfo.maxPsize());
+            } else if (psize < psizeInfo.minPsize()) {
+                bridge.getInfo(row, col).setPatchsize(psizeInfo.minPsize());
             }
 
-            const float normedGrad = (mi.grads - texGradMean) / (texGradStddev * 2.0f);
-            const float clippedGrad = _hp::clip(normedGrad, -1.0f, 1.0f);
-            const float poweredGrad = clippedGrad * clippedGrad * clippedGrad;
-            bridge.setWeight(offset, poweredGrad + 1.0f);
+            // adjust weight
+            const auto& mi = mis_.getMI(row, col);
+            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
+            bridge.setWeight(row, col, weight);
+        }
+    }
 
-            int group0GtCount = 0;
-            int group1GtCount = 0;
-            const float currGradForCmp = currGrad * 1.15f;
-            group0GtCount += (int)(neibGrads[(int)Direction::UPLEFT] > currGradForCmp);
-            group0GtCount += (int)(neibGrads[(int)Direction::RIGHT] > currGradForCmp);
-            group0GtCount += (int)(neibGrads[(int)Direction::DOWNLEFT] > currGradForCmp);
-            group1GtCount += (int)(neibGrads[(int)Direction::UPRIGHT] > currGradForCmp);
-            group1GtCount += (int)(neibGrads[(int)Direction::LEFT] > currGradForCmp);
-            group1GtCount += (int)(neibGrads[(int)Direction::DOWNRIGHT] > currGradForCmp);
-
-            // For blurred MI in far field.
-            // These MI will have the blurrest texture (smallest gradient) among all its neighbor MIs.
-            // We should assign a smaller weight for these MI.
-            if (group0GtCount + group1GtCount == 6) {
-                const float newWeight = bridge.getWeight(offset) / 2.f;
-                bridge.setWeight(offset, newWeight);
-                const float psize = std::reduce(neibPsizes.begin(), neibPsizes.end(), 0.f) / TNeighbors::DIRECTION_NUM;
-                bridge.getInfo(offset).setPatchsize(psize);
-
-                if constexpr (DEBUG_ENABLED) {
-                    bridge.getInfo(offset).getPDebugInfo()->isBlurredFar = true;
-                }
-
+    // neighbor adjust
+    typename TBridge::TInfos rawInfos = bridge.getInfos();
+    const auto& nearFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType()];
+    const auto& farFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType() + 2 % cfg::MITypes::LEN_TYPE_NUM];
+    for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            const int miType = miTypes.getMIType(row, col);
+            if (miType != arrange_.getNearFocalLenType()) {
                 continue;
             }
 
-            // For blurred MI in near field.
-            // These MI will have exactly 3 neighbor MIs that have clearer texture.
-            // We should set their patch sizes to the average patch sizes of their clearer neighbor MIs.
-            if (group0GtCount == 3 && group1GtCount == 0) {
-                const float psize = (neibPsizes[(int)Direction::UPLEFT] + neibPsizes[(int)Direction::RIGHT] +
-                                     neibPsizes[(int)Direction::DOWNLEFT]) /
-                                    3.f;
-                bridge.getInfo(offset).setPatchsize(psize);
-                if constexpr (DEBUG_ENABLED) {
-                    bridge.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
+            const int offset = row * arrange_.getMIMaxCols() + col;
+
+            using TNeighbors = NearNeighbors_<TArrange>;
+            const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
+
+            const float psizeThre = nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev * SIGMA_OFFSET;
+            float neibPSizeSum = 0.f;
+            int neibCount = 0;
+            int satisfiedNeibCount = 0;
+            for (const auto direction : TNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) {
+                    continue;
                 }
-            } else if (group0GtCount == 0 && group1GtCount == 3) {
-                const float psize = (neibPsizes[(int)Direction::UPRIGHT] + neibPsizes[(int)Direction::LEFT] +
-                                     neibPsizes[(int)Direction::DOWNLEFT]) /
-                                    3.f;
-                bridge.getInfo(offset).setPatchsize(psize);
-                if constexpr (DEBUG_ENABLED) {
-                    bridge.getInfo(offset).getPDebugInfo()->isBlurredNear = true;
+
+                const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
+                const float neibPSize = rawInfos[neibOffset].getPatchsize();
+                if (neibPSize > psizeThre) {
+                    satisfiedNeibCount++;
                 }
+
+                neibPSizeSum += neibPSize;
+                neibCount++;
+            }
+
+            const float avgNeibPSize = neibPSizeSum / neibCount;
+            if (satisfiedNeibCount >= 4) {
+                bridge.getInfo(offset).setPatchsize(avgNeibPSize);
+            }
+        }
+    }
+
+    rawInfos = bridge.getInfos();
+    for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
+        for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            const int offset = row * arrange_.getMIMaxCols() + col;
+
+            const int miType = miTypes.getMIType(row, col);
+            if (miType == arrange_.getNearFocalLenType()) {
+                continue;
+            }
+
+            using TNeighbors = NearNeighbors_<TArrange>;
+            const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
+
+            const float psizeThre = farFocalLenTypePInfo.mean - farFocalLenTypePInfo.stddev;
+            float neibPSizeSum = 0.f;
+            int neibCount = 0;
+            int satisfiedNeibCount = 0;
+            for (const auto direction : TNeighbors::DIRECTIONS) {
+                if (!neighbors.hasNeighbor(direction)) {
+                    continue;
+                }
+
+                const cv::Point neibIdx = neighbors.getNeighborIdx(direction);
+                const int neibMIType = miTypes.getMIType(neibIdx);
+                if (neibMIType != arrange_.getNearFocalLenType()) {
+                    continue;
+                }
+
+                const int neibOffset = neibIdx.y * arrange_.getMIMaxCols() + neibIdx.x;
+                const float neibPSize = rawInfos[neibOffset].getPatchsize();
+                if (neibPSize < psizeThre) {
+                    satisfiedNeibCount++;
+                }
+
+                neibPSizeSum += neibPSize;
+                neibCount++;
+            }
+
+            const float avgNeibPSize = neibPSizeSum / neibCount;
+            if (satisfiedNeibCount >= 2) {
+                bridge.getInfo(offset).setPatchsize(avgNeibPSize);
             }
         }
     }
