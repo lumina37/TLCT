@@ -144,7 +144,7 @@ template <cfg::concepts::CArrange TArrange>
 void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noexcept {
     // stat
     const int approxMICount = arrange_.getMIRows() * arrange_.getMIMaxCols();
-    const int heapSize = approxMICount / cfg::MITypes::LEN_TYPE_NUM / 16;
+    const int heapSize = approxMICount / cfg::MITypes::LEN_TYPE_NUM / 32;
 
     using Elem = std::pair<float, float>;
     using Heap = std::priority_queue<Elem>;
@@ -177,13 +177,14 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
         }
     }
 
-    constexpr float SIGMA_OFFSET = 2.f;
     struct PsizeInfo {
         float mean;
         float stddev;
 
-        float minPsize() const { return mean - SIGMA_OFFSET * stddev; }
-        float maxPsize() const { return mean + SIGMA_OFFSET * stddev; }
+        [[nodiscard]] float minPsize() const { return mean - 2.f * stddev; }
+        [[nodiscard]] float maxPsize() const { return mean + 2.f * stddev; }
+        [[nodiscard]] float adjustedMinPsize() const { return mean - 2.f * stddev; }
+        [[nodiscard]] float adjustedMaxPsize() const { return mean + 2.f * stddev; }
     };
 
     std::array<PsizeInfo, cfg::MITypes::LEN_TYPE_NUM> psizeInfos;
@@ -208,9 +209,9 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             const float psize = bridge.getInfo(row, col).getPatchsize();
             const auto& psizeInfo = psizeInfos[miType];
             if (psize > psizeInfo.maxPsize()) {
-                bridge.getInfo(row, col).setPatchsize(psizeInfo.maxPsize());
+                bridge.getInfo(row, col).setPatchsize(psizeInfo.adjustedMaxPsize());
             } else if (psize < psizeInfo.minPsize()) {
-                bridge.getInfo(row, col).setPatchsize(psizeInfo.minPsize());
+                bridge.getInfo(row, col).setPatchsize(psizeInfo.adjustedMinPsize());
             }
 
             // adjust weight
@@ -236,7 +237,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             using TNeighbors = NearNeighbors_<TArrange>;
             const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
 
-            const float psizeThre = nearFocalLenTypePInfo.mean + nearFocalLenTypePInfo.stddev * SIGMA_OFFSET;
+            const float psizeThre = nearFocalLenTypePInfo.mean + 1.5f * nearFocalLenTypePInfo.stddev;
             float neibPSizeSum = 0.f;
             int neibCount = 0;
             int satisfiedNeibCount = 0;
@@ -257,7 +258,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             }
 
             const float avgNeibPSize = neibPSizeSum / neibCount;
-            if (satisfiedNeibCount >= 4) {
+            if (satisfiedNeibCount >= 5) {
                 bridge.getInfo(offset).setPatchsize(avgNeibPSize);
             }
         }

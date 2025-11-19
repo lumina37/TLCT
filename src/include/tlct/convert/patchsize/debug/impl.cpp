@@ -221,7 +221,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             using TNeighbors = NearNeighbors_<TArrange>;
             const auto neighbors = TNeighbors::fromArrangeAndIndex(arrange_, {col, row});
 
-            const float psizeThre = nearFocalLenTypePInfo.mean + 2.f * nearFocalLenTypePInfo.stddev;
+            const float psizeThre = nearFocalLenTypePInfo.mean + 1.5f * nearFocalLenTypePInfo.stddev;
             float neibPSizeSum = 0.f;
             int neibCount = 0;
             int satisfiedNeibCount = 0;
@@ -242,12 +242,12 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
             }
 
             const float avgNeibPSize = neibPSizeSum / neibCount;
-            if (satisfiedNeibCount >= 4) {
+            if (satisfiedNeibCount >= 5) {
                 bridge.getInfo(offset).setPatchsize(avgNeibPSize);
             }
-            // if (satisfiedNeibCount >= 6) {
-            //     bridge.setWeight(row, col, 0.01f);
-            // }
+            if (satisfiedNeibCount >= 6) {
+                bridge.setWeight(row, col, std::numeric_limits<float>::epsilon());
+            }
         }
     }
 
