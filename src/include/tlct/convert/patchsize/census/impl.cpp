@@ -168,7 +168,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
 
             const auto& mi = mis_.getMI(offset);
 
-            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
+            const float weight = mi.grads + 0.01f;
             bridge.setWeight(offset, weight);
 
             const int miType = miTypes.getMIType(row, col);
@@ -216,7 +216,7 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
 
             // adjust weight
             const auto& mi = mis_.getMI(row, col);
-            const float weight = mi.grads + std::numeric_limits<float>::epsilon();
+            const float weight = mi.grads + 0.01f;
             bridge.setWeight(row, col, weight);
         }
     }
