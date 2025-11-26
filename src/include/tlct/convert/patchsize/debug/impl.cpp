@@ -111,7 +111,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
     ssim::WrapSSIM wrapAnchor{anchorMI};
     const cfg::MITypes mitypes{arrange_.isOutShift()};
     const int miType = mitypes.getMIType(index);
-    if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
+    if (0) {
         const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
         const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, wrapAnchor);
         bestPsize = farPsizeMetric.psize;
@@ -320,7 +320,10 @@ std::expected<void, Error> PsizeImpl_<TArrange>::updateBridge(const cv::Mat& src
     auto updateRes = mis_.update(src);
     if (!updateRes) return std::unexpected{std::move(updateRes.error())};
 
-#pragma omp parallel for
+    std::ofstream ofs{"o.csv"};
+    _cfg::MITypes miTypes{arrange_.isOutShift()};
+
+    // #pragma omp parallel for
     for (int idx = 0; idx < (int)prevPatchInfos_.size(); idx++) {
         const int row = idx / arrange_.getMIMaxCols();
         const int col = idx % arrange_.getMIMaxCols();
@@ -330,6 +333,10 @@ std::expected<void, Error> PsizeImpl_<TArrange>::updateBridge(const cv::Mat& src
         const cv::Point index{col, row};
         const float psize = estimatePatchsize(bridge, index);
         bridge.getInfo(idx).setPatchsize(psize);
+
+        const auto& mi = mis_.getMI(idx);
+        const int miType = miTypes.getMIType(index);
+        ofs << miType << ',' << mi.grads << ',' << psize << "\n";
     }
 
     if (arrange_.isMultiFocus()) {
