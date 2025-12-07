@@ -180,7 +180,7 @@ using RaytrixCensusManagerTraits =
 using RaytrixMeth1Manager = Manager_<RaytrixCensusManagerTraits>;
 
 using RaytrixDebugManagerTraits =
-    ManagerTraits_<cfg::OffsetArrange, dbg::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
+    ManagerTraits_<cfg::OffsetArrange, dbg::PsizeImpl_<cfg::OffsetArrange>, lm::MvImpl_<cfg::OffsetArrange>>;
 using RaytrixDebugManager = Manager_<RaytrixDebugManagerTraits>;
 
 }  // namespace tlct::_cvt

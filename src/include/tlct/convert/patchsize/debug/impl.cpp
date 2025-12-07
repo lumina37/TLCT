@@ -103,6 +103,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
         const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
         const uint16_t hashDist = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
         if (hashDist <= params_.psizeShortcutThreshold) {
+            bridge.getInfo(offset).setInherited(true);
             return prevPsize;
         }
     }
@@ -188,6 +189,9 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
     // heap adjust
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            if (bridge.getInfo(row, col).getInherited()) {
+                continue;
+            }
             // adjust patch size
             const int miType = miTypes.getMIType(row, col);
             const float psize = bridge.getInfo(row, col).getPatchsize();
@@ -211,6 +215,10 @@ void PsizeImpl_<TArrange>::adjustWgtsAndPsizesForMultiFocus(TBridge& bridge) noe
     const auto& farFocalLenTypePInfo = psizeInfos[arrange_.getNearFocalLenType() + 2 % cfg::MITypes::LEN_TYPE_NUM];
     for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
+            if (bridge.getInfo(row, col).getInherited()) {
+                continue;
+            }
+
             const int miType = miTypes.getMIType(row, col);
             if (miType != arrange_.getNearFocalLenType()) {
                 continue;

@@ -13,30 +13,36 @@ class PatchMergeInfo_ {
 public:
     void setPatchsize(const float v) noexcept { patchsize_ = v; }
     void setDhash(const uint16_t v) noexcept { dhash_ = v; }
+    void setInherited(const bool v) noexcept { inherited_ = v; }
 
     [[nodiscard]] float getPatchsize() const noexcept { return patchsize_; }
     [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
+    [[nodiscard]] bool getInherited() const noexcept { return inherited_; }
     [[nodiscard]] TDebugInfo* getPDebugInfo() noexcept { return &debugInfo_; }
 
 private:
-    float patchsize_;
-    uint16_t dhash_;
+    float patchsize_ = 0.f;
+    uint16_t dhash_ = 0;
+    bool inherited_ = false;
     TDebugInfo debugInfo_;
 };
 
 template <>
 class PatchMergeInfo_<nullptr_t> {
 public:
-    void setPatchsize(const float v) noexcept { psize_ = v; }
+    void setPatchsize(const float v) noexcept { patchsize_ = v; }
     void setDhash(const uint16_t v) noexcept { dhash_ = v; }
+    void setInherited(const bool v) noexcept { inherited_ = v; }
 
-    [[nodiscard]] float getPatchsize() const noexcept { return psize_; }
+    [[nodiscard]] float getPatchsize() const noexcept { return patchsize_; }
     [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
+    [[nodiscard]] bool getInherited() const noexcept { return inherited_; }
     void* getPDebugInfo() noexcept { return nullptr; }
 
 private:
-    float psize_;
-    uint16_t dhash_;
+    float patchsize_ = 0.f;
+    uint16_t dhash_ = 0;
+    bool inherited_ = false;
 };
 
 template <cfg::concepts::CArrange TArrange_, typename TDebugInfo = nullptr_t>

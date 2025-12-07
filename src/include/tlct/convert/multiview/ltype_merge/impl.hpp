@@ -128,12 +128,12 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
     cv::Mat resizedPatch;
     cv::Mat rotatedPatch;
     cv::Mat blendedPatch;
-    cv::Mat gradsMap;
+    cv::Mat patchGradsMap;
 
     const cfg::MITypes miTypes{arrange_.isOutShift()};
     for (int lenType = 0; lenType < 3; lenType++) {
-        mvCache_.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
-        mvCache_.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
+        mvCache_.renderCanvas.setTo(0);
+        mvCache_.weightCanvas.setTo(0);
 
         for (const int row : rgs::views::iota(0, arrange_.getMIRows())) {
             for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
@@ -158,7 +158,8 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
                                cv::INTER_CUBIC);
                 }
 
-                cv::multiply(resizedPatch, mvCache_.gradBlendingWeight, blendedPatch);
+                computeGradsMap(resizedPatch, patchGradsMap);
+                cv::multiply(patchGradsMap, mvCache_.gradBlendingWeight4Grads, blendedPatch);
 
                 // if the second bar is not out shift, then we need to shift the 1 col
                 // else if the second bar is out shift, then we need to shift the 0 col
@@ -167,14 +168,12 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
                                    params_.resizedPatchWidth, params_.resizedPatchWidth};
 
                 mvCache_.renderCanvas(roi) += blendedPatch;
-                mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight;
+                mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight4Grads;
             }
         }
-        cv::divide(mvCache_.renderCanvas, mvCache_.weightCanvas, mvCache_.renderCanvas, 1);
 
-        computeGradsMap(mvCache_.renderCanvas, gradsMap);
-
-        cv::Mat croppedGradsMap = gradsMap(params_.canvasCropRoi);
+        cv::divide(mvCache_.renderCanvas, mvCache_.weightCanvas, mvCache_.renderCanvas);
+        cv::Mat croppedGradsMap = mvCache_.renderCanvas(params_.canvasCropRoi);
         croppedGradsMap.copyTo(lenTypeWeights[lenType]);
     }
 

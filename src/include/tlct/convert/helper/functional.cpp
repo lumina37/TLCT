@@ -14,11 +14,9 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-cv::Mat circleWithFadeoutBorder(const int diameter, const float borderWidthFactor) noexcept {
+cv::Mat circleWithFadeoutBorder(const int diameter, const float fadeBegin, const float fadeEnd) noexcept {
     cv::Mat rect = cv::Mat::zeros({diameter, diameter}, CV_32FC1);
     const float radius = (float)diameter / 2.f;
-    const float heap = borderWidthFactor > 0.f ? 1.f + 1.f / borderWidthFactor * (1.f - borderWidthFactor)
-                                               : std::numeric_limits<float>::max();
 
     for (const int row : rgs::views::iota(0, diameter)) {
         float* prow = rect.ptr<float>(row);
@@ -26,7 +24,17 @@ cv::Mat circleWithFadeoutBorder(const int diameter, const float borderWidthFacto
             const float xdist = radius - (float)row;
             const float ydist = radius - (float)col;
             const float dist = std::sqrt(xdist * xdist + ydist * ydist);
-            const float pix = std::max(0.f, std::min(1.f, (1.f - dist / radius) * heap));
+
+            const float ratio = dist / radius;
+            float pix;
+            if (ratio <= fadeBegin) {
+                pix = 1.f;
+            } else if (ratio >= fadeEnd) {
+                pix = 0.f;
+            } else {
+                pix = 1.f - (ratio - fadeBegin) / (fadeEnd - fadeBegin);
+            }
+
             *prow = pix;
             prow++;
         }
@@ -65,8 +73,8 @@ void computeGradsMap(const cv::Mat& src, cv::Mat& dst) noexcept {
     edges = cv::abs(edges);
     grads += edges;
 
-    constexpr int GAUSS_KSIZE = 23;
-    constexpr float GAUSS_SIGMA = 5.f;
+    constexpr int GAUSS_KSIZE = 7;
+    constexpr float GAUSS_SIGMA = 1.f;
     cv::GaussianBlur(grads, dst, {GAUSS_KSIZE, GAUSS_KSIZE}, GAUSS_SIGMA);
     cv::pow(dst, 2.f, dst);
 }

@@ -23,8 +23,7 @@ MvCache_<TArrange>::MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanva
 template <cfg::concepts::CArrange TArrange>
 auto MvCache_<TArrange>::create(const TMvParams& params) noexcept -> std::expected<MvCache_, Error> {
     try {
-        constexpr float GRADIENT_BLENDING_WIDTH = 0.75f;
-        cv::Mat gradBlendingWeight = circleWithFadeoutBorder(params.resizedPatchWidth, GRADIENT_BLENDING_WIDTH);
+        cv::Mat gradBlendingWeight = circleWithFadeoutBorder(params.resizedPatchWidth, 0.25f, 1.f);
         cv::Mat renderCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
         cv::Mat weightCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
         return MvCache_{std::move(gradBlendingWeight), std::move(renderCanvas), std::move(weightCanvas)};

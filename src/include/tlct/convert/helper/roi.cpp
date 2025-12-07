@@ -2,6 +2,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/helper/constexpr/math.hpp"
+
 #ifndef _TLCT_LIB_HEADER_ONLY
 #    include "tlct/convert/helper/roi.hpp"
 #endif
@@ -9,9 +11,9 @@
 namespace tlct::_cvt {
 
 [[nodiscard]] cv::Rect getRoiByCenter(const cv::Point2f& center, const float width) noexcept {
-    const int startX = (int)std::roundf(center.x - width / 2.f);
-    const int startY = (int)std::roundf(center.y - width / 2.f);
-    const int iWidth = (int)std::roundf(width);
+    const int startX = _hp::iround(center.x - width / 2.f);
+    const int startY = _hp::iround(center.y - width / 2.f);
+    const int iWidth = _hp::iround(width);
     return {startX, startY, iWidth, iWidth};
 }
 
@@ -21,10 +23,10 @@ namespace tlct::_cvt {
 }
 
 [[nodiscard]] cv::Rect getRoiByCenter(const cv::Point2f& center, const cv::Size2f size) noexcept {
-    const int startX = (int)std::roundf(center.x - size.width / 2.f);
-    const int startY = (int)std::roundf(center.y - size.height / 2.f);
-    const int iWidth = (int)std::roundf(size.width);
-    const int iHeight = (int)std::roundf(size.width);
+    const int startX = _hp::iround(center.x - size.width / 2.f);
+    const int startY = _hp::iround(center.y - size.height / 2.f);
+    const int iWidth = _hp::iround(size.width);
+    const int iHeight = _hp::iround(size.width);
     return {startX, startY, iWidth, iHeight};
 }
 
@@ -58,7 +60,7 @@ namespace tlct::_cvt {
 
 [[nodiscard]] cv::Mat getRoiImageByLeftupCorner(const cv::Mat& src, const cv::Point& corner,
                                                 const float width) noexcept {
-    const int iWidth = (int)std::roundf(width);
+    const int iWidth = _hp::iround(width);
     cv::Mat roi = src({corner.x, corner.y, iWidth, iWidth});
     return roi;
 }

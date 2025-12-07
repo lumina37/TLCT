@@ -8,7 +8,7 @@ namespace tlct::_cvt {
 
 namespace rgs = std::ranges;
 
-[[nodiscard]] TLCT_API cv::Mat circleWithFadeoutBorder(int diameter, float borderWidthFactor) noexcept;
+[[nodiscard]] TLCT_API cv::Mat circleWithFadeoutBorder(int diameter, float fadeBegin, float fadeEnd) noexcept;
 
 [[nodiscard]] TLCT_API float computeGrads(const cv::Mat& src) noexcept;
 

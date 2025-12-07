@@ -114,6 +114,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
             bridge.getInfo(offset).getPDebugInfo()->dhashDiff = dhashDiff;
         }
         if (dhashDiff <= params_.psizeShortcutThreshold) {
+            bridge.getInfo(offset).setInherited(true);
             return prevPsize;
         }
     }

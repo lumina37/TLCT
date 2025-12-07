@@ -102,6 +102,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
         const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
         const uint16_t hashDist = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
         if (hashDist <= params_.psizeShortcutThreshold) {
+            bridge.getInfo(offset).setInherited(true);
             return prevPsize;
         }
     }

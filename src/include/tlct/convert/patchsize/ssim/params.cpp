@@ -1,5 +1,6 @@
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
+#include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
@@ -19,7 +20,7 @@ auto PsizeParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& c
     const float halfPatternSize = patternSize / 2.f;
     const float patternShift = std::sqrt((radius - halfPatternSize) * (radius + halfPatternSize)) - halfPatternSize;
 
-    const int minPsize = (int)std::roundf(0.5f * patternSize);
+    const int minPsize = _hp::iround(0.5f * patternSize);
 
     return PsizeParams_{patternSize, patternShift, minPsize, cvtCfg.psizeShortcutThreshold};
 }

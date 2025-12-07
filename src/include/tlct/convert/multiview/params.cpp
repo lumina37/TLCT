@@ -26,7 +26,7 @@ auto MvParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtC
     const int patchYShift = (int)std::ceil(f32PatchXShift * std::numbers::sqrt3_v<float> / 2.f);
 
     const float f32ResizedPatchWdt = f32PatchXShift * cvtCfg.psizeInflate;
-    const int resizedPatchWdt = (int)std::roundf(f32ResizedPatchWdt);
+    const int resizedPatchWdt = _hp::iround(f32ResizedPatchWdt);
 
     const int viewShiftRange = _hp::iround(arrange.getDiameter() * CONTENT_SAFE_RATIO * cvtCfg.viewShiftRange);
     const int viewInterval = cvtCfg.views > 1 ? viewShiftRange / (cvtCfg.views - 1) : 0;
