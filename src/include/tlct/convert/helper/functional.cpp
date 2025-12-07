@@ -73,9 +73,7 @@ void computeGradsMap(const cv::Mat& src, cv::Mat& dst) noexcept {
     edges = cv::abs(edges);
     grads += edges;
 
-    constexpr int GAUSS_KSIZE = 7;
-    constexpr float GAUSS_SIGMA = 1.f;
-    cv::GaussianBlur(grads, dst, {GAUSS_KSIZE, GAUSS_KSIZE}, GAUSS_SIGMA);
+    grads.copyTo(dst);
     cv::pow(dst, 2.f, dst);
 }
 
