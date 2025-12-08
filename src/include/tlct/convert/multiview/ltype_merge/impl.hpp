@@ -177,6 +177,33 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
         croppedGradsMap.copyTo(lenTypeWeights[lenType]);
     }
 
+    for (int row = 0; row < params_.getRoiSize().height; row++) {
+        for (int col = 0; col < params_.getRoiSize().width; col++) {
+            float maxWeight = 0.f;
+            for (int lenType = 0; lenType < 3; lenType++) {
+                const float weight = lenTypeWeights[lenType].at<float>(row, col);
+                if (weight > maxWeight) {
+                    maxWeight = weight;
+                }
+            }
+
+            for (int lenType = 0; lenType < 3; lenType++) {
+                float& weight = lenTypeWeights[lenType].at<float>(row, col);
+                if (weight == maxWeight) {
+                    weight = 1.f;
+                } else {
+                    weight = 0.f;
+                }
+            }
+        }
+    }
+
+    for (int lenType = 0; lenType < 3; lenType++) {
+        constexpr int kSize = 5;
+        constexpr float sigma = 3.f;
+        cv::GaussianBlur(lenTypeWeights[lenType], lenTypeWeights[lenType], {kSize, kSize}, sigma);
+    }
+
     return {};
 }
 

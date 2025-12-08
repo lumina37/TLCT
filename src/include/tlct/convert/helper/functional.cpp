@@ -74,7 +74,6 @@ void computeGradsMap(const cv::Mat& src, cv::Mat& dst) noexcept {
     grads += edges;
 
     grads.copyTo(dst);
-    cv::pow(dst, 2.f, dst);
 }
 
 uint16_t computeDhash(const cv::Mat& src) {
