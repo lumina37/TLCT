@@ -12,17 +12,14 @@ template <typename TDebugInfo>
 class PatchMergeInfo_ {
 public:
     void setPatchsize(const float v) noexcept { patchsize_ = v; }
-    void setDhash(const uint16_t v) noexcept { dhash_ = v; }
     void setInherited(const bool v) noexcept { inherited_ = v; }
 
     [[nodiscard]] float getPatchsize() const noexcept { return patchsize_; }
-    [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
     [[nodiscard]] bool getInherited() const noexcept { return inherited_; }
     [[nodiscard]] TDebugInfo* getPDebugInfo() noexcept { return &debugInfo_; }
 
 private:
     float patchsize_ = 0.f;
-    uint16_t dhash_ = 0;
     bool inherited_ = false;
     TDebugInfo debugInfo_;
 };
@@ -31,17 +28,14 @@ template <>
 class PatchMergeInfo_<nullptr_t> {
 public:
     void setPatchsize(const float v) noexcept { patchsize_ = v; }
-    void setDhash(const uint16_t v) noexcept { dhash_ = v; }
     void setInherited(const bool v) noexcept { inherited_ = v; }
 
     [[nodiscard]] float getPatchsize() const noexcept { return patchsize_; }
-    [[nodiscard]] uint16_t getDhash() const noexcept { return dhash_; }
     [[nodiscard]] bool getInherited() const noexcept { return inherited_; }
     void* getPDebugInfo() noexcept { return nullptr; }
 
 private:
     float patchsize_ = 0.f;
-    uint16_t dhash_ = 0;
     bool inherited_ = false;
 };
 

@@ -76,28 +76,4 @@ void computeGradsMap(const cv::Mat& src, cv::Mat& dst) noexcept {
     grads.copyTo(dst);
 }
 
-uint16_t computeDhash(const cv::Mat& src) {
-    constexpr int THUMB_WIDTH = 4;
-    constexpr int THUMB_SIZE = THUMB_WIDTH * (THUMB_WIDTH + 1);
-    std::array<uint8_t, THUMB_SIZE> thumbBuffer;
-    cv::Mat thumbnail(THUMB_WIDTH, THUMB_WIDTH + 1, CV_8UC1, thumbBuffer.data());
-    cv::resize(src, thumbnail, thumbnail.size());
-
-    uint16_t dhash = 0;
-    uint16_t mask = 1;
-    for (const int row : rgs::views::iota(0, THUMB_WIDTH)) {
-        const auto prow = thumbnail.ptr<uint8_t>(row);
-        for (const int col : rgs::views::iota(0, THUMB_WIDTH)) {
-            const uint8_t currVal = prow[col];
-            const uint8_t nextVal = prow[col + 1];
-            if (nextVal > currVal) {
-                dhash |= mask;
-            }
-            mask <<= 1;
-        }
-    }
-
-    return dhash;
-}
-
 }  // namespace tlct::_cvt

@@ -88,7 +88,6 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
         srcI2.copyTo(dstI2);
 
         miBufIterator->grads = computeGrads(dstI);
-        miBufIterator->dhash = computeDhash(dstI);
         miBufIterator->I = std::move(dstI);
         miBufIterator->I_2 = std::move(dstI2);
     }

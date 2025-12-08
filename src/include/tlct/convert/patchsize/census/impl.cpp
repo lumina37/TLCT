@@ -8,6 +8,7 @@
 #include "tlct/config.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/concepts/patchsize.hpp"
+#include "tlct/convert/helper/functional.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
 #include "tlct/convert/patchsize/neighbors.hpp"
 #include "tlct/helper/constexpr/math.hpp"
@@ -30,111 +31,111 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPIn
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-auto PsizeImpl_<TArrange>::maxGradDirection(const TNeighbors& neighbors) const noexcept ->
-    typename TNeighbors::Direction {
-    const cfg::MITypes mitypes{arrange_.isOutShift()};
+float PsizeImpl_<TArrange>::computePsizeMetric(const TNeighbors& neighbors, const MIBuffer& anchorMI,
+                                               const float psize) const noexcept {
+    float sumMetric = 0.f;
+    int neibCount = 0;
 
-    float maxGrad = -1.f;
-    typename TNeighbors::Direction maxGradDirection{};
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
             continue;
         }
 
-        if constexpr (std::is_same_v<TNeighbors, NearNeighbors>) {
-            const int miType = mitypes.getMIType(neighbors.getSelfIdx());
-            if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
-                continue;
-            }
-        }
+        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+        const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
 
-        const census::MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        if (neibMI.grads > maxGrad) {
-            maxGrad = neibMI.grads;
-            maxGradDirection = direction;
-        }
+        const cv::Point2f cmpShift = matchStep * psize;
+        const float metric = compare(anchorMI, neibMI, cmpShift);
+
+        sumMetric += metric;
+        neibCount++;
     }
 
-    return maxGradDirection;
+    const float metric = sumMetric / (float)neibCount;
+
+    return metric;
 }
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(TBridge& bridge, const TNeighbors& neighbors,
-                                                        const census::MIBuffer& anchorMI,
-                                                        typename TNeighbors::Direction direction) const noexcept {
-    const census::MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-    const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
+PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors,
+                                                        const MIBuffer& anchorMI) const noexcept {
+    float sumPsize = 0.f;
+    float sumMetric = 0.f;
+    int neibCount = 0;
 
-    std::vector<float> metrics;
-    metrics.reserve(params_.maxPsize - params_.minPsize);
-    float minDiffRatio = std::numeric_limits<float>::max();
-    int bestPsize = params_.minPsize;
-    for (const int psize : rgs::views::iota(params_.minPsize, params_.maxPsize)) {
-        const cv::Point2f cmpShift = matchStep * psize;
-        const float diffRatio = compare(anchorMI, neibMI, cmpShift);
-        if constexpr (DEBUG_ENABLED) {
-            metrics.push_back(diffRatio);
+    for (const auto direction : TNeighbors::DIRECTIONS) {
+        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
         }
-        if (diffRatio < minDiffRatio) {
-            minDiffRatio = diffRatio;
-            bestPsize = psize;
+
+        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+        const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
+
+        int bestPsize = 0;
+        float maxMetric = std::numeric_limits<float>::lowest();
+        for (const int psize : rgs::views::iota(params_.minPsize, params_.maxPsize)) {
+            const cv::Point2f cmpShift = matchStep * psize;
+            const float metric = compare(anchorMI, neibMI, cmpShift);
+            if (metric > maxMetric) {
+                maxMetric = metric;
+                bestPsize = psize;
+            }
         }
+
+        sumPsize += (float)bestPsize;
+        sumMetric += maxMetric;
+        neibCount++;
     }
 
-    const float psize = (float)bestPsize / TNeighbors::INFLATE;
-    const float metric = minDiffRatio;
-
-    if constexpr (DEBUG_ENABLED) {
-        const auto index = neighbors.getSelfIdx();
-        const int offset = index.y * arrange_.getMIMaxCols() + index.x;
-        bridge.getInfo(offset).getPDebugInfo()->metrics = std::move(metrics);
-    }
+    const float psize = sumPsize / (float)neibCount;
+    const float metric = sumMetric / (float)neibCount;
 
     return {psize, metric};
 }
 
 template <cfg::concepts::CArrange TArrange>
 float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept {
-    using PsizeParams = census::PsizeParams_<TArrange>;
+    using PsizeParams = PsizeParams_<TArrange>;
 
     const int offset = index.y * arrange_.getMIMaxCols() + index.x;
-    const census::MIBuffer& anchorMI = mis_.getMI(offset);
+    const MIBuffer& anchorMI = mis_.getMI(offset);
     const float prevPsize = getPrevPatchsize(offset);
 
     if constexpr (DEBUG_ENABLED) {
         *bridge.getInfo(offset).getPDebugInfo() = {};
     }
-    bridge.getInfo(offset).setDhash(anchorMI.dhash);
+
+    const cfg::MITypes mitypes{arrange_.isOutShift()};
+    const int miType = mitypes.getMIType(index);
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        // Early return if dhash is only slightly different
-        const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
-        const uint16_t dhashDiff = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
-        if constexpr (DEBUG_ENABLED) {
-            bridge.getInfo(offset).getPDebugInfo()->dhashDiff = dhashDiff;
-        }
-        if (dhashDiff <= params_.psizeShortcutThreshold) {
-            bridge.getInfo(offset).setInherited(true);
-            return prevPsize;
+        if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
+            // if the MI type is for near focal, then only evaluate its far neighbors
+            const FarNeighbors& neighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
+            const float prevPsizeMetric = computePsizeMetric<FarNeighbors>(neighbors, anchorMI, prevPsize);
+            if (prevPsizeMetric >= params_.psizeShortcutThreshold) {
+                bridge.getInfo(offset).setInherited(true);
+                return prevPsize;
+            }
+        } else {
+            const NearNeighbors& neighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
+            const float prevPsizeMetric = computePsizeMetric<NearNeighbors>(neighbors, anchorMI, prevPsize);
+            if (prevPsizeMetric >= params_.psizeShortcutThreshold) {
+                bridge.getInfo(offset).setInherited(true);
+                return prevPsize;
+            }
         }
     }
 
     float bestPsize;
 
-    const cfg::MITypes mitypes{arrange_.isOutShift()};
-    const int miType = mitypes.getMIType(index);
     if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
-        // if the MI type is for near focal, then only search its far neighbors
-        const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
-        const auto farDirection = maxGradDirection(farNeighbors);
-        const PsizeMetric& farPsizeMetric =
-            estimateWithNeighbors<FarNeighbors>(bridge, farNeighbors, anchorMI, farDirection);
+        const FarNeighbors& neighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
+        const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(neighbors, anchorMI);
         bestPsize = farPsizeMetric.psize;
     } else {
-        const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
-        const auto nearDirection = maxGradDirection(nearNeighbors);
-        const PsizeMetric& nearPsizeMetric =
-            estimateWithNeighbors<NearNeighbors>(bridge, nearNeighbors, anchorMI, nearDirection);
+        const NearNeighbors& neighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
+        const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(neighbors, anchorMI);
         bestPsize = nearPsizeMetric.psize;
     }
 

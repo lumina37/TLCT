@@ -18,7 +18,6 @@ namespace tlct::_cvt::census {
 
 class PatchMergeDebugInfo {
 public:
-    int dhashDiff = 0;
     std::vector<float> metrics{};
 };
 
@@ -56,12 +55,12 @@ private:
     using FarNeighbors = FarNeighbors_<TArrange>;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] typename TNeighbors::Direction maxGradDirection(const TNeighbors& neighbors) const noexcept;
+    [[nodiscard]] float computePsizeMetric(const TNeighbors& neighbors, const MIBuffer& anchorMI,
+                                           float psize) const noexcept;
 
     template <concepts::CNeighbors TNeighbors>
-    [[nodiscard]] PsizeMetric estimateWithNeighbors(TBridge& bridge, const TNeighbors& neighbors,
-                                                    const MIBuffer& anchorMI,
-                                                    typename TNeighbors::Direction direction) const noexcept;
+    [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors,
+                                                    const MIBuffer& anchorMI) const noexcept;
 
     [[nodiscard]] float estimatePatchsize(TBridge& bridge, cv::Point index) const noexcept;
 

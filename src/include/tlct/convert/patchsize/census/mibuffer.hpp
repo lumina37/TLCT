@@ -17,7 +17,6 @@ struct MIBuffer {
     cv::Mat censusMask;  // 8UC3
 
     float grads;
-    uint16_t dhash;
 };
 
 template <cfg::concepts::CArrange TArrange_>

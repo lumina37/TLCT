@@ -1,4 +1,3 @@
-#include <bit>
 #include <format>
 #include <limits>
 #include <ranges>
@@ -32,6 +31,45 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPIn
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
+float PsizeImpl_<TArrange>::computePsizeMetric(const TNeighbors& neighbors, WrapSSIM& wrapAnchor,
+                                               const float psize) const noexcept {
+    const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};
+
+    float sumMetric = 0.0;
+    float sumMetricWeight = std::numeric_limits<float>::epsilon();
+
+    for (const auto direction : TNeighbors::DIRECTIONS) {
+        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
+            continue;
+        }
+
+        const cv::Point2f anchorShift =
+            _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction) * params_.patternShift;
+        const cv::Rect anchorRoi = getRoiByCenter(miCenter + anchorShift, params_.patternSize);
+        wrapAnchor.updateRoi(anchorRoi);
+
+        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
+        WrapSSIM wrapNeib{neibMI};
+
+        const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
+        const cv::Point2f cmpShift = anchorShift + matchStep * psize;
+        const cv::Rect cmpRoi = getRoiByCenter(miCenter + cmpShift, params_.patternSize);
+        wrapNeib.updateRoi(cmpRoi);
+
+        const float ssim = wrapAnchor.compare(wrapNeib);
+
+        const float weight = computeGrads(wrapAnchor.I_);
+        const float metric = ssim * ssim;
+        sumMetric += weight * metric;
+        sumMetricWeight += weight;
+    }
+
+    const float metric = sumMetric / sumMetricWeight;
+    return metric;
+}
+
+template <cfg::concepts::CArrange TArrange>
+template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors,
                                                         WrapSSIM& wrapAnchor) const noexcept {
     const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};
@@ -59,7 +97,7 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
         cv::Point2f cmpShift = anchorShift + matchStep * params_.minPsize;
 
         int bestPsize = 0;
-        float maxSsim = 0.0;
+        float maxSsim = std::numeric_limits<float>::lowest();
         for (const int psize : rgs::views::iota(params_.minPsize, maxShift)) {
             cmpShift += matchStep;
 
@@ -97,18 +135,17 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
     const MIBuffer& anchorMI = mis_.getMI(offset);
     const float prevPsize = prevPatchInfos_[offset].getPatchsize();
 
-    bridge.getInfo(offset).setDhash(anchorMI.dhash);
+    WrapSSIM wrapAnchor{anchorMI};
+    const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
+
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        const uint16_t prevDhash = prevPatchInfos_[offset].getDhash();
-        const uint16_t hashDist = (uint16_t)std::popcount((uint16_t)(prevDhash ^ anchorMI.dhash));
-        if (hashDist <= params_.psizeShortcutThreshold) {
+        const float prevPsizeMetric = computePsizeMetric<NearNeighbors>(nearNeighbors, wrapAnchor, prevPsize);
+        if (prevPsizeMetric >= params_.psizeShortcutThreshold) {
             bridge.getInfo(offset).setInherited(true);
             return prevPsize;
         }
     }
 
-    WrapSSIM wrapAnchor{anchorMI};
-    const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
     const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(nearNeighbors, wrapAnchor);
     float maxMetric = nearPsizeMetric.metric;
     float bestPsize = nearPsizeMetric.psize;

@@ -49,11 +49,6 @@ std::expected<CliConfig, Error> CliConfig::create(const Path& path, const Range&
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
-    if (convert.psizeShortcutThreshold < 0) [[unlikely]] {
-        auto errMsg = std::format("expect psizeShortcutThreshold >= 0, got: {}", convert.psizeShortcutThreshold);
-        return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
-    }
-
     auto copiedPath = path;
     return CliConfig{std::move(copiedPath), range, convert};
 }

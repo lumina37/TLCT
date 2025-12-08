@@ -48,9 +48,9 @@
         .scan<'g', float>()
         .default_value(0.1f);
     parser->add_argument("--psizeShortcutThreshold")
-        .help("if the bit diff of `dhash` is smaller than this threshold, then use the prev. patchsize")
-        .scan<'i', int>()
-        .default_value(4);
+        .help("if the metric of prev. patchsize is better than this threshold, then use the prev. one")
+        .scan<'g', float>()
+        .default_value(0.85f);
 
     parser->add_epilog(std::string{tlct::compileInfo});
 
@@ -67,6 +67,6 @@
                                            parser.get<float>("--minPsize"),
                                            parser.get<float>("--psizeInflate"),
                                            parser.get<float>("--viewShiftRange"),
-                                           parser.get<int>("--psizeShortcutThreshold")};
+                                           parser.get<float>("--psizeShortcutThreshold")};
     return tlct::CliConfig::create(path, range, convert);
 }

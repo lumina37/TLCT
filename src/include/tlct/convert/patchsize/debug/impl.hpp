@@ -41,6 +41,10 @@ private:
     using FarNeighbors = FarNeighbors_<TArrange>;
 
     template <concepts::CNeighbors TNeighbors>
+    [[nodiscard]] float computePsizeMetric(const TNeighbors& neighbors, ssim::WrapSSIM& wrapAnchor,
+                                           float psize) const noexcept;
+
+    template <concepts::CNeighbors TNeighbors>
     [[nodiscard]] PsizeMetric estimateWithNeighbors(const TNeighbors& neighbors,
                                                     ssim::WrapSSIM& wrapAnchor) const noexcept;
 

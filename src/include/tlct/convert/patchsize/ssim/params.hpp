@@ -23,7 +23,7 @@ public:
     float patternSize;
     float patternShift;
     int minPsize;
-    int psizeShortcutThreshold;
+    float psizeShortcutThreshold;
 };
 
 }  // namespace tlct::_cvt::ssim

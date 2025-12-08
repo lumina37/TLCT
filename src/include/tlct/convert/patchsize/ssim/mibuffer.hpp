@@ -15,7 +15,6 @@ struct MIBuffer {
     cv::Mat I, I_2;
 
     float grads;
-    uint16_t dhash;
 };
 
 template <cfg::concepts::CArrange TArrange_>

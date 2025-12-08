@@ -22,7 +22,7 @@ public:
 
     int minPsize;
     int maxPsize;
-    int psizeShortcutThreshold;
+    float psizeShortcutThreshold;
 };
 
 }  // namespace tlct::_cvt::census

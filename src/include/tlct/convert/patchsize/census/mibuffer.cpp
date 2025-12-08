@@ -72,7 +72,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
     const cv::Mat srcCircleMask = cv::Mat::zeros(iCensusDiameter, iCensusDiameter, CV_8UC1);
     cv::circle(srcCircleMask, {iCensusRadius, iCensusRadius}, iCensusRadius, cv::Scalar::all(0xff), cv::FILLED);
 
-    const cv::Rect dhashRoi =
+    const cv::Rect centralRoi =
         getRoiByCenter({censusRadius, censusRadius}, params_.censusDiameter_ / std::numbers::sqrt2_v<float>);
 
     uint8_t* bufBase = (uint8_t*)_hp::alignUp<Params::SIMD_FETCH_SIZE>((size_t)pBuffer_.get());
@@ -94,7 +94,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
 
         const cv::Mat& srcI = src(miRoi);
         srcI.copyTo(tmpI);
-        cv::Mat centralY = tmpI(dhashRoi);
+        cv::Mat centralY = tmpI(centralRoi);
 
         cv::Mat censusMap = cv::Mat(iCensusDiameter, iCensusDiameter, CV_8UC3, matBufCursor);
         matBufCursor += params_.alignedMatSizeC3_;
@@ -106,8 +106,6 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
 
         const float grads = computeGrads(centralY);
         miBufIterator->grads = grads;
-
-        miBufIterator->dhash = computeDhash(centralY);
     }
 
     return {};
@@ -166,7 +164,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
     }
 
     const float diffRatio = (float)diffBitCount / (float)maskBitCount;
-    return diffRatio;
+    return -diffRatio;
 }
 
 template class MIBuffers_<cfg::CornersArrange>;
