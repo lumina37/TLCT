@@ -25,10 +25,10 @@ public:
     cv::Range canvasCropRoi[2];
     float psizeInflate;
     int views;
-    int patchXShift;  // the extracted patch will be zoomed to this height
-    int patchYShift;
+    float patchXShift;  // the extracted patch will be zoomed to this height
+    float patchYShift;
     int resizedPatchWidth;
-    int viewInterval;
+    float viewInterval;
     int canvasWidth;
     int canvasHeight;
     int outputWidth;

@@ -21,23 +21,22 @@ auto MvParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtC
     -> std::expected<MvParams_, Error> {
     const float psizeInflate = cvtCfg.psizeInflate;
 
-    const float f32PatchXShift = 0.35f * arrange.getDiameter();
-    const int patchXShift = (int)std::ceil(f32PatchXShift);
-    const int patchYShift = (int)std::ceil(f32PatchXShift * std::numbers::sqrt3_v<float> / 2.f);
+    const float patchXShift = 0.35f * arrange.getDiameter();
+    const float patchYShift = patchXShift * std::numbers::sqrt3_v<float> / 2.f;
 
-    const float f32ResizedPatchWdt = f32PatchXShift * cvtCfg.psizeInflate;
+    const float f32ResizedPatchWdt = patchXShift * cvtCfg.psizeInflate;
     const int resizedPatchWdt = _hp::iround(f32ResizedPatchWdt);
 
-    const int viewShiftRange = _hp::iround(arrange.getDiameter() * CONTENT_SAFE_RATIO * cvtCfg.viewShiftRange);
-    const int viewInterval = cvtCfg.views > 1 ? viewShiftRange / (cvtCfg.views - 1) : 0;
+    const float viewShiftRange = arrange.getDiameter() * CONTENT_SAFE_RATIO * cvtCfg.viewShiftRange;
+    const float viewInterval = cvtCfg.views > 1 ? viewShiftRange / (float)(cvtCfg.views - 1) : 0;
 
     const int canvasWidth = arrange.getMIMaxCols() * patchXShift + resizedPatchWdt;
     const int canvasHeight = arrange.getMIRows() * patchYShift + resizedPatchWdt;
 
     const cv::Range colRange{(int)std::ceil(patchXShift * 1.5),
-                             (int)(canvasWidth - resizedPatchWdt - f32PatchXShift / 2.f)};
+                             (int)(canvasWidth - resizedPatchWdt - patchXShift / 2.f)};
     const cv::Range rowRange{(int)std::ceil(patchXShift * 1.5),
-                             (int)(canvasHeight - resizedPatchWdt - f32PatchXShift / 2.f)};
+                             (int)(canvasHeight - resizedPatchWdt - patchXShift / 2.f)};
 
     const int upsample = arrange.getUpsample();
     const int outputWidth = _hp::roundTo<2>(_hp::iround((float)colRange.size() / upsample));

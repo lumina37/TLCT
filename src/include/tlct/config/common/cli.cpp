@@ -1,5 +1,4 @@
 #include <format>
-#include <numbers>
 
 #include "tlct/helper/std.hpp"
 
@@ -39,8 +38,8 @@ std::expected<CliConfig, Error> CliConfig::create(const Path& path, const Range&
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
-    if (convert.psizeInflate < std::numbers::sqrt3_v<float> || convert.psizeInflate > 3.0f) [[unlikely]] {
-        auto errMsg = std::format("expect sqrt3 <= psizeInflate <= 3, got: {}", convert.psizeInflate);
+    if (convert.psizeInflate <= 0.f) [[unlikely]] {
+        auto errMsg = std::format("expect psizeInflate > 0, got: {}", convert.psizeInflate);
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 

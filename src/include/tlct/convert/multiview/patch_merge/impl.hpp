@@ -104,8 +104,8 @@ template <cfg::concepts::CArrange TArrange>
 template <concepts::CPatchMergeBridge TBridge>
 std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, const cv::Mat& src, cv::Mat& dst,
                                                          cv::Size dstSize, int viewRow, int viewCol) const noexcept {
-    const int viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
-    const int viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
+    const float viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
+    const float viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
 
     mvCache_.renderCanvas.setTo(std::numeric_limits<float>::epsilon());
     mvCache_.weightCanvas.setTo(std::numeric_limits<float>::epsilon());
