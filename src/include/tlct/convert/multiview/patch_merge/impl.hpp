@@ -10,6 +10,7 @@
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview/params.hpp"
 #include "tlct/convert/multiview/patch_merge/cache.hpp"
+#include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 #include "tlct/io/yuv.hpp"
@@ -137,9 +138,10 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
 
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
-            const int rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
-            const cv::Rect roi{col * params_.patchXShift + rightShift, row * params_.patchYShift,
-                               params_.resizedPatchWidth, params_.resizedPatchWidth};
+            const float rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
+            const cv::Rect roi{_hp::iround(col * params_.patchXShift + rightShift),
+                               _hp::iround(row * params_.patchYShift), params_.resizedPatchWidth,
+                               params_.resizedPatchWidth};
 
             if (arrange_.isMultiFocus()) {
                 const float weight = bridge.getWeight(row, col);

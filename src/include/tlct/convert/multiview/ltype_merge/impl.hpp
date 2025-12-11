@@ -10,6 +10,7 @@
 #include "tlct/convert/helper.hpp"
 #include "tlct/convert/multiview/ltype_merge/cache.hpp"
 #include "tlct/convert/multiview/params.hpp"
+#include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 #include "tlct/io/yuv.hpp"
@@ -120,8 +121,8 @@ template <concepts::CPatchMergeBridge TBridge>
 std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& bridge, const cv::Mat& src,
                                                                std::array<cv::Mat, 3>& lenTypeWeights, int viewRow,
                                                                int viewCol) const noexcept {
-    const int viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
-    const int viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
+    const float viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
+    const float viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
 
     src.convertTo(mvCache_.f32Chan, CV_32FC1);
 
@@ -163,9 +164,10 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
 
                 // if the second bar is not out shift, then we need to shift the 1 col
                 // else if the second bar is out shift, then we need to shift the 0 col
-                const int rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
-                const cv::Rect roi{col * params_.patchXShift + rightShift, row * params_.patchYShift,
-                                   params_.resizedPatchWidth, params_.resizedPatchWidth};
+                const float rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
+                const cv::Rect roi{_hp::iround(col * params_.patchXShift + rightShift),
+                                   _hp::iround(row * params_.patchYShift), params_.resizedPatchWidth,
+                                   params_.resizedPatchWidth};
 
                 mvCache_.renderCanvas(roi) += blendedPatch;
                 mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight4Grads;
@@ -213,8 +215,8 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge,
                                                          const std::array<cv::Mat, 3>& lenTypeWeights,
                                                          const cv::Mat& src, cv::Mat& dst, cv::Size dstSize,
                                                          int viewRow, int viewCol) const noexcept {
-    const int viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
-    const int viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
+    const float viewShiftX = (viewCol - params_.views / 2) * params_.viewInterval;
+    const float viewShiftY = (viewRow - params_.views / 2) * params_.viewInterval;
 
     cv::Mat renderCanvas(cv::Size{params_.canvasCropRoi[1].size(), params_.canvasCropRoi[0].size()},
                          mvCache_.renderCanvas.type());
@@ -261,9 +263,10 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge,
 
                 // if the second bar is not out shift, then we need to shift the 1 col
                 // else if the second bar is out shift, then we need to shift the 0 col
-                const int rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
-                const cv::Rect roi{col * params_.patchXShift + rightShift, row * params_.patchYShift,
-                                   params_.resizedPatchWidth, params_.resizedPatchWidth};
+                const float rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
+                const cv::Rect roi{_hp::iround(col * params_.patchXShift + rightShift),
+                                   _hp::iround(row * params_.patchYShift), params_.resizedPatchWidth,
+                                   params_.resizedPatchWidth};
 
                 mvCache_.renderCanvas(roi) += blendedPatch;
                 mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight;
