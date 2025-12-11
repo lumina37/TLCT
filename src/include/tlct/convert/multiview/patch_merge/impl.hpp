@@ -121,36 +121,37 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
             // Extract patch
             const cv::Point2f center = arrange_.getMICenter(row, col);
             const float psize = params_.psizeInflate * bridge.getPatchsize(row, col);
+            const float patchWidth = std::min(psize * params_.psizeInflate, params_.maxPsize);
+            const float psizeInflate = patchWidth / psize;
+            const int resizedPatchWidth = _hp::iround(psizeInflate * params_.patchXShift);
             const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
-            const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, psize);
+            const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, patchWidth);
 
             // Paste patch
             if (arrange_.isKepler()) {
-                cv::resize(patch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                           cv::INTER_CUBIC);
+                cv::resize(patch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0, cv::INTER_CUBIC);
             } else {
                 cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
-                cv::resize(rotatedPatch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                           cv::INTER_CUBIC);
+                cv::resize(rotatedPatch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0, cv::INTER_CUBIC);
             }
 
-            cv::multiply(resizedPatch, mvCache_.gradBlendingWeight, blendedPatch);
+            cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.25f, 1.f);
+            cv::multiply(resizedPatch, gradBlendingWeight, blendedPatch);
 
             // if the second bar is not out shift, then we need to shift the 1 col
             // else if the second bar is out shift, then we need to shift the 0 col
             const float rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
             const cv::Rect roi{_hp::iround(col * params_.patchXShift + rightShift),
-                               _hp::iround(row * params_.patchYShift), params_.resizedPatchWidth,
-                               params_.resizedPatchWidth};
+                               _hp::iround(row * params_.patchYShift), resizedPatchWidth, resizedPatchWidth};
 
             if (arrange_.isMultiFocus()) {
                 const float weight = bridge.getWeight(row, col);
                 cv::addWeighted(mvCache_.renderCanvas(roi), 1.f, blendedPatch, weight, 0.f, mvCache_.renderCanvas(roi));
-                cv::addWeighted(mvCache_.weightCanvas(roi), 1.f, mvCache_.gradBlendingWeight, weight, 0.f,
+                cv::addWeighted(mvCache_.weightCanvas(roi), 1.f, gradBlendingWeight, weight, 0.f,
                                 mvCache_.weightCanvas(roi));
             } else {
                 mvCache_.renderCanvas(roi) += blendedPatch;
-                mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight;
+                mvCache_.weightCanvas(roi) += gradBlendingWeight;
             }
         }
     }

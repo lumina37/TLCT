@@ -21,13 +21,8 @@ auto PsizeParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& c
 
     const float safeRadius = safeDiameter / 2.f;
     const float halfPatternSize = patternSize / 2.f;
-    const float safePatternShift =
+    const float patternShift =
         std::sqrt((safeRadius - halfPatternSize) * (safeRadius + halfPatternSize)) - halfPatternSize;
-
-    const float maxPsizeRatio = (1.f - cvtCfg.viewShiftRange) * CONTENT_SAFE_RATIO / cvtCfg.psizeInflate;
-    const float candiPatternShift = maxPsizeRatio * safeDiameter / 2.f;
-
-    const float patternShift = std::min(safePatternShift, candiPatternShift);
 
     const int minPsize = _hp::iround(0.5f * patternSize);
 
