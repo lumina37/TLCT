@@ -33,11 +33,6 @@ std::expected<CliConfig, Error> CliConfig::create(const Path& path, const Range&
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
     }
 
-    if (convert.minPsize <= 0.0f || convert.minPsize >= 1.0f) [[unlikely]] {
-        auto errMsg = std::format("expect 0 < minPsize < 1, got: {}", convert.minPsize);
-        return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};
-    }
-
     if (convert.psizeInflate <= 0.f) [[unlikely]] {
         auto errMsg = std::format("expect psizeInflate > 0, got: {}", convert.psizeInflate);
         return std::unexpected{Error{ECate::eTLCT, ECode::eUnexValue, std::move(errMsg)}};

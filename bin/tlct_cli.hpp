@@ -35,10 +35,6 @@
         .help("the input image will be upsampled by this scale")
         .scan<'i', int>()
         .default_value(1);
-    parser->add_argument("--minPsize")
-        .help("min patch size is `diameter*minPsize`")
-        .scan<'g', float>()
-        .default_value(0.2f);
     parser->add_argument("--psizeInflate")
         .help("the extracted patch will be inflated by this scale")
         .scan<'g', float>()
@@ -50,7 +46,7 @@
     parser->add_argument("--psizeShortcutThreshold")
         .help("if the metric of prev. patchsize is better than this threshold, then use the prev. one")
         .scan<'g', float>()
-        .default_value(0.85f);
+        .default_value(0.5f);
 
     parser->add_epilog(std::string{tlct::compileInfo});
 
@@ -64,7 +60,6 @@
     const tlct::CliConfig::Convert convert{parser.get<int>("--method"),
                                            parser.get<int>("--views"),
                                            parser.get<int>("--upsample"),
-                                           parser.get<float>("--minPsize"),
                                            parser.get<float>("--psizeInflate"),
                                            parser.get<float>("--viewShiftRange"),
                                            parser.get<float>("--psizeShortcutThreshold")};

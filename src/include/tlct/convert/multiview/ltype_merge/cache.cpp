@@ -1,12 +1,9 @@
 #include <new>
 
 #include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/helper/functional.hpp"
-#include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
@@ -17,22 +14,18 @@
 namespace tlct::_cvt::lm {
 
 template <cfg::concepts::CArrange TArrange>
-MvCache_<TArrange>::MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& gradBlendingWeight4Grads, cv::Mat&& renderCanvas,
-                             cv::Mat&& weightCanvas) noexcept
-    : gradBlendingWeight(std::move(gradBlendingWeight)),
-      gradBlendingWeight4Grads(std::move(gradBlendingWeight4Grads)),
-      renderCanvas(std::move(renderCanvas)),
-      weightCanvas(std::move(weightCanvas)) {}
+MvCache_<TArrange>::MvCache_(cv::Mat&& renderCanvas, cv::Mat&& weightCanvas, cv::Mat&& gradsCanvas) noexcept
+    : renderCanvas(std::move(renderCanvas)),
+      weightCanvas(std::move(weightCanvas)),
+      gradsWeightCanvas(std::move(gradsCanvas)) {}
 
 template <cfg::concepts::CArrange TArrange>
 auto MvCache_<TArrange>::create(const TMvParams& params) noexcept -> std::expected<MvCache_, Error> {
     try {
-        cv::Mat gradBlendingWeight = circleWithFadeoutBorder(params.resizedPatchWidth, 0.f, 1.f);
-        cv::Mat gradBlendingWeight4Grads = circleWithFadeoutBorder(params.resizedPatchWidth, 0.85f, 0.85f);
         cv::Mat renderCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
         cv::Mat weightCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
-        return MvCache_{std::move(gradBlendingWeight), std::move(gradBlendingWeight4Grads), std::move(renderCanvas),
-                        std::move(weightCanvas)};
+        cv::Mat gradsCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
+        return MvCache_{std::move(renderCanvas), std::move(weightCanvas), std::move(gradsCanvas)};
     } catch (const std::bad_alloc&) {
         return std::unexpected{Error{ECate::eSys, ECode::eOutOfMemory}};
     }

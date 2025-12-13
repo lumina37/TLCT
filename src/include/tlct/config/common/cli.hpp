@@ -25,7 +25,6 @@ public:
         int method;
         int views;
         int upsample;
-        float minPsize;
         float psizeInflate;
         float viewShiftRange;
         float psizeShortcutThreshold;

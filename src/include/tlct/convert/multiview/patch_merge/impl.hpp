@@ -120,7 +120,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
         for (const int col : rgs::views::iota(0, arrange_.getMICols(row))) {
             // Extract patch
             const cv::Point2f center = arrange_.getMICenter(row, col);
-            const float psize = params_.psizeInflate * bridge.getPatchsize(row, col);
+            const float psize = bridge.getPatchsize(row, col);
             const float patchWidth = std::min(psize * params_.psizeInflate, params_.maxPsize);
             const float psizeInflate = patchWidth / psize;
             const int resizedPatchWidth = _hp::iround(psizeInflate * params_.patchXShift);
@@ -135,7 +135,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
                 cv::resize(rotatedPatch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0, cv::INTER_CUBIC);
             }
 
-            cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.25f, 1.f);
+            cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.f, 1.f);
             cv::multiply(resizedPatch, gradBlendingWeight, blendedPatch);
 
             // if the second bar is not out shift, then we need to shift the 1 col

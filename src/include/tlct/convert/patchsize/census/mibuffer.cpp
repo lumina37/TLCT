@@ -148,7 +148,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
         const cv::Vec3b* pRhsMap = rhsCensusMap.ptr<cv::Vec3b>(row);
         const cv::Vec3b* pRhsMask = rhsCensusMask.ptr<cv::Vec3b>(row);
         for ([[maybe_unused]] const int _ : rgs::views::iota(0, lhsRanges[1].size())) {
-            constexpr int BYTE_COUNT = sizeof(cv::Vec3b) / sizeof(uint8_t);
+            constexpr int BYTE_COUNT = 3;
             for (const int byteId : rgs::views::iota(0, BYTE_COUNT)) {
                 const uint8_t diff = (*pLhsMap)[byteId] ^ (*pRhsMap)[byteId];
                 const uint8_t mask = (*pLhsMask)[byteId] & (*pRhsMask)[byteId];
@@ -164,7 +164,7 @@ std::expected<void, Error> MIBuffers_<TArrange>::update(const cv::Mat& src) noex
     }
 
     const float diffRatio = (float)diffBitCount / (float)maskBitCount;
-    return -diffRatio;
+    return 1.f - diffRatio;
 }
 
 template class MIBuffers_<cfg::CornersArrange>;

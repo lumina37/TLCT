@@ -73,7 +73,9 @@ void computeGradsMap(const cv::Mat& src, cv::Mat& dst) noexcept {
     edges = cv::abs(edges);
     grads += edges;
 
-    grads.copyTo(dst);
+    constexpr int kSize = 3;
+    constexpr float sigma = 1.0f;
+    cv::GaussianBlur(grads, dst, {kSize, kSize}, sigma);
 }
 
 }  // namespace tlct::_cvt

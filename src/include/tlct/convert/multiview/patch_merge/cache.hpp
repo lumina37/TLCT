@@ -16,7 +16,7 @@ public:
     using TMvParams = MvParams_<TArrange>;
 
 private:
-    MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept;
+    MvCache_(cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept;
 
 public:
     // Constructor
@@ -29,7 +29,6 @@ public:
     // Initialize from
     [[nodiscard]] TLCT_API static std::expected<MvCache_, Error> create(const TMvParams& params) noexcept;
 
-    cv::Mat gradBlendingWeight;
     cv::Mat renderCanvas;
     cv::Mat weightCanvas;
 

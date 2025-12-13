@@ -4,7 +4,6 @@
 
 #include "tlct/config/arrange.hpp"
 #include "tlct/config/concepts.hpp"
-#include "tlct/convert/helper/functional.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
@@ -15,18 +14,15 @@
 namespace tlct::_cvt::pm {
 
 template <cfg::concepts::CArrange TArrange>
-MvCache_<TArrange>::MvCache_(cv::Mat&& gradBlendingWeight, cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept
-    : gradBlendingWeight(std::move(gradBlendingWeight)),
-      renderCanvas(std::move(renderCanvas)),
-      weightCanvas(std::move(weightCanvas)) {}
+MvCache_<TArrange>::MvCache_(cv::Mat&& renderCanvas, cv::Mat&& weightCanvas) noexcept
+    : renderCanvas(std::move(renderCanvas)), weightCanvas(std::move(weightCanvas)) {}
 
 template <cfg::concepts::CArrange TArrange>
 auto MvCache_<TArrange>::create(const TMvParams& params) noexcept -> std::expected<MvCache_, Error> {
     try {
-        cv::Mat gradBlendingWeight = circleWithFadeoutBorder(params.resizedPatchWidth, 0.25f, 1.f);
         cv::Mat renderCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
         cv::Mat weightCanvas{cv::Size{params.canvasWidth, params.canvasHeight}, CV_32FC1};
-        return MvCache_{std::move(gradBlendingWeight), std::move(renderCanvas), std::move(weightCanvas)};
+        return MvCache_{std::move(renderCanvas), std::move(weightCanvas)};
     } catch (const std::bad_alloc&) {
         return std::unexpected{Error{ECate::eSys, ECode::eOutOfMemory}};
     }

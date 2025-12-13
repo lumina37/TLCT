@@ -129,7 +129,6 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
     cv::Mat resizedPatch;
     cv::Mat rotatedPatch;
     cv::Mat blendedPatch;
-    cv::Mat patchGradsMap;
 
     const cfg::MITypes miTypes{arrange_.isOutShift()};
     for (int lenType = 0; lenType < 3; lenType++) {
@@ -145,38 +144,51 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
 
                 // Extract patch
                 const cv::Point2f center = arrange_.getMICenter(row, col);
-                const float psize = params_.psizeInflate * bridge.getPatchsize(row, col);
+                const float psize = bridge.getPatchsize(row, col);
+                const float patchWidth = std::min(psize * params_.psizeInflate, params_.maxPsize);
+                const float psizeInflate = patchWidth / psize;
+                const int resizedPatchWidth = _hp::iround(psizeInflate * params_.patchXShift);
                 const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
-                const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, psize);
+                const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, patchWidth);
 
                 // Paste patch
                 if (arrange_.isKepler()) {
-                    cv::resize(patch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                               cv::INTER_CUBIC);
+                    cv::resize(patch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0, cv::INTER_CUBIC);
                 } else {
                     cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
-                    cv::resize(rotatedPatch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
+                    cv::resize(rotatedPatch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0,
                                cv::INTER_CUBIC);
                 }
 
-                computeGradsMap(resizedPatch, patchGradsMap);
-                cv::multiply(patchGradsMap, mvCache_.gradBlendingWeight4Grads, blendedPatch);
+                cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.f, 0.95f);
+                cv::multiply(resizedPatch, gradBlendingWeight, blendedPatch);
+
+                cv::Mat gradBlendingWeight4Grads = circleWithFadeoutBorder(resizedPatchWidth, 0.7f, 0.8f);
 
                 // if the second bar is not out shift, then we need to shift the 1 col
                 // else if the second bar is out shift, then we need to shift the 0 col
                 const float rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
                 const cv::Rect roi{_hp::iround(col * params_.patchXShift + rightShift),
-                                   _hp::iround(row * params_.patchYShift), params_.resizedPatchWidth,
-                                   params_.resizedPatchWidth};
+                                   _hp::iround(row * params_.patchYShift), resizedPatchWidth, resizedPatchWidth};
 
                 mvCache_.renderCanvas(roi) += blendedPatch;
-                mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight4Grads;
+                mvCache_.weightCanvas(roi) += gradBlendingWeight;
+                mvCache_.gradsWeightCanvas(roi) += gradBlendingWeight4Grads;
             }
         }
 
         cv::divide(mvCache_.renderCanvas, mvCache_.weightCanvas, mvCache_.renderCanvas);
-        cv::Mat croppedGradsMap = mvCache_.renderCanvas(params_.canvasCropRoi);
-        croppedGradsMap.copyTo(lenTypeWeights[lenType]);
+        cv::Mat mvImage = mvCache_.renderCanvas(params_.canvasCropRoi);
+
+        cv::Mat gradsWeight = mvCache_.gradsWeightCanvas(params_.canvasCropRoi);
+        cv::min(gradsWeight, 1.0, gradsWeight);
+
+        cv::Mat gradsMap;
+        computeGradsMap(mvImage, gradsMap);
+
+        cv::multiply(gradsMap, gradsWeight, gradsMap);
+
+        gradsMap.copyTo(lenTypeWeights[lenType]);
     }
 
     for (int row = 0; row < params_.getRoiSize().height; row++) {
@@ -201,8 +213,8 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
     }
 
     for (int lenType = 0; lenType < 3; lenType++) {
-        constexpr int kSize = 5;
-        constexpr float sigma = 3.f;
+        constexpr int kSize = 9;
+        constexpr float sigma = 4.0f;
         cv::GaussianBlur(lenTypeWeights[lenType], lenTypeWeights[lenType], {kSize, kSize}, sigma);
     }
 
@@ -245,31 +257,33 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge,
 
                 // Extract patch
                 const cv::Point2f center = arrange_.getMICenter(row, col);
-                const float psize = params_.psizeInflate * bridge.getPatchsize(row, col);
+                const float psize = bridge.getPatchsize(row, col);
+                const float patchWidth = std::min(psize * params_.psizeInflate, params_.maxPsize);
+                const float psizeInflate = patchWidth / psize;
+                const int resizedPatchWidth = _hp::iround(psizeInflate * params_.patchXShift);
                 const cv::Point2f patchCenter{center.x + viewShiftX, center.y + viewShiftY};
-                const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, psize);
+                const cv::Mat& patch = getRoiImageByCenter(mvCache_.f32Chan, patchCenter, patchWidth);
 
                 // Paste patch
                 if (arrange_.isKepler()) {
-                    cv::resize(patch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
-                               cv::INTER_CUBIC);
+                    cv::resize(patch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0, cv::INTER_CUBIC);
                 } else {
                     cv::rotate(patch, rotatedPatch, cv::ROTATE_180);
-                    cv::resize(rotatedPatch, resizedPatch, {params_.resizedPatchWidth, params_.resizedPatchWidth}, 0, 0,
+                    cv::resize(rotatedPatch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0,
                                cv::INTER_CUBIC);
                 }
 
-                cv::multiply(resizedPatch, mvCache_.gradBlendingWeight, blendedPatch);
+                cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.f, 0.95f);
+                cv::multiply(resizedPatch, gradBlendingWeight, blendedPatch);
 
                 // if the second bar is not out shift, then we need to shift the 1 col
                 // else if the second bar is out shift, then we need to shift the 0 col
                 const float rightShift = ((row % 2) ^ (int)arrange_.isOutShift()) * (params_.patchXShift / 2);
                 const cv::Rect roi{_hp::iround(col * params_.patchXShift + rightShift),
-                                   _hp::iround(row * params_.patchYShift), params_.resizedPatchWidth,
-                                   params_.resizedPatchWidth};
+                                   _hp::iround(row * params_.patchYShift), resizedPatchWidth, resizedPatchWidth};
 
                 mvCache_.renderCanvas(roi) += blendedPatch;
-                mvCache_.weightCanvas(roi) += mvCache_.gradBlendingWeight;
+                mvCache_.weightCanvas(roi) += gradBlendingWeight;
             }
         }
 
