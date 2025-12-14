@@ -1,4 +1,3 @@
-#include <bit>
 #include <limits>
 #include <queue>
 #include <ranges>
@@ -8,9 +7,10 @@
 #include "tlct/config.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/concepts/patchsize.hpp"
-#include "tlct/convert/helper/functional.hpp"
+#include "tlct/convert/helper/roi.hpp"
 #include "tlct/convert/patchsize/census/mibuffer.hpp"
-#include "tlct/convert/patchsize/neighbors.hpp"
+#include "tlct/convert/patchsize/census/ssim.hpp"
+#include "tlct/convert/patchsize/helper/neighbors.hpp"
 #include "tlct/helper/constexpr/math.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/math.hpp"
@@ -25,9 +25,13 @@ namespace tlct::_cvt::census {
 namespace rgs = std::ranges;
 
 template <cfg::concepts::CArrange TArrange>
-PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos,
-                                 const TPsizeParams& params) noexcept
-    : arrange_(arrange), mis_(std::move(mis)), prevPatchInfos_(std::move(prevPatchInfos)), params_(params) {}
+PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TMIBuffers&& prevMis,
+                                 TPInfos&& prevPatchInfos, const TPsizeParams& params) noexcept
+    : arrange_(arrange),
+      mis_(std::move(mis)),
+      prevMis_(std::move(prevMis)),
+      prevPatchInfos_(std::move(prevPatchInfos)),
+      params_(params) {}
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
@@ -106,29 +110,27 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
         *bridge.getInfo(offset).getPDebugInfo() = {};
     }
 
-    const cfg::MITypes mitypes{arrange_.isOutShift()};
-    const int miType = mitypes.getMIType(index);
+    WrapSSIM wrapAnchor{anchorMI};
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
-            // if the MI type is for near focal, then only evaluate its far neighbors
-            const FarNeighbors& neighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
-            const float prevPsizeMetric = computePsizeMetric<FarNeighbors>(neighbors, anchorMI, prevPsize);
-            if (prevPsizeMetric >= params_.psizeShortcutThreshold) {
-                bridge.getInfo(offset).setInherited(true);
-                return prevPsize;
-            }
-        } else {
-            const NearNeighbors& neighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
-            const float prevPsizeMetric = computePsizeMetric<NearNeighbors>(neighbors, anchorMI, prevPsize);
-            if (prevPsizeMetric >= params_.psizeShortcutThreshold) {
-                bridge.getInfo(offset).setInherited(true);
-                return prevPsize;
-            }
+        const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};
+        const cv::Rect roi = getRoiByCenter(miCenter, (float)anchorMI.censusMap.cols / std::numbers::sqrt2_v<float>);
+        wrapAnchor.updateRoi(roi);
+
+        const MIBuffer& prevMI = prevMis_.getMI(offset);
+        WrapSSIM wrapPrev{prevMI};
+        wrapPrev.updateRoi(roi);
+
+        const float ssim = wrapAnchor.compare(wrapPrev);
+        if (ssim >= params_.psizeShortcutThreshold) {
+            bridge.getInfo(offset).setInherited(true);
+            return prevPsize;
         }
     }
 
-    float bestPsize;
+    const cfg::MITypes mitypes{arrange_.isOutShift()};
+    const int miType = mitypes.getMIType(index);
 
+    float bestPsize;
     if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
         const FarNeighbors& neighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
         const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(neighbors, anchorMI);
@@ -319,17 +321,22 @@ auto PsizeImpl_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvt
     if (!misRes) return std::unexpected{std::move(misRes.error())};
     auto& mis = misRes.value();
 
+    auto prevMisRes = TMIBuffers::create(arrange);
+    if (!prevMisRes) return std::unexpected{std::move(prevMisRes.error())};
+    auto& prevMis = prevMisRes.value();
+
     std::vector<TPInfo> prevPatchInfos(arrange.getMIRows() * arrange.getMIMaxCols());
 
     auto paramsRes = TPsizeParams::create(arrange, cvtCfg);
     if (!paramsRes) return std::unexpected{std::move(paramsRes.error())};
     auto& params = paramsRes.value();
 
-    return PsizeImpl_{arrange, std::move(mis), std::move(prevPatchInfos), params};
+    return PsizeImpl_{arrange, std::move(mis), std::move(prevMis), std::move(prevPatchInfos), params};
 }
 
 template <cfg::concepts::CArrange TArrange>
 std::expected<void, Error> PsizeImpl_<TArrange>::updateBridge(const cv::Mat& src, TBridge& bridge) noexcept {
+    std::swap(mis_, prevMis_);
     bridge.swapInfos(prevPatchInfos_);
 
     auto updateRes = mis_.update(src);

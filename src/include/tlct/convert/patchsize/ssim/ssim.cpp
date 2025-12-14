@@ -3,10 +3,12 @@
 #include "tlct/convert/patchsize/ssim/mibuffer.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/ssim/functional.hpp"
+#    include "tlct/convert/patchsize/ssim/ssim.hpp"
 #endif
 
 namespace tlct::_cvt::ssim {
+
+inline void blurInto(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 
 void WrapSSIM::updateRoi(cv::Rect roi) noexcept {
     mi_.I(roi).copyTo(I_);  // `BORDER_ISOLATED` has no effect, so we must copy here
@@ -56,7 +58,5 @@ float WrapSSIM::compare(const WrapSSIM& rhs) const noexcept {
 
     return ssim;
 }
-
-void blurInto(const cv::Mat& src, cv::Mat& dst) { cv::GaussianBlur(src, dst, {11, 11}, 1.5); }
 
 }  // namespace tlct::_cvt::ssim

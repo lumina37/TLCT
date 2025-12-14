@@ -44,9 +44,9 @@
         .scan<'g', float>()
         .default_value(0.1f);
     parser->add_argument("--psizeShortcutThreshold")
-        .help("if the metric of prev. patchsize is better than this threshold, then use the prev. one")
+        .help("if the ssim between prev. MI and curr. MI is larger than this value, then use the prev. patch size")
         .scan<'g', float>()
-        .default_value(0.5f);
+        .default_value(0.95f);
 
     parser->add_epilog(std::string{tlct::compileInfo});
 
@@ -57,11 +57,9 @@
     const argparse::ArgumentParser& parser) noexcept {
     const tlct::CliConfig::Path path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
     const tlct::CliConfig::Range range{parser.get<int>("--begin"), parser.get<int>("--end")};
-    const tlct::CliConfig::Convert convert{parser.get<int>("--method"),
-                                           parser.get<int>("--views"),
-                                           parser.get<int>("--upsample"),
-                                           parser.get<float>("--psizeInflate"),
-                                           parser.get<float>("--viewShiftRange"),
-                                           parser.get<float>("--psizeShortcutThreshold")};
+    const tlct::CliConfig::Convert convert{
+        parser.get<int>("--method"),           parser.get<int>("--views"),
+        parser.get<int>("--upsample"),         parser.get<float>("--psizeInflate"),
+        parser.get<float>("--viewShiftRange"), parser.get<float>("--psizeShortcutThreshold")};
     return tlct::CliConfig::create(path, range, convert);
 }

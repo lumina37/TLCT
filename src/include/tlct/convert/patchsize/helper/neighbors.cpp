@@ -5,7 +5,7 @@
 #include "tlct/convert/concepts/neighbors.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/neighbors.hpp"
+#    include "tlct/convert/patchsize/helper/neighbors.hpp"
 #endif
 
 namespace tlct::_cvt {

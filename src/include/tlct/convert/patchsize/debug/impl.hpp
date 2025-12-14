@@ -6,10 +6,10 @@
 #include "tlct/config/concepts.hpp"
 #include "tlct/convert/common/bridge/patch_merge.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
-#include "tlct/convert/patchsize/neighbors.hpp"
-#include "tlct/convert/patchsize/ssim/functional.hpp"
+#include "tlct/convert/patchsize/helper/neighbors.hpp"
 #include "tlct/convert/patchsize/ssim/mibuffer.hpp"
 #include "tlct/convert/patchsize/ssim/params.hpp"
+#include "tlct/convert/patchsize/ssim/ssim.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 
@@ -34,7 +34,7 @@ private:
     using TPInfo = TBridge::TInfo;
     using TPInfos = TBridge::TInfos;
 
-    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TPInfos&& prevPatchInfos,
+    PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TMIBuffers&& prevMis, TPInfos&& prevPatchInfos,
                const TPsizeParams& params) noexcept;
 
     using NearNeighbors = NearNeighbors_<TArrange>;
@@ -72,6 +72,7 @@ private:
 
     TArrange arrange_;
     TMIBuffers mis_;
+    TMIBuffers prevMis_;
     TPInfos prevPatchInfos_;
     TPsizeParams params_;
 };

@@ -30,10 +30,8 @@ private:
     mutable cv::Mat I1I2, mu1mu2, sigma12;
 };
 
-void blurInto(const cv::Mat& src, cv::Mat& dst);
-
 }  // namespace tlct::_cvt::ssim
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/ssim/functional.cpp"
+#    include "tlct/convert/patchsize/ssim/ssim.cpp"
 #endif
