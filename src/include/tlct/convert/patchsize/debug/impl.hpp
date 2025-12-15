@@ -7,9 +7,9 @@
 #include "tlct/convert/common/bridge/patch_merge.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/patchsize/helper/neighbors.hpp"
+#include "tlct/convert/patchsize/ssim/functional.hpp"
 #include "tlct/convert/patchsize/ssim/mibuffer.hpp"
 #include "tlct/convert/patchsize/ssim/params.hpp"
-#include "tlct/convert/patchsize/ssim/ssim.hpp"
 #include "tlct/helper/error.hpp"
 #include "tlct/helper/std.hpp"
 

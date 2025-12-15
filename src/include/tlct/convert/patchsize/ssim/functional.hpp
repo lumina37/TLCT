@@ -33,5 +33,5 @@ private:
 }  // namespace tlct::_cvt::ssim
 
 #ifdef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/ssim/ssim.cpp"
+#    include "tlct/convert/patchsize/ssim/functional.cpp"
 #endif

@@ -179,6 +179,7 @@ using RaytrixCensusManagerTraits =
     ManagerTraits_<cfg::OffsetArrange, census::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
 using RaytrixMeth1Manager = Manager_<RaytrixCensusManagerTraits>;
 
+// TODO: use lm
 using RaytrixDebugManagerTraits =
     ManagerTraits_<cfg::OffsetArrange, dbg::PsizeImpl_<cfg::OffsetArrange>, pm::MvImpl_<cfg::OffsetArrange>>;
 using RaytrixDebugManager = Manager_<RaytrixDebugManagerTraits>;

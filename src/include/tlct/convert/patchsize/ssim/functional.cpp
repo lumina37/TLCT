@@ -3,7 +3,7 @@
 #include "tlct/convert/patchsize/ssim/mibuffer.hpp"
 
 #ifndef _TLCT_LIB_HEADER_ONLY
-#    include "tlct/convert/patchsize/ssim/ssim.hpp"
+#    include "tlct/convert/patchsize/ssim/functional.hpp"
 #endif
 
 namespace tlct::_cvt::ssim {
