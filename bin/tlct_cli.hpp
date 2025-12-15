@@ -46,7 +46,7 @@
     parser->add_argument("--psizeShortcutThreshold")
         .help("if the ssim between prev. MI and curr. MI is larger than this value, then use the prev. patch size")
         .scan<'g', float>()
-        .default_value(0.9f);
+        .default_value(0.95f);
 
     parser->add_epilog(std::string{tlct::compileInfo});
 

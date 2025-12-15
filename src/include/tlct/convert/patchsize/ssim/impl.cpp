@@ -34,45 +34,6 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TMIB
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-float PsizeImpl_<TArrange>::computePsizeMetric(const TNeighbors& neighbors, WrapSSIM& wrapAnchor,
-                                               const float psize) const noexcept {
-    const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};
-
-    float sumMetric = 0.0;
-    float sumMetricWeight = std::numeric_limits<float>::epsilon();
-
-    for (const auto direction : TNeighbors::DIRECTIONS) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const cv::Point2f anchorShift =
-            _hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction) * params_.patternShift;
-        const cv::Rect anchorRoi = getRoiByCenter(miCenter + anchorShift, params_.patternSize);
-        wrapAnchor.updateRoi(anchorRoi);
-
-        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        WrapSSIM wrapNeib{neibMI};
-
-        const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
-        const cv::Point2f cmpShift = anchorShift + matchStep * psize;
-        const cv::Rect cmpRoi = getRoiByCenter(miCenter + cmpShift, params_.patternSize);
-        wrapNeib.updateRoi(cmpRoi);
-
-        const float ssim = wrapAnchor.compare(wrapNeib);
-
-        const float weight = computeGrads(wrapAnchor.I_);
-        const float metric = ssim * ssim;
-        sumMetric += weight * metric;
-        sumMetricWeight += weight;
-    }
-
-    const float metric = sumMetric / sumMetricWeight;
-    return metric;
-}
-
-template <cfg::concepts::CArrange TArrange>
-template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors,
                                                         WrapSSIM& wrapAnchor) const noexcept {
     const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};

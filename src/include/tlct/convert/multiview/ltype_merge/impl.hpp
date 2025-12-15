@@ -2,6 +2,7 @@
 
 #include <ranges>
 
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "tlct/config.hpp"
@@ -22,6 +23,12 @@ namespace rgs = std::ranges;
 template <cfg::concepts::CArrange TArrange_>
 class MvImpl_ {
 public:
+#ifdef _DEBUG
+    static constexpr bool DEBUG_ENABLED = true;
+#else
+    static constexpr bool DEBUG_ENABLED = false;
+#endif
+
     // Typename alias
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
@@ -93,17 +100,26 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TBridge& bridge, 
     }
 
     // gen len type weight
-    std::array<cv::Mat, 3> lenTypeWeights;
-    for (auto& lenTypeWeight : lenTypeWeights) {
-        lenTypeWeight.create(params_.getRoiSize(), CV_32FC1);
-    }
-    auto genWeightRes = genLenTypeWeight(bridge, pCommonCache_->srcs[0], lenTypeWeights, viewRow, viewCol);
+    auto genWeightRes = genLenTypeWeight(bridge, pCommonCache_->srcs[0], mvCache_.lenTypeWeights, viewRow, viewCol);
     if (!genWeightRes) return std::unexpected{std::move(genWeightRes.error())};
+
+    if constexpr (DEBUG_ENABLED) {
+        std::array<cv::Mat, 3> lenTypeWeightsU8;
+
+        for (int i = 0; i < 3; i++) {
+            mvCache_.lenTypeWeights[i].convertTo(lenTypeWeightsU8[i], CV_8UC1, 255.0);
+        }
+
+        cv::Mat rgbImage;
+        cv::merge(lenTypeWeightsU8, rgbImage);
+
+        cv::imwrite("ltype-merge.png", rgbImage);
+    }
 
     // render channels
     for (const int chanIdx : rgs::views::iota(0, TCommonCache::CHANNELS)) {
-        auto renderChanRes = renderChan(bridge, lenTypeWeights, pCommonCache_->srcs[chanIdx], channels[chanIdx],
-                                        channelSizes[chanIdx], viewRow, viewCol);
+        auto renderChanRes = renderChan(bridge, mvCache_.lenTypeWeights, pCommonCache_->srcs[chanIdx],
+                                        channels[chanIdx], channelSizes[chanIdx], viewRow, viewCol);
         if (!renderChanRes) return std::unexpected{std::move(renderChanRes.error())};
     }
 
@@ -160,7 +176,7 @@ std::expected<void, Error> MvImpl_<TArrange>::genLenTypeWeight(const TBridge& br
                                cv::INTER_CUBIC);
                 }
 
-                cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.f, 0.95f);
+                cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.0f, 1.0f);
                 cv::multiply(resizedPatch, gradBlendingWeight, blendedPatch);
 
                 cv::Mat gradBlendingWeight4Grads = circleWithFadeoutBorder(resizedPatchWidth, 0.7f, 0.8f);
@@ -273,7 +289,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge,
                                cv::INTER_CUBIC);
                 }
 
-                cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.f, 0.95f);
+                cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.0f, 1.0f);
                 cv::multiply(resizedPatch, gradBlendingWeight, blendedPatch);
 
                 // if the second bar is not out shift, then we need to shift the 1 col

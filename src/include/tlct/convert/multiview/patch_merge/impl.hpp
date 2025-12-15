@@ -135,7 +135,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderChan(const TBridge& bridge, 
                 cv::resize(rotatedPatch, resizedPatch, {resizedPatchWidth, resizedPatchWidth}, 0, 0, cv::INTER_CUBIC);
             }
 
-            cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.f, 1.f);
+            cv::Mat gradBlendingWeight = circleWithFadeoutBorder(resizedPatchWidth, 0.0f, 1.0f);
             cv::multiply(resizedPatch, gradBlendingWeight, blendedPatch);
 
             // if the second bar is not out shift, then we need to shift the 1 col

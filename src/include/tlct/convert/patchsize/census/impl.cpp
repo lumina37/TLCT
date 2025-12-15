@@ -35,33 +35,6 @@ PsizeImpl_<TArrange>::PsizeImpl_(const TArrange& arrange, TMIBuffers&& mis, TMIB
 
 template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
-float PsizeImpl_<TArrange>::computePsizeMetric(const TNeighbors& neighbors, const MIBuffer& anchorMI,
-                                               const float psize) const noexcept {
-    float sumMetric = 0.f;
-    int neibCount = 0;
-
-    for (const auto direction : TNeighbors::DIRECTIONS) {
-        if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
-            continue;
-        }
-
-        const MIBuffer& neibMI = mis_.getMI(neighbors.getNeighborIdx(direction));
-        const cv::Point2f matchStep = -_hp::sgn(arrange_.isKepler()) * TNeighbors::getUnitShift(direction);
-
-        const cv::Point2f cmpShift = matchStep * psize;
-        const float metric = compare(anchorMI, neibMI, cmpShift);
-
-        sumMetric += metric;
-        neibCount++;
-    }
-
-    const float metric = sumMetric / (float)neibCount;
-
-    return metric;
-}
-
-template <cfg::concepts::CArrange TArrange>
-template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors,
                                                         const MIBuffer& anchorMI) const noexcept {
     float sumPsize = 0.f;
@@ -112,8 +85,9 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
 
     WrapSSIM wrapAnchor{anchorMI};
     if (prevPsize != PsizeParams::INVALID_PSIZE) [[likely]] {
-        const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};
-        const cv::Rect roi = getRoiByCenter(miCenter, (float)anchorMI.censusMap.cols / std::numbers::sqrt2_v<float>);
+        const cv::Point censusCenter{anchorMI.censusMap.cols / 2, anchorMI.censusMap.rows / 2};
+        const cv::Rect roi =
+            getRoiByCenter(censusCenter, (int)((float)anchorMI.censusMap.cols / std::numbers::sqrt2_v<float>));
         wrapAnchor.updateRoi(roi);
 
         const MIBuffer& prevMI = prevMis_.getMI(offset);
@@ -132,12 +106,13 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
 
     float bestPsize;
     if (arrange_.isMultiFocus() && miType == arrange_.getNearFocalLenType()) {
-        const FarNeighbors& neighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
-        const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(neighbors, anchorMI);
+        // if the MI type is for near focal, then only search its far neighbors
+        const FarNeighbors& farNeighbors = FarNeighbors::fromArrangeAndIndex(arrange_, index);
+        const PsizeMetric& farPsizeMetric = estimateWithNeighbors<FarNeighbors>(farNeighbors, anchorMI);
         bestPsize = farPsizeMetric.psize;
     } else {
-        const NearNeighbors& neighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
-        const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(neighbors, anchorMI);
+        const NearNeighbors& nearNeighbors = NearNeighbors::fromArrangeAndIndex(arrange_, index);
+        const PsizeMetric& nearPsizeMetric = estimateWithNeighbors<NearNeighbors>(nearNeighbors, anchorMI);
         bestPsize = nearPsizeMetric.psize;
     }
 

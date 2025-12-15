@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include <opencv2/core.hpp>
 
 #include "tlct/config/concepts.hpp"
@@ -11,12 +13,15 @@ namespace tlct::_cvt::lm {
 template <cfg::concepts::CArrange TArrange_>
 class MvCache_ {
 public:
+    static constexpr int CHANNELS = 3;
+
     // Typename alias
     using TArrange = TArrange_;
     using TMvParams = MvParams_<TArrange>;
 
 private:
-    MvCache_(cv::Mat&& renderCanvas, cv::Mat&& weightCanvas, cv::Mat&& gradsCanvas) noexcept;
+    MvCache_(cv::Mat&& renderCanvas, cv::Mat&& weightCanvas, cv::Mat&& gradsWeightCanvas,
+             std::array<cv::Mat, CHANNELS>&& lenTypeWeights) noexcept;
 
 public:
     // Constructor
@@ -32,6 +37,7 @@ public:
     cv::Mat renderCanvas;
     cv::Mat weightCanvas;
     cv::Mat gradsWeightCanvas;
+    std::array<cv::Mat, CHANNELS> lenTypeWeights;
 
     cv::Mat f32Chan;
     cv::Mat u8NormedImage;
