@@ -12,7 +12,7 @@ project(tlct
         LANGUAGES CXX
 )
 
-set(TLCT_VERSION_BETA_SUFFIX "alpha.0")
+set(TLCT_VERSION_BETA_SUFFIX "alpha.1")
 if (NOT TLCT_VERSION_BETA_SUFFIX)
     set(TLCT_VERSION ${PROJECT_VERSION})
 else ()

@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
 
     std::string calibFilePath;
     try {
-        calibFilePath = parser->get<std::string>("calib_file");
+        calibFilePath = parser->get<std::string>("calibFile");
     } catch (const std::exception& err) {
         std::println(std::cerr, "{}", err.what());
         std::exit(1);

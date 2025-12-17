@@ -12,7 +12,7 @@
                                                              argparse::default_arguments::all);
 
     parser->set_usage_max_line_width(120);
-    parser->add_argument("calib_file").help("path of the `calib.cfg`").required();
+    parser->add_argument("calibFile").help("path of the `calib.cfg`").required();
     parser->add_group("I/O");
     parser->add_argument("-i", "--src").help("input yuv420p file").required();
     parser->add_argument("-o", "--dst").help("output directory").required();
