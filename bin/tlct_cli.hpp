@@ -12,12 +12,14 @@
                                                              argparse::default_arguments::all);
 
     parser->set_usage_max_line_width(120);
+
     parser->add_argument("calibFile").help("path of the `calib.cfg`").required();
+
     parser->add_group("I/O");
     parser->add_argument("-i", "--src").help("input yuv420p file").required();
     parser->add_argument("-o", "--dst").help("output directory").required();
-    parser->add_argument("--debug").help("debug output directory")
-        .default_value("");
+    parser->add_argument("--debug").help("debug output directory").default_value("./debug");
+
     parser->add_group("Frame Range");
     parser->add_argument("-b", "--begin")
         .help("the index of the start frame, left inclusive, starts from zero")
@@ -27,12 +29,16 @@
         .help("the index of the end frame, right exclusive")
         .scan<'i', int>()
         .default_value(1);
-    parser->add_group("Conversion");
-    parser->add_argument("--method")
-        .help("ssim (0), census (1), debug (2)")
-        .scan<'i', int>()
-        .default_value(1);
+
+    parser->add_group("Conversion - Basic");
     parser->add_argument("--views").help("viewpoint number").scan<'i', int>().default_value(1);
+    parser->add_argument("--resize")
+        .help("the multi-view resolution will be resize by this scale")
+        .scan<'g', float>()
+        .default_value(0.35f);
+
+    parser->add_group("Conversion - Finetune");
+    parser->add_argument("--method").help("ssim (0), census (1), debug (2)").scan<'i', int>().default_value(1);
     parser->add_argument("--upsample")
         .help("the input image will be upsampled by this scale")
         .scan<'i', int>()
@@ -60,9 +66,12 @@
     const tlct::CliConfig::Path path{parser.get<std::string>("--src"), parser.get<std::string>("--dst"),
                                      parser.get<std::string>("--debug")};
     const tlct::CliConfig::Range range{parser.get<int>("--begin"), parser.get<int>("--end")};
-    const tlct::CliConfig::Convert convert{
-        parser.get<int>("--method"),           parser.get<int>("--views"),
-        parser.get<int>("--upsample"),         parser.get<float>("--psizeInflate"),
-        parser.get<float>("--viewShiftRange"), parser.get<float>("--psizeShortcutThreshold")};
+    const tlct::CliConfig::Convert convert{parser.get<int>("--views"),
+                                           parser.get<float>("--resize"),
+                                           parser.get<int>("--method"),
+                                           parser.get<int>("--upsample"),
+                                           parser.get<float>("--psizeInflate"),
+                                           parser.get<float>("--viewShiftRange"),
+                                           parser.get<float>("--psizeShortcutThreshold")};
     return tlct::CliConfig::create(path, range, convert);
 }

@@ -38,9 +38,10 @@ template <cfg::concepts::CArrange TArrange>
 template <concepts::CNeighbors TNeighbors>
 PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighbors,
                                                         const MIBuffer& anchorMI) const noexcept {
-    float sumPsize = 0.f;
-    float sumMetric = 0.f;
-    int neibCount = 0;
+    float sumPsize = 0;
+    float sumMetric = 0;
+    float sumPsizeWeight = std::numeric_limits<float>::epsilon();
+    float sumMetricWeight = std::numeric_limits<float>::epsilon();
 
     for (const auto direction : TNeighbors::DIRECTIONS) {
         if (!neighbors.hasNeighbor(direction)) [[unlikely]] {
@@ -61,13 +62,17 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
             }
         }
 
-        sumPsize += (float)bestPsize;
-        sumMetric += maxMetric;
-        neibCount++;
+        const float weight = neibMI.grads;
+        const float weightedMetric = weight * maxMetric;
+        sumPsize += bestPsize * weightedMetric;
+        sumPsizeWeight += weightedMetric;
+        sumMetric += weightedMetric;
+        sumMetricWeight += weight;
     }
 
-    const float psize = sumPsize / (float)neibCount;
-    const float metric = sumMetric / (float)neibCount;
+    const float clipedSumPsize = _hp::clip(sumPsize / sumPsizeWeight, (float)params_.minPsize, (float)params_.maxPsize);
+    const float psize = clipedSumPsize / TNeighbors::INFLATE;
+    const float metric = sumMetric / sumMetricWeight;
 
     return {psize, metric};
 }

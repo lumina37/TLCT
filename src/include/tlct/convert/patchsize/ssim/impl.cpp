@@ -39,8 +39,8 @@ PsizeMetric PsizeImpl_<TArrange>::estimateWithNeighbors(const TNeighbors& neighb
     const cv::Point2f miCenter{arrange_.getRadius(), arrange_.getRadius()};
     const int maxShift = (int)(params_.patternShift * 2);
 
-    float sumPsize = 0.0;
-    float sumMetric = 0.0;
+    float sumPsize = 0;
+    float sumMetric = 0;
     float sumPsizeWeight = std::numeric_limits<float>::epsilon();
     float sumMetricWeight = std::numeric_limits<float>::epsilon();
 

@@ -24,7 +24,7 @@ auto MvParams_<TArrange>::create(const TArrange& arrange, const TCvtConfig& cvtC
     const float safeDiameter = arrange.getDiameter() * CONTENT_SAFE_RATIO;
     const float maxPsize = safeDiameter * (1.f - cvtCfg.viewShiftRange);
 
-    const float patchXShift = 0.37f * arrange.getDiameter();
+    const float patchXShift = cvtCfg.resize * arrange.getDiameter();
     const float patchYShift = patchXShift * std::numbers::sqrt3_v<float> / 2.f;
 
     const float f32ResizedPatchWdt = patchXShift * cvtCfg.psizeInflate;

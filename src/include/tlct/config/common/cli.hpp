@@ -23,8 +23,9 @@ public:
     };
 
     struct Convert {
-        int method;
         int views;
+        float resize;
+        int method;
         int upsample;
         float psizeInflate;
         float viewShiftRange;
