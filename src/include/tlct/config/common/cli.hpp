@@ -14,6 +14,7 @@ public:
     struct Path {
         fs::path src;
         fs::path dst;
+        fs::path debug;
     };
 
     struct Range {

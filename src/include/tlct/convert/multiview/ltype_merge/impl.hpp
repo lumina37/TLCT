@@ -5,6 +5,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "tlct/common/config.h"
 #include "tlct/config.hpp"
 #include "tlct/convert/common/cache.hpp"
 #include "tlct/convert/concepts/bridge.hpp"
@@ -23,12 +24,6 @@ namespace rgs = std::ranges;
 template <cfg::concepts::CArrange TArrange_>
 class MvImpl_ {
 public:
-#ifdef _DEBUG
-    static constexpr bool DEBUG_ENABLED = true;
-#else
-    static constexpr bool DEBUG_ENABLED = false;
-#endif
-
     // Typename alias
     using TCvtConfig = cfg::CliConfig::Convert;
     using TArrange = TArrange_;
@@ -103,7 +98,7 @@ std::expected<void, Error> MvImpl_<TArrange>::renderView(const TBridge& bridge, 
     auto genWeightRes = genLenTypeWeight(bridge, pCommonCache_->srcs[0], mvCache_.lenTypeWeights, viewRow, viewCol);
     if (!genWeightRes) return std::unexpected{std::move(genWeightRes.error())};
 
-    if constexpr (DEBUG_ENABLED) {
+    if constexpr (TLCT_ENABLE_DEBUG) {
         std::array<cv::Mat, 3> lenTypeWeightsU8;
 
         for (int i = 0; i < 3; i++) {

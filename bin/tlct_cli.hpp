@@ -16,6 +16,8 @@
     parser->add_group("I/O");
     parser->add_argument("-i", "--src").help("input yuv420p file").required();
     parser->add_argument("-o", "--dst").help("output directory").required();
+    parser->add_argument("--debug").help("debug output directory")
+        .default_value("");
     parser->add_group("Frame Range");
     parser->add_argument("-b", "--begin")
         .help("the index of the start frame, left inclusive, starts from zero")
@@ -27,7 +29,7 @@
         .default_value(1);
     parser->add_group("Conversion");
     parser->add_argument("--method")
-        .help("ssim (0), census + patch merge (1), census + ltype merge (2)")
+        .help("ssim (0), census (1), debug (2)")
         .scan<'i', int>()
         .default_value(1);
     parser->add_argument("--views").help("viewpoint number").scan<'i', int>().default_value(1);
@@ -55,7 +57,8 @@
 
 [[nodiscard]] static std::expected<tlct::CliConfig, tlct::Error> cfgFromCliParser(
     const argparse::ArgumentParser& parser) noexcept {
-    const tlct::CliConfig::Path path{parser.get<std::string>("--src"), parser.get<std::string>("--dst")};
+    const tlct::CliConfig::Path path{parser.get<std::string>("--src"), parser.get<std::string>("--dst"),
+                                     parser.get<std::string>("--debug")};
     const tlct::CliConfig::Range range{parser.get<int>("--begin"), parser.get<int>("--end")};
     const tlct::CliConfig::Convert convert{
         parser.get<int>("--method"),           parser.get<int>("--views"),

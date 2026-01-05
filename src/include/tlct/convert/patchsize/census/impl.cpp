@@ -4,6 +4,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "tlct/common/config.h"
 #include "tlct/config.hpp"
 #include "tlct/convert/concepts/neighbors.hpp"
 #include "tlct/convert/concepts/patchsize.hpp"
@@ -79,7 +80,7 @@ float PsizeImpl_<TArrange>::estimatePatchsize(TBridge& bridge, cv::Point index) 
     const MIBuffer& anchorMI = mis_.getMI(offset);
     const float prevPsize = getPrevPatchsize(offset);
 
-    if constexpr (DEBUG_ENABLED) {
+    if constexpr (TLCT_ENABLE_DEBUG) {
         *bridge.getInfo(offset).getPDebugInfo() = {};
     }
 

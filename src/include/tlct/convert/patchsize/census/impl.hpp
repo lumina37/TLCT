@@ -29,12 +29,10 @@ struct PsizeMetric {
 template <cfg::concepts::CArrange TArrange_>
 class PsizeImpl_ {
 public:
-#ifdef _DEBUG
+#if TLCT_ENABLE_DEBUG
     using TDebugInfo = PatchMergeDebugInfo;
-    static constexpr bool DEBUG_ENABLED = true;
 #else
     using TDebugInfo = nullptr_t;
-    static constexpr bool DEBUG_ENABLED = false;
 #endif
 
     // Typename alias

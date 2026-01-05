@@ -1,4 +1,6 @@
 #pragma once
 
+#cmakedefine01 TLCT_ENABLE_DEBUG
+
 #cmakedefine TLCT_VERSION "@TLCT_VERSION@"
 #cmakedefine TLCT_COMPILE_INFO "@TLCT_COMPILE_INFO@"

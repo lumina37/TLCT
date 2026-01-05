@@ -8,7 +8,6 @@ cmake_policy(SET CMP0091 NEW)
 project(tlct
         VERSION 1.7.0
         DESCRIPTION "The official implementation of the Tsinghua Lenslet Conversion Tool"
-        HOMEPAGE_URL "https://github.com/lumina37/TLCT"
         LANGUAGES CXX
 )
 
@@ -23,6 +22,7 @@ endif ()
 include(CMakeDependentOption)
 
 option(TLCT_ENABLE_TESTS "Enable tests" OFF)
+option(TLCT_ENABLE_DEBUG "Enable debug" OFF)
 cmake_dependent_option(TLCT_ENABLE_LTO "Enable full link-time-optimizations (LTO)" OFF
         "DEFINED PROJECT_NAME" OFF)
 option(TLCT_ENABLE_FAST_MATH "Enable fast-math" OFF)
