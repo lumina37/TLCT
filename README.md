@@ -6,7 +6,7 @@ The official implementation of the *Tsinghua Lenslet Conversion Tool*.
 
 ## Demo
 
-You can download the minimal demo [here](https://drive.google.com/file/d/1boCJ7uzLoA9fSLcrom1f0Sj4zEEgYpU_/view).
+You can download the minimal demo [here](https://drive.google.com/drive/folders/1Ih3I19D3oX42xd5BtbPDzTk_Q3eYp27h).
 
 ## Recommend Calibration Configs
 
@@ -14,5 +14,5 @@ We've already fine-tuned the calibration configs for all CTC sequences. You can 
 
 ## Tested Complier Version
 
-+ gcc v14
-+ msvc v19.43* (*hard to test different version of msvc)
++ gcc v15
++ msvc v19.50* (*hard to test different version of msvc)
