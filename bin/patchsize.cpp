@@ -17,8 +17,9 @@ namespace fs = std::filesystem;
 namespace rgs = std::ranges;
 
 template <tlct::concepts::CManager TManager>
-static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, const tlct::ConfigMap& map) noexcept {
-    auto arrangeRes = TManager::TArrange::createWithCfgMap(map);
+static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg,
+                                               const tlct::ConfigMap& calibCfg) noexcept {
+    auto arrangeRes = TManager::TArrange::createWithCalibCfg(calibCfg);
     if (!arrangeRes) return std::unexpected{std::move(arrangeRes.error())};
     auto& arrange = arrangeRes.value();
 
@@ -70,7 +71,7 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg, co
     return {};
 }
 
-bool isMultiFocus(const tlct::ConfigMap& cfgMap) { return cfgMap.getOr<"NearFocalLenType">(-1) >= 0; }
+bool isMultiFocus(const tlct::ConfigMap& calibCfg) { return calibCfg.getOr<"NearFocalLenType">(-1) >= 0; }
 
 int main(int argc, char* argv[]) {
     auto parser = makeUniqArgParser();
@@ -99,10 +100,10 @@ int main(int argc, char* argv[]) {
     }
 
     const auto cliCfg = cfgFromCliParser(*parser) | unwrap;
-    const auto cfgMap = tlct::ConfigMap::createFromPath(calibFilePath) | unwrap;
+    const auto calibCfg = tlct::ConfigMap::createFromPath(calibFilePath) | unwrap;
 
-    const int pipeline = cliCfg.convert.method * 2 + (int)isMultiFocus(cfgMap);
+    const int pipeline = cliCfg.convert.method * 2 + (int)isMultiFocus(calibCfg);
     const auto& handler = handlers[pipeline];
 
-    handler(cliCfg, cfgMap) | unwrap;
+    handler(cliCfg, calibCfg) | unwrap;
 }

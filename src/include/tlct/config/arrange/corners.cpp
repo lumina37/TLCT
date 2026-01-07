@@ -87,17 +87,19 @@ std::expected<CornersArrange, Error> CornersArrange::create(cv::Size imgSize, fl
                           miCols,  1,        direction, isKepler, nearFocalLenType, isOutShift};
 }
 
-std::expected<CornersArrange, Error> CornersArrange::createWithCfgMap(const ConfigMap& map) noexcept {
-    const cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
-    const float diameter = map.get<"MIDiameter", float>();
-    const bool direction = map.getOr<"MLADirection">(false);
-    const bool isKepler = map.getOr<"IsKepler">(true);
-    const int nearFocalLenType = map.getOr<"NearFocalLenType">(-1);
-    const cv::Point2f leftTop = {map.get<"LeftTopMICenterX", float>(), map.get<"LeftTopMICenterY", float>()};
-    const cv::Point2f rightTop = {map.get<"RightTopMICenterX", float>(), map.get<"RightTopMICenterY", float>()};
-    const cv::Point2f leftBottom = {map.get<"LeftBottomMICenterX", float>(), map.get<"LeftBottomMICenterY", float>()};
-    const cv::Point2f rightBottom = {map.get<"RightBottomMICenterX", float>(),
-                                     map.get<"RightBottomMICenterY", float>()};
+std::expected<CornersArrange, Error> CornersArrange::createWithCalibCfg(const ConfigMap& calibCfg) noexcept {
+    const cv::Size imgSize{calibCfg.get<"LensletWidth", int>(), calibCfg.get<"LensletHeight", int>()};
+    const float diameter = calibCfg.get<"MIDiameter", float>();
+    const bool direction = calibCfg.getOr<"MLADirection">(false);
+    const bool isKepler = calibCfg.getOr<"IsKepler">(true);
+    const int nearFocalLenType = calibCfg.getOr<"NearFocalLenType">(-1);
+    const cv::Point2f leftTop = {calibCfg.get<"LeftTopMICenterX", float>(), calibCfg.get<"LeftTopMICenterY", float>()};
+    const cv::Point2f rightTop = {calibCfg.get<"RightTopMICenterX", float>(),
+                                  calibCfg.get<"RightTopMICenterY", float>()};
+    const cv::Point2f leftBottom = {calibCfg.get<"LeftBottomMICenterX", float>(),
+                                    calibCfg.get<"LeftBottomMICenterY", float>()};
+    const cv::Point2f rightBottom = {calibCfg.get<"RightBottomMICenterX", float>(),
+                                     calibCfg.get<"RightBottomMICenterY", float>()};
 
     return create(imgSize, diameter, direction, isKepler, nearFocalLenType, leftTop, rightTop, leftBottom, rightBottom);
 }

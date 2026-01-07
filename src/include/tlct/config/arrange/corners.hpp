@@ -31,7 +31,8 @@ public:
     [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> create(
         cv::Size imgSize, float diameter, bool direction, bool isKepler, int nearFocalLenType, cv::Point2f leftTop,
         cv::Point2f rightTop, cv::Point2f leftBottom, cv::Point2f rightBottom) noexcept;
-    [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> createWithCfgMap(const ConfigMap& map) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<CornersArrange, Error> createWithCalibCfg(
+        const ConfigMap& calibCfg) noexcept;
 
     // Non-const methods
     TLCT_API CornersArrange& upsample(int factor) noexcept;

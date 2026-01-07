@@ -31,7 +31,8 @@ public:
                                                                              bool direction, bool isKepler,
                                                                              int nearFocalLenType,
                                                                              cv::Point2f offset) noexcept;
-    [[nodiscard]] TLCT_API static std::expected<OffsetArrange, Error> createWithCfgMap(const ConfigMap& map) noexcept;
+    [[nodiscard]] TLCT_API static std::expected<OffsetArrange, Error> createWithCalibCfg(
+        const ConfigMap& calibCfg) noexcept;
 
     // Non-const methods
     TLCT_API OffsetArrange& upsample(int factor) noexcept;

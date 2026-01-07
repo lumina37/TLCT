@@ -14,9 +14,9 @@ template <typename Self>
 concept CArrange = std::is_trivially_copyable_v<Self> && requires {
     // Constructor
     { Self() } -> std::same_as<Self>;
-} && requires(const ConfigMap& map) {
+} && requires(const ConfigMap& calibCfg) {
     // Init from
-    { Self::createWithCfgMap(map) } noexcept -> std::same_as<std::expected<Self, Error>>;
+    { Self::createWithCalibCfg(calibCfg) } noexcept -> std::same_as<std::expected<Self, Error>>;
 } && requires(Self self) {
     // Non-const methods
     requires requires(int factor) {

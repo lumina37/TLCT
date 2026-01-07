@@ -78,13 +78,13 @@ std::expected<OffsetArrange, Error> OffsetArrange::create(cv::Size imgSize, floa
                          miCols,  1,        direction, isKepler,   nearFocalLenType, isOutShift};
 }
 
-std::expected<OffsetArrange, Error> OffsetArrange::createWithCfgMap(const ConfigMap& map) noexcept {
-    const cv::Size imgSize{map.get<"LensletWidth", int>(), map.get<"LensletHeight", int>()};
-    const float diameter = map.get<"MIDiameter", float>();
-    const bool direction = map.getOr<"MLADirection">(false);
-    const bool isKepler = map.getOr<"IsKepler">(true);
-    const int nearFocalLenType = map.getOr<"NearFocalLenType">(-1);
-    const cv::Point2f offset = {map.get<"CentralMIOffsetX", float>(), map.get<"CentralMIOffsetY", float>()};
+std::expected<OffsetArrange, Error> OffsetArrange::createWithCalibCfg(const ConfigMap& calibCfg) noexcept {
+    const cv::Size imgSize{calibCfg.get<"LensletWidth", int>(), calibCfg.get<"LensletHeight", int>()};
+    const float diameter = calibCfg.get<"MIDiameter", float>();
+    const bool direction = calibCfg.getOr<"MLADirection">(false);
+    const bool isKepler = calibCfg.getOr<"IsKepler">(true);
+    const int nearFocalLenType = calibCfg.getOr<"NearFocalLenType">(-1);
+    const cv::Point2f offset = {calibCfg.get<"CentralMIOffsetX", float>(), calibCfg.get<"CentralMIOffsetY", float>()};
 
     return create(imgSize, diameter, direction, isKepler, nearFocalLenType, offset);
 }

@@ -15,8 +15,8 @@ TEST_CASE("Arrange with four corners", "tlct::cfg#CornersArrange") {
     const fs::path testdataDir{TLCT_TESTDATA_DIR};
     fs::current_path(testdataDir);
 
-    const auto cfgMap = tlct::ConfigMap::createFromPath("test/清华单聚焦光场相机.cfg").value();
-    const auto arrange = tlct::cfg::CornersArrange::createWithCfgMap(cfgMap).value();
+    const auto calibCfg = tlct::ConfigMap::createFromPath("test/清华单聚焦光场相机.cfg").value();
+    const auto arrange = tlct::cfg::CornersArrange::createWithCalibCfg(calibCfg).value();
 
     constexpr float eps = 0.1f;
 
