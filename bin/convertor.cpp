@@ -71,9 +71,15 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg,
         auto readRes = yuvReader.readInto(srcFrame);
         if (!readRes) return std::unexpected{std::move(readRes.error())};
 
+        Timer timer;
+
+        timer.begin();
         auto updateRes = manager.update(srcFrame);
         if (!updateRes) return std::unexpected{std::move(updateRes.error())};
+        timer.end();
+        std::println("patch size estimation timecost : {} ms", timer.durationMs());
 
+        timer.begin();
         int view = 0;
         for (const int viewRow : rgs::views::iota(0, cliCfg.convert.views)) {
             for (const int viewCol : rgs::views::iota(0, cliCfg.convert.views)) {
@@ -88,6 +94,8 @@ static std::expected<void, tlct::Error> render(const tlct::CliConfig& cliCfg,
                 view++;
             }
         }
+        timer.end();
+        std::println("stitching timecost : {} ms", timer.durationMs());
     }
 
     return {};
