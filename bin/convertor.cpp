@@ -118,6 +118,7 @@ int main(int argc, char* argv[]) {
         render<tlct::cvt::TSPCMeth0Manager>, render<tlct::cvt::RaytrixMeth0Manager>,
         render<tlct::cvt::TSPCMeth1Manager>, render<tlct::cvt::RaytrixMeth1Manager>,
         render<tlct::cvt::TSPCDebugManager>, render<tlct::cvt::RaytrixDebugManager>,
+        render<tlct::cvt::TSPCXufuManager>,  render<tlct::cvt::RaytrixXufuManager>,
     };
 
     std::string calibFilePath;
